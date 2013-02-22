@@ -1,15 +1,15 @@
 (in-package :hu.dwim.computed-class)
 
-(define-computed-universe projectional-editor ()
+(define-computed-universe projectured ()
   ()
   (:computed-state-factory-name as))
 
 (defcclass* ccons ()
-  ((head :computed-in projectional-editor)
-   (tail :computed-in projectional-editor)))
+  ((head :computed-in projectured)
+   (tail :computed-in projectured)))
 
 (defcclass* clist ()
-  ((first-cons :computed-in projectional-editor)))
+  ((first-cons :computed-in projectured)))
 
 (defcclass* cstring (clist)
   ())

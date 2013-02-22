@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; IO map
 
-(def class* iomap/string (iomap)
+(def document iomap/string (iomap)
   ((input-reference :type reference)
    (output-reference :type reference)
    (input-offset :type integer)

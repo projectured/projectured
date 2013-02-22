@@ -11,10 +11,6 @@
 ;;;
 ;;; An editor is a way of changing the state of a document.
 
-(def (computed-universe e) projectional-editor ()
-  ()
-  (:computed-state-factory-name as))
-
 (def (generic e) editor? (object)
   (:documentation "Returns TRUE if OBJECT is an editor, otherwise returns FALSE. Purely functional."))
 
@@ -63,10 +59,8 @@
                 (return (lambda () (redo-operation operation)))))))))
 
 (def method print-to-devices ((editor editor) document projection)
-  (bind ((printer-iomap (setf (printer-iomap-of editor) (time (apply-printer document projection)))
-                        #+nil
-                        (if (slot-boundp editor 'printer-iomap)
+  (bind ((printer-iomap (if (slot-boundp editor 'printer-iomap)
                             (printer-iomap-of editor)
                             (setf (printer-iomap-of editor) (time (apply-printer document projection))))))
     (iter (for device :in-sequence (devices-of editor))
-          (print-to-device (output-of printer-iomap) device))))
+          (print-to-device (time (output-of printer-iomap)) device))))

@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; IO map
 
-(def class* iomap ()
+(def document iomap ()
   ((projection :type projection)
    (recursion :type projection)
    (input :type t)

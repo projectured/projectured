@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; IO map
 
-(def class* iomap/parallel (iomap)
+(def document iomap/parallel (iomap)
   ((element-iomaps :type list)))
 
 ;;;;;;

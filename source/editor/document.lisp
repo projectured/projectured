@@ -9,6 +9,10 @@
 ;;;;;;
 ;;; API
 
+(def (computed-universe e) projectured ()
+  ()
+  (:computed-state-factory-name as))
+
 (def (generic e) document? (object)
   (:documentation "Returns TRUE if OBJECT is a document, otherwise returns FALSE. Purely functional."))
 
@@ -21,13 +25,13 @@
 (def (definer :available-flags "e") document (name supers slots &rest options)
   `(def computed-class* ,name ,supers
      ,(iter (for slot :in slots)
-            (collect (append slot (list :computed-in 'projectional-editor))))
+            (collect (append slot (list :computed-in 'projectured))))
      ,@options))
 
 ;;;;;;
 ;;; Data structure
 
-(def class* document ()
+(def document document ()
   ((content :type t)
    (selection :type selection)))
 

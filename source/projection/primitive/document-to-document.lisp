@@ -30,18 +30,16 @@
 (def printer document->document (projection recursion input input-reference output-reference)
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
          (typed-output-reference `(the ,(form-type input) ,output-reference))
-         (input-content (content-of input))
-         (iomap (recurse-printer  recursion input-content `(content-of ,typed-input-reference) `(content-of ,typed-output-reference)))
-         (output-content (output-of iomap))
-         (input-selection (selection-of input))
-         (output-selection nil))
-    (map-forward iomap (tree-replace input-selection '(the document document) typed-input-reference)
-                 (lambda (iomap output-reference)
-                   (declare (ignore iomap))
-                   (setf output-selection output-reference)))
-    (bind ((output (make-document output-content :selection (tree-replace output-selection output-reference 'document))))
+         (iomap-cs (as (recurse-printer recursion (content-of input) `(content-of ,typed-input-reference) `(content-of ,typed-output-reference))))
+         (output-selection-cs (as (bind ((output-selection nil))
+                                    (map-forward (computed-state-value iomap-cs) (tree-replace (selection-of input) '(the document document) typed-input-reference)
+                                                 (lambda (iomap output-reference)
+                                                   (declare (ignore iomap))
+                                                   (setf output-selection output-reference)))
+                                    (tree-replace output-selection output-reference 'document)))))
+    (bind ((output (make-document (as (output-of (computed-state-value iomap-cs))) :selection output-selection-cs)))
       (make-iomap/recursive projection recursion input input-reference output output-reference
-                            (list (make-iomap/object projection recursion input input-reference output output-reference) iomap)))))
+                            (list (make-iomap/object projection recursion input input-reference output output-reference) (computed-state-value iomap-cs))))))
 
 ;;;;;;
 ;;; Reader

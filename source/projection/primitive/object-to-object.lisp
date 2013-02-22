@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; IO map
 
-(def class* iomap/object (iomap)
+(def document iomap/object (iomap)
   ((input-reference :type reference)
    (output-reference :type reference)))
 
@@ -45,6 +45,7 @@
   (if (equal input-reference (input-reference-of iomap))
       (funcall function iomap (output-reference-of iomap))
       ;; TODO: this is very inefficient
+      ;; TODO: is this wrapping with printer-output correct?
       (when (tree-search input-reference `(the ,(form-type (output-of iomap))
                                             (printer-output ,(input-reference-of iomap) ,(projection-of iomap) ,(recursion-of iomap))))
         (funcall function iomap (tree-replace input-reference
@@ -59,6 +60,7 @@
   (if (equal output-reference (output-reference-of iomap))
       (funcall function iomap (input-reference-of iomap))
       ;; TODO: this is very inefficient
+      ;; TODO: is this wrapping with printer-output correct?
       (when (tree-search output-reference (output-reference-of iomap))
         (funcall function iomap (tree-replace output-reference
                                               (output-reference-of iomap)

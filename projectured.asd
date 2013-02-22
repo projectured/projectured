@@ -37,7 +37,7 @@
                                            (:file "editor" :depends-on ("printer" "reader"))
                                            (:file "event")
                                            (:file "gesture" :depends-on ("event"))
-                                           (:file "mapping")
+                                           (:file "mapping" :depends-on ("document"))
                                            (:file "operation" :depends-on ("gesture" "projection" "selection"))
                                            (:file "printer" :depends-on ("device"))
                                            (:file "projection")
