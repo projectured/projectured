@@ -41,12 +41,16 @@
 ;;; Sequence operation API implementation
 
 (def method redo-operation ((operation operation/sequence/replace-element-range))
-  (pattern-case (target-of operation)
-    ((the sequence-position (pos (the ?type (?if (subtypep ?type 'sequence)) ?a) ?b))
-     (bind ((document (document-of operation))
-            (old-sequence (eval-reference document ?a))
-            (new-sequence (concatenate (form-type old-sequence)
-                                       (subseq old-sequence 0 ?b) (replacement-of operation) (subseq old-sequence ?b))))
-       (setf (eval-reference document ?a) new-sequence)))
-    (?a
-     (not-yet-implemented))))
+  (bind (((:values reference start end)
+          (pattern-case (target-of operation)
+            ((the sequence-position (pos (the ?type (?if (subtypep ?type 'sequence)) ?a) ?b))
+             (values ?a ?b ?b))
+            ((the sequence (subseq (the ?type (?if (subtypep ?type 'sequence)) ?a) ?b ?c))
+             (values ?a ?b ?c))
+            (?a
+             (not-yet-implemented))))
+         (document (document-of operation))
+         (old-sequence (eval-reference document reference))
+         (new-sequence (concatenate (form-type old-sequence)
+                                    (subseq old-sequence 0 start) (replacement-of operation) (subseq old-sequence end))))
+    (setf (eval-reference document reference) new-sequence)))
