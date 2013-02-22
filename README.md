@@ -1,3 +1,3 @@
 ![My image](http://s9.postimage.org/mxnmsv4en/projectured.png)
 
-A general purpose projectional editor.
+ProjecturEd is a generic purpose projectional editor.
