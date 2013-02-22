@@ -8,6 +8,23 @@
 
 (def suite* (test :in root-suite))
 
+(def function walk-object (object)
+  (bind ((seen-set (make-hash-table)))
+    (labels ((recurse (input)
+               (unless (gethash input seen-set)
+                 (setf (gethash input seen-set) #t)
+                 (typecase input
+                   (cons
+                    (recurse (car input))
+                    (recurse (cdr input)))
+                   (standard-object
+                    (bind ((class (class-of input)))
+                      (iter (for slot :in (class-slots class))
+                            (when (slot-boundp-using-class class input slot)
+                              (recurse (slot-value-using-class class input slot))))))
+                   ((or number symbol string))))))
+      (recurse object))))
+
 ;; TODO: split and move to where iomaps are defined
 (def function map-input-references (iomap function)
   (etypecase iomap
