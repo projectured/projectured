@@ -21,25 +21,25 @@
 ;;;;;;
 ;;; Projection
 
-(def (projection e) parallell ()
+(def (projection e) parallel ()
   ((elements :type list)))
 
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/parallell (projections)
-  (make-projection 'parallell :elements projections))
+(def (function e) make-projection/parallel (projections)
+  (make-projection 'parallel :elements projections))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) parallell (&body forms)
-  `(make-projection/parallell (list ,@forms)))
+(def (macro e) parallel (&body forms)
+  `(make-projection/parallel (list ,@forms)))
 
 ;;;;;;
 ;;; Printer
 
-(def printer parallell (projection recursion input input-reference output-reference)
+(def printer parallel (projection recursion input input-reference output-reference)
   (iter (for element :in (elements-of projection))
         (for iomap = (funcall (printer-of element) element recursion input input-reference output-reference))
         (collect iomap :into element-iomaps)
@@ -48,6 +48,6 @@
 ;;;;;;
 ;;; Reader
 
-(def reader parallell (projection recursion input input-reference output-reference)
+(def reader parallel (projection recursion input input-reference output-reference)
   (declare (ignore projection recursion input input-reference output-reference))
   nil)
