@@ -45,11 +45,11 @@
 ;;;;;;
 ;;; Printer
 
-(def printer widget/tooltip->graphics/canvas (projection recursion input input-reference output-reference)
+(def printer widget/tooltip->graphics/canvas (projection recursion iomap input input-reference output-reference)
   (if (visible-p input)
       (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
              (content (content-of input))
-             (content-iomap (recurse-printer recursion content
+             (content-iomap (recurse-printer recursion iomap content
                                              `(the ,(form-type content) (content-of ,typed-input-reference))
                                              `(elt (the list (elements-of (the graphics/canvas ,output-reference))) 0)))
              (content-output (output-of content-iomap))
@@ -66,11 +66,11 @@
                                     content-iomap)))
       (make-iomap/object projection recursion input input-reference (make-graphics/canvas nil (make-2d 0 0)) output-reference)))
 
-(def printer widget/composite->graphics/canvas (projection recursion input input-reference output-reference)
+(def printer widget/composite->graphics/canvas (projection recursion iomap input input-reference output-reference)
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
          (element-iomaps (iter (for index :from 0)
                                (for element :in-sequence (elements-of input))
-                               (collect (recurse-printer recursion element
+                               (collect (recurse-printer recursion iomap element
                                                          `(elt (the list (elements-of ,typed-input-reference)) ,index)
                                                          `(elt (the list (elements-of (the graphics/canvas ,output-reference))) ,index)))))
          (output (make-graphics/canvas (mapcar 'output-of element-iomaps)
@@ -79,9 +79,9 @@
                           (list* (make-iomap/object projection recursion input input-reference output output-reference)
                                  element-iomaps))))
 
-(def printer widget/scroll-pane->graphics/canvas (projection recursion input input-reference output-reference)
+(def printer widget/scroll-pane->graphics/canvas (projection recursion iomap input input-reference output-reference)
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
-         (content-iomap (recurse-printer recursion (content-of input) `(content-of ,typed-input-reference)
+         (content-iomap (recurse-printer recursion iomap (content-of input) `(content-of ,typed-input-reference)
                                          `(elt (the list (elements-of (the graphics/canvas (content-of (the graphics/viewport (elt (the list (elements-of (the graphics/canvas ,output-reference))) 0)))))) 0)))
          ;; TODO:
          (location (make-2d 0 0))

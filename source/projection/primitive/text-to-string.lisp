@@ -27,7 +27,7 @@
 ;;;;;;
 ;;; Printer
 
-(def printer text->string (projection recursion input input-reference output-reference)
+(def printer text->string (projection recursion iomap input input-reference output-reference)
   (bind ((child-iomaps nil)
          (output (make-adjustable-string ""))
          (temporary (with-output-to-string (stream)

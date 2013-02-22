@@ -90,23 +90,23 @@
 ;;;;;;
 ;;; Printer
 
-(def printer t/null->string (projection recursion input input-reference output-reference)
+(def printer t/null->string (projection recursion iomap input input-reference output-reference)
   (bind ((output "<empty list>"))
     (make-iomap/object projection recursion input input-reference output output-reference)))
 
-(def printer t/number->string (projection recursion input input-reference output-reference)
+(def printer t/number->string (projection recursion iomap input input-reference output-reference)
   (bind ((output (write-to-string input)))
     (make-iomap/object projection recursion input input-reference output output-reference)))
 
-(def printer t/string->string (projection recursion input input-reference output-reference)
+(def printer t/string->string (projection recursion iomap input input-reference output-reference)
   (bind ((output (string+ "\"" input "\"")))
     (make-iomap/object projection recursion input input-reference output output-reference)))
 
-(def printer t/symbol->string (projection recursion input input-reference output-reference)
+(def printer t/symbol->string (projection recursion iomap input input-reference output-reference)
   (bind ((output (symbol-name input)))
     (make-iomap/object projection recursion input input-reference output output-reference)))
 
-(def printer t/sequence->table/table (projection recursion input input-reference output-reference)
+(def printer t/sequence->table/table (projection recursion iomap input input-reference output-reference)
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
          (output (make-table/table (list* (make-table/row (list (make-table/cell "TYPE")
                                                                 (make-table/cell (if (consp input)
@@ -115,21 +115,21 @@
                                           (iter (for index :from 0)
                                                 (for element :in-sequence input)
                                                 (collect (make-table/row (list (make-table/cell (write-to-string index))
-                                                                               (make-table/cell (output-of (recurse-printer recursion (elt input index)
+                                                                               (make-table/cell (output-of (recurse-printer recursion iomap (elt input index)
                                                                                                                             `(elt ,typed-input-reference ,index)
                                                                                                                             `(content-of (the table/cell (elt (the list (cells-of (the table/row (elt (the list (rows-of (the table/table ,output-reference))) ,(1+ index))))) 1))))))))))))))
     (make-iomap/object projection recursion input input-reference output output-reference)))
 
-(def printer t/hash-table->table/table (projection recursion input input-reference output-reference)
+(def printer t/hash-table->table/table (projection recursion iomap input input-reference output-reference)
   ;; TODO:
   (bind ((output "hash table"))
     (make-iomap/object projection recursion input input-reference output output-reference)))
 
-(def printer t/function->table/table (projection recursion input input-reference output-reference)
+(def printer t/function->table/table (projection recursion iomap input input-reference output-reference)
   (bind ((output "function"))
     (make-iomap/object projection recursion input input-reference output output-reference)))
 
-(def printer t/object->table (projection recursion input input-reference output-reference)
+(def printer t/object->table (projection recursion iomap input input-reference output-reference)
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
          (output (make-table/table (list* (make-table/row (list (make-table/cell "TYPE")
                                                                 (make-table/cell (symbol-name (class-name (class-of input))))))
@@ -139,7 +139,7 @@
                                                 (for slot-name = (slot-definition-name slot))
                                                 (collect (make-table/row (list (make-table/cell (symbol-name slot-name))
                                                                                (make-table/cell (if (slot-boundp-using-class class input slot)
-                                                                                                    (output-of (recurse-printer recursion (slot-value-using-class class input slot)
+                                                                                                    (output-of (recurse-printer recursion iomap (slot-value-using-class class input slot)
                                                                                                                                 `(slot-value ,typed-input-reference ,slot-name)
                                                                                                                                 `(content-of (the table/cell (elt (the list (cells-of (the table/row (elt (the list (rows-of (the table/table ,output-reference))) ,(1+ index))))) 1)))))
                                                                                                     "<unbound>"))))))))))

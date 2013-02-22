@@ -30,7 +30,8 @@
 ;;;;;;
 ;;; Printer
 
-(def printer string->delimited-string (projection recursion input input-reference output-reference)
+(def printer string->delimited-string (projection recursion iomap input input-reference output-reference)
+  (declare (ignore iomap))
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
          (opening-delimiter (opening-delimiter-of projection))
          (closing-delimiter (closing-delimiter-of projection))

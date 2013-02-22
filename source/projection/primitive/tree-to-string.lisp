@@ -65,7 +65,7 @@
 ;;;;;;
 ;;; Printer
 
-(def printer tree->string (projection recursion tree-document input-reference output-reference)
+(def printer tree->string (projection recursion iomap tree-document input-reference output-reference)
   (bind ((typed-input-reference `(the ,(form-type tree-document) ,input-reference))
          (child-iomaps nil)
          (output (make-adjustable-string ""))
@@ -96,7 +96,7 @@
                                    (bind ((typed-input-reference `(the ,(form-type input) ,input-reference)))
                                      (awhen (or (when (typep input 'tree/base)
                                                   (opening-delimiter-of input))
-                                                (funcall (delimiter-provider-of projection) *iomap* `(opening-delimiter ,typed-input-reference)))
+                                                (funcall (delimiter-provider-of projection) iomap `(opening-delimiter ,typed-input-reference)))
                                        (push (make-iomap/string it `(opening-delimiter ,typed-input-reference ,it) 0
                                                                 output string-reference (file-position stream)
                                                                 (length it))
@@ -111,10 +111,10 @@
                                                 (for child-path = `(elt (the ,(form-type children) (children-of ,typed-input-reference)) ,index))
                                                 (for child-reference = `(the ,(form-type child) ,child-path))
                                                 (for previous-child-reference :previous child-reference)
-                                                (for indentation = (funcall (indentation-provider-of projection) *iomap* previous-child-reference child-reference))
+                                                (for indentation = (funcall (indentation-provider-of projection) iomap previous-child-reference child-reference))
                                                 (unless (first-iteration-p)
                                                   (awhen (or (separator-of input)
-                                                             (funcall (separator-provider-of projection) *iomap* previous-child-reference child-reference))
+                                                             (funcall (separator-provider-of projection) iomap previous-child-reference child-reference))
                                                     (push (make-iomap/string it `(separator ,previous-child-reference ,child-reference ,it) 0
                                                                              output string-reference (file-position stream)
                                                                              (length it))
@@ -124,7 +124,7 @@
                                                   (next-line (+ parent-indentation indentation) child-reference))
                                                 (recurse child child-path (- (file-position stream) line-position))
                                                 (finally
-                                                 (when-bind indentation (funcall (indentation-provider-of projection) *iomap* child-reference nil)
+                                                 (when-bind indentation (funcall (indentation-provider-of projection) iomap child-reference nil)
                                                    (next-line indentation previous-child-reference))))))
                                        (tree/leaf
                                         (push (make-iomap/string* input `(the string (content-of ,typed-input-reference)) 0
@@ -146,7 +146,7 @@
                                               (write-string line stream))))
                                      (awhen (or (when (typep input 'tree/base)
                                                   (closing-delimiter-of input))
-                                                (funcall (delimiter-provider-of projection) *iomap* `(closing-delimiter ,typed-input-reference)))
+                                                (funcall (delimiter-provider-of projection) iomap `(closing-delimiter ,typed-input-reference)))
                                        (push (make-iomap/string it `(closing-delimiter ,typed-input-reference ,it) 0
                                                                 output string-reference (file-position stream)
                                                                 (length it))

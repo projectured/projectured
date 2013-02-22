@@ -32,14 +32,14 @@
 ;;;;;;
 ;;; Printer
 
-(def printer reference-dispatching (projection recursion input input-reference output-reference)
+(def printer reference-dispatching (projection recursion iomap input input-reference output-reference)
   (declare (ignore recursion))
   (iter (with default-projection = (default-projection-of projection))
         (with reference-projection-pairs = (reference-projection-pairs-of projection))
         (for (reference projection) :in-sequence reference-projection-pairs)
         (when (equal reference input-reference)
-          (return (funcall (printer-of projection) projection projection input input-reference output-reference)))
-        (finally (return (funcall (printer-of default-projection) default-projection projection input input-reference output-reference)))))
+          (return (funcall (printer-of projection) projection projection iomap input input-reference output-reference)))
+        (finally (return (funcall (printer-of default-projection) default-projection projection iomap input input-reference output-reference)))))
 
 ;;;;;;
 ;;; Reader

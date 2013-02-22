@@ -63,7 +63,7 @@
 ;;;;;;
 ;;; Printer
 
-(def printer lisp-form/number->string (projection recursion input input-reference output-reference)
+(def printer lisp-form/number->string (projection recursion iomap input input-reference output-reference)
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
          (output (write-to-string (value-of input))))
     (make-iomap/recursive projection recursion input input-reference output output-reference
@@ -72,7 +72,7 @@
                                                     output `(the string ,output-reference) 0
                                                     (length output))))))
 
-(def printer lisp-form/symbol->string (projection recursion input input-reference output-reference)
+(def printer lisp-form/symbol->string (projection recursion iomap input input-reference output-reference)
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
          (output (string-downcase (value-of input))))
     (make-iomap/recursive projection recursion input input-reference output output-reference
@@ -81,7 +81,7 @@
                                                     output `(the string ,output-reference) 0
                                                     (length output))))))
 
-(def printer lisp-form/string->string (projection recursion input input-reference output-reference)
+(def printer lisp-form/string->string (projection recursion iomap input input-reference output-reference)
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
          (value (value-of input))
          (output (string+ "\"" value "\"")))
@@ -92,12 +92,12 @@
                                 (make-iomap/object* projection recursion input `(the string (value-of ,typed-input-reference))
                                                     output `(the string ,output-reference))))))
 
-(def printer lisp-form/cons->tree/node (projection recursion input input-reference output-reference)
+(def printer lisp-form/cons->tree/node (projection recursion iomap input input-reference output-reference)
   (bind ((child-iomaps nil)
          (typed-input-reference `(the ,(form-type input) ,input-reference))
          (output (make-tree/node (iter (for index :from 0)
                                        (for element :in (elements-of input))
-                                       (for iomap = (recurse-printer recursion element
+                                       (for iomap = (recurse-printer recursion iomap element
                                                                      `(elt (the list (elements-of ,typed-input-reference)) ,index)
                                                                      `(elt (the list (children-of (the tree/node ,output-reference))) ,index)))
                                        (push iomap child-iomaps)
@@ -105,7 +105,7 @@
     (make-iomap/recursive projection recursion input input-reference output output-reference
                           (list* (make-iomap/object projection recursion input input-reference output output-reference) (nreverse child-iomaps)))))
 
-(def printer lisp-form/object->string (projection recursion input input-reference output-reference)
+(def printer lisp-form/object->string (projection recursion iomap input input-reference output-reference)
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
          (output (write-to-string input)))
     (make-iomap/recursive projection recursion input input-reference output output-reference

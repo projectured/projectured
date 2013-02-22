@@ -27,10 +27,10 @@
 ;;;;;;
 ;;; Printer
 
-(def printer document->document (projection recursion input input-reference output-reference)
+(def printer document->document (projection recursion iomap input input-reference output-reference)
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
          (typed-output-reference `(the ,(form-type input) ,output-reference))
-         (iomap-cs (as (recurse-printer recursion (content-of input) `(content-of ,typed-input-reference) `(content-of ,typed-output-reference))))
+         (iomap-cs (as (recurse-printer recursion iomap (content-of input) `(content-of ,typed-input-reference) `(content-of ,typed-output-reference))))
          (output-selection-cs (as (bind ((output-selection nil))
                                     (map-forward (computed-state-value iomap-cs) (tree-replace (selection-of input) '(the document document) typed-input-reference)
                                                  (lambda (iomap output-reference)

@@ -27,7 +27,7 @@
 ;;;;;;
 ;;; Printer
 
-(def printer word-wrapping (projection recursion input input-reference output-reference)
+(def printer word-wrapping (projection recursion iomap input input-reference output-reference)
   (bind ((elements (iter (with x = 0)
                          (with elements = (elements-of input))
                          (with wrap-width = (wrap-width-of projection))

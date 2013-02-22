@@ -20,23 +20,17 @@
    (recursion :type projection)
    (input :type t)
    (output :type t)
+   (reference-applier :type function)
    (forward-mapper :type function)
-   (backward-mapper :type function)
-   (reference-applier :type function))
+   (backward-mapper :type function))
   (:documentation "An IOMAP provides a bidirectional mapping between INPUT and OUTPUT."))
 
-(def (function e) make-iomap (type &rest args &key forward-mapper backward-mapper reference-applier &allow-other-keys)
+(def (function e) make-iomap (type &rest args &key reference-applier forward-mapper backward-mapper &allow-other-keys)
   (apply #'make-instance type
+         :reference-applier (or reference-applier (find-reference-applier type))
          :forward-mapper (or forward-mapper (find-forward-mapper type))
          :backward-mapper (or backward-mapper (find-backward-mapper type))
-         :reference-applier (or reference-applier (find-reference-applier type))
          args))
-
-;; KLUDGE:
-(def (special-variable e) *iomap* (make-iomap 'iomap
-                                              :forward-mapper (constantly nil)
-                                              :backward-mapper (constantly nil)
-                                              :reference-applier (constantly nil)))
 
 ;;;;;;
 ;;; Forward mapper

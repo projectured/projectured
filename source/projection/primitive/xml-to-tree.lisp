@@ -48,11 +48,11 @@
 ;;;;;;
 ;;; Printer
 
-(def printer xml/text->string (projection recursion input input-reference output-reference)
+(def printer xml/text->string (projection recursion iomap input input-reference output-reference)
   (bind ((output (text-of input)))
     (make-iomap/object projection recursion input input-reference output output-reference)))
 
-(def printer xml/attribute->tree/node (projection recursion input input-reference output-reference)
+(def printer xml/attribute->tree/node (projection recursion iomap input input-reference output-reference)
   (bind ((name (name-of input))
          (value (value-of input))
          (output (make-tree/node (list name value)))
@@ -72,7 +72,7 @@
                                 (make-iomap/object projection recursion value `(value-of ,typed-input-reference)
                                                    value value-reference)))))
 
-(def printer xml/element->tree/node (projection recursion input input-reference output-reference)
+(def printer xml/element->tree/node (projection recursion iomap input input-reference output-reference)
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
          (child-iomaps nil)
          (name (name-of input))
@@ -92,7 +92,7 @@
                                            (list (prog1-bind output
                                                      (make-tree/node (iter (for attribute :in attributes)
                                                                            (for attribute-index :from 0)
-                                                                           (for iomap = (recurse-printer recursion attribute
+                                                                           (for iomap = (recurse-printer recursion iomap attribute
                                                                                                          `(elt (the list (attributes-of ,typed-input-reference)) ,attribute-index)
                                                                                                          `(elt (the list (children-of (the tree/node (elt (the list (children-of (the tree/node ,output-reference))) ,1)))) ,attribute-index)))
                                                                            (push iomap child-iomaps)
@@ -106,7 +106,7 @@
                                            (append (prog1-bind output
                                                        (iter (for child :in children)
                                                              (for child-index :from 0)
-                                                             (for iomap = (recurse-printer recursion child
+                                                             (for iomap = (recurse-printer recursion iomap child
                                                                                            `(elt (the list (children-of ,typed-input-reference)) ,child-index)
                                                                                            `(elt (the list (children-of (the tree/node ,output-reference))) ,(+ child-index (if attributes 2 1)))))
                                                              (push iomap child-iomaps)

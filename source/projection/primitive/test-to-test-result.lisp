@@ -27,7 +27,7 @@
 ;;;;;;
 ;;; Printer
 
-(def printer test->test-result (projection recursion input input-reference output-reference)
+(def printer test->test-result (projection recursion iomap input input-reference output-reference)
   (bind ((name (hu.dwim.stefil::name-of input))
          (test-result (multiple-value-list
                        (handler-bind ((condition (lambda (c) (continue c))))

@@ -110,7 +110,7 @@
 ;;;;;;
 ;;; Printer
 
-(def printer string->string (projection recursion input input-reference output-reference)
+(def printer string->string (projection recursion iomap input input-reference output-reference)
   (declare (ignore projection recursion))
   (make-iomap/string input input-reference 0 input output-reference 0 (length input)))
 

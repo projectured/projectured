@@ -27,7 +27,8 @@
 ;;;;;;
 ;;; Printer
 
-(def printer string->line-numbered-string (projection recursion input input-reference output-reference)
+(def printer string->line-numbered-string (projection recursion iomap input input-reference output-reference)
+  (declare (ignore iomap))
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
          (child-iomaps nil)
          (line-count (1+ (count #\NewLine input)))

@@ -28,7 +28,8 @@
 ;;;;;;
 ;;; Printer
 
-(def printer sorting (projection recursion input input-reference output-reference)
+(def printer sorting (projection recursion iomap input input-reference output-reference)
+  (declare (ignore iomap))
   (bind ((child-iomaps nil)
          (key (key-of projection))
          (predicate (predicate-of projection))

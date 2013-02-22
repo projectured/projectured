@@ -30,7 +30,7 @@
 ;;;;;;
 ;;; Printer
 
-(def printer book/book->tree/node (projection recursion input input-reference output-reference)
+(def printer book/book->tree/node (projection recursion iomap input input-reference output-reference)
   (bind ((child-iomaps nil)
          (output (bind ((typed-input-reference `(the ,(form-type input) ,input-reference)))
                    (make-tree/node (list* (prog1-bind title (title-of input)
@@ -38,7 +38,7 @@
                                             (push (make-iomap/string title `(title-of ,typed-input-reference) 0 title `(elt (the list (children-of (the tree/node ,output-reference))) 0) 0 (length title)) child-iomaps))
                                           (iter (for index :from 0)
                                                 (for element :in-sequence (elements-of input))
-                                                (for iomap = (recurse-printer recursion element
+                                                (for iomap = (recurse-printer recursion iomap element
                                                                               `(elt (the list (elements-of ,typed-input-reference)) ,index)
                                                                               `(elt (the list (children-of (the tree/node ,output-reference))) ,(1+ index))))
                                                 (push iomap child-iomaps)
@@ -47,7 +47,7 @@
                           (list* (make-iomap/object projection recursion input input-reference output output-reference)
                                  (reverse child-iomaps)))))
 
-(def printer book/chapter->tree/node (projection recursion input input-reference output-reference)
+(def printer book/chapter->tree/node (projection recursion iomap input input-reference output-reference)
   (bind ((child-iomaps nil)
          (output (bind ((typed-input-reference `(the ,(form-type input) ,input-reference)))
                    (make-tree/node (list* (prog1-bind title (title-of input)
@@ -55,7 +55,7 @@
                                             (push (make-iomap/string title `(title-of ,typed-input-reference) 0 title `(elt (the list (children-of (the tree/node ,output-reference))) 0) 0 (length title)) child-iomaps))
                                           (iter (for index :from 0)
                                                 (for element :in-sequence (elements-of input))
-                                                (for iomap = (recurse-printer recursion element
+                                                (for iomap = (recurse-printer recursion iomap element
                                                                               `(elt (the list (elements-of ,typed-input-reference)) ,index)
                                                                               `(elt (the list (children-of (the tree/node ,output-reference))) ,(1+ index))))
                                                 (push iomap child-iomaps)
@@ -64,7 +64,7 @@
                           (list* (make-iomap/object projection recursion input input-reference output output-reference)
                                  (reverse child-iomaps)))))
 
-(def printer book->tree (projection recursion input input-reference output-reference)
+(def printer book->tree (projection recursion iomap input input-reference output-reference)
   (bind ((child-iomaps nil))
     (labels ((recurse (input input-reference output-reference)
                (bind ((typed-input-reference `(the ,(form-type input) ,input-reference)))

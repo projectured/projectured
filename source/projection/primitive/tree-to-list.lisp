@@ -28,12 +28,12 @@
 ;;;;;;
 ;;; Printer
 
-(def printer tree/node->list (projection recursion input input-reference output-reference)
+(def printer tree/node->list (projection recursion iomap input input-reference output-reference)
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
          (child-iomaps nil)
          (output (iter (for child :in-sequence (children-of input))
                        (for index :from 0)
-                       (for iomap = (recurse-printer recursion child `(elt (the list (children-of ,typed-input-reference)) ,index) `(elt (the list ,output-reference) ,index)))
+                       (for iomap = (recurse-printer recursion iomap child `(elt (the list (children-of ,typed-input-reference)) ,index) `(elt (the list ,output-reference) ,index)))
                        (push iomap child-iomaps)
                        (collect (output-of iomap)))))
     (make-iomap/recursive projection recursion input input-reference output output-reference

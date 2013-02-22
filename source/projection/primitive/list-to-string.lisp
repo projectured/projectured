@@ -27,7 +27,7 @@
 ;;;;;;
 ;;; Printer
 
-(def printer list->string (projection recursion input input-reference output-reference)
+(def printer list->string (projection recursion iomap input input-reference output-reference)
   (bind ((child-iomaps nil)
          (width (list/width input))
          (typed-input-reference `(the ,(form-type input) ,input-reference))

@@ -39,7 +39,7 @@
 ;;;;;;
 ;;; Printer
 
-(def printer sequence->string (projection recursion input input-reference output-reference)
+(def printer sequence->string (projection recursion iomap input input-reference output-reference)
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
          (opening-delimiter (opening-delimiter-of projection))
          (closing-delimiter (closing-delimiter-of projection))
@@ -80,7 +80,7 @@
                                         child-iomaps/string)
                                   (push (make-iomap/object projection recursion element element-reference output nil) child-iomaps/object)
                                   (write-string element stream))
-                                (bind ((iomap (recurse-printer recursion element `(elt ,typed-input-reference ,index) output-reference)))
+                                (bind ((iomap (recurse-printer recursion iomap element `(elt ,typed-input-reference ,index) output-reference)))
                                   (labels ((push-iomaps (iomap)
                                              (etypecase iomap
                                                (iomap/string

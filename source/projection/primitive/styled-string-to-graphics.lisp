@@ -27,7 +27,8 @@
 ;;;;;;
 ;;; Printer
 
-(def printer styled-string->graphics (projection recursion input input-reference output-reference)
+(def printer styled-string->graphics (projection recursion iomap input input-reference output-reference)
+  (declare (ignore iomap))
   (bind ((child-iomaps nil)
          (typed-input-reference `(the ,(form-type input) ,input-reference))
          (elements (iter outer

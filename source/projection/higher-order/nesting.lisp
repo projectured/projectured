@@ -27,12 +27,12 @@
 ;;;;;;
 ;;; Printer
 
-(def printer nesting (projection recursion input input-reference output-reference)
+(def printer nesting (projection recursion iomap input input-reference output-reference)
   (bind ((elements (elements-of projection))
          (output-iomap (if elements
                            (bind ((first-element (first elements)))
-                             (funcall (printer-of first-element) first-element (make-projection/nesting (rest elements)) input input-reference output-reference))
-                           (recurse-printer recursion input input-reference output-reference))))
+                             (funcall (printer-of first-element) first-element (make-projection/nesting (rest elements)) iomap input input-reference output-reference))
+                           (recurse-printer recursion iomap input input-reference output-reference))))
     (make-iomap/recursive projection recursion input input-reference (output-of output-iomap) output-reference
                           (list output-iomap))))
 

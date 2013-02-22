@@ -27,7 +27,7 @@
 ;;;;;;
 ;;; Printer
 
-(def printer test-result->table (projection recursion input input-reference output-reference)
+(def printer test-result->table (projection recursion iomap input input-reference output-reference)
   (bind ((output (make-table/table (list* (make-table/row (list (make-table/cell "Name")
                                                                 (make-table/cell "Failures")))
                                           (iter (for (test test-run) :in-hashtable (hu.dwim.stefil::run-tests-of input))

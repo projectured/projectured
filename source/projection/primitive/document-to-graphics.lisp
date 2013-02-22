@@ -27,9 +27,9 @@
 ;;;;;;
 ;;; Printer
 
-(def printer document->graphics (projection recursion input input-reference output-reference)
+(def printer document->graphics (projection recursion iomap input input-reference output-reference)
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
-         (iomap-cs (as (recurse-printer recursion (content-of input) `(content-of ,typed-input-reference) `(elt (the list (elements-of (the graphics/canvas ,output-reference))) 0))))
+         (iomap-cs (as (recurse-printer recursion iomap (content-of input) `(content-of ,typed-input-reference) `(elt (the list (elements-of (the graphics/canvas ,output-reference))) 0))))
          (iomap (computed-state-value iomap-cs))
          (output-content (output-of iomap))
          (input-selection (selection-of input)))

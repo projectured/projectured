@@ -88,7 +88,7 @@
 ;;;;;;
 ;;; Printer
 
-(def printer object->object (projection recursion input input-reference output-reference)
+(def printer object->object (projection recursion iomap input input-reference output-reference)
   (make-iomap/object projection recursion input input-reference output-reference))
 
 ;;;;;;

@@ -27,7 +27,7 @@
 ;;;;;;
 ;;; Printer
 
-(def printer copying (projection recursion input input-reference output-reference)
+(def printer copying (projection recursion iomap input input-reference output-reference)
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference)))
     (etypecase input
       (symbol (make-iomap/object projection recursion input input-reference input output-reference))
@@ -36,8 +36,8 @@
                                     (list (make-iomap/object projection recursion input input-reference input output-reference)
                                           (make-iomap/string input input-reference 0 input output-reference 0 (length input)))))
       (cons
-       (bind ((car-iomap (recurse-printer recursion (car input) `(car ,typed-input-reference) `(car (the ,(form-type input) ,output-reference))))
-              (cdr-iomap (recurse-printer recursion (cdr input) `(cdr ,typed-input-reference) `(cdr (the ,(form-type input) ,output-reference))))
+       (bind ((car-iomap (recurse-printer recursion iomap (car input) `(car ,typed-input-reference) `(car (the ,(form-type input) ,output-reference))))
+              (cdr-iomap (recurse-printer recursion iomap (cdr input) `(cdr ,typed-input-reference) `(cdr (the ,(form-type input) ,output-reference))))
               (output (cons (output-of car-iomap) (output-of cdr-iomap))))
          (make-iomap/recursive projection recursion input input-reference output output-reference
                                (list (make-iomap/object projection recursion input input-reference output output-reference) car-iomap cdr-iomap))))
@@ -49,7 +49,7 @@
                           (bind ((direct-slot (find-direct-slot class (slot-definition-name slot)))
                                  (slot-reader (first (slot-definition-readers direct-slot)))
                                  (slot-value (slot-value-using-class class input slot))
-                                 (iomap (recurse-printer recursion slot-value
+                                 (iomap (recurse-printer recursion iomap slot-value
                                                          (if slot-reader
                                                              `(,slot-reader ,typed-input-reference)
                                                              `(slot-value ,typed-input-reference ',(slot-definition-name slot)))

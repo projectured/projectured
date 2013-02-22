@@ -75,23 +75,21 @@
 ;;;;;;
 ;;; Printer
 
-(def printer sequential (projection recursion input input-reference output-reference)
-  (iter (for output :initially input :then (output-of iomap))
+(def printer sequential (projection recursion iomap input input-reference output-reference)
+  (iter (for output :initially input :then (output-of element-iomap))
         (for index :from 0)
         (for element :in (elements-of projection))
         (for element-input-reference :initially input-reference :then element-output-reference)
         (for element-output-reference = `(printer-output (the ,(form-type output) ,element-input-reference) ,element ,recursion))
         ;; TODO: KLUDGE: properly recurse with iomap
-        (for iomap = (bind ((*iomap* (if *iomap*
-                                         (make-iomap/recursive projection recursion input input-reference output output-reference
-                                                               (list *iomap* (make-iomap/sequential input input-reference output element-output-reference element-iomaps)))
-                                         (make-iomap/sequential input input-reference output element-output-reference element-iomaps))))
-                       (funcall (printer-of element) element recursion output
-                                element-input-reference
-                                (if (= index (1- (length (elements-of projection))))
-                                    output-reference
-                                    element-output-reference))))
-        (collect iomap :into element-iomaps)
+        (for element-iomap = (bind ((iomap (make-iomap/recursive projection recursion input input-reference output output-reference
+                                                                 (list iomap (make-iomap/sequential input input-reference output element-output-reference element-iomaps)))))
+                               (funcall (printer-of element) element recursion iomap output
+                                        element-input-reference
+                                        (if (= index (1- (length (elements-of projection))))
+                                            output-reference
+                                            element-output-reference))))
+        (collect element-iomap :into element-iomaps)
         (finally (return (make-iomap/sequential input input-reference output output-reference element-iomaps)))))
 
 ;;;;;;

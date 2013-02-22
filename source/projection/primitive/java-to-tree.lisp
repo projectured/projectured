@@ -144,12 +144,12 @@
 ;;;;;;
 ;;; Printer
 
-(def printer java/statement/block->tree/node (projection recursion input input-reference output-reference)
+(def printer java/statement/block->tree/node (projection recursion iomap input input-reference output-reference)
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
          (child-iomaps nil)
          (output (make-tree/node (iter (for index :from 0)
                                        (for element :in-sequence (elements-of input))
-                                       (for iomap = (recurse-printer recursion element
+                                       (for iomap = (recurse-printer recursion iomap element
                                                                      `(elt (elements-of ,typed-input-reference) ,index)
                                                                      `(elt (the list (children-of (the tree/node ,output-reference))) ,index)))
                                        (push iomap child-iomaps)
@@ -157,11 +157,11 @@
     (make-iomap/recursive projection recursion input input-reference output output-reference
                           (list* (make-iomap/object projection recursion input input-reference output output-reference) (nreverse child-iomaps)))))
 
-(def printer java/statement/if->tree/node (projection recursion input input-reference output-reference)
+(def printer java/statement/if->tree/node (projection recursion iomap input input-reference output-reference)
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
-         (condition-iomap (recurse-printer recursion (condition-of input) `(condition-of ,typed-input-reference) `(elt (the list (children-of (the tree/node ,output-reference))) 1)))
-         (then-branch-iomap (recurse-printer recursion (then-of input) `(then-of ,typed-input-reference) `(elt (the list (children-of (the tree/node ,output-reference))) 2)))
-         (else-branch-iomap (recurse-printer recursion (else-of input) `(else-of ,typed-input-reference) `(elt (the list (children-of (the tree/node ,output-reference))) 4)))
+         (condition-iomap (recurse-printer recursion iomap (condition-of input) `(condition-of ,typed-input-reference) `(elt (the list (children-of (the tree/node ,output-reference))) 1)))
+         (then-branch-iomap (recurse-printer recursion iomap (then-of input) `(then-of ,typed-input-reference) `(elt (the list (children-of (the tree/node ,output-reference))) 2)))
+         (else-branch-iomap (recurse-printer recursion iomap (else-of input) `(else-of ,typed-input-reference) `(elt (the list (children-of (the tree/node ,output-reference))) 4)))
          (output (make-tree/node (list* "if"
                                         (output-of condition-iomap)
                                         (output-of then-branch-iomap)
@@ -180,9 +180,9 @@
                                                     output `(the string (elt (the list (children-of (the tree/node ,output-reference))) 3)) 0
                                                     4)))))
 
-(def printer java/statement/return->tree/node (projection recursion input input-reference output-reference)
+(def printer java/statement/return->tree/node (projection recursion iomap input input-reference output-reference)
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
-         (iomap (recurse-printer recursion (value-of input) `(value-of  ,typed-input-reference) `(elt (the list (children-of (the tree/node ,output-reference))) 1)))
+         (iomap (recurse-printer recursion iomap (value-of input) `(value-of  ,typed-input-reference) `(elt (the list (children-of (the tree/node ,output-reference))) 1)))
          (output (make-tree/node (list "return" (output-of iomap)))))
     (make-iomap/recursive projection recursion input input-reference output output-reference
                           (list (make-iomap/object projection recursion input input-reference output output-reference)
@@ -191,7 +191,7 @@
                                                     6)
                                 iomap))))
 
-(def printer java/expression/variable-reference->string (projection recursion input input-reference output-reference)
+(def printer java/expression/variable-reference->string (projection recursion iomap input input-reference output-reference)
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
          (output (name-of input)))
     (make-iomap/recursive projection recursion input input-reference output output-reference
@@ -200,13 +200,13 @@
                                                     output `(the string ,output-reference) 0
                                                     (length output))))))
 
-(def printer java/expression/method-invocation->tree/node (projection recursion input input-reference output-reference)
+(def printer java/expression/method-invocation->tree/node (projection recursion iomap input input-reference output-reference)
   (bind ((child-iomaps nil)
          (typed-input-reference `(the ,(form-type input) ,input-reference))
          (output (make-tree/node (list (method-of input)
                                        (make-tree/node (iter (for index :from 0)
                                                              (for argument :in-sequence (arguments-of input))
-                                                             (for iomap = (recurse-printer recursion argument
+                                                             (for iomap = (recurse-printer recursion iomap argument
                                                                                            `(elt (the list (arguments-of ,typed-input-reference)) ,index)
                                                                                            `(elt (the list (children-of (the tree/node (elt (the list (children-of (the tree/node ,output-reference))) 1)))) ,index)))
                                                              (push iomap child-iomaps)
@@ -220,12 +220,12 @@
                                                     output `(elt (the list (children-of (the tree/node ,output-reference))) 1))
                                  (nreverse child-iomaps)))))
 
-(def printer java/expression/infix-operator->tree/node (projection recursion input input-reference output-reference)
+(def printer java/expression/infix-operator->tree/node (projection recursion iomap input input-reference output-reference)
   (bind ((child-iomaps nil)
          (typed-input-reference `(the ,(form-type input) ,input-reference))
          (output (make-tree/node (iter (for index :from 0)
                                        (for argument :in-sequence (arguments-of input))
-                                       (for iomap = (recurse-printer recursion argument
+                                       (for iomap = (recurse-printer recursion iomap argument
                                                                      `(elt (the list (arguments-of ,typed-input-reference)) ,index)
                                                                      `(elt (the list (children-of (the tree/node ,output-reference))) ,(* 2 index))))
                                        (unless (first-iteration-p)
@@ -240,11 +240,11 @@
                           (list* (make-iomap/object projection recursion input input-reference output output-reference)
                                  (nreverse child-iomaps)))))
 
-(def printer java/literal/null->string (projection recursion input input-reference output-reference)
+(def printer java/literal/null->string (projection recursion iomap input input-reference output-reference)
   (bind ((output "null"))
     (make-iomap/object projection recursion input input-reference output output-reference)))
 
-(def printer java/literal/number->string (projection recursion input input-reference output-reference)
+(def printer java/literal/number->string (projection recursion iomap input input-reference output-reference)
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
          (output (write-to-string (value-of input))))
     (make-iomap/recursive projection recursion input input-reference output output-reference
@@ -253,26 +253,26 @@
                                                     output `(the string ,output-reference) 0
                                                     (length output))))))
 
-(def printer java/literal/character->string (projection recursion input input-reference output-reference)
+(def printer java/literal/character->string (projection recursion iomap input input-reference output-reference)
   (bind ((output (format nil "'~A'" (value-of input))))
     (make-iomap/object projection recursion input input-reference output output-reference)))
 
-(def printer java/literal/string->string (projection recursion input input-reference output-reference)
+(def printer java/literal/string->string (projection recursion iomap input input-reference output-reference)
   (bind ((output (value-of input)))
     (make-iomap/object projection recursion input input-reference output output-reference)))
 
-(def printer java/declaration/method->tree/node (projection recursion input input-reference output-reference)
+(def printer java/declaration/method->tree/node (projection recursion iomap input input-reference output-reference)
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
          (child-iomaps nil)
-         (qualifier-iomap (recurse-printer recursion (qualifier-of input) `(qualifier-of ,typed-input-reference) `(elt (the list (children-of (the tree/node ,output-reference))) 0)))
-         (return-type-iomap (recurse-printer recursion (return-type-of input) `(return-type-of ,typed-input-reference) `(elt (the list (children-of (the tree/node ,output-reference))) 1)))
-         (body-iomap (recurse-printer recursion (body-of input) `(body-of ,typed-input-reference) `(elt (the list (children-of (the tree/node ,output-reference))) 4)))
+         (qualifier-iomap (recurse-printer recursion iomap (qualifier-of input) `(qualifier-of ,typed-input-reference) `(elt (the list (children-of (the tree/node ,output-reference))) 0)))
+         (return-type-iomap (recurse-printer recursion iomap (return-type-of input) `(return-type-of ,typed-input-reference) `(elt (the list (children-of (the tree/node ,output-reference))) 1)))
+         (body-iomap (recurse-printer recursion iomap (body-of input) `(body-of ,typed-input-reference) `(elt (the list (children-of (the tree/node ,output-reference))) 4)))
          (output (make-tree/node (list (output-of qualifier-iomap)
                                        (output-of return-type-iomap)
                                        (name-of input)
                                        (make-tree/node (iter (for index :from 0)
                                                              (for argument :in-sequence (arguments-of input))
-                                                             (for iomap = (recurse-printer recursion argument
+                                                             (for iomap = (recurse-printer recursion iomap argument
                                                                                            `(elt (arguments-of ,typed-input-reference) ,index)
                                                                                            `(elt (the list (children-of (the tree/node (elt (the list (children-of (the tree/node ,output-reference))) 3)))) ,index)))
                                                              (push iomap child-iomaps)
@@ -290,9 +290,9 @@
                                                     output `(elt (the list (children-of (the tree/node ,output-reference))) 3))
                                  (nreverse child-iomaps)))))
 
-(def printer java/declaration/argument->tree/node (projection recursion input input-reference output-reference)
+(def printer java/declaration/argument->tree/node (projection recursion iomap input input-reference output-reference)
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
-         (type-iomap (recurse-printer recursion (slot-value input 'type) `(slot-value ,typed-input-reference 'type) `(elt (the list (children-of (the tree/node ,output-reference))) 0)))
+         (type-iomap (recurse-printer recursion iomap (slot-value input 'type) `(slot-value ,typed-input-reference 'type) `(elt (the list (children-of (the tree/node ,output-reference))) 0)))
          (output (make-tree/node (list (output-of type-iomap)
                                        (name-of input)))))
     (make-iomap/recursive projection recursion input input-reference output output-reference
@@ -302,7 +302,7 @@
                                                     output `(the string (elt (the list (children-of (the tree/node ,output-reference))) 1)) 0
                                                     (length (name-of input)))))))
 
-(def printer java/declaration/qualifier->string (projection recursion input input-reference output-reference)
+(def printer java/declaration/qualifier->string (projection recursion iomap input input-reference output-reference)
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
          (output (name-of input)))
     (make-iomap/recursive projection recursion input input-reference output output-reference
@@ -311,7 +311,7 @@
                                                     output `(the string ,output-reference) 0
                                                     (length output))))))
 
-(def printer java/declaration/type->string (projection recursion input input-reference output-reference)
+(def printer java/declaration/type->string (projection recursion iomap input input-reference output-reference)
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
          (output (name-of input)))
     (make-iomap/recursive projection recursion input input-reference output output-reference

@@ -67,10 +67,10 @@
 ;;;;;;
 ;;; Printer
 
-(def printer recursive (projection recursion input input-reference output-reference)
+(def printer recursive (projection recursion iomap input input-reference output-reference)
   (declare (ignore recursion))
   (bind ((child (child-of projection)))
-    (funcall (printer-of child) child projection input input-reference output-reference)))
+    (funcall (printer-of child) child projection iomap input input-reference output-reference)))
 
 ;;;;;;
 ;;; Reader

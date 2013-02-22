@@ -30,7 +30,8 @@
 ;;;;;;
 ;;; Printer
 
-(def printer focusing (projection recursion input input-reference output-reference)
+(def printer focusing (projection recursion iomap input input-reference output-reference)
+  (declare (ignore iomap))
   (bind ((part (part-of projection))
          (output (funcall (part-evaluator-of projection) input)))
     ;; TODO: how should we map and why?

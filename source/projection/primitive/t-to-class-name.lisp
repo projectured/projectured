@@ -27,7 +27,7 @@
 ;;;;;;
 ;;; Printer
 
-(def printer t->class-name (projection recursion input input-reference output-reference)
+(def printer t->class-name (projection recursion iomap input input-reference output-reference)
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
          (output (string-downcase (class-name (class-of input)))))
     (make-iomap/recursive projection recursion input input-reference output output-reference

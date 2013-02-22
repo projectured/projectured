@@ -28,11 +28,11 @@
 ;;;;;;
 ;;; Printer
 
-(def printer type-dispatching (projection recursion input input-reference output-reference)
+(def printer type-dispatching (projection recursion iomap input input-reference output-reference)
   (iter (with type-projection-pairs = (type-projection-pairs-of projection))
         (for (type projection) :in-sequence type-projection-pairs)
         (when (typep input type)
-          (return (funcall (printer-of projection) projection recursion input input-reference output-reference)))
+          (return (funcall (printer-of projection) projection recursion iomap input input-reference output-reference)))
         (finally (error "Input is not an instance of the given types ~A" (mapcar 'first type-projection-pairs)))))
 
 ;;;;;;

@@ -31,7 +31,7 @@
 ;;;;;;
 ;;; Printer
 
-(def printer string->styled-string (projection recursion input input-reference output-reference)
+(def printer string->styled-string (projection recursion iomap input input-reference output-reference)
   (bind ((child-iomaps nil)
          (stream (make-string-output-stream))
          (color *color/deer*)
@@ -51,9 +51,9 @@
                            (for character-index :from 0)
                            (for character :in-sequence input)
                            (for character-reference = `(the character (elt (the string ,input-reference) ,character-index)))
-                           (for character-color = (or (when color-provider (funcall color-provider *iomap* character-reference))
+                           (for character-color = (or (when color-provider (funcall color-provider iomap character-reference))
                                                       *color/default*))
-                           (for character-font = (or (when font-provider (funcall font-provider *iomap* character-reference))
+                           (for character-font = (or (when font-provider (funcall font-provider iomap character-reference))
                                                      *font/default*))
                            (when (or (not (color= color character-color))
                                      (not (eq font character-font)))

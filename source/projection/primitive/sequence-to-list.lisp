@@ -27,11 +27,11 @@
 ;;;;;;
 ;;; Printer
 
-(def printer sequence->list (projection recursion input input-reference output-reference)
+(def printer sequence->list (projection recursion iomap input input-reference output-reference)
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
          (output (make-list/list (iter (for index :from 0)
                                        (for element :in-sequence input)
-                                       (for iomap = (recurse-printer recursion element
+                                       (for iomap = (recurse-printer recursion iomap element
                                                                      `(elt ,typed-input-reference ,index)
                                                                      `(elt (the list (elements-of (the list/list ,output-reference))) ,index)))
                                        (collect (make-list/element (output-of iomap)))))))

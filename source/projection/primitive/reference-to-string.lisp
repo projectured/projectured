@@ -27,7 +27,7 @@
 ;;;;;;
 ;;; Printer
 
-(def printer reference->string (projection recursion input input-reference output-reference)
+(def printer reference->string (projection recursion iomap input input-reference output-reference)
   (labels ((recurse (input)
              (pattern-case input
                ((the ?a document)

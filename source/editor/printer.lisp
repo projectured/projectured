@@ -18,10 +18,14 @@
   `(setf (find-printer ',name) (lambda ,arguments ,@forms)))
 
 (def (function e) apply-printer (input projection &optional (recursion (make-projection/preserving)))
-  (funcall (printer-of projection) projection recursion input 'document `(printer-output (the ,(form-type input) document) ,projection ,recursion)))
+  (bind ((iomap (make-iomap 'iomap
+                            :reference-applier(constantly nil)
+                            :forward-mapper (constantly nil)
+                            :backward-mapper (constantly nil))))
+    (funcall (printer-of projection) projection recursion iomap input 'document `(printer-output (the ,(form-type input) document) ,projection ,recursion))))
 
-(def (function e) recurse-printer (recursion input input-reference output-reference)
-  (funcall (printer-of recursion) recursion recursion input input-reference output-reference))
+(def (function e) recurse-printer (recursion iomap input input-reference output-reference)
+  (funcall (printer-of recursion) recursion recursion iomap input input-reference output-reference))
 
 (def (function e) printer-output (input projection &optional (recursion (make-projection/preserving)))
   (output-of (apply-printer input projection recursion)))

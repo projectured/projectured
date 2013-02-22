@@ -28,7 +28,7 @@
 ;;; Printer
 
 ;; TODO: make it text, not string
-(def printer table/table->string (projection recursion input input-reference output-reference)
+(def printer table/table->string (projection recursion iomap input input-reference output-reference)
   (bind ((child-iomaps nil)
          (typed-input-reference `(the ,(form-type input) ,input-reference))
          (row-heights (table/row-heights input recursion))
@@ -66,7 +66,7 @@
                                   (for cell-index :from 0)
                                   (for cell :in-sequence (cells-of row))
                                   ;; TODO: reuse iomap
-                                  (for iomap = (recurse-printer recursion (content-of cell)
+                                  (for iomap = (recurse-printer recursion iomap (content-of cell)
                                                                 `(content-of (the table/cell (elt (the list (cells-of (the table/row (elt (the list (rows-of ,typed-input-reference)) ,row-index)))) ,cell-index)))
                                                                 `(the string ,output-reference)))
                                   (for content = (output-of iomap))

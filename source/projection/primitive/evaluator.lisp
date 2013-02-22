@@ -33,7 +33,7 @@
 ;;;;;;
 ;;; Printer
 
-(def printer evaluator (projection recursion input input-reference output-reference)
+(def printer evaluator (projection recursion iomap input input-reference output-reference)
   (bind ((output nil))
     (labels ((evaluate (environment form)
                (etypecase form

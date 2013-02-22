@@ -27,12 +27,12 @@
 ;;;;;;
 ;;; Printer
 
-(def printer predicate-dispatching (projection recursion input input-reference output-reference)
+(def printer predicate-dispatching (projection recursion iomap input input-reference output-reference)
   (declare (ignore recursion))
   (iter (with predicate-projection-pairs = (predicate-projection-pairs-of projection))
         (for (predicate projection) :in-sequence predicate-projection-pairs)
         (when (funcall predicate input)
-          (return (funcall (printer-of projection) projection projection input input-reference output-reference)))
+          (return (funcall (printer-of projection) projection projection iomap input input-reference output-reference)))
         (finally (error "No predicate matched input"))))
 
 ;;;;;;
