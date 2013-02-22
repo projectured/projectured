@@ -165,9 +165,20 @@
 ;;; Reader
 
 (def reader tree->string (projection recursion printer-iomap projection-iomap gesture-queue operation document)
-  (declare (ignore recursion printer-iomap projection-iomap document))
+  (declare (ignore recursion printer-iomap))
   (bind ((latest-gesture (first (gestures-of gesture-queue))))
-    (cond ((and (typep latest-gesture 'gesture/keyboard/key-press)
+    (cond ((typep operation 'operation/sequence/replace-element-range)
+           (bind ((tree-reference nil))
+             ;; KLUDGE:
+             (map-backward projection-iomap (tree-replace (target-of operation) '(the document document) `(the document ,(third (second (output-reference-of projection-iomap)))))
+                           (lambda (iomap reference)
+                             (declare (ignore iomap))
+                             (setf tree-reference reference)))
+             (pattern-case tree-reference
+               ((the sequence (subseq (the string (opening-delimiter (the tree/node ?a) ?b)) 0 1))
+                (make-operation/tree/replace-element-range document (tree-replace `(the tree/node ,?a) `(the document ,(third (second (input-reference-of projection-iomap)))) '(the document document)) "foo"))
+               (?a operation))))
+          ((and (typep latest-gesture 'gesture/keyboard/key-press)
                 (eq (key-of latest-gesture) :sdl-key-i)
                 (member :sdl-key-mod-lctrl (modifiers-of latest-gesture)))
            ;; TODO: create operation

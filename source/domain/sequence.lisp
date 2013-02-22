@@ -53,4 +53,6 @@
          (old-sequence (eval-reference document reference))
          (new-sequence (concatenate (form-type old-sequence)
                                     (subseq old-sequence 0 start) (replacement-of operation) (subseq old-sequence end))))
-    (setf (eval-reference document reference) new-sequence)))
+    (setf (eval-reference document reference) new-sequence)
+    ;; KLUDGE: forece recomputation
+    (invalidate-computed-slot (document-of operation) 'content)))

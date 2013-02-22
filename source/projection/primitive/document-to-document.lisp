@@ -45,9 +45,9 @@
 ;;; Reader
 
 (def reader document->document (projection recursion printer-iomap projection-iomap gesture-queue operation document)
-  (declare (ignore projection))
+  (declare (ignore projection document))
   (bind ((input (input-of projection-iomap))
-         (operation (recurse-reader recursion printer-iomap (elt (child-iomaps-of projection-iomap) 1) gesture-queue operation document)))
+         (operation (recurse-reader recursion printer-iomap (elt (child-iomaps-of projection-iomap) 1) gesture-queue operation input)))
     (when operation
       ;; TODO: factor common parts
       (cond ((typep operation 'operation/replace-selection)
