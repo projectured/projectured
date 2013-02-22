@@ -37,7 +37,7 @@
                                            (:file "editor" :depends-on ("printer" "reader"))
                                            (:file "event")
                                            (:file "gesture" :depends-on ("event"))
-                                           (:file "mapping" :depends-on ("document"))
+                                           (:file "iomap")
                                            (:file "operation" :depends-on ("gesture" "projection" "selection"))
                                            (:file "printer" :depends-on ("device"))
                                            (:file "projection")
@@ -85,6 +85,7 @@
                                                          (:file "sequential")
                                                          (:file "type-dispatching")))
                                            (:module "primitive"
+                                            :depends-on ("generic")
                                             :components ((:file "book-to-tree")
                                                          (:file "document-to-document")
                                                          (:file "document-to-graphics")

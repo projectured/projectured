@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; IO map
 
-(def document iomap/recursive (iomap)
+(def iomap iomap/recursive (iomap)
   ((input-reference :type reference)
    (output-reference :type reference)
    (child-iomaps :type list)))

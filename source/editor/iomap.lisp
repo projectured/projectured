@@ -9,7 +9,13 @@
 ;;;;;;
 ;;; IO map
 
-(def document iomap ()
+(def (definer :available-flags "e") iomap (name supers slots &rest options)
+  `(def computed-class* ,name ,supers
+     ,(iter (for slot :in slots)
+            (collect (append slot (list :computed-in 'projectured))))
+     ,@options))
+
+(def iomap iomap ()
   ((projection :type projection)
    (recursion :type projection)
    (input :type t)
