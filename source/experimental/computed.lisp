@@ -1,3 +1,7 @@
+(require :hu.dwim.computed-class+swank)
+
+(require :hu.dwim.computed-class+hu.dwim.defclass-star)
+
 (in-package :hu.dwim.computed-class)
 
 (define-computed-universe projectured ()
@@ -169,3 +173,66 @@
     (print f)
     (print l)
     (values)))
+
+
+
+
+
+
+
+
+
+
+
+(defcclass* iomap ()
+  ((input :computed-in projectured)
+   (output :computed-in projectured)
+   (children :computed-in projectured)))
+
+(defcclass* document ()
+  ((content :computed-in projectured)))
+
+(defun test-document ()
+  (bind ((document (make-instance 'document :content (make-instance 'document :content 42))))
+    (labels ((recurse (input)
+               (etypecase input
+                 (document
+                  (print "copying document")
+                  (make-instance 'document :content (as (recurse (content-of input)))))
+                 (integer
+                  (print "copying integer")
+                  input))))
+      (bind ((document-copy (recurse document)))
+        (setf (content-of (content-of document)) 43)
+        (print (content-of (content-of document-copy)))
+        (values document document-copy)))))
+
+(defun test-iomap ()
+  (bind ((document (make-instance 'document :content (make-instance 'document :content 42))))
+    (labels ((recurse (input)
+               (etypecase input
+                 (document
+                     (print "copying document")
+                   (bind ((iomap-cs (as (recurse (content-of input)))))
+                     (make-instance 'iomap
+                                    :input document
+                                    :output (as (make-instance 'document :content (as (output-of (computed-state-value iomap-cs)))))
+                                    :children (as (list (computed-state-value iomap-cs))))))
+                 (integer
+                  (print "copying integer")
+                  (make-instance 'iomap
+                                 :input input
+                                 :output input
+                                 :children nil))))
+             (rprint (iomap)
+               (print (input-of iomap))
+               (print (output-of iomap))
+               (map nil #'rprint (children-of iomap))))
+      (bind ((iomap-1 (recurse document))
+             (iomap-2 (recurse (output-of iomap-1))))
+        (rprint iomap-1)
+        (rprint iomap-2)
+        (setf (content-of (content-of document)) 43)
+        (rprint iomap-1)
+        (rprint iomap-2)
+        (values document iomap-1 iomap-2)))))
