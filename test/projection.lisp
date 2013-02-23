@@ -167,6 +167,10 @@
         (nesting
           (document->document)
           (make-test-projection/tree->string))
+        #+nil
+        (nesting
+          (document->document)
+          (string->line-numbered-string))
         (nesting
           (document->graphics)
           (make-test-projection/string->output :color-provider (provider-combinator 'line-number-color-provider 'tree-color-provider)))))))
