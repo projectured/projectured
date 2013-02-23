@@ -51,7 +51,8 @@
                                   (if (= element-index end-element-index)
                                       end-character-index
                                       (length content))))
-         (collect (make-styled-string/string word-part :color color :font font)))))
+         (unless (zerop (length word-part))
+           (collect (make-styled-string/string word-part :color color :font font))))))
 
 (def (function e) styled-string/find (styled-string start-element-index start-character-index test)
   (iter (with elements = (elements-of styled-string))
@@ -60,9 +61,10 @@
         (for content = (content-of element))
         (for character-index :from start-character-index)
         (when (= character-index (length content))
-          (setf character-index 0)
+          (setf character-index -1)
           (incf element-index)
-          (when (= element-index (length elements))
-            (return (values element-index 0))))
+          (if (= element-index (length elements))
+              (return (values element-index 0))
+              (next-iteration)))
         (when (funcall test (elt content character-index))
           (return (values element-index character-index)))))
