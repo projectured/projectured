@@ -175,8 +175,8 @@
                              (declare (ignore iomap))
                              (setf tree-reference reference)))
              (pattern-case tree-reference
-               ((the sequence (subseq (the string (opening-delimiter (the tree/node ?a) ?b)) 0 1))
-                (make-operation/tree/replace-element-range document (tree-replace `(the tree/node ,?a) `(the document ,(third (second (input-reference-of projection-iomap)))) '(the document document)) "foo"))
+               ((the sequence (subseq (the string (opening-delimiter (the tree/node (elt ?a ?b)) ?c)) 0 1))
+                (make-operation/sequence/replace-element-range document (tree-replace `(the sequence (subseq ,?a ,?b ,(1+ ?b))) `(the document ,(third (second (input-reference-of projection-iomap)))) '(the document document)) nil))
                (?a operation))))
           ((and (typep latest-gesture 'gesture/keyboard/key-press)
                 (eq (key-of latest-gesture) :sdl-key-i)

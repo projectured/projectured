@@ -76,37 +76,17 @@
 (def operation operation/tree/toggle-node (operation/tree)
   ((target :type reference)))
 
-(def operation operation/tree/replace-element-range (operation/tree)
-  ((document :type document)
-   (target :type reference)
-   (replacement :type tree/node)))
-
 ;;;;;;
 ;;; Tree operation constructors
 
 (def (function e) make-operation/tree/toggle-node (reference)
   (make-instance 'operation/tree/toggle-node :reference reference))
 
-(def (function e) make-operation/tree/replace-element-range (document target replacement)
-  (make-instance 'operation/tree/replace-element-range
-                 :document document
-                 :target target
-                 :replacement replacement))
-
 ;;;;;;
 ;;; Tree operation API implementation
 
 (def method redo-operation ((operation operation/tree/toggle-node))
   (not-yet-implemented))
-
-(def method redo-operation ((operation operation/tree/replace-element-range))
-  (pattern-case (target-of operation)
-    ((the tree/node ?a)
-     (setf (eval-reference (document-of operation) ?a) (replacement-of operation))
-     ;; KLUDGE: force recomputation
-     (invalidate-computed-slot (document-of operation) 'content))
-    (?a
-     (not-yet-implemented))))
 
 ;;;;;;
 ;;; Provider
