@@ -83,6 +83,15 @@
            (setf (color-provider-of projection) (constantly *color/black*))
            (make-operation/compound nil))
           ((and (typep latest-gesture 'gesture/keyboard/key-press)
+                (member (key-of latest-gesture) '(:sdl-key-home :sdl-key-end))
+                (member :sdl-key-mod-lctrl (modifiers-of latest-gesture)))
+           (bind ((index (ecase (key-of latest-gesture)
+                           (:sdl-key-home 0)
+                           (:sdl-key-end (length (content-of document))))))
+             (make-operation/replace-selection document
+                                               ;; KLUDGE: get document reference
+                                               `(the sequence-position (pos (the string (content-of (the document document))) ,index)))))
+          ((and (typep latest-gesture 'gesture/keyboard/key-press)
                 (member (key-of latest-gesture) '(:sdl-key-left :sdl-key-right :sdl-key-up :sdl-key-down :sdl-key-home :sdl-key-end :sdl-key-pageup :sdl-key-pagedown)))
            (pattern-case (selection-of document)
              ((the sequence-position (pos (the string ?a) ?character-index))
@@ -102,14 +111,8 @@
                   (:sdl-key-right (incf x))
                   (:sdl-key-up (decf y))
                   (:sdl-key-down (incf y))
-                  (:sdl-key-home
-                   (setf x 0)
-                   (when (member :sdl-key-mod-lctrl (modifiers-of latest-gesture))
-                     (setf y 0)))
-                  (:sdl-key-end
-                   (setf x width)
-                   (when (member :sdl-key-mod-lctrl (modifiers-of latest-gesture))
-                     (setf y (1- height))))
+                  (:sdl-key-home (setf x 0))
+                  (:sdl-key-end (setf x width))
                   (:sdl-key-pageup (decf y 10))
                   (:sdl-key-pagedown (incf y 10)))
                 (when (< x 0)
@@ -132,6 +135,7 @@
                   (make-operation/replace-selection document
                                                     `(the sequence-position (pos (the string ,?a) ,character-index))))))))
           ((and (typep latest-gesture 'gesture/keyboard/key-press)
+                (null (modifiers-of latest-gesture))
                 (or (whitespace? (character-of latest-gesture))
                     (alphanumericp (character-of latest-gesture))))
            (pattern-case (selection-of document)
