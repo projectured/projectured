@@ -24,7 +24,7 @@
   (bind ((sb-ext::*evaluator-mode* :interpret))
     (eval `(bind ((document ,document))
              (declare (ignorable document))
-             (setf ,reference ,new-value)))))
+             (setf ,reference ',new-value)))))
 
 (def type reference ()
   '(or number symbol string cons))
