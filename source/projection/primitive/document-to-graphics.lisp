@@ -91,7 +91,8 @@
            (make-iomap/recursive projection recursion input input-reference output output-reference
                                  (list (make-iomap/object projection recursion input input-reference output output-reference) iomap)))))
       (?a
-       (make-iomap/object projection recursion input input-reference (as (output-of (computed-state-value iomap-cs))) output-reference)))))
+       (make-iomap/recursive projection recursion input input-reference output-content output-reference
+                             (list (make-iomap/object projection recursion input input-reference output-content output-reference) iomap))))))
 
 ;;;;;;
 ;;; Reader
