@@ -115,6 +115,6 @@
                                                          (:file "word-wrapping")
                                                          (:file "xml-to-tree")))
                                            (:module "compound"
-                                            :depends-on ("primitive")
+                                            :depends-on ("primitive" "higher-order")
                                             :components ((:file "t-to-string" :depends-on ("t-to-t"))
                                                          (:file "t-to-t")))))))))
