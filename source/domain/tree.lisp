@@ -120,9 +120,10 @@
     ((the ?a (elt (the list (children-of (the tree/node ?b))) ?c))
      (return-from tree-separator-provider " "))))
 
-(def (function e) tree-indentation-provider (iomap previous-child-reference next-child-reference)
+(def (function e) tree-indentation-provider (iomap previous-child-reference next-child-reference parent-node)
   (declare (ignore iomap previous-child-reference))
-  (pattern-case next-child-reference
-    ((the ?a (elt (the list (children-of (the tree/node ?b))) ?c))
-     (when (> ?c 0)
-       (return-from tree-indentation-provider 2)))))
+  (when (some (of-type 'tree/node) (children-of parent-node))
+    (pattern-case next-child-reference
+      ((the ?a (elt (the list (children-of (the tree/node ?b))) ?c))
+       (when (> ?c 0)
+         (return-from tree-indentation-provider 2))))))

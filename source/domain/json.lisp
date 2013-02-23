@@ -142,16 +142,17 @@
                     ((the ?a (gethash ?b (key-value-map-of (the json/object ?c))))
                      (return-from json-separator-provider " : "))))))
 
-(def (function e) json-indentation-provider (iomap previous-child-reference next-child-reference)
-  (map-backward iomap next-child-reference
-                (lambda (iomap reference)
-                  (declare (ignore iomap))
-                  (pattern-case reference
-                    ;; new line after array elements
-                    ((the ?a (elt (the list (elements-of (the json/array ?b))) ?c))
-                     (when (> ?c 0)
-                       (return-from json-indentation-provider 1)))
-                    ;; new line after object entries
-                    ((the t (gethash-entry ?a (the json/object ?b)))
-                     (when previous-child-reference
-                       (return-from json-indentation-provider 1)))))))
+(def (function e) json-indentation-provider (iomap previous-child-reference next-child-reference parent-node)
+  (when (some (of-type 'tree/node) (children-of parent-node))
+    (map-backward iomap next-child-reference
+                  (lambda (iomap reference)
+                    (declare (ignore iomap))
+                    (pattern-case reference
+                      ;; new line after array elements
+                      ((the ?a (elt (the list (elements-of (the json/array ?b))) ?c))
+                       (when (> ?c 0)
+                         (return-from json-indentation-provider 1)))
+                      ;; new line after object entries
+                      ((the t (gethash-entry ?a (the json/object ?b)))
+                       (when previous-child-reference
+                         (return-from json-indentation-provider 1))))))))

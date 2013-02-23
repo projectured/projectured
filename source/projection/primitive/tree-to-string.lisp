@@ -111,7 +111,7 @@
                                                 (for child-path = `(elt (the ,(form-type children) (children-of ,typed-input-reference)) ,index))
                                                 (for child-reference = `(the ,(form-type child) ,child-path))
                                                 (for previous-child-reference :previous child-reference)
-                                                (for indentation = (funcall (indentation-provider-of projection) iomap previous-child-reference child-reference))
+                                                (for indentation = (funcall (indentation-provider-of projection) iomap previous-child-reference child-reference input))
                                                 (unless (first-iteration-p)
                                                   (awhen (or (separator-of input)
                                                              (funcall (separator-provider-of projection) iomap previous-child-reference child-reference))
@@ -124,7 +124,7 @@
                                                   (next-line (+ parent-indentation indentation) child-reference))
                                                 (recurse child child-path (- (file-position stream) line-position))
                                                 (finally
-                                                 (when-bind indentation (funcall (indentation-provider-of projection) iomap child-reference nil)
+                                                 (when-bind indentation (funcall (indentation-provider-of projection) iomap child-reference nil input)
                                                    (next-line indentation previous-child-reference))))))
                                        (tree/leaf
                                         (push (make-iomap/string* input `(the string (content-of ,typed-input-reference)) 0
