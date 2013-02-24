@@ -46,7 +46,16 @@
               (child-iomaps nil)
               (output (prog1-bind clone (allocate-instance class)
                         (dolist (slot (class-slots class))
-                          (bind ((iomap (recurse-printer recursion (slot-value-using-class class input slot) `(slot-value ,typed-input-reference ,(slot-definition-name slot)) output-reference)))
+                          (bind ((direct-slot (find-direct-slot class (slot-definition-name slot)))
+                                 (slot-reader (first (slot-definition-readers direct-slot)))
+                                 (slot-value (slot-value-using-class class input slot))
+                                 (iomap (recurse-printer recursion slot-value
+                                                         (if slot-reader
+                                                             `(,slot-reader ,typed-input-reference)
+                                                             `(slot-value ,typed-input-reference ',(slot-definition-name slot)))
+                                                         (if slot-reader
+                                                             `(,slot-reader (the ,(form-type input) ,output-reference))
+                                                             `(slot-value (the ,(form-type input) ,output-reference) ',(slot-definition-name slot))))))
                             (push iomap child-iomaps)
                             (setf (slot-value-using-class class clone slot) (output-of iomap)))))))
          (make-iomap/recursive projection recursion input input-reference output output-reference
