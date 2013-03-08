@@ -48,31 +48,40 @@
 ;;;;;;
 ;;; Printer
 
+;; TODO: rename projections ->tree/leaf
+
 (def printer xml/text->string (projection recursion iomap input input-reference output-reference)
+  (declare (ignore iomap))
   (bind ((output (text-of input)))
     (make-iomap/object projection recursion input input-reference output output-reference)))
 
 (def printer xml/attribute->tree/node (projection recursion iomap input input-reference output-reference)
+  (declare (ignore iomap))
   (bind ((name (name-of input))
          (value (value-of input))
-         (output (make-tree/node (list name value)))
+         (name-leaf (make-tree/leaf name))
+         (value-leaf (make-tree/leaf value))
+         (output (make-tree/node (list name-leaf value-leaf)))
          (typed-input-reference `(the ,(form-type input) ,input-reference))
          (name-reference `(elt (the list (children-of (the tree/node ,output-reference))) 0))
          (value-reference `(elt (the list (children-of (the tree/node ,output-reference))) 1)))
     (make-iomap/recursive projection recursion input input-reference output output-reference
                           (list (make-iomap/object projection recursion input input-reference output output-reference)
                                 (make-iomap/string name `(name-of ,typed-input-reference) 0
-                                                   name name-reference 0
+                                                   name `(content-of (the tree/leaf ,name-reference)) 0
                                                    (length name))
-                                (make-iomap/object projection recursion name `(name-of ,typed-input-reference)
-                                                   name name-reference)
+                                (make-iomap/object projection recursion
+                                                   name `(name-of ,typed-input-reference)
+                                                   name-leaf name-reference)
                                 (make-iomap/string value `(value-of ,typed-input-reference) 0
-                                                   value value-reference 0
+                                                   value `(content-of (the tree/leaf ,value-reference)) 0
                                                    (length value))
-                                (make-iomap/object projection recursion value `(value-of ,typed-input-reference)
-                                                   value value-reference)))))
+                                (make-iomap/object projection recursion
+                                                   value `(value-of ,typed-input-reference)
+                                                   value-leaf value-reference)))))
 
 (def printer xml/element->tree/node (projection recursion iomap input input-reference output-reference)
+  (declare (ignore iomap))
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
          (child-iomaps nil)
          (name (name-of input))

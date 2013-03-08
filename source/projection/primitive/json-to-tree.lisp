@@ -72,37 +72,51 @@
 ;;;;;;
 ;;; Printer
 
+;; TODO: rename projections ->tree/leaf
+
 (def printer json/null->string (projection recursion iomap input input-reference output-reference)
   (declare (ignore iomap))
-  (bind ((output "null")
-         (name-reference `(value (the ,(form-type input) ,input-reference) ,output)))
+  (bind ((output-content "null")
+         (output (make-tree/leaf output-content))
+         (name-reference `(value (the ,(form-type input) ,input-reference) ,output-content)))
     (make-iomap/recursive projection recursion input input-reference output output-reference
                           (list (make-iomap/object projection recursion input input-reference output output-reference)
-                                (make-iomap/string* input `(the string ,name-reference) 0 output `(the string ,output-reference) 0 (length output))))))
+                                (make-iomap/string* input `(the string ,name-reference) 0
+                                                    output-content `(the string (content-of (the tree/leaf ,output-reference))) 0
+                                                    (length output-content))))))
 
 (def printer json/boolean->string (projection recursion iomap input input-reference output-reference)
   (declare (ignore iomap))
-  (bind ((output (boolean-to-string (value-p input)))
+  (bind ((output-content (boolean-to-string (value-p input)))
+         (output (make-tree/leaf output-content))
          (name-reference `(boolean-to-string (the boolean (value-p (the ,(form-type input) ,input-reference))))))
     (make-iomap/recursive projection recursion input input-reference output output-reference
                           (list (make-iomap/object projection recursion input input-reference output output-reference)
-                                (make-iomap/string* input `(the string ,name-reference) 0 output `(the string ,output-reference) 0 (length output))))))
+                                (make-iomap/string* input `(the string ,name-reference) 0
+                                                    output-content `(the string (content-of (the tree/leaf ,output-reference))) 0
+                                                    (length output-content))))))
 
 (def printer json/number->string (projection recursion iomap input input-reference output-reference)
   (declare (ignore iomap))
-  (bind ((output (write-to-string (value-of input)))
+  (bind ((output-content (write-to-string (value-of input)))
+         (output (make-tree/leaf output-content))
          (value-reference `(write-to-string (the number (value-of (the ,(form-type input) ,input-reference))))))
     (make-iomap/recursive projection recursion input input-reference output output-reference
                           (list (make-iomap/object projection recursion input input-reference output output-reference)
-                                (make-iomap/string* input `(the string ,value-reference) 0 output `(the string ,output-reference) 0 (length output))))))
+                                (make-iomap/string* input `(the string ,value-reference) 0
+                                                    output-content `(the string (content-of (the tree/leaf ,output-reference))) 0
+                                                    (length output-content))))))
 
 (def printer json/string->string (projection recursion iomap input input-reference output-reference)
   (declare (ignore iomap))
-  (bind ((output (text-of input))
+  (bind ((output-content (text-of input))
+         (output (make-tree/leaf output-content))
          (text-reference `(text-of (the ,(form-type input) ,input-reference))))
     (make-iomap/recursive projection recursion input input-reference output output-reference
                           (list (make-iomap/object projection recursion input input-reference output output-reference)
-                                (make-iomap/string output text-reference 0 output output-reference 0 (length (text-of input)))))))
+                                (make-iomap/string output-content text-reference 0
+                                                   output-content `(content-of (the tree/leaf ,output-reference)) 0
+                                                   (length (text-of input)))))))
 
 (def printer json/array->tree/node (projection recursion iomap input input-reference output-reference)
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
@@ -128,15 +142,16 @@
                                                                                `(gethash ,key (key-value-map-of ,typed-input-reference))
                                                                                `(elt ,value-node-reference 1)))
                                                        (output-key key)
-                                                       (output (make-tree/node (list output-key (output-of iomap)))))
+                                                       (output (make-tree/node (list (make-tree/leaf output-key) (output-of iomap)))))
                                                   (push (make-iomap/object* projection recursion input `(the t (gethash-entry ,key ,typed-input-reference))
                                                                             output entry-node-reference)
                                                         child-iomaps)
                                                   (push (make-iomap/object* projection recursion input `(the string (entry-key (gethash-entry ,key (key-value-map-of ,typed-input-reference))))
-                                                                            output-key `(the string (elt ,value-node-reference 0)))
+                                                                            output-key `(the string (content-of (the tree/leaf (elt ,value-node-reference 0)))))
                                                         child-iomaps)
                                                   (push (make-iomap/string* input `(the string (entry-key (gethash-entry ,key (key-value-map-of ,typed-input-reference)))) 0
-                                                                            output-key `(the string (elt ,value-node-reference 0)) 0 (length output-key))
+                                                                            output-key `(the string (content-of (the tree/leaf (elt ,value-node-reference 0)))) 0
+                                                                            (length output-key))
                                                         child-iomaps)
                                                   (push iomap child-iomaps)
                                                   output))))))
