@@ -113,8 +113,8 @@
                     ((the list (attributes-of ?a))
                      (return-from xml-separator-provider " "))))))
 
-(def (function e) xml-indentation-provider (iomap previous-child-reference next-child-reference)
-  (declare (ignore previous-child-reference))
+(def (function e) xml-indentation-provider (iomap previous-child-reference next-child-reference parent-node)
+  (declare (ignore previous-child-reference parent-node))
   (map-backward iomap next-child-reference
                 (lambda (iomap reference)
                   (declare (ignore iomap))

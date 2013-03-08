@@ -260,7 +260,8 @@
   (declare (ignore iomap previous-child-reference next-child-reference))
   " ")
 
-(def (function e) java-indentation-provider (iomap previous-child-reference next-child-reference)
+(def (function e) java-indentation-provider (iomap previous-child-reference next-child-reference parent-node)
+  (declare (ignore parent-node))
   (map-backward iomap previous-child-reference
                 (lambda (iomap reference)
                   (declare (ignore iomap))

@@ -97,8 +97,8 @@
                     ((the ?a (elt (the list (elements-of (the lisp-form/list ?b))) ?c))
                      (return-from lisp-form-separator-provider " "))))))
 
-(def (function e) lisp-form-indentation-provider (iomap previous-child-reference next-child-reference)
-  (declare (ignore previous-child-reference))
+(def (function e) lisp-form-indentation-provider (iomap previous-child-reference next-child-reference parent-node)
+  (declare (ignore previous-child-reference parent-node))
   (map-backward iomap next-child-reference
                 (lambda (iomap reference)
                   (declare (ignore iomap))

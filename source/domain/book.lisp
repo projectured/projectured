@@ -89,8 +89,8 @@
                     ((the string (elt (the list (elements-of (the book/chapter ?a))) ?b))
                      (return-from book-separator-provider ""))))))
 
-(def (function e) book-indentation-provider (iomap previous-child-reference next-child-reference)
-  (declare (ignore next-child-reference))
+(def (function e) book-indentation-provider (iomap previous-child-reference next-child-reference parent-node)
+  (declare (ignore next-child-reference parent-node))
   (map-backward iomap previous-child-reference
                 (lambda (iomap reference)
                   (declare (ignore iomap))
