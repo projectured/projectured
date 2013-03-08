@@ -87,12 +87,12 @@
   nil)
 
 (def function make-test-content/tree ()
-  (make-tree/node (list "Hello"
-                        (make-tree/node (list "head" "tail"))
-                        "World"
-                        (make-tree/node (list "This"
-                                              (make-tree/node (list "is" "deep"))
-                                              "nesting")))))
+  (make-tree/node (list (make-tree/leaf "Hello")
+                        (make-tree/node (list (make-tree/leaf "head") (make-tree/leaf "tail")))
+                        (make-tree/leaf "World")
+                        (make-tree/node (list (make-tree/leaf "This")
+                                              (make-tree/node (list (make-tree/leaf "is") (make-tree/leaf "deep")))
+                                              (make-tree/leaf "nesting"))))))
 
 ;;;;;;
 ;;; Book

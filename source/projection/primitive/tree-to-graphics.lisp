@@ -43,10 +43,8 @@
                                                        (collect canvas-element)))
                                           location)))
                  (tree/leaf
-                  (recurse (content-of input) location depth))
-                 (string
                   (bind ((inset 5)
-                         (text (make-graphics/text (make-2d inset inset) input
+                         (text (make-graphics/text (make-2d inset inset) (content-of input)
                                                    :font *font/default*
                                                    :font-color *color/default*
                                                    :fill-color nil))

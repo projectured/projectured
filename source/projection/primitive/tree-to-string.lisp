@@ -87,8 +87,7 @@
                                    (setf string-reference output-reference))
                                  (recurse (input input-reference parent-indentation)
                                    (bind ((typed-input-reference `(the ,(form-type input) ,input-reference)))
-                                     (awhen (or (when (typep input 'tree/base)
-                                                  (opening-delimiter-of input))
+                                     (awhen (or (opening-delimiter-of input)
                                                 (funcall (delimiter-provider-of projection) iomap `(opening-delimiter ,typed-input-reference)))
                                        (push (make-iomap/string it `(opening-delimiter ,typed-input-reference ,it) 0
                                                                 output string-reference (file-position stream)
@@ -126,19 +125,8 @@
                                         (iter (for line :in (split-sequence #\NewLine (content-of input)))
                                               (unless (first-iteration-p)
                                                 (next-line parent-indentation typed-input-reference))
-                                              (write-string line stream)))
-                                       ;; TODO: kill eventually
-                                       (string
-                                        (push (make-iomap/string input input-reference 0
-                                                                 output string-reference (file-position stream)
-                                                                 (length input))
-                                              child-iomaps)
-                                        (iter (for line :in (split-sequence #\NewLine input))
-                                              (unless (first-iteration-p)
-                                                (next-line parent-indentation typed-input-reference))
                                               (write-string line stream))))
-                                     (awhen (or (when (typep input 'tree/base)
-                                                  (closing-delimiter-of input))
+                                     (awhen (or (closing-delimiter-of input)
                                                 (funcall (delimiter-provider-of projection) iomap `(closing-delimiter ,typed-input-reference)))
                                        (push (make-iomap/string it `(closing-delimiter ,typed-input-reference ,it) 0
                                                                 output string-reference (file-position stream)
