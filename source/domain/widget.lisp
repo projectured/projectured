@@ -6,14 +6,8 @@
 
 (in-package :projectured)
 
-;;;;;;;;
-;;;; Widget domain provides:
-;;;;  - checkbox
-;;;;  - button
-;;;;  - text field
-
 ;;;;;;
-;;; Data structure
+;;; Document
 
 (def document inset ()
   ((top :type number)
@@ -42,6 +36,12 @@
 (def document widget/tooltip (widget/base)
   ((location :type 2d)
    (content :type t)))
+
+(def document widget/menu (widget/base)
+  ((elements :type sequence)))
+
+(def document widget/menu-item (widget/base)
+  ((content :type t)))
 
 (def document widget/panel ()
   ((content :type t)
@@ -73,6 +73,14 @@
                  :content content
                  :margin margin))
 
+(def (function e) make-widget/menu (elements)
+  (make-instance 'widget/menu
+                 :elements elements))
+
+(def (function e) make-widget/menu-item (content)
+  (make-instance 'widget/menu-item
+                 :content content))
+
 (def (function e) make-widget/panel (location content)
   (make-instance 'widget/panel
                  :location location
@@ -96,6 +104,12 @@
 
 (def (macro e) tooltip ((&key location margin) &body content)
   `(make-widget/tooltip ,location ,(first content) :margin ,margin))
+
+(def (macro e) menu-item ((&key) &body content)
+  `(make-widget/menu-item ,(first content)))
+
+(def (macro e) menu ((&key) &body elements)
+  `(make-widget/menu (list ,@elements)))
 
 (def (macro e) panel ((&key location) &body content)
   `(make-widget/panel ,location ,(first content)))
