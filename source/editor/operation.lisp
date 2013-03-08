@@ -89,5 +89,5 @@
 
 (def method redo-operation ((operation operation/select-next-alternative))
   (bind ((alternatives (alternatives-of operation)))
-    (setf (selected-of alternatives) (mod (1+ (selected-of alternatives))
-                                          (length (alternatives-of alternatives))))))
+    (setf (selection-of alternatives) (mod (1+ (selection-of alternatives))
+                                           (length (alternatives-of alternatives))))))

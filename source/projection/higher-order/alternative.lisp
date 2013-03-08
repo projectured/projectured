@@ -11,13 +11,13 @@
 
 (def (projection e) alternative ()
   ((alternatives :type list)
-   (selected :type positive-integer)))
+   (selection :type positive-integer)))
 
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/alternative (projections &key (selected 0))
-  (make-projection 'alternative :alternatives projections :selected selected))
+(def (function e) make-projection/alternative (projections &key (selection 0))
+  (make-projection 'alternative :alternatives projections :selection selection))
 
 ;;;;;;
 ;;; Construction
@@ -29,8 +29,8 @@
 ;;; Printer
 
 (def printer alternative (projection recursion iomap input input-reference output-reference)
-  (bind ((selected-element (elt (alternatives-of projection) (selected-of projection))))
-    (funcall (printer-of selected-element) selected-element recursion iomap input input-reference output-reference)))
+  (bind ((selection-element (elt (alternatives-of projection) (selection-of projection))))
+    (funcall (printer-of selection-element) selection-element recursion iomap input input-reference output-reference)))
 
 ;;;;;;
 ;;; Reader
@@ -42,5 +42,5 @@
                 (member :sdl-key-mod-lctrl (modifiers-of latest-gesture)))
            (make-operation/select-next-alternative projection))
           (t
-           (bind ((selected-element (elt (alternatives-of projection) (selected-of projection))))
-             (funcall (reader-of selected-element) selected-element recursion printer-iomap projection-iomap gesture-queue operation document))))))
+           (bind ((selection-element (elt (alternatives-of projection) (selection-of projection))))
+             (funcall (reader-of selection-element) selection-element recursion printer-iomap projection-iomap gesture-queue operation document))))))
