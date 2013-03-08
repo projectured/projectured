@@ -54,28 +54,28 @@
 ;;;;;;
 ;;; API
 
-(def (function e) table/row-heights (table projection)
+(def (function e) table/row-heights (iomap table projection)
   (bind ((rows (rows-of table)))
     (when rows
       (iter (for index :from 0 :below (length rows))
             (collect (iter (for cell :in-sequence (cells-of (elt rows index)))
                            (for content = (content-of cell))
                            (unless (stringp content)
-                             (setf content (output-of (recurse-printer projection content nil nil))))
+                             (setf content (output-of (recurse-printer projection iomap content nil nil))))
                            (maximizing (+ (funcall 'count #\NewLine content)
                                           (if (or (string= content "")
                                                   (char= #\NewLine (last-elt content)))
                                               0
                                               1)))))))))
 
-(def (function e) table/column-widths (table projection)
+(def (function e) table/column-widths (iomap table projection)
   (bind ((rows (rows-of table)))
     (when rows
       (iter (for index :from 0 :below (length (cells-of (first-elt rows))))
             (collect (iter (for row :in-sequence rows)
                            (for content = (content-of (elt (cells-of row) index)))
                            (unless (stringp content)
-                             (setf content (output-of (recurse-printer projection content nil nil))))
+                             (setf content (output-of (recurse-printer projection iomap content nil nil))))
                            (maximizing (iter (for line :in (split-sequence #\NewLine content))
                                              (maximizing (length line))))))))))
 
