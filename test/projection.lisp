@@ -168,7 +168,10 @@
                                                                      (provider-combinator 'tree-delimiter-provider (make-delimiter-provider "\"" "\""))
                                                                      (make-delimiter-provider "" "")))
                 :separator-provider (make-alternative-function (list 'tree-separator-provider (make-separator-provider "")))
-                :indentation-provider (make-alternative-function (list 'tree-indentation-provider (make-indentation-provider :indentation-width 1) (make-indentation-provider :indentation-width 0)))))
+                :indentation-provider (make-alternative-function (list 'tree-indentation-provider
+                                                                       (make-indentation-provider :indentation-width 1)
+                                                                       (make-indentation-provider :indentation-width 0)
+                                                                       (constantly nil)))))
 
 (def function make-test-projection/tree->graphics ()
   (test-projection
