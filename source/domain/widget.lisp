@@ -15,8 +15,20 @@
 ;;;;;;
 ;;; Data structure
 
+(def document inset ()
+  ((top :type number)
+   (bottom :type number)
+   (left :type number)
+   (right :type number)))
+
 (def document widget/base ()
-  ((visible :type boolean)))
+  ((visible :type boolean)
+   (border :type inset)
+   (border-color :type style/color)
+   (margin :type inset)
+   (margin-color :type style/color)
+   (padding :type inset)
+   (padding-color :type style/color)))
 
 (def document widget/checkbox (widget/base)
   ())
@@ -31,6 +43,10 @@
   ((location :type 2d)
    (content :type t)))
 
+(def document widget/panel ()
+  ((content :type t)
+   (location :type 2d)))
+
 (def document widget/composite (widget/base)
   ((elements :type sequence)))
 
@@ -43,33 +59,56 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-widget/tooltip (location content)
+(def (function e) make-inset (&key top bottom left right horizontal vertical all)
+  (make-instance 'inset
+                 :top (or top vertical all)
+                 :bottom (or bottom vertical all)
+                 :left (or left horizontal all)
+                 :right (or right horizontal all)))
+
+(def (function e) make-widget/tooltip (location content &key margin)
   (make-instance 'widget/tooltip
                  :visible #f
+                 :location location
+                 :content content
+                 :margin margin))
+
+(def (function e) make-widget/panel (location content)
+  (make-instance 'widget/panel
                  :location location
                  :content content))
 
 (def (function e) make-widget/composite (elements)
-  (make-instance 'widget/composite :elements elements))
+  (make-instance 'widget/composite
+                 :elements elements))
 
-(def (function e) make-widget/scroll-pane (content &key location size)
+(def (function e) make-widget/scroll-pane (content &key location size margin padding)
   (make-instance 'widget/scroll-pane
                  :content content
                  :location location
                  :size size
-                 :scroll-position (make-2d 0 0)))
+                 :scroll-position (make-2d 0 0)
+                 :margin margin
+                 :padding padding))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) tooltip ((&key location) &body content)
-  `(make-widget/tooltip ,location ,(first content)))
+(def (macro e) tooltip ((&key location margin) &body content)
+  `(make-widget/tooltip ,location ,(first content) :margin ,margin))
+
+(def (macro e) panel ((&key location) &body content)
+  `(make-widget/panel ,location ,(first content)))
 
 (def (macro e) composite ((&key) &body elements)
   `(make-widget/composite (list ,@elements)))
 
-(def (macro e) scroll-pane ((&key location size) &body content)
-  `(make-widget/scroll-pane ,(first content) :location ,location :size ,size))
+(def (macro e) scroll-pane ((&key location size margin padding) &body content)
+  `(make-widget/scroll-pane ,(first content)
+                            :location ,location
+                            :size ,size
+                            :margin ,margin
+                            :padding ,padding))
 
 ;;;;;;
 ;;; Operation data structure

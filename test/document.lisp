@@ -11,10 +11,10 @@
 
 (def function make-test-document (content &key selection)
   (composite ()
-    (scroll-pane (:location (make-2d 0 0) :size (make-2d 800 600))
+    (scroll-pane (:location (make-2d 0 0) :size (make-2d 800 600) :margin (make-inset :all 5))
       (document (:selection selection)
         content))
-    (tooltip (:location (make-2d 100 100))
+    (tooltip (:location (make-2d 100 100) :margin (make-inset :all 5))
       nil)))
 
 (def macro test-document ((&key selection) &body content)
