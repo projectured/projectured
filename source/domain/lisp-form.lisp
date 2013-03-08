@@ -52,25 +52,25 @@
 ;;;;;;
 ;;; Lisp form provider
 
-(def (function e) lisp-form-color-provider (iomap reference)
+(def (function e) lisp-form-font-color-provider (iomap reference)
   (map-backward iomap reference (lambda (iomap reference)
                                   (declare (ignore iomap))
                                   (pattern-case reference
                                     ((the character (elt (the string (?or (opening-delimiter ?a ?b)
                                                                           (closing-delimiter ?a ?b))) ?c))
-                                     (return-from lisp-form-color-provider
+                                     (return-from lisp-form-font-color-provider
                                        (make-style/color 255 196 196 196)))
                                     ((the character (elt (the string (write-to-string (the ?type (?if (subtypep ?type 'number)) ?a))) ?b))
-                                     (return-from lisp-form-color-provider
+                                     (return-from lisp-form-font-color-provider
                                        (make-style/color 255 0 196 0)))
                                     ((the character (elt (the string (string-downcase (the symbol (value-of (the lisp-form/symbol ?a))))) ?b))
-                                     (return-from lisp-form-color-provider
+                                     (return-from lisp-form-font-color-provider
                                        (make-style/color 255 196 0 0)))
                                     ((the character (elt (the string (value-of (the lisp-form/string ?a))) ?b))
-                                     (return-from lisp-form-color-provider
+                                     (return-from lisp-form-font-color-provider
                                        (make-style/color 255 196 0 196)))
                                     ((the character (elt (the string (write-to-string (value-of (the lisp-form/object ?a)))) ?b))
-                                     (return-from lisp-form-color-provider
+                                     (return-from lisp-form-font-color-provider
                                        (make-style/color 255 0 196 196)))))))
 
 (def (function e) lisp-form-delimiter-provider (iomap reference)

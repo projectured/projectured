@@ -91,14 +91,14 @@
 ;;;;;;
 ;;; Provider
 
-(def (function e) tree-color-provider (iomap reference)
+(def (function e) tree-font-color-provider (iomap reference)
   (map-backward iomap reference
                 (lambda (iomap reference)
                   (declare (ignore iomap))
                   (pattern-case reference
                     ((the character (elt (the string (?or (opening-delimiter ?a ?b)
                                                           (closing-delimiter ?a ?b))) ?c))
-                     (return-from tree-color-provider
+                     (return-from tree-font-color-provider
                        (make-style/color 255 196 196 196)))))))
 
 (def (function e) tree-delimiter-provider (iomap reference)

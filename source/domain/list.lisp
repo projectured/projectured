@@ -49,11 +49,11 @@
 ;;;;;;
 ;;; Provider
 
-(def (function e) list-color-provider (iomap reference)
+(def (function e) list-font-color-provider (iomap reference)
   (map-backward iomap reference
                 (lambda (iomap reference)
                   (declare (ignore iomap))
                   (pattern-case reference
                     ((the character (elt (the string (border-of ?a)) ?b))
-                     (return-from list-color-provider
+                     (return-from list-font-color-provider
                        (make-style/color 255 196 196 196)))))))

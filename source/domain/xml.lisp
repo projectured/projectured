@@ -63,23 +63,23 @@
 ;;;;;;
 ;;; Provider
 
-(def (function e) xml-color-provider (iomap reference)
+(def (function e) xml-font-color-provider (iomap reference)
   (map-backward iomap reference
                 (lambda (iomap reference)
                   (declare (ignore iomap))
                   (pattern-case reference
                     ((the character (elt (the string (?or (opening-delimiter ?a ?b)
                                                           (closing-delimiter ?a ?b))) ?c))
-                     (return-from xml-color-provider
+                     (return-from xml-font-color-provider
                        *color/solarized/gray*))
                     ((the character (elt (the string (name-of (the xml/attribute ?a))) ?b))
-                     (return-from xml-color-provider
+                     (return-from xml-font-color-provider
                        *color/solarized/red*))
                     ((the character (elt (the string (value-of (the xml/attribute ?a))) ?b))
-                     (return-from xml-color-provider
+                     (return-from xml-font-color-provider
                        *color/solarized/green*))
                     ((the character (elt (the string ((?or start-tag end-tag) (the xml/element ?a))) ?b))
-                     (return-from xml-color-provider
+                     (return-from xml-font-color-provider
                        *color/solarized/blue*))))))
 
 (def (function e) xml-delimiter-provider (iomap reference)

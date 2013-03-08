@@ -81,29 +81,29 @@
 ;;;;;;
 ;;; Provider
 
-(def (function e) json-color-provider (iomap reference)
+(def (function e) json-font-color-provider (iomap reference)
   (map-backward iomap reference
                 (lambda (iomap reference)
                   (declare (ignore iomap))
                   (pattern-case reference
                     ((the character (elt (the string (?or (opening-delimiter ?a ?b)
                                                           (closing-delimiter ?a ?b))) ?c))
-                     (return-from json-color-provider
+                     (return-from json-font-color-provider
                        *color/solarized/gray*))
                     ((the character (elt (the string (value (the json/null ?a) ?b)) ?c))
-                     (return-from json-color-provider
+                     (return-from json-font-color-provider
                        *color/solarized/red*))
                     ((the character (elt (the string (boolean-to-string (the boolean (value-p (the json/boolean ?a))))) ?b))
-                     (return-from json-color-provider
+                     (return-from json-font-color-provider
                        *color/solarized/blue*))
                     ((the character (elt (the string (write-to-string (the number (value-of (the json/number ?a))))) ?b))
-                     (return-from json-color-provider
+                     (return-from json-font-color-provider
                        *color/solarized/magenta*))
                     ((the character (elt (the string (text-of (the json/string ?a))) ?b))
-                     (return-from json-color-provider
+                     (return-from json-font-color-provider
                        *color/solarized/green*))
                     ((the character (elt (the string (entry-key ?a)) ?b))
-                     (return-from json-color-provider
+                     (return-from json-font-color-provider
                        *color/solarized/orange*))))))
 
 (def (function e) json-delimiter-provider (iomap reference)

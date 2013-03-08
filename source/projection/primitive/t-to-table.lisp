@@ -180,7 +180,7 @@
   (declare (ignore projection recursion input input-reference output-reference))
   nil)
 
-(def (function e) t-color-provider (iomap reference)
+(def (function e) t-font-color-provider (iomap reference)
   (block nil
     (map-backward iomap reference
                   (lambda (iomap reference)
@@ -188,13 +188,13 @@
                     (pattern-case reference
                       ;; class names
                       ((the character (elt (the string (symbol-name (form-type ?a))) ?b))
-                       (return (make-style/color 255 0 0 196)))
+                       (return-from t-font-color-provider (make-style/color 255 0 0 196)))
                       ;; slot names
                       ((the character (elt (the string (symbol-name (slot-definition-name ?a))) ?b))
-                       (return (make-style/color 255 196 0 0)))
+                       (return-from t-font-color-provider (make-style/color 255 196 0 0)))
                       ;; number
                       ((the character (elt (the string (write->string (the ?type (?if (subtypep ?type 'number)) ?a))) ?b))
-                       (return (make-style/color 255 0 196 0)))
+                       (return-from t-font-color-provider (make-style/color 255 0 196 0)))
                       ;; string
                       ((the character (elt (the string (slot-value ?a ?b)) ?c))
-                       (return (make-style/color 255 0 196 0))))))))
+                       (return-from t-font-color-provider (make-style/color 255 0 196 0))))))))

@@ -23,46 +23,46 @@
 ;;;;;;
 ;;; Walked lisp form provider
 
-(def (function e) walked-lisp-form-color-provider (iomap reference)
+(def (function e) walked-lisp-form-font-color-provider (iomap reference)
   (map-backward iomap reference
                 (lambda (iomap reference)
                   (declare (ignore iomap))
                   (pattern-case reference
                     ((the character (elt (the string (?or (opening-delimiter ?a ?b)
                                                           (closing-delimiter ?a ?b))) ?c))
-                     (return-from walked-lisp-form-color-provider
+                     (return-from walked-lisp-form-font-color-provider
                        (make-style/color 255 196 196 196)))
                     ;; variable reference name
                     ((the character (elt (the string (string-downcase (the symbol (slot-value (the ?type (?if (subtypep ?type 'hu.dwim.walker:variable-reference-form)) ?a) 'hu.dwim.walker::name)))) ?b))
-                     (return-from walked-lisp-form-color-provider
+                     (return-from walked-lisp-form-font-color-provider
                        (make-style/color 255 196 196 0)))
                     ;; special form name
                     ((the character (elt (the string (string-downcase (the symbol (slot-value ?a 'hu.dwim.walker::form-name)))) ?b))
-                     (return-from walked-lisp-form-color-provider
+                     (return-from walked-lisp-form-font-color-provider
                        (make-style/color 255 0 196 196)))
                     ;; constant number
                     ((the character (elt (the string (write-to-string (the ?type (?if (subtypep ?type 'number)) (slot-value (the hu.dwim.walker::constant-form ?a) 'hu.dwim.walker::value)))) ?b))
-                     (return-from walked-lisp-form-color-provider
+                     (return-from walked-lisp-form-font-color-provider
                        (make-style/color 255 0 196 0)))
                     ;; constant string
                     ((the character (elt (the string (slot-value (the hu.dwim.walker::constant-form ?a) 'hu.dwim.walker::value)) ?b))
-                     (return-from walked-lisp-form-color-provider
+                     (return-from walked-lisp-form-font-color-provider
                        (make-style/color 255 0 196 0)))
                     ;; function application name
                     ((the character (elt (the string (string-downcase (the symbol (slot-value (the ?type (?if (subtypep ?type 'hu.dwim.walker:application-form)) ?a) 'hu.dwim.walker::operator)))) ?b))
-                     (return-from walked-lisp-form-color-provider
+                     (return-from walked-lisp-form-font-color-provider
                        (make-style/color 255 0 0 196)))
                     ;; function definition name
                     ((the character (elt (the string (string-downcase (the symbol (slot-value (the hu.dwim.walker::function-definition-form ?a) 'hu.dwim.walker::name)))) ?b))
-                     (return-from walked-lisp-form-color-provider
+                     (return-from walked-lisp-form-font-color-provider
                        (make-style/color 255 196 0 0)))
                     ;; docstring
                     ((the character (elt (the string (slot-value (the ?type (?if (subtypep ?type 'hu.dwim.walker::docstring-mixin)) ?a) 'hu.dwim.walker::docstring)) ?b))
-                     (return-from walked-lisp-form-color-provider
+                     (return-from walked-lisp-form-font-color-provider
                        (make-style/color 255 196 0 196)))
                     ;; function argument name
                     ((the character (elt (the string (string-downcase (the symbol (slot-value (the ?type (?if (subtypep ?type 'hu.dwim.walker:function-argument-form)) ?a) 'hu.dwim.walker::name)))) ?b))
-                     (return-from walked-lisp-form-color-provider
+                     (return-from walked-lisp-form-font-color-provider
                        (make-style/color 255 128 128 0)))))))
 
 (def (function e) walked-lisp-form-delimiter-provider (iomap reference)

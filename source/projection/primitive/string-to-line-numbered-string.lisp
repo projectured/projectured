@@ -68,10 +68,10 @@
 ;;; Color
 
 ;; TODO: move
-(def (function e) line-number-color-provider (iomap reference)
+(def (function e) line-number-font-color-provider (iomap reference)
   (map-backward iomap reference
                 (lambda (iomap reference)
                   (declare (ignore iomap))
                   (pattern-case reference
                     ((the character (elt (the string (line-number ?a ?b)) ?c))
-                     (return-from line-number-color-provider *color/dark-red*))))))
+                     (return-from line-number-font-color-provider *color/dark-red*))))))

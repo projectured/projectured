@@ -27,18 +27,22 @@
 (def macro test-projection (&body projection)
   `(make-test-projection ,(first projection)))
 
-(def function make-test-projection/string->output (&key font-provider font-color-provider)
+(def function make-test-projection/string->output (&key font-provider font-color-provider fill-color-provider line-color-provider)
   ;; KLUDGE:
-  (if (search "SLIME" (symbol-name (class-name (class-of (make-editor)))))
-      (sequential
-        (string->styled-string :font-provider font-provider :font-color-provider font-color-provider)
-        ;; TODO:
-        #+nil(word-wrapping :wrap-width 800))
-      (sequential
-        (string->styled-string :font-provider font-provider :font-color-provider font-color-provider)
-        ;; TODO:
-        #+nil (word-wrapping :wrap-width 800)
-        (styled-string->graphics))))
+  (bind ((string->styled-string (string->styled-string :font-provider font-provider
+                                                       :font-color-provider font-color-provider
+                                                       :fill-color-provider fill-color-provider
+                                                       :line-color-provider line-color-provider)))
+    (if (search "SLIME" (symbol-name (class-name (class-of (make-editor)))))
+        (sequential
+          string->styled-string
+          ;; TODO:
+          #+nil(word-wrapping :wrap-width 800))
+        (sequential
+          string->styled-string
+          ;; TODO:
+          #+nil (word-wrapping :wrap-width 800)
+          (styled-string->graphics)))))
 
 ;;;;;;
 ;;; Graphics
@@ -130,7 +134,7 @@
           (make-test-projection/list->string))
         (nesting
           (document->graphics)
-          (make-test-projection/string->output :font-color-provider 'list-color-provider))))))
+          (make-test-projection/string->output :font-color-provider 'list-font-color-provider))))))
 
 ;;;;;;
 ;;; Table
@@ -151,7 +155,7 @@
           (make-test-projection/table->string))
         (nesting
           (document->graphics)
-          (make-test-projection/string->output :font-color-provider 'table-color-provider))))))
+          (make-test-projection/string->output :font-color-provider 'table-font-color-provider))))))
 
 ;;;;;;
 ;;; Tree
@@ -173,7 +177,7 @@
           (string->line-numbered-string))
         (nesting
           (document->graphics)
-          (make-test-projection/string->output :font-color-provider (provider-combinator 'line-number-color-provider 'tree-color-provider)))))))
+          (make-test-projection/string->output :font-color-provider (provider-combinator 'line-number-font-color-provider 'tree-font-color-provider)))))))
 
 ;;;;;;
 ;;; Book
@@ -193,7 +197,7 @@
           (make-test-projection/book->string))
         (nesting
           (document->graphics)
-          (make-test-projection/string->output :font-color-provider 'book-color-provider :font-provider 'book-font-provider))))))
+          (make-test-projection/string->output :font-color-provider 'book-font-color-provider :font-provider 'book-font-provider))))))
 
 ;;;;;;
 ;;; XML
@@ -216,7 +220,7 @@
           (string->line-numbered-string))
         (nesting
           (document->graphics)
-          (make-test-projection/string->output :font-color-provider (provider-combinator 'line-number-color-provider 'xml-color-provider)))))))
+          (make-test-projection/string->output :font-color-provider (provider-combinator 'line-number-font-color-provider 'xml-font-color-provider)))))))
 
 ;;;;;;
 ;;; JSON
@@ -239,7 +243,7 @@
           (string->line-numbered-string))
         (nesting
           (document->graphics)
-          (make-test-projection/string->output :font-color-provider (provider-combinator 'line-number-color-provider 'json-color-provider)))))))
+          (make-test-projection/string->output :font-color-provider (provider-combinator 'line-number-font-color-provider 'json-font-color-provider)))))))
 
 (def function make-test-projection/json->graphics/focusing ()
   (test-projection
@@ -257,7 +261,7 @@
           (string->line-numbered-string))
         (nesting
           (document->graphics)
-          (make-test-projection/string->output :font-color-provider (provider-combinator 'line-number-color-provider 'json-color-provider)))))))
+          (make-test-projection/string->output :font-color-provider (provider-combinator 'line-number-font-color-provider 'json-font-color-provider)))))))
 
 (def function make-test-projection/json->graphics/removing ()
   (test-projection
@@ -277,7 +281,7 @@
           (string->line-numbered-string))
         (nesting
           (document->graphics)
-          (make-test-projection/string->output :font-color-provider (provider-combinator 'line-number-color-provider 'json-color-provider)))))))
+          (make-test-projection/string->output :font-color-provider (provider-combinator 'line-number-font-color-provider 'json-font-color-provider)))))))
 
 (def function make-test-projection/json->graphics/sorting ()
   (test-projection
@@ -297,7 +301,7 @@
           (string->line-numbered-string))
         (nesting
           (document->graphics)
-          (make-test-projection/string->output :font-color-provider (provider-combinator 'line-number-color-provider 'json-color-provider)))))))
+          (make-test-projection/string->output :font-color-provider (provider-combinator 'line-number-font-color-provider 'json-font-color-provider)))))))
 
 ;;;;;;
 ;;; Java
@@ -323,7 +327,7 @@
           (string->line-numbered-string))
         (nesting
           (document->graphics)
-          (make-test-projection/string->output :font-color-provider (provider-combinator 'line-number-color-provider 'java-color-provider)))))))
+          (make-test-projection/string->output :font-color-provider (provider-combinator 'line-number-font-color-provider 'java-font-color-provider)))))))
 
 ;;;;;;
 ;;; Lisp form
@@ -349,7 +353,7 @@
           (string->line-numbered-string))
         (nesting
           (document->graphics)
-          (make-test-projection/string->output :font-color-provider (provider-combinator 'line-number-color-provider 'lisp-form-color-provider)))))))
+          (make-test-projection/string->output :font-color-provider (provider-combinator 'line-number-font-color-provider 'lisp-form-font-color-provider)))))))
 
 ;;;;;;
 ;;; Walked lisp form
@@ -376,7 +380,7 @@
           (string->line-numbered-string))
         (nesting
           (document->graphics)
-          (make-test-projection/string->output :font-color-provider (provider-combinator 'line-number-color-provider 'walked-lisp-form-color-provider)))))))
+          (make-test-projection/string->output :font-color-provider (provider-combinator 'line-number-font-color-provider 'walked-lisp-form-font-color-provider)))))))
 
 ;;;;;;
 ;;; Evaluator
@@ -398,7 +402,7 @@
           (list->string))
         (nesting
           (document->graphics)
-          (make-test-projection/string->output :font-color-provider 'walked-lisp-form-color-provider))))))
+          (make-test-projection/string->output :font-color-provider 'walked-lisp-form-font-color-provider))))))
 
 ;;;;;;
 ;;; Test
@@ -424,7 +428,7 @@
         (make-test-projection/test->string)
         (nesting
           (document->graphics)
-          (make-test-projection/string->output :font-color-provider 'walked-lisp-form-color-provider))))))
+          (make-test-projection/string->output :font-color-provider 'walked-lisp-form-font-color-provider))))))
 
 ;;;;;;
 ;;; T
@@ -447,7 +451,7 @@
           (make-test-projection/t->string))
         (nesting
           (document->graphics)
-          (make-test-projection/string->output :font-color-provider (provider-combinator 'table-color-provider 't-color-provider)))))))
+          (make-test-projection/string->output :font-color-provider (provider-combinator 'table-font-color-provider 't-font-color-provider)))))))
 
 ;;;;;;
 ;;; Nested
@@ -480,7 +484,7 @@
           (string->line-numbered-string))
         (nesting
           (document->graphics)
-          (make-test-projection/string->output :font-color-provider (provider-combinator 'line-number-color-provider 'walked-lisp-form-color-provider 'json-color-provider 'xml-color-provider)))))))
+          (make-test-projection/string->output :font-color-provider (provider-combinator 'line-number-font-color-provider 'walked-lisp-form-font-color-provider 'json-font-color-provider 'xml-font-color-provider)))))))
 
 ;;;;;;
 ;;; Complex
@@ -513,7 +517,7 @@
           (make-test-projection/complex->string))
         (nesting
           (document->graphics)
-          (make-test-projection/string->output :font-color-provider (provider-combinator 'table-color-provider 'xml-color-provider 'json-color-provider 'java-color-provider)))))))
+          (make-test-projection/string->output :font-color-provider (provider-combinator 'table-font-color-provider 'xml-font-color-provider 'json-font-color-provider 'java-font-color-provider)))))))
 
 ;;;;;;
 ;;; Wow
@@ -548,7 +552,7 @@
         (nesting
           (document->graphics)
           (make-test-projection/string->output :font-provider 'book-font-provider
-                                               :font-color-provider (provider-combinator 'book-color-provider 'json-color-provider 'xml-color-provider 'java-color-provider 'walked-lisp-form-color-provider 'lisp-form-color-provider 'tree-color-provider)))))))
+                                               :font-color-provider (provider-combinator 'book-font-color-provider 'json-font-color-provider 'xml-font-color-provider 'java-font-color-provider 'walked-lisp-form-font-color-provider 'lisp-form-font-color-provider 'tree-font-color-provider)))))))
 
 ;;;;;;
 ;;; Test
