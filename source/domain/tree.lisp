@@ -74,19 +74,20 @@
   ())
 
 (def operation operation/tree/toggle-node (operation/tree)
-  ((target :type reference)))
+  ((document :type document)
+   (target :type reference)))
 
 ;;;;;;
 ;;; Tree operation constructors
 
-(def (function e) make-operation/tree/toggle-node (reference)
-  (make-instance 'operation/tree/toggle-node :reference reference))
+(def (function e) make-operation/tree/toggle-node (document target)
+  (make-instance 'operation/tree/toggle-node :document document :target target))
 
 ;;;;;;
 ;;; Tree operation API implementation
 
 (def method redo-operation ((operation operation/tree/toggle-node))
-  (not-yet-implemented))
+  (notf (expanded-p (eval-reference (document-of operation) (target-of operation)))))
 
 ;;;;;;
 ;;; Provider
