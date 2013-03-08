@@ -161,7 +161,9 @@
 ;;; Tree
 
 (def function make-test-projection/tree->string ()
-  (tree->string :delimiter-provider (make-alternative-function (list 'tree-delimiter-provider (make-delimiter-provider "" "")))
+  (tree->string :delimiter-provider (make-alternative-function (list 'tree-delimiter-provider
+                                                                     (provider-combinator 'tree-delimiter-provider (make-delimiter-provider "\"" "\""))
+                                                                     (make-delimiter-provider "" "")))
                 :separator-provider (make-alternative-function (list 'tree-separator-provider (make-separator-provider "")))
                 :indentation-provider (make-alternative-function (list 'tree-indentation-provider (make-indentation-provider :indentation-width 1) (make-indentation-provider :indentation-width 0)))))
 

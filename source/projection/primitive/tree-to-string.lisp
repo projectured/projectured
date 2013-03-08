@@ -31,9 +31,10 @@
 (def (function e) make-delimiter-provider (opening-delimiter closing-delimiter)
   (lambda (iomap reference)
     (declare (ignore iomap))
-    (bind ((delimiter (first reference)))
-      (pattern-case (second reference)
-        ((the tree/node ?a)
+    (pattern-case reference
+      ((?or (opening-delimiter ?node)
+            (closing-delimiter ?node))
+       (bind ((delimiter (first reference)))
          (ecase delimiter
            (opening-delimiter opening-delimiter)
            (closing-delimiter closing-delimiter)))))))
