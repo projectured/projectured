@@ -53,7 +53,7 @@
                          (incf x word-width)
                          (when (> x wrap-width)
                            (setf x word-width)
-                           (collect (make-styled-string/string (string #\NewLine) :color *color/default* :font *font/default*)))
+                           (collect (make-styled-string/string (string #\NewLine) :font *font/default* :font-color *color/default*)))
                          (appending word-elements)
                          (until (and (= end-element-index (length elements))
                                      (= end-character-index 0)))))

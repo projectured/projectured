@@ -24,7 +24,7 @@
         (print-to-device element display)))
 
 (def method print-to-device ((instance styled-string/string) (display device/display/slime))
-  (bind ((color (color-of instance))
+  (bind ((color (font-color-of instance))
          (color-string (format nil "#~2,'0X~2,'0X~2,'0X" (red-of color) (green-of color) (blue-of color))))
     (swank::eval-in-emacs
      `(with-current-buffer (slime-repl-buffer)

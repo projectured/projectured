@@ -10,23 +10,29 @@
 ;;; Projection
 
 (def (projection e) string->styled-string ()
-  ((color-provider :type function)
-   (font-provider :type function)))
+  ((font-provider :type function)
+   (font-color-provider :type function)
+   (fill-color-provider :type function)
+   (line-color-provider :type function)))
 
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/string->styled-string (&key color-provider font-provider)
+(def (function e) make-projection/string->styled-string (&key font-provider font-color-provider fill-color-provider line-color-provider)
   (make-projection 'string->styled-string
-                   :color-provider color-provider
-                   :font-provider font-provider))
+                   :font-provider font-provider
+                   :font-color-provider font-color-provider
+                   :fill-color-provider fill-color-provider
+                   :line-color-provider line-color-provider))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) string->styled-string (&key color-provider font-provider)
-  `(make-projection/string->styled-string :color-provider ,color-provider
-                                          :font-provider ,font-provider))
+(def (macro e) string->styled-string (&key font-provider font-color-provider fill-color-provider line-color-provider)
+  `(make-projection/string->styled-string :font-provider ,font-provider
+                                          :font-color-provider ,font-color-provider
+                                          :fill-color-provider ,fill-color-provider
+                                          :line-color-provider ,line-color-provider))
 
 ;;;;;;
 ;;; Printer
@@ -34,8 +40,8 @@
 (def printer string->styled-string (projection recursion iomap input input-reference output-reference)
   (bind ((child-iomaps nil)
          (stream (make-string-output-stream))
-         (color *color/deer*)
          (font *font/default*)
+         (font-color *color/default*)
          (input-offset 0)
          (output-index 0)
          (elements (flet ((next-styled-string ()
@@ -45,23 +51,23 @@
                                                          `(content-of (the styled-string/string (elt (the list (elements-of (the styled-string/document ,output-reference))) ,output-index))) 0 (length content))
                                       child-iomaps)
                                 (incf output-index)
-                                (list (make-styled-string/string content :color color :font font))))))
-                     (iter (with color-provider = (color-provider-of projection))
-                           (with font-provider = (font-provider-of projection))
+                                (list (make-styled-string/string content :font-color font-color :font font))))))
+                     (iter (with font-provider = (font-provider-of projection))
+                           (with font-color-provider = (font-color-provider-of projection))
                            (for character-index :from 0)
                            (for character :in-sequence input)
                            (for character-reference = `(the character (elt (the string ,input-reference) ,character-index)))
-                           (for character-color = (or (when color-provider (funcall color-provider iomap character-reference))
-                                                      *color/default*))
                            (for character-font = (or (when font-provider (funcall font-provider iomap character-reference))
                                                      *font/default*))
-                           (when (or (not (color= color character-color))
+                           (for character-font-color = (or (when font-color-provider (funcall font-color-provider iomap character-reference))
+                                                           *color/default*))
+                           (when (or (not (color= font-color character-font-color))
                                      (not (eq font character-font)))
                              (appending (next-styled-string) :into styled-strings)
                              (setf stream (make-string-output-stream))
                              (setf input-offset character-index)
-                             (setf color character-color)
-                             (setf font character-font))
+                             (setf font character-font)
+                             (setf font-color character-font-color))
                            (write-char character stream)
                            (finally
                             (return (append styled-strings (next-styled-string)))))))
@@ -80,7 +86,7 @@
                 (eq (key-of latest-gesture) :sdl-key-c)
                 (member :sdl-key-mod-lctrl (modifiers-of latest-gesture)))
            ;; TODO: create operation
-           (setf (color-provider-of projection) (constantly *color/black*))
+           (setf (font-color-provider-of projection) (constantly *color/black*))
            (make-operation/compound nil))
           ((and (typep latest-gesture 'gesture/keyboard/key-press)
                 (member (key-of latest-gesture) '(:sdl-key-home :sdl-key-end))

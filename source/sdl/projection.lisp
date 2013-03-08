@@ -84,8 +84,8 @@
       (sdl:draw-string-blended-* (text-of instance)
                                  (round (2d-x location))
                                  (round (2d-y location))
-                                 :color (raw-of (color-of instance))
-                                 :font (raw-of (font-of instance))))))
+                                 :font (raw-of (font-of instance))
+                                 :color (raw-of (font-color-of instance))))))
 
 (def method print-to-device ((instance graphics/image) (display device/display/sdl))
   ;; TODO: do not load every time

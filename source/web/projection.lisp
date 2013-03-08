@@ -20,7 +20,7 @@
   (print-to-device (content-of instance) display))
 
 (def method print-to-device ((instance graphics/text) (display device/display/web))
-  (bind ((color (color-of instance))
+  (bind ((color (font-color-of instance))
          (location (location-of instance)))
     ;; TODO: factor, use qq string
     `str(,(format nil "~%context.fillStyle = 'rgb(~A, ~A, ~A)'; context.fillText(~S, ~A, ~A);"

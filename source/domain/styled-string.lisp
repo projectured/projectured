@@ -17,8 +17,10 @@
 
 (def document styled-string/string (styled-string/base)
   ((content :type string)
-   (font :type t)
-   (color :type t)))
+   (font :type style/font)
+   (font-color :type style/color)
+   (fill-color :type style/color)
+   (line-color :type style/color)))
 
 ;;;;;;
 ;;; Construction
@@ -26,11 +28,13 @@
 (def (function e) make-styled-string/document (elements)
   (make-instance 'styled-string/document :elements elements))
 
-(def (function e) make-styled-string/string (content &key color font)
+(def (function e) make-styled-string/string (content &key font font-color fill-color line-color)
   (make-instance 'styled-string/string
                  :content content
-                 :color color
-                 :font font))
+                 :font font
+                 :font-color font-color
+                 :fill-color fill-color
+                 :line-color line-color))
 
 ;;;;;;
 ;;; API
@@ -41,8 +45,8 @@
          (for element-index :from start-element-index :to end-element-index)
          (until (= element-index (length elements)))
          (for element = (elt elements element-index))
-         (for color = (color-of element))
          (for font = (font-of element))
+         (for font-color = (font-color-of element))
          (for content = (content-of element))
          (for word-part = (subseq content
                                   (if (= element-index start-element-index)
@@ -52,7 +56,7 @@
                                       end-character-index
                                       (length content))))
          (unless (zerop (length word-part))
-           (collect (make-styled-string/string word-part :color color :font font))))))
+           (collect (make-styled-string/string word-part :font font :font-color font-color))))))
 
 (def (function e) styled-string/find (styled-string start-element-index start-character-index test)
   (iter (with elements = (elements-of styled-string))

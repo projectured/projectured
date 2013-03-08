@@ -19,7 +19,7 @@
                                                                                   (make-graphics/polygon (list (make-2d 150 100) (make-2d 160 160) (make-2d 100 150)) :stroke-color *color/black*)
                                                                                   (make-graphics/circle (make-2d 50 250) 50 :stroke-color *color/black*)
                                                                                   (make-graphics/ellipse (make-2d 50 50) (make-2d 100 50) :stroke-color *color/red*)
-                                                                                  (make-graphics/text (make-2d 200 150) "hello world" :color *color/default* :font *font/default*)
+                                                                                  (make-graphics/text (make-2d 200 150) "hello world" :font *font/default* :font-color *color/default*)
                                                                                   (make-graphics/image (make-2d 300 0) (asdf:system-relative-pathname :projectured "etc/projectured.png")))
                                                                             (make-2d 0 0))
                                                       (make-2d 50 50)
