@@ -41,14 +41,15 @@
 
 (def method print-to-device ((instance graphics/rectangle) (display device/display/sdl))
   (bind ((location (+ *translation* (location-of instance)))
-         (size (size-of instance)))
-    (when (fill-color-of instance)
+         (size (size-of instance))
+         (fill-color (fill-color-of instance)))
+    (when fill-color
       (sdl:draw-box-* (round (2d-x location))
                       (round (2d-y location))
                       ;; TODO: validate
                       (1- (round (2d-x size)))
                       (1- (round (2d-y size)))
-                      :color (raw-of (fill-color-of instance))))
+                      :color (raw-of fill-color)))
     (when (stroke-color-of instance)
       (sdl:draw-rectangle-* (round (2d-x location))
                             (round (2d-y location))
@@ -63,7 +64,13 @@
                        :color (raw-of (stroke-color-of instance))))
 
 (def method print-to-device ((instance graphics/circle) (display device/display/sdl))
-  (bind ((center (+ *translation* (center-of instance))))
+  (bind ((center (+ *translation* (center-of instance)))
+         (fill-color (fill-color-of instance)))
+    (when fill-color
+      (sdl:draw-filled-circle-* (round (2d-x center))
+                                (round (2d-y center))
+                                (round (radius-of instance))
+                                :color (raw-of fill-color)))
     (sdl::draw-aa-circle-* (round (2d-x center))
                            (round (2d-y center))
                            (round (radius-of instance))
@@ -71,7 +78,14 @@
 
 (def method print-to-device ((instance graphics/ellipse) (display device/display/sdl))
   (bind ((center (+ *translation* (center-of instance)))
-         (radius (radius-of instance)))
+         (radius (radius-of instance))
+         (fill-color (fill-color-of instance)))
+    (when fill-color
+      (sdl:draw-filled-ellipse-* (round (2d-x center))
+                                 (round (2d-y center))
+                                 (round (2d-x radius))
+                                 (round (2d-y radius))
+                                 :color (raw-of fill-color)))
     (sdl::draw-aa-ellipse-* (round (2d-x center))
                             (round (2d-y center))
                             (round (2d-x radius))
