@@ -301,44 +301,47 @@
 
 (def suite* (test/content :in test))
 
+(def test test/content/print-document (document)
+  (finishes (print-document document (make-string-output-stream))))
+
 (def test test/content/graphics ()
-  (finishes (make-test-content/graphics)))
+  (test/content/print-document (make-test-content/graphics)))
 
 (def test test/content/string ()
-  (finishes (print-document (make-test-content/string) (make-string-output-stream))))
+  (test/content/print-document (make-test-content/string)))
 
 (def test test/content/text ()
-  (finishes (print-document (make-test-content/text) (make-string-output-stream))))
+  (test/content/print-document (make-test-content/text)))
 
 (def test test/content/list ()
-  (finishes (print-document (make-test-content/list) (make-string-output-stream))))
+  (test/content/print-document (make-test-content/list)))
 
 (def test test/content/table ()
-  (finishes (print-document (make-test-content/table) (make-string-output-stream))))
+  (test/content/print-document (make-test-content/table)))
 
 (def test test/content/tree ()
-  (finishes (print-document (make-test-content/tree) (make-string-output-stream))))
+  (test/content/print-document (make-test-content/tree)))
 
 (def test test/content/book ()
-  (finishes (print-document (make-test-content/book) (make-string-output-stream))))
+  (test/content/print-document (make-test-content/book)))
 
 (def test test/content/xml ()
-  (finishes (print-document (make-test-content/xml) (make-string-output-stream))))
+  (test/content/print-document (make-test-content/xml)))
 
 (def test test/content/json ()
-  (finishes (print-document (make-test-content/json) (make-string-output-stream))))
+  (test/content/print-document (make-test-content/json)))
 
 (def test test/content/java ()
-  (finishes (print-document (make-test-content/java) (make-string-output-stream))))
+  (test/content/print-document (make-test-content/java)))
 
 (def test test/content/lisp-form ()
-  (finishes (print-document (make-test-content/lisp-form) (make-string-output-stream))))
+  (test/content/print-document (make-test-content/lisp-form)))
 
 (def test test/content/walked-lisp-form ()
-  (finishes (print-document (make-test-content/walked-lisp-form) (make-string-output-stream))))
+  (test/content/print-document (make-test-content/walked-lisp-form)))
 
 (def test test/content/evaluator ()
-  (finishes (print-document (make-test-content/evaluator) (make-string-output-stream))))
+  (test/content/print-document (make-test-content/evaluator)))
 
 (def test test/content/test ()
-  (finishes (print-document (make-test-content/test) (make-string-output-stream))))
+  (test/content/print-document (make-test-content/test)))

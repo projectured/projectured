@@ -11,6 +11,9 @@
 
 (def suite* (test/projection :in test))
 
+(def test test/projection/apply-printer (document projection)
+  (finishes (apply-printer document projection)))
+
 (def function make-test-projection (projection)
   (nesting
     (widget->graphics)
@@ -586,85 +589,85 @@
 ;;; Test
 
 (def test test/projection/string->graphics ()
-  (finishes (apply-printer (make-test-document/string) (make-test-projection/string->graphics))))
+  (test/projection/apply-printer (make-test-document/string) (make-test-projection/string->graphics)))
 
 (def test test/projection/text->graphics ()
-  (finishes (apply-printer (make-test-document/text) (make-test-projection/text->graphics))))
+  (test/projection/apply-printer (make-test-document/text) (make-test-projection/text->graphics)))
 
 (def test test/projection/list->string ()
-  (finishes (apply-printer (make-test-content/list) (make-test-projection/list->string))))
+  (test/projection/apply-printer (make-test-content/list) (make-test-projection/list->string)))
 
 (def test test/projection/list->graphics ()
-  (finishes (apply-printer (make-test-document/list) (make-test-projection/list->graphics))))
+  (test/projection/apply-printer (make-test-document/list) (make-test-projection/list->graphics)))
 
 (def test test/projection/table->string ()
-  (finishes (apply-printer (make-test-content/table) (make-test-projection/table->string))))
+  (test/projection/apply-printer (make-test-content/table) (make-test-projection/table->string)))
 
 (def test test/projection/table->graphics ()
-  (finishes (apply-printer (make-test-document/table) (make-test-projection/table->graphics))))
+  (test/projection/apply-printer (make-test-document/table) (make-test-projection/table->graphics)))
 
 (def test test/projection/tree->string ()
-  (finishes (apply-printer (make-test-content/tree) (make-test-projection/tree->string))))
+  (test/projection/apply-printer (make-test-content/tree) (make-test-projection/tree->string)))
 
 (def test test/projection/tree->graphics ()
-  (finishes (apply-printer (make-test-document/tree) (make-test-projection/tree->graphics))))
+  (test/projection/apply-printer (make-test-document/tree) (make-test-projection/tree->graphics)))
 
 (def test test/projection/book->string ()
-  (finishes (apply-printer (make-test-content/book) (make-test-projection/book->string))))
+  (test/projection/apply-printer (make-test-content/book) (make-test-projection/book->string)))
 
 (def test test/projection/book->graphics ()
-  (finishes (apply-printer (make-test-document/book) (make-test-projection/book->graphics))))
+  (test/projection/apply-printer (make-test-document/book) (make-test-projection/book->graphics)))
 
 (def test test/projection/xml->string ()
-  (finishes (apply-printer (make-test-content/xml) (make-test-projection/xml->string))))
+  (test/projection/apply-printer (make-test-content/xml) (make-test-projection/xml->string)))
 
 (def test test/projection/xml->graphics ()
-  (finishes (apply-printer (make-test-document/xml) (make-test-projection/xml->graphics))))
+  (test/projection/apply-printer (make-test-document/xml) (make-test-projection/xml->graphics)))
 
 (def test test/projection/json->string ()
-  (finishes (apply-printer (make-test-content/json) (make-test-projection/json->string))))
+  (test/projection/apply-printer (make-test-content/json) (make-test-projection/json->string)))
 
 (def test test/projection/json->graphics ()
-  (finishes (apply-printer (make-test-document/json) (make-test-projection/json->graphics))))
+  (test/projection/apply-printer (make-test-document/json) (make-test-projection/json->graphics)))
 
 (def test test/projection/lisp-form->tree ()
-  (finishes (apply-printer (make-test-document/lisp-form) (make-test-projection/lisp-form->tree))))
+  (test/projection/apply-printer (make-test-document/lisp-form) (make-test-projection/lisp-form->tree)))
 
 (def test test/projection/lisp-form->string ()
-  (finishes (apply-printer (make-test-document/lisp-form) (make-test-projection/lisp-form->string))))
+  (test/projection/apply-printer (make-test-document/lisp-form) (make-test-projection/lisp-form->string)))
 
 (def test test/projection/lisp-form->graphics ()
-  (finishes (apply-printer (make-test-document/lisp-form) (make-test-projection/lisp-form->graphics))))
+  (test/projection/apply-printer (make-test-document/lisp-form) (make-test-projection/lisp-form->graphics)))
 
 (def test test/projection/walked-lisp-form->lisp-form ()
-  (finishes (apply-printer (make-test-content/walked-lisp-form) (make-test-projection/walked-lisp-form->lisp-form))))
+  (test/projection/apply-printer (make-test-content/walked-lisp-form) (make-test-projection/walked-lisp-form->lisp-form)))
 
 (def test test/projection/walked-lisp-form->string ()
-  (finishes (apply-printer (make-test-content/walked-lisp-form) (make-test-projection/walked-lisp-form->string))))
+  (test/projection/apply-printer (make-test-content/walked-lisp-form) (make-test-projection/walked-lisp-form->string)))
 
 (def test test/projection/walked-lisp-form->graphics ()
-  (finishes (apply-printer (make-test-document/walked-lisp-form) (make-test-projection/walked-lisp-form->graphics))))
+  (test/projection/apply-printer (make-test-document/walked-lisp-form) (make-test-projection/walked-lisp-form->graphics)))
 
 (def test test/projection/evaluator ()
-  (finishes (apply-printer (make-test-document/evaluator) (make-test-projection/evaluator))))
+  (test/projection/apply-printer (make-test-document/evaluator) (make-test-projection/evaluator)))
 
 (def test test/projection/test->graphics ()
-  (finishes (apply-printer (make-test-document/test) (make-test-projection/test->graphics))))
+  (test/projection/apply-printer (make-test-document/test) (make-test-projection/test->graphics)))
 
 (def test test/projection/t->string ()
-  (finishes (apply-printer (make-test-document/t) (make-test-projection/t->string))))
+  (test/projection/apply-printer (make-test-document/t) (make-test-projection/t->string)))
 
 (def test test/projection/t->graphics ()
-  (finishes (apply-printer (make-test-document/t) (make-test-projection/t->graphics))))
+  (test/projection/apply-printer (make-test-document/t) (make-test-projection/t->graphics)))
 
 (def test test/projection/nested->string ()
-  (finishes (apply-printer (make-test-content/nested) (make-test-projection/nested->string))))
+  (test/projection/apply-printer (make-test-content/nested) (make-test-projection/nested->string)))
 
 (def test test/projection/nested->graphics ()
-  (finishes (apply-printer (make-test-document/nested) (make-test-projection/nested->graphics))))
+  (test/projection/apply-printer (make-test-document/nested) (make-test-projection/nested->graphics)))
 
 (def test test/projection/complex->string ()
-  (finishes (apply-printer (make-test-content/complex) (make-test-projection/complex->string))))
+  (test/projection/apply-printer (make-test-content/complex) (make-test-projection/complex->string)))
 
 (def test test/projection/complex->graphics ()
-  (finishes (apply-printer (make-test-document/complex) (make-test-projection/complex->graphics))))
+  (test/projection/apply-printer (make-test-document/complex) (make-test-projection/complex->graphics)))
