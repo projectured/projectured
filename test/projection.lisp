@@ -167,23 +167,28 @@
 
 (def function make-test-projection/tree->graphics ()
   (test-projection
-    (nesting
-      (widget->graphics)
-      (sequential
-        (nesting
-          (document->document)
-          (make-test-projection/tree->string))
-        #+nil
-        (nesting
-          (document->document)
-          (string->line-numbered-string))
-        (nesting
-          (document->graphics)
-          (make-test-projection/string->output :font-provider (make-alternative-function (list (make-font-provider *font/default*)
-                                                                                               (make-font-provider *font/ubuntu/regular/18*)
-                                                                                               (make-font-provider *font/ubuntu/bold/24*)))
-                                               :font-color-provider (make-alternative-function (list (provider-combinator 'line-number-font-color-provider 'tree-font-color-provider)
-                                                                                                     (make-color-provider *color/black*)))))))))
+    (alternative
+      (nesting
+        (widget->graphics)
+        (sequential
+          (nesting
+            (document->document)
+            (make-test-projection/tree->string))
+          #+nil
+          (nesting
+            (document->document)
+            (string->line-numbered-string))
+          (nesting
+            (document->graphics)
+            (make-test-projection/string->output :font-provider (make-alternative-function (list (make-font-provider *font/default*)
+                                                                                                 (make-font-provider *font/ubuntu/regular/18*)
+                                                                                                 (make-font-provider *font/ubuntu/bold/24*)))
+                                                 :font-color-provider (make-alternative-function (list (provider-combinator 'line-number-font-color-provider 'tree-font-color-provider)
+                                                                                                       (make-color-provider *color/black*)))))))
+      (nesting
+        (widget->graphics)
+        (document->graphics)
+        (tree->graphics)))))
 
 ;;;;;;
 ;;; Book

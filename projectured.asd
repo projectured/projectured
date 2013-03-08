@@ -76,7 +76,8 @@
                                                          (:file "removing")
                                                          (:file "sorting")))
                                            (:module "higher-order"
-                                            :components ((:file "iterating")
+                                            :components ((:file "alternative")
+                                                         (:file "iterating")
                                                          (:file "nesting")
                                                          (:file "parallel")
                                                          (:file "predicate-dispatching")

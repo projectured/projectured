@@ -58,8 +58,8 @@
 ;;;;;;
 ;;; Printer
 
-(def printer tree->string (projection recursion iomap tree-document input-reference output-reference)
-  (bind ((typed-input-reference `(the ,(form-type tree-document) ,input-reference))
+(def printer tree->string (projection recursion iomap input input-reference output-reference)
+  (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
          (child-iomaps nil)
          (output (make-adjustable-string ""))
          (temporary (with-output-to-string (stream)
@@ -146,13 +146,13 @@
                                              child-iomaps)
                                        (write-string it stream)))))
                           (next-line 0 typed-input-reference)
-                          (recurse tree-document input-reference 0)
+                          (recurse input input-reference 0)
                           (setf line-index nil)
                           (next-line 0 typed-input-reference))))))
     (adjust-array output (length temporary))
     (replace output temporary)
-    (make-iomap/recursive projection recursion tree-document input-reference output output-reference
-                          (list* (make-iomap/object projection recursion tree-document input-reference output output-reference) (nreverse child-iomaps)))))
+    (make-iomap/recursive projection recursion input input-reference output output-reference
+                          (list* (make-iomap/object projection recursion input input-reference output output-reference) (nreverse child-iomaps)))))
 
 ;;;;;;
 ;;; Reader
@@ -241,15 +241,15 @@
                 (eq (key-of latest-gesture) :sdl-key-i)
                 (member :sdl-key-mod-lctrl (modifiers-of latest-gesture))
                 (typep (indentation-provider-of projection) 'alternative-function))
-           (make-operation/select-next-alternative-function (indentation-provider-of projection)))
+           (make-operation/select-next-alternative (indentation-provider-of projection)))
           ((and (typep latest-gesture 'gesture/keyboard/key-press)
                 (eq (key-of latest-gesture) :sdl-key-s)
                 (member :sdl-key-mod-lctrl (modifiers-of latest-gesture))
                 (typep (separator-provider-of projection) 'alternative-function))
-           (make-operation/select-next-alternative-function (separator-provider-of projection)))
+           (make-operation/select-next-alternative (separator-provider-of projection)))
           ((and (typep latest-gesture 'gesture/keyboard/key-press)
                 (eq (key-of latest-gesture) :sdl-key-d)
                 (member :sdl-key-mod-lctrl (modifiers-of latest-gesture))
                 (typep (delimiter-provider-of projection) 'alternative-function))
-           (make-operation/select-next-alternative-function (delimiter-provider-of projection)))
+           (make-operation/select-next-alternative (delimiter-provider-of projection)))
           (t operation))))

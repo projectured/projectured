@@ -47,8 +47,8 @@
    (selection :type selection))
   (:documentation "An operation that replaces the selection of a document."))
 
-(def class* operation/select-next-alternative-function (operation)
-  ((alternative-function :type alternative-function)))
+(def class* operation/select-next-alternative (operation)
+  ((alternatives :type alternatives)))
 
 ;;;;;;
 ;;; Operation constructors
@@ -65,8 +65,8 @@
 (def (function e) make-operation/replace-selection (document selection)
   (make-instance 'operation/replace-selection :document document :selection selection))
 
-(def (function e) make-operation/select-next-alternative-function (alternative-function)
-  (make-instance 'operation/select-next-alternative-function :alternative-function alternative-function))
+(def (function e) make-operation/select-next-alternative (alternatives)
+  (make-instance 'operation/select-next-alternative :alternatives alternatives))
 
 ;;;;;;
 ;;; Operation API implementation
@@ -87,7 +87,7 @@
 (def method redo-operation ((operation operation/replace-selection))
   (setf (selection-of (document-of operation)) (selection-of operation)))
 
-(def method redo-operation ((operation operation/select-next-alternative-function))
-  (bind ((alternative-function (alternative-function-of operation)))
-    (setf (selected-of alternative-function) (mod (1+ (selected-of alternative-function))
-                                                  (length (alternatives-of alternative-function))))))
+(def method redo-operation ((operation operation/select-next-alternative))
+  (bind ((alternatives (alternatives-of operation)))
+    (setf (selected-of alternatives) (mod (1+ (selected-of alternatives))
+                                          (length (alternatives-of alternatives))))))
