@@ -36,6 +36,8 @@
 
 (def document widget/scroll-pane (widget/base)
   ((content :type t)
+   (location :type 2d)
+   (size :type 2d)
    (scroll-position :type 2d)))
 
 ;;;;;;
@@ -50,10 +52,12 @@
 (def (function e) make-widget/composite (elements)
   (make-instance 'widget/composite :elements elements))
 
-(def (function e) make-widget/scroll-pane (content)
+(def (function e) make-widget/scroll-pane (content &key location size)
   (make-instance 'widget/scroll-pane
                  :content content
-                 :scroll-position (as (make-2d 0 0))))
+                 :location location
+                 :size size
+                 :scroll-position (make-2d 0 0)))
 
 ;;;;;;
 ;;; Construction
@@ -64,8 +68,8 @@
 (def (macro e) composite ((&key) &body elements)
   `(make-widget/composite (list ,@elements)))
 
-(def (macro e) scroll-pane ((&key) &body content)
-  `(make-widget/scroll-pane ,(first content)))
+(def (macro e) scroll-pane ((&key location size) &body content)
+  `(make-widget/scroll-pane ,(first content) :location ,location :size ,size))
 
 ;;;;;;
 ;;; Operation data structure

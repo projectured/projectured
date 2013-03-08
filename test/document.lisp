@@ -11,7 +11,7 @@
 
 (def function make-test-document (content &key selection)
   (composite ()
-    (scroll-pane ()
+    (scroll-pane (:location (make-2d 0 0) :size (make-2d 800 600))
       (document (:selection selection)
         content))
     (tooltip (:location (make-2d 100 100))

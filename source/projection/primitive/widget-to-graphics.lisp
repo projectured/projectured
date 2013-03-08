@@ -83,11 +83,9 @@
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
          (content-iomap (recurse-printer recursion iomap (content-of input) `(content-of ,typed-input-reference)
                                          `(elt (the list (elements-of (the graphics/canvas (content-of (the graphics/viewport (elt (the list (elements-of (the graphics/canvas ,output-reference))) 0)))))) 0)))
-         ;; TODO:
-         (location (make-2d 0 0))
-         ;; TODO:
-         (size (make-2d 800 600))
-         (content (make-graphics/canvas (list (output-of content-iomap)) (as (scroll-position-of input))))
+         (location (location-of input))
+         (size (size-of input))
+         (content (make-graphics/canvas (list (output-of content-iomap)) (as (+ (scroll-position-of input) (make-2d 5 5)))))
          (output (make-graphics/canvas (list (make-graphics/viewport content location size)
                                              (make-graphics/rectangle location size :stroke-color *color/black*))
                                        (make-2d 0 0))))
