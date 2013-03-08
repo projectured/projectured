@@ -228,7 +228,9 @@
 (def function make-test-projection/json->string ()
   (sequential
     (recursive (json->tree))
-    (tree->string :delimiter-provider 'json-delimiter-provider :separator-provider 'json-separator-provider :indentation-provider 'json-indentation-provider)))
+    (tree->string :delimiter-provider (make-alternative-function (list 'json-delimiter-provider (make-delimiter-provider "" "")))
+                  :separator-provider (make-alternative-function (list 'json-separator-provider (make-separator-provider "")))
+                  :indentation-provider (make-alternative-function (list 'json-indentation-provider (make-indentation-provider :indentation-width 0))))))
 
 (def function make-test-projection/json->graphics ()
   (test-projection
@@ -243,7 +245,9 @@
           (string->line-numbered-string))
         (nesting
           (document->graphics)
-          (make-test-projection/string->output :font-color-provider (provider-combinator 'line-number-font-color-provider 'json-font-color-provider)))))))
+          (make-test-projection/string->output :font-color-provider (make-alternative-function
+                                                                     (list (provider-combinator 'line-number-font-color-provider 'json-font-color-provider)
+                                                                           (make-color-provider *color/black*)))))))))
 
 (def function make-test-projection/json->graphics/focusing ()
   (test-projection

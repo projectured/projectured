@@ -39,20 +39,13 @@
            (closing-delimiter closing-delimiter)))))))
 
 (def (function e) make-indentation-provider (&key (indentation-width 1) (wrap-from 0) (wrap-last-levels #f))
-  (lambda (iomap previous-child-reference next-child-reference)
+  (lambda (iomap previous-child-reference next-child-reference parent-node)
     (declare (ignore iomap previous-child-reference))
     (pattern-case next-child-reference
       ((the ?a (elt (the ?type (?if (subtypep ?type 'sequence)) (children-of (the tree/node ?b))) ?c))
        (when (and (> ?c wrap-from)
-                  (or wrap-last-levels
-                      #t ;; TODO:
-                      #+nil ;; TODO:
-                      (bind ((document (input-of iomap))
-                             (node (eval-reference document next-child-reference))
-                             (parent-node (eval-reference document ?b)))
-                        (or (typep node 'tree/node)
-                            (find-if (of-type 'tree/node) (children-of parent-node))))))
-         (* (count 'children-of (flatten next-child-reference)) indentation-width))))))
+                  (or wrap-last-levels (some (of-type 'tree/node) (children-of parent-node))))
+         indentation-width)))))
 
 ;;;;;;
 ;;; Construction
@@ -246,20 +239,17 @@
                                                                  (list value-2 value-1)))))))
           ((and (typep latest-gesture 'gesture/keyboard/key-press)
                 (eq (key-of latest-gesture) :sdl-key-i)
-                (member :sdl-key-mod-lctrl (modifiers-of latest-gesture)))
-           ;; TODO: create operation
-           (setf (indentation-provider-of projection) (make-indentation-provider :indentation-width 0 :wrap-from 0))
-           (make-operation/compound nil))
+                (member :sdl-key-mod-lctrl (modifiers-of latest-gesture))
+                (typep (indentation-provider-of projection) 'alternative-function))
+           (make-operation/select-next-alternative-function (indentation-provider-of projection)))
           ((and (typep latest-gesture 'gesture/keyboard/key-press)
                 (eq (key-of latest-gesture) :sdl-key-s)
-                (member :sdl-key-mod-lctrl (modifiers-of latest-gesture)))
-           ;; TODO: create operation
-           (setf (separator-provider-of projection) (make-separator-provider ""))
-           (make-operation/compound nil))
+                (member :sdl-key-mod-lctrl (modifiers-of latest-gesture))
+                (typep (separator-provider-of projection) 'alternative-function))
+           (make-operation/select-next-alternative-function (separator-provider-of projection)))
           ((and (typep latest-gesture 'gesture/keyboard/key-press)
                 (eq (key-of latest-gesture) :sdl-key-d)
-                (member :sdl-key-mod-lctrl (modifiers-of latest-gesture)))
-           ;; TODO: create operation
-           (setf (delimiter-provider-of projection) (make-delimiter-provider "" ""))
-           (make-operation/compound nil))
+                (member :sdl-key-mod-lctrl (modifiers-of latest-gesture))
+                (typep (delimiter-provider-of projection) 'alternative-function))
+           (make-operation/select-next-alternative-function (delimiter-provider-of projection)))
           (t operation))))

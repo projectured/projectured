@@ -25,6 +25,11 @@
                    :fill-color-provider fill-color-provider
                    :line-color-provider line-color-provider))
 
+(def (function e) make-color-provider (color)
+  (lambda (iomap reference)
+    (declare (ignore iomap reference))
+    color))
+
 ;;;;;;
 ;;; Construction
 
@@ -96,10 +101,9 @@
          (latest-gesture (first (gestures-of gesture-queue))))
     (cond ((and (typep latest-gesture 'gesture/keyboard/key-press)
                 (eq (key-of latest-gesture) :sdl-key-c)
-                (member :sdl-key-mod-lctrl (modifiers-of latest-gesture)))
-           ;; TODO: create operation
-           (setf (font-color-provider-of projection) (constantly *color/black*))
-           (make-operation/compound nil))
+                (member :sdl-key-mod-lctrl (modifiers-of latest-gesture))
+                (typep (font-color-provider-of projection) 'alternative-function))
+           (make-operation/select-next-alternative-function (font-color-provider-of projection)))
           ((and (typep latest-gesture 'gesture/keyboard/key-press)
                 (member (key-of latest-gesture) '(:sdl-key-home :sdl-key-end))
                 (member :sdl-key-mod-lctrl (modifiers-of latest-gesture)))
