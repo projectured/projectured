@@ -115,18 +115,20 @@
                      (lambda (iomap reference)
                        (declare (ignore iomap))
                        (pattern-case reference
-                         ;; [ and ] around arrays
                          ((the json/array ?a)
                           (return-from json-delimiter-provider
                             (ecase delimiter
                               (opening-delimiter "[")
                               (closing-delimiter "]"))))
-                         ;; { and } around objects
                          ((the json/object ?a)
                           (return-from json-delimiter-provider
                             (ecase delimiter
                               (opening-delimiter "{")
-                              (closing-delimiter "}")))))))))))
+                              (closing-delimiter "}"))))
+                         ((the json/string ?a)
+                          (return-from json-delimiter-provider "\""))
+                         ((the string (entry-key ?a))
+                          (return-from json-delimiter-provider "\"")))))))))
 
 (def (function e) json-separator-provider (iomap previous-child-reference next-child-reference)
   (declare (ignore previous-child-reference))
@@ -134,11 +136,9 @@
                 (lambda (iomap reference)
                   (declare (ignore iomap))
                   (pattern-case reference
-                    ;; , between array elements and object entries
                     ((?or (the ?a (gethash-entry ?b (the json/object ?c)))
                           (the ?a (elt (the list (elements-of (the json/array ?b))) ?c)))
                      (return-from json-separator-provider ","))
-                    ;; : between object entry name and value
                     ((the ?a (gethash ?b (key-value-map-of (the json/object ?c))))
                      (return-from json-separator-provider " : "))))))
 
@@ -148,11 +148,9 @@
                   (lambda (iomap reference)
                     (declare (ignore iomap))
                     (pattern-case reference
-                      ;; new line after array elements
                       ((the ?a (elt (the list (elements-of (the json/array ?b))) ?c))
                        (when (> ?c 0)
                          (return-from json-indentation-provider 1)))
-                      ;; new line after object entries
                       ((the t (gethash-entry ?a (the json/object ?b)))
                        (when previous-child-reference
                          (return-from json-indentation-provider 1))))))))

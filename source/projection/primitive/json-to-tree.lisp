@@ -98,11 +98,11 @@
 
 (def printer json/string->string (projection recursion iomap input input-reference output-reference)
   (declare (ignore iomap))
-  (bind ((output (string+ "\"" (text-of input) "\""))
+  (bind ((output (text-of input))
          (text-reference `(text-of (the ,(form-type input) ,input-reference))))
     (make-iomap/recursive projection recursion input input-reference output output-reference
                           (list (make-iomap/object projection recursion input input-reference output output-reference)
-                                (make-iomap/string output text-reference 0 output output-reference 1 (length (text-of input)))))))
+                                (make-iomap/string output text-reference 0 output output-reference 0 (length (text-of input)))))))
 
 (def printer json/array->tree/node (projection recursion iomap input input-reference output-reference)
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
@@ -127,10 +127,13 @@
                                                        (iomap (recurse-printer recursion iomap value
                                                                                `(gethash ,key (key-value-map-of ,typed-input-reference))
                                                                                `(elt ,value-node-reference 1)))
-                                                       (output-key (string+ "\"" key "\""))
+                                                       (output-key key)
                                                        (output (make-tree/node (list output-key (output-of iomap)))))
                                                   (push (make-iomap/object* projection recursion input `(the t (gethash-entry ,key ,typed-input-reference))
                                                                             output entry-node-reference)
+                                                        child-iomaps)
+                                                  (push (make-iomap/object* projection recursion input `(the string (entry-key (gethash-entry ,key (key-value-map-of ,typed-input-reference))))
+                                                                            output-key `(the string (elt ,value-node-reference 0)))
                                                         child-iomaps)
                                                   (push (make-iomap/string* input `(the string (entry-key (gethash-entry ,key (key-value-map-of ,typed-input-reference)))) 0
                                                                             output-key `(the string (elt ,value-node-reference 0)) 0 (length output-key))
