@@ -332,8 +332,7 @@
 
   (:method ((instance graphics/viewport) location reference)
     (make-reference (content-of instance) (- location
-                                             (location-of instance)
-                                             (location-of (content-of instance)))
+                                             (location-of instance))
                     `(content-of (the ,(form-type instance) ,reference))))
 
   (:method ((instance graphics/canvas) location reference)
