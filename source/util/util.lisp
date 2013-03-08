@@ -46,3 +46,14 @@
                        ((listp tree-element)
                         (tree-replace tree-element element replacement))
                        (t tree-element)))))
+
+(def (class* ea) alternative-function ()
+  ((alternatives :type sequence)
+   (selected :type positive-integer))
+  (:metaclass funcallable-standard-class))
+
+(def (function e) make-alternative-function (alternatives &optional (selected 0))
+  (bind ((instance (make-instance 'alternative-function :alternatives alternatives :selected selected)))
+    (set-funcallable-instance-function instance (lambda (&rest args)
+                                                  (apply (elt (alternatives-of instance) (selected-of instance)) args)))
+    instance))
