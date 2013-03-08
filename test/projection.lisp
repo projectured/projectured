@@ -44,7 +44,7 @@
         (sequential
           string->styled-string
           ;; TODO:
-          #+nil (word-wrapping :wrap-width 800)
+          #+nil(word-wrapping :wrap-width 100)
           (styled-string->graphics)))))
 
 ;;;;;;

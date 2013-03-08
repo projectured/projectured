@@ -28,6 +28,8 @@
 ;;; Printer
 
 (def printer word-wrapping (projection recursion iomap input input-reference output-reference)
+  (declare (ignore iomap))
+  ;; TODO: child-iomaps
   (bind ((elements (iter (with x = 0)
                          (with elements = (elements-of input))
                          (with wrap-width = (wrap-width-of projection))
