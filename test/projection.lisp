@@ -179,7 +179,10 @@
           (string->line-numbered-string))
         (nesting
           (document->graphics)
-          (make-test-projection/string->output :font-color-provider (make-alternative-function (list (provider-combinator 'line-number-font-color-provider 'tree-font-color-provider)
+          (make-test-projection/string->output :font-provider (make-alternative-function (list (make-font-provider *font/default*)
+                                                                                               (make-font-provider *font/ubuntu/regular/18*)
+                                                                                               (make-font-provider *font/ubuntu/bold/24*)))
+                                               :font-color-provider (make-alternative-function (list (provider-combinator 'line-number-font-color-provider 'tree-font-color-provider)
                                                                                                      (make-color-provider *color/black*)))))))))
 
 ;;;;;;

@@ -30,6 +30,11 @@
     (declare (ignore iomap reference))
     color))
 
+(def (function e) make-font-provider (font)
+  (lambda (iomap reference)
+    (declare (ignore iomap reference))
+    font))
+
 ;;;;;;
 ;;; Construction
 
@@ -100,6 +105,11 @@
   (bind ((input (input-of projection-iomap))
          (latest-gesture (first (gestures-of gesture-queue))))
     (cond ((and (typep latest-gesture 'gesture/keyboard/key-press)
+                (eq (key-of latest-gesture) :sdl-key-f)
+                (member :sdl-key-mod-lctrl (modifiers-of latest-gesture))
+                (typep (font-provider-of projection) 'alternative-function))
+           (make-operation/select-next-alternative-function (font-provider-of projection)))
+          ((and (typep latest-gesture 'gesture/keyboard/key-press)
                 (eq (key-of latest-gesture) :sdl-key-c)
                 (member :sdl-key-mod-lctrl (modifiers-of latest-gesture))
                 (typep (font-color-provider-of projection) 'alternative-function))
