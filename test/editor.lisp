@@ -44,6 +44,9 @@
 (def test test/editor/tree ()
   (test/editor/read-eval-print-loop (make-test-document/tree) (make-test-projection/tree->graphics)))
 
+(def test test/editor/tree/empty ()
+  (test/editor/read-eval-print-loop (make-test-document/tree/empty) (make-test-projection/tree->graphics)))
+
 (def test test/editor/book ()
   (test/editor/read-eval-print-loop (make-test-document/book) (make-test-projection/book->graphics)))
 

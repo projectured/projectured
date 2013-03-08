@@ -56,9 +56,9 @@
          (line-color nil)
          (input-offset 0)
          (output-index 0)
-         (elements (flet ((next-styled-string ()
+         (elements (flet ((next-styled-string (force)
                             (bind ((content (get-output-stream-string stream)))
-                              (unless (string= content "")
+                              (when (or force (not (string= content "")))
                                 (push (make-iomap/string input input-reference input-offset content
                                                          `(content-of (the styled-string/string (elt (the list (elements-of (the styled-string/document ,output-reference))) ,output-index))) 0 (length content))
                                       child-iomaps)
@@ -83,7 +83,7 @@
                                      (not (color=* fill-color character-fill-color))
                                      (not (color=* line-color character-line-color))
                                      (not (eq font character-font)))
-                             (appending (next-styled-string) :into styled-strings)
+                             (appending (next-styled-string #f) :into styled-strings)
                              (setf stream (make-string-output-stream))
                              (setf input-offset character-index)
                              (setf font character-font)
@@ -92,7 +92,9 @@
                              (setf line-color character-line-color))
                            (write-char character stream)
                            (finally
-                            (return (append styled-strings (next-styled-string)))))))
+                            (return (if styled-strings
+                                        (append styled-strings (next-styled-string #f))
+                                        (next-styled-string #t)))))))
          (output (make-styled-string/document elements)))
     (make-iomap/recursive projection recursion input input-reference output output-reference
                           (list* (make-iomap/object projection recursion input input-reference output output-reference) (nreverse child-iomaps)))))

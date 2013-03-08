@@ -135,7 +135,8 @@
                                              child-iomaps)
                                        (write-string it stream)))))
                           (next-line 0 typed-input-reference)
-                          (recurse input input-reference 0)
+                          (when input
+                            (recurse input input-reference 0))
                           (setf line-index nil)
                           (next-line 0 typed-input-reference))))))
     (adjust-array output (length temporary))
