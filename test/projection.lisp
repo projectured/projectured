@@ -161,7 +161,9 @@
 ;;; Tree
 
 (def function make-test-projection/tree->string ()
-  (tree->string :delimiter-provider 'tree-delimiter-provider :separator-provider 'tree-separator-provider :indentation-provider 'tree-indentation-provider ))
+  (tree->string :delimiter-provider (make-alternative-function (list 'tree-delimiter-provider (make-delimiter-provider "" "")))
+                :separator-provider (make-alternative-function (list 'tree-separator-provider (make-separator-provider "")))
+                :indentation-provider (make-alternative-function (list 'tree-indentation-provider (make-indentation-provider :indentation-width 1) (make-indentation-provider :indentation-width 0)))))
 
 (def function make-test-projection/tree->graphics ()
   (test-projection
@@ -177,7 +179,8 @@
           (string->line-numbered-string))
         (nesting
           (document->graphics)
-          (make-test-projection/string->output :font-color-provider (provider-combinator 'line-number-font-color-provider 'tree-font-color-provider)))))))
+          (make-test-projection/string->output :font-color-provider (make-alternative-function (list (provider-combinator 'line-number-font-color-provider 'tree-font-color-provider)
+                                                                                                     (make-color-provider *color/black*)))))))))
 
 ;;;;;;
 ;;; Book
