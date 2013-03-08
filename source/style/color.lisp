@@ -36,6 +36,11 @@
        (= (green-of color-1) (green-of color-2))
        (= (blue-of color-1) (blue-of color-2))))
 
+(def (function e) color=* (color-1 color-2)
+  (if (and color-1 color-2)
+      (color= color-1 color-2)
+      (eq color-1 color-2)))
+
 ;;;;;;
 ;;; Definer
 

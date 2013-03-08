@@ -20,11 +20,11 @@
   (print-to-device (content-of instance) display))
 
 (def method print-to-device ((instance graphics/text) (display device/display/web))
-  (bind ((color (font-color-of instance))
+  (bind ((font-color (font-color-of instance))
          (location (location-of instance)))
     ;; TODO: factor, use qq string
     `str(,(format nil "~%context.fillStyle = 'rgb(~A, ~A, ~A)'; context.fillText(~S, ~A, ~A);"
-                  (red-of color) (green-of color) (blue-of color)
+                  (red-of font-color) (green-of font-color) (blue-of font-color)
                   (text-of instance)
                   (+ (2d-x *translation*) (2d-x location))
                   (+ (2d-y *translation*) (2d-y location))))))

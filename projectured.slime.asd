@@ -18,4 +18,5 @@
                 :components ((:module "slime"
                               :components ((:file "device")
                                            (:file "editor")
+                                           (:file "graphics")
                                            (:file "projection" :depends-on ("device"))))))))

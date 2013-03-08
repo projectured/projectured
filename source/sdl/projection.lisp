@@ -80,11 +80,21 @@
 
 (def method print-to-device ((instance graphics/text) (display device/display/sdl))
   (unless (string= "" (text-of instance))
-    (bind ((location (+ *translation* (location-of instance))))
-      (sdl:draw-string-blended-* (text-of instance)
+    (bind ((text (text-of instance))
+           (font (font-of instance))
+           (fill-color (fill-color-of instance))
+           (location (+ *translation* (location-of instance))))
+      (when fill-color
+        (bind ((size (measure-text text font)))
+          (sdl:draw-box-* (round (2d-x location))
+                          (round (2d-y location))
+                          (round (2d-x size))
+                          (round (2d-y size))
+                          :color (raw-of fill-color))))
+      (sdl:draw-string-blended-* text
                                  (round (2d-x location))
                                  (round (2d-y location))
-                                 :font (raw-of (font-of instance))
+                                 :font (raw-of font)
                                  :color (raw-of (font-color-of instance))))))
 
 (def method print-to-device ((instance graphics/image) (display device/display/sdl))

@@ -51,8 +51,9 @@
                                                         line text-reference 0 (length line))
                                      child-iomaps)
                                (for text = (make-graphics/text (make-2d x y) line
+                                                               :font (font-of element)
                                                                :font-color (font-color-of element)
-                                                               :font (font-of element)))
+                                                               :fill-color (fill-color-of element)))
                                (for size = (size-of (make-bounding-rectangle text)))
                                (incf x (2d-x size))
                                (setf height (max height (2d-y size)))
