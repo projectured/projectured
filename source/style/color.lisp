@@ -86,7 +86,7 @@
 (def color *color/gray255* (255 255 255))
 
 ;;;;;;
-;;; Text
+;;; Solarized
 ;;;
 ;;; http://ethanschoonover.com/solarized
 
@@ -107,6 +107,39 @@
 (def color *color/solarized/content/dark* (101 123 131))
 (def color *color/solarized/content/light* (131 148 150))
 (def color *color/solarized/content/lighter* (147 161 161))
+
+;;;;;;
+;;; Pastel pairs
+
+(def color *color/pastel/turquoise* (26 188 156))
+(def color *color/pastel/green-sea* (22 160 133))
+
+(def color *color/pastel/emerland* (46 204 113))
+(def color *color/pastel/nephritis* (39 174 96))
+
+(def color *color/pastel/peter-river* (52 152 219))
+(def color *color/pastel/belize-hole* (41 128 185))
+
+(def color *color/pastel/amethyst* (155 89 182))
+(def color *color/pastel/wisteria* (142 68 173))
+
+(def color *color/pastel/wet-asphalt* (52 73 94))
+(def color *color/pastel/midnight-blue* (44 62 80))
+
+(def color *color/pastel/sun-flower* (241 196 15))
+(def color *color/pastel/orange* (243 156 18))
+
+(def color *color/pastel/carrot* (230 126 34))
+(def color *color/pastel/pumpkin* (211 84 0))
+
+(def color *color/pastel/alizarin* (231 76 60))
+(def color *color/pastel/pomegranate* (192 57 43))
+
+(def color *color/pastel/clouds* (236 240 241))
+(def color *color/pastel/silver* (189 195 199))
+
+(def color *color/pastel/concrete* (149 165 166))
+(def color *color/pastel/asbestos* (127 140 141))
 
 ;;;;;;
 ;;; Named
