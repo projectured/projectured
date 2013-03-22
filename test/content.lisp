@@ -86,13 +86,19 @@
 (def function make-test-content/tree/empty ()
   nil)
 
+(def function make-test-content/tree/leaf ()
+  (make-tree/leaf "Hello"))
+
+(def function make-test-content/tree/node ()
+  (make-tree/node nil))
+
 (def function make-test-content/tree ()
-  (make-tree/node (list (make-tree/leaf "Hello")
-                        (make-tree/node (list (make-tree/leaf "head") (make-tree/leaf "tail")))
-                        (make-tree/leaf "World")
-                        (make-tree/node (list (make-tree/leaf "This")
-                                              (make-tree/node (list (make-tree/leaf "is") (make-tree/leaf "deep")))
-                                              (make-tree/leaf "nesting"))))))
+  (make-tree/node (list (make-tree/leaf "first")
+                        (make-tree/node (list (make-tree/leaf "second") (make-tree/leaf "third")))
+                        (make-tree/leaf "fourth")
+                        (make-tree/node (list (make-tree/leaf "fifth")
+                                              (make-tree/node (list (make-tree/leaf "sixth") (make-tree/leaf "seventh")))
+                                              (make-tree/leaf "eigth"))))))
 
 ;;;;;;
 ;;; Book

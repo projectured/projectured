@@ -44,8 +44,20 @@
 (def test test/editor/tree ()
   (test/editor/read-eval-print-loop (make-test-document/tree) (make-test-projection/tree->graphics)))
 
+(def test test/editor/tree/leaf ()
+  (test/editor/read-eval-print-loop (make-test-document/tree/leaf) (make-test-projection/tree->graphics)))
+
+(def test test/editor/tree/node ()
+  (test/editor/read-eval-print-loop (make-test-document/tree/node) (make-test-projection/tree->graphics)))
+
 (def test test/editor/tree/empty ()
   (test/editor/read-eval-print-loop (make-test-document/tree/empty) (make-test-projection/tree->graphics)))
+
+(def test test/editor/tree/removing ()
+  (test/editor/read-eval-print-loop (make-test-document/tree) (make-test-projection/tree->graphics/removing)))
+
+(def test test/editor/tree/sorting ()
+  (test/editor/read-eval-print-loop (make-test-document/tree) (make-test-projection/tree->graphics/sorting)))
 
 (def test test/editor/book ()
   (test/editor/read-eval-print-loop (make-test-document/book) (make-test-projection/book->graphics)))

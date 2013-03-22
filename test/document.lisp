@@ -82,6 +82,14 @@
   (test-document (:selection '(the null (content-of (the document document))))
     (make-test-content/tree/empty)))
 
+(def function make-test-document/tree/leaf ()
+  (test-document (:selection '(the sequence-position (pos (the string (content-of (the tree/leaf (content-of (the document document))))) 1)))
+    (make-test-content/tree/leaf)))
+
+(def function make-test-document/tree/node ()
+  (test-document (:selection '(the sequence-position (pos (the string (opening-delimiter (the tree/node (content-of (the document document))) "(")) 1)))
+    (make-test-content/tree/node)))
+
 (def function make-test-document/tree ()
   (test-document (:selection '(the sequence-position (pos (the string (content-of (the tree/leaf (elt (the list (children-of (the tree/node (elt (the list (children-of (the tree/node (content-of (the document document))))) 1)))) 1)))) 1)))
     (make-test-content/tree)))

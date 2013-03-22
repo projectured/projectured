@@ -163,6 +163,7 @@
 ;;;;;;
 ;;; Tree
 
+;; TODO: factor
 (def function make-test-projection/tree->string ()
   (tree->string :delimiter-provider (make-alternative-function (list 'tree-delimiter-provider
                                                                      (provider-combinator 'tree-delimiter-provider (make-delimiter-provider "\"" "\""))
@@ -179,6 +180,70 @@
       (widget->graphics)
       (alternative
         (sequential
+          (nesting
+            (document->document)
+            (make-test-projection/tree->string))
+          #+nil
+          (nesting
+            (document->document)
+            (string->line-numbered-string))
+          (nesting
+            (document->graphics)
+            (make-test-projection/string->output :font-provider (make-alternative-function (list 'tree-font-provider
+                                                                                                 (make-font-provider *font/default*)
+                                                                                                 (make-font-provider *font/ubuntu/regular/18*)
+                                                                                                 (make-font-provider *font/ubuntu/bold/24*)))
+                                                 :font-color-provider (make-alternative-function (list (provider-combinator 'line-number-font-color-provider 'tree-font-color-provider)
+                                                                                                       (make-color-provider *color/black*))))))
+        (nesting
+          (document->graphics)
+          (tree->graphics))))))
+
+;; TODO: factor
+(def function make-test-projection/tree->graphics/removing ()
+  (test-projection
+    (nesting
+      (widget->graphics)
+      (alternative
+        (sequential
+          (nesting
+            (document->document)
+            ;; TODO: make really recursive
+            (recursive
+              (type-dispatching
+                (list (removing #\s 'find (lambda (element) (when (typep element 'tree/leaf) (content-of element)))))
+                (t (copying)))))
+          (nesting
+            (document->document)
+            (make-test-projection/tree->string))
+          #+nil
+          (nesting
+            (document->document)
+            (string->line-numbered-string))
+          (nesting
+            (document->graphics)
+            (make-test-projection/string->output :font-provider (make-alternative-function (list (make-font-provider *font/default*)
+                                                                                                 (make-font-provider *font/ubuntu/regular/18*)
+                                                                                                 (make-font-provider *font/ubuntu/bold/24*)))
+                                                 :font-color-provider (make-alternative-function (list (provider-combinator 'line-number-font-color-provider 'tree-font-color-provider)
+                                                                                                       (make-color-provider *color/black*))))))
+        (nesting
+          (document->graphics)
+          (tree->graphics))))))
+
+(def function make-test-projection/tree->graphics/sorting ()
+  (test-projection
+    (nesting
+      (widget->graphics)
+      (alternative
+        (sequential
+          (nesting
+            (document->document)
+            ;; TODO: make really recursive
+            (recursive
+              (type-dispatching
+                (list (sorting (lambda (element) (when (typep element 'tree/leaf) (content-of element))) 'string<))
+                (t (copying)))))
           (nesting
             (document->document)
             (make-test-projection/tree->string))
