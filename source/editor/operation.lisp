@@ -42,6 +42,11 @@
   ()
   (:documentation "An operation that undoes the effect of the last operation."))
 
+(def class* operation/replace-content (operation)
+  ((document :type document)
+   (content :type t))
+  (:documentation "An operation that replaces the content of a document."))
+
 (def class* operation/replace-selection (operation)
   ((document :type document)
    (selection :type selection))
@@ -61,6 +66,9 @@
 
 (def (function e) make-operation/undo ()
   (make-instance 'operation/undo))
+
+(def (function e) make-operation/replace-content (document content)
+  (make-instance 'operation/replace-content :document document :content content))
 
 (def (function e) make-operation/replace-selection (document selection)
   (make-instance 'operation/replace-selection :document document :selection selection))
@@ -83,6 +91,9 @@
 
 (def method redo-operation ((operation operation/undo))
   (not-yet-implemented))
+
+(def method redo-operation ((operation operation/replace-content))
+  (setf (content-of (document-of operation)) (content-of operation)))
 
 (def method redo-operation ((operation operation/replace-selection))
   (setf (selection-of (document-of operation)) (selection-of operation)))
