@@ -92,6 +92,15 @@
 ;;;;;;
 ;;; Provider
 
+(def (function e) tree-font-provider (iomap reference)
+  (map-backward iomap reference
+                (lambda (iomap reference)
+                  (declare (ignore iomap))
+                  (pattern-case reference
+                    ((the character (elt (the string (content-of (the tree/leaf ?a))) 0))
+                     (return-from tree-font-provider
+                       *font/ubuntu/monospace/bold/18*))))))
+
 (def (function e) tree-font-color-provider (iomap reference)
   (map-backward iomap reference
                 (lambda (iomap reference)
