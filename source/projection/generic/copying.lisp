@@ -46,7 +46,7 @@
               (child-iomaps nil)
               (output (prog1-bind clone (allocate-instance class)
                         (dolist (slot (class-slots class))
-                          (bind ((direct-slot (find-direct-slot class (slot-definition-name slot)))
+                          (bind ((direct-slot (some (lambda (super) (find-direct-slot super (slot-definition-name slot) :otherwise nil)) (class-precedence-list class)))
                                  (slot-reader (first (slot-definition-readers direct-slot)))
                                  (slot-value (slot-value-using-class class input slot))
                                  (iomap (recurse-printer recursion iomap slot-value
