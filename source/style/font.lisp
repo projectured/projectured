@@ -48,7 +48,9 @@
 ;;;;;;
 ;;; Ubuntu
 
-(def font *font/ubuntu/monospace/18* ("etc/UbuntuMono-R.ttf" 18))
+(def font *font/ubuntu/monospace/regular/18* ("etc/UbuntuMono-R.ttf" 18))
+(def font *font/ubuntu/monospace/bold/18* ("etc/UbuntuMono-B.ttf" 18))
 (def font *font/ubuntu/regular/18* ("etc/Ubuntu-R.ttf" 18))
+(def font *font/ubuntu/bold/18* ("etc/Ubuntu-B.ttf" 18))
+(def font *font/ubuntu/bold/24* ("etc/Ubuntu-B.ttf" 24))
 (def font *font/ubuntu/bold/36* ("etc/Ubuntu-B.ttf" 36))
-(def font *font/ubuntu/bold/24* ("etc/Ubuntu-R.ttf" 24))
