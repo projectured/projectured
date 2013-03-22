@@ -100,28 +100,29 @@
                                        (write-string it stream))
                                      (etypecase input
                                        (tree/node
-                                        (when (expanded-p input)
-                                          (iter (with children = (children-of input))
-                                                (for index :from 0)
-                                                (for child :in-sequence children)
-                                                (for child-path = `(elt (the ,(form-type children) (children-of ,typed-input-reference)) ,index))
-                                                (for child-reference = `(the ,(form-type child) ,child-path))
-                                                (for previous-child-reference :previous child-reference)
-                                                (for indentation = (funcall (indentation-provider-of projection) iomap previous-child-reference child-reference input))
-                                                (unless (first-iteration-p)
-                                                  (awhen (or (separator-of input)
-                                                             (funcall (separator-provider-of projection) iomap previous-child-reference child-reference))
-                                                    (push (make-iomap/string it `(separator ,previous-child-reference ,child-reference ,it) 0
-                                                                             output string-reference (file-position stream)
-                                                                             (length it))
-                                                          separator-iomaps)
-                                                    (write-string it stream)))
-                                                (when indentation
-                                                  (next-line (+ parent-indentation indentation) child-reference))
-                                                (recurse child child-path (- (file-position stream) line-position))
-                                                (finally
-                                                 (when-bind indentation (funcall (indentation-provider-of projection) iomap child-reference nil input)
-                                                   (next-line indentation previous-child-reference))))))
+                                        (if (expanded-p input)
+                                            (iter (with children = (children-of input))
+                                                  (for index :from 0)
+                                                  (for child :in-sequence children)
+                                                  (for child-path = `(elt (the ,(form-type children) (children-of ,typed-input-reference)) ,index))
+                                                  (for child-reference = `(the ,(form-type child) ,child-path))
+                                                  (for previous-child-reference :previous child-reference)
+                                                  (for indentation = (funcall (indentation-provider-of projection) iomap previous-child-reference child-reference input))
+                                                  (unless (first-iteration-p)
+                                                    (awhen (or (separator-of input)
+                                                               (funcall (separator-provider-of projection) iomap previous-child-reference child-reference))
+                                                      (push (make-iomap/string it `(separator ,previous-child-reference ,child-reference ,it) 0
+                                                                               output string-reference (file-position stream)
+                                                                               (length it))
+                                                            separator-iomaps)
+                                                      (write-string it stream)))
+                                                  (when indentation
+                                                    (next-line (+ parent-indentation indentation) child-reference))
+                                                  (recurse child child-path (- (file-position stream) line-position))
+                                                  (finally
+                                                   (when-bind indentation (funcall (indentation-provider-of projection) iomap child-reference nil input)
+                                                     (next-line indentation previous-child-reference))))
+                                            (write-string "..." stream)))
                                        (tree/leaf
                                         (push (make-iomap/string* input `(the string (content-of ,typed-input-reference)) 0
                                                                   output `(the string ,string-reference) (file-position stream)
