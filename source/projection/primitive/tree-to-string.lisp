@@ -61,6 +61,9 @@
 
 (def printer tree->string (projection recursion iomap input input-reference output-reference)
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
+         (delimiter-iomaps nil)
+         (separator-iomaps nil)
+         (indentation-iomaps nil)
          (child-iomaps nil)
          (output (make-adjustable-string ""))
          (temporary (with-output-to-string (stream)
@@ -72,7 +75,7 @@
                                      (push (make-iomap/string* nil `(the string (new-line ,typed-input-reference)) 0
                                                                output `(the string ,string-reference) (file-position stream)
                                                                1)
-                                           child-iomaps)
+                                           indentation-iomaps)
                                      (terpri stream)
                                      (setf line-position (file-position stream)))
                                    (bind ((indentation-string (make-string-of-spaces indentation)))
@@ -80,7 +83,7 @@
                                        (push (make-iomap/string indentation-string `(indentation ,typed-input-reference ,indentation-string) 0
                                                                 output string-reference (file-position stream)
                                                                 indentation)
-                                             child-iomaps)
+                                             indentation-iomaps)
                                        (write-string indentation-string stream)))
                                    (if line-index
                                        (incf line-index)
@@ -93,7 +96,7 @@
                                        (push (make-iomap/string it `(opening-delimiter ,typed-input-reference ,it) 0
                                                                 output string-reference (file-position stream)
                                                                 (length it))
-                                             child-iomaps)
+                                             delimiter-iomaps)
                                        (write-string it stream))
                                      (etypecase input
                                        (tree/node
@@ -111,7 +114,7 @@
                                                     (push (make-iomap/string it `(separator ,previous-child-reference ,child-reference ,it) 0
                                                                              output string-reference (file-position stream)
                                                                              (length it))
-                                                          child-iomaps)
+                                                          separator-iomaps)
                                                     (write-string it stream)))
                                                 (when indentation
                                                   (next-line (+ parent-indentation indentation) child-reference))
@@ -132,7 +135,7 @@
                                        (push (make-iomap/string it `(closing-delimiter ,typed-input-reference ,it) 0
                                                                 output string-reference (file-position stream)
                                                                 (length it))
-                                             child-iomaps)
+                                             delimiter-iomaps)
                                        (write-string it stream)))))
                           (next-line 0 typed-input-reference)
                           (when input
@@ -142,7 +145,11 @@
     (adjust-array output (length temporary))
     (replace output temporary)
     (make-iomap/recursive projection recursion input input-reference output output-reference
-                          (list* (make-iomap/object projection recursion input input-reference output output-reference) (nreverse child-iomaps)))))
+                          (append (list (make-iomap/object projection recursion input input-reference output output-reference))
+                                  (nreverse indentation-iomaps)
+                                  (nreverse delimiter-iomaps)
+                                  (nreverse separator-iomaps)
+                                  (nreverse child-iomaps)))))
 
 ;;;;;;
 ;;; Reader
