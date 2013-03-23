@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <title>Projectured by projectured</title>
+    <title>ProjecturEd by projectured</title>
 
     <link rel="stylesheet" href="stylesheets/styles.css">
     <link rel="stylesheet" href="stylesheets/pygment_trac.css">
@@ -15,7 +15,7 @@
   <body>
     <div class="wrapper">
       <header>
-        <h1>Projectured</h1>
+        <h1>ProjecturEd</h1>
         <p>ProjecturEd is a generic purpose projectional editor.</p>
 
         <p class="view"><a href="https://github.com/projectured/projectured">View the Project on GitHub <small>projectured/projectured</small></a></p>
@@ -28,32 +28,115 @@
         </ul>
       </header>
       <section>
-        <h3>Welcome to GitHub Pages.</h3>
+        <p><img src="http://s9.postimage.org/mxnmsv4en/projectured.png" alt="My image"></p>
 
-<p>This automatic page generator is the easiest way to create beautiful pages for all of your projects. Author your page content here using GitHub Flavored Markdown, select a template crafted by a designer, and publish. After your page is generated, you can check out the new branch:</p>
+<h2>Description</h2>
 
-<pre><code>$ cd your_repo_root/repo_name
-$ git fetch origin
-$ git checkout gh-pages
-</code></pre>
+<p>ProjecturEd is a generic purpose projectional editor written in Common Lisp. Unfortunately due to lack of time it's under quite <em>slow</em> construction. Drop me a mail at <a href="mailto:projectured@gmail.com">projectured@gmail.com</a> if you would like to participate.</p>
 
-<p>If you're using the GitHub for Mac, simply sync your repository and you'll see the new branch.</p>
+<h2>Internals</h2>
 
-<h3>Designer Templates</h3>
+<p>If you are interested in the projectional editor internals, then currently the best thing to do is to look at the code. Surprisingly the code is not that long, it's less than 10,000 lines as of february, 2013.
+You can also read the files in the documentation folder of the repository, although it's far from being well structured. There are also a number of helpful <a href="https://github.com/projectured/projectured/wiki">pages in the wiki</a> that might help getting some parts of the idea.</p>
 
-<p>We've crafted some handsome templates for you to use. Go ahead and continue to layouts to browse through them. You can easily go back to edit your page before publishing. After publishing your page, you can revisit the page generator and switch to another theme. Your Page content will be preserved if it remained markdown format.</p>
+<h2>Screenshots</h2>
 
-<h3>Rather Drive Stick?</h3>
+<p>If you just want to take a look at the projectional editor in action, then there's a <a href="https://github.com/projectured/projectured/wiki/Screenshots">separate page in the wiki</a> with a couple of screenshots showing various domains and projections.</p>
 
-<p>If you prefer to not use the automatic generator, push a branch named <code>gh-pages</code> to your repository to create a page manually. In addition to supporting regular HTML content, GitHub Pages support Jekyll, a simple, blog aware static site generator written by our own Tom Preston-Werner. Jekyll makes it easy to create site-wide headers and footers without having to copy them across every page. It also offers intelligent blog support and other advanced templating features.</p>
+<h2>Performance</h2>
 
-<h3>Authors and Contributors</h3>
+<p>Unfortunately performance is just not that great right now, although there are a few low hanging fruits in the code. The design also helps in that the printer and the reader are purely functional algorithms, so it wouldn't be that hard to utilize multiple cores for them. Finally both the printer and the reader are written using a constraint based change propagation library that allows lazy and incremental computation of results. One day it might even be fast enough to be useful...</p>
 
-<p>You can <a href="https://github.com/blog/821" class="user-mention">@mention</a> a GitHub username to generate a link to their profile. The resulting <code>&lt;a&gt;</code> element will link to the contributor's GitHub Profile. For example: In 2007, Chris Wanstrath (<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>), PJ Hyett (<a href="https://github.com/pjhyett" class="user-mention">@pjhyett</a>), and Tom Preston-Werner (<a href="https://github.com/mojombo" class="user-mention">@mojombo</a>) founded GitHub.</p>
+<h2>Limitations</h2>
 
-<h3>Support or Contact</h3>
+<p>The editor is far from being usable at the moment, so don't expect too much right now. You have been warned!</p>
 
-<p>Having trouble with Pages? Check out the documentation at <a href="http://help.github.com/pages">http://help.github.com/pages</a> or contact <a href="mailto:support@github.com">support@github.com</a> and we’ll help you sort it out.</p>
+<h2>Supported Backends</h2>
+
+<ul>
+<li><p>The SDL backend prints to a native window of the operating system, and it reads keyboard and mouse events.</p></li>
+<li><p>The SLIME backend prints to a SLIME REPL in Emacs using SWANK, and it doesn't support reading events at all.</p></li>
+<li><p>The WEB backend prints to the web browser using Ajax and JavaScript, and it reads keyboard and mouse events (not properly).</p></li>
+</ul><h2>Supported Domains</h2>
+
+<p>There are a number of supported domains:</p>
+
+<ul>
+<li>graphics</li>
+<li>string</li>
+<li>styled string</li>
+<li>list</li>
+<li>table</li>
+<li>tree</li>
+<li>XML</li>
+<li>JSON</li>
+<li>Java code</li>
+<li>S-expression</li>
+<li>Common Lisp code</li>
+<li>book</li>
+<li>widget</li>
+<li>etc.</li>
+</ul><h2>Supported Projections</h2>
+
+<p>There are a number of supported primitive projections:</p>
+
+<ul>
+<li>string to styled string</li>
+<li>styled string to graphics</li>
+<li>line numbering</li>
+<li>word wrapping</li>
+<li>XML to tree</li>
+<li>JSON to tree</li>
+<li>Java to tree</li>
+<li>Common Lisp to tree</li>
+<li>book to tree</li>
+<li>tree to string</li>
+<li>list to string</li>
+<li>table to string</li>
+<li>widget to graphics</li>
+<li>etc.</li>
+</ul><p>There are a number of supported generic projections:</p>
+
+<ul>
+<li>remove</li>
+<li>sort</li>
+<li>focus</li>
+<li>copy</li>
+<li>etc.</li>
+</ul><p>There are a number of supported higher order projections:</p>
+
+<ul>
+<li>sequential</li>
+<li>parallel</li>
+<li>recursive</li>
+<li>nested</li>
+<li>type dispatch</li>
+<li>predicate dispatch</li>
+<li>etc.</li>
+</ul><h2>Testing</h2>
+
+<p>You should load the SDL backend via (LOAD-SYSTEM :PROJECTURED.SDL.TEST) and run the examples such as (TEST/EDITOR/JSON) from the :PRJECTURED.TEST package.
+You should immediately see a window popping up and showing some content, in this case it should be colorized text. You can move around with the cursor and edit some parts of the JSON document.
+Try clicking with the right mouse button to see what the editor knows about that location. Left clicking should put the cursor at the mouse location.</p>
+
+<p>Some supported navigation gestures:</p>
+
+<ul>
+<li>cursor keys</li>
+<li>home and end keys (also control + home, control + end) </li>
+<li>pageup and pagedown</li>
+</ul><p>Some editing gestures:</p>
+
+<ul>
+<li>insert alphanumeric characters</li>
+</ul><p>Some supported projection changing gestures:</p>
+
+<ul>
+<li>control + c (turns off coloring)</li>
+<li>control + i (turns off indentation)</li>
+<li>control + d (turns off delimiters)</li>
+<li>control + s (turns off separators)</li>
+</ul><p>Happy hacking.</p>
       </section>
       <footer>
         <p>This project is maintained by <a href="https://github.com/projectured">projectured</a></p>
