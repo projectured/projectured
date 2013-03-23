@@ -2,7 +2,7 @@
 
 body {
   padding:50px;
-  font:14px/1.5 Lato, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font:16px/1.5 Lato, "Helvetica Neue", Helvetica, Arial, sans-serif;
   color:#777;
   font-weight:300;
 }
@@ -96,7 +96,7 @@ img {
 }
 
 header {
-  width:270px;
+  width:370px;
   float:left;
   position:fixed;
 }
@@ -160,7 +160,7 @@ header ul a strong {
 }
 
 section {
-  width:500px;
+  width:1000px;
   float:right;
   padding-bottom:50px;
 }
@@ -177,7 +177,7 @@ hr {
 }
 
 footer {
-  width:270px;
+  width:370px;
   float:left;
   position:fixed;
   bottom:50px;
