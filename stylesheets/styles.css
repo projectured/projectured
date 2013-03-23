@@ -2,7 +2,7 @@
 
 body {
   padding:50px;
-  font:14px/1.5 Lato, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font:16px/1.5 Lato, "Helvetica Neue", Helvetica, Arial, sans-serif;
   color:#777;
   font-weight:300;
 }
@@ -39,14 +39,14 @@ a {
 }
 
 a small {
-  font-size:11px;
+  font-size:12px;
   color:#777;
   margin-top:-0.6em;
   display:block;
 }
 
 .wrapper {
-  width:860px;
+  width:1000px;
   margin:0 auto;
 }
 
@@ -96,7 +96,7 @@ img {
 }
 
 header {
-  width:270px;
+  width:370px;
   float:left;
   position:fixed;
 }
@@ -130,7 +130,7 @@ header li {
 
 header ul a {
   line-height:1;
-  font-size:11px;
+  font-size:12px;
   color:#999;
   display:block;
   text-align:center;
@@ -154,19 +154,19 @@ header ul li + li + li {
 }
 
 header ul a strong {
-  font-size:14px;
+  font-size:16px;
   display:block;
   color:#222;
 }
 
 section {
-  width:500px;
+  width:600px;
   float:right;
   padding-bottom:50px;
 }
 
 small {
-  font-size:11px;
+  font-size:12px;
 }
 
 hr {
@@ -177,7 +177,7 @@ hr {
 }
 
 footer {
-  width:270px;
+  width:370px;
   float:left;
   position:fixed;
   bottom:50px;
