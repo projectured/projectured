@@ -42,6 +42,28 @@
   '(make-projection/tree->list))
 
 ;;;;;;
+;;; Graph
+
+(def (function e) make-projection/graph->tree ()
+  (type-dispatching
+    ))
+
+(def (macro e) graph->tree ()
+  '(make-projection/graph->tree))
+
+;;;;;;
+;;; Statae machine
+
+(def (function e) make-projection/state-machine->tree ()
+  (type-dispatching
+    (state-machine/state-machine (make-projection/state-machine/state-machine->tree/node))
+    (state-machine/state (make-projection/state-machine/state->tree/node))
+    (state-machine/transition (make-projection/state-machine/transition->tree/node))))
+
+(def (macro e) state-machine->tree ()
+  '(make-projection/state-machine->tree))
+
+;;;;;;
 ;;; Table
 
 (def (function e) make-projection/table->string ()
