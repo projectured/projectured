@@ -107,7 +107,8 @@
                                                   (for child-path = `(elt (the ,(form-type children) (children-of ,typed-input-reference)) ,index))
                                                   (for child-reference = `(the ,(form-type child) ,child-path))
                                                   (for previous-child-reference :previous child-reference)
-                                                  (for indentation = (funcall (indentation-provider-of projection) iomap previous-child-reference child-reference input))
+                                                  (for indentation = (or (indentation-of child)
+                                                                         (funcall (indentation-provider-of projection) iomap previous-child-reference child-reference input)))
                                                   (unless (first-iteration-p)
                                                     (awhen (or (separator-of input)
                                                                (funcall (separator-provider-of projection) iomap previous-child-reference child-reference))
@@ -120,7 +121,9 @@
                                                     (next-line (+ parent-indentation indentation) child-reference))
                                                   (recurse child child-path (- (file-position stream) line-position))
                                                   (finally
-                                                   (when-bind indentation (funcall (indentation-provider-of projection) iomap child-reference nil input)
+                                                   (when-bind indentation
+                                                       (or (indentation-of input)
+                                                           (funcall (indentation-provider-of projection) iomap child-reference nil input))
                                                      (next-line indentation previous-child-reference))))
                                             (write-string "..." stream)))
                                        (tree/leaf
@@ -139,8 +142,12 @@
                                              delimiter-iomaps)
                                        (write-string it stream)))))
                           (next-line 0 typed-input-reference)
-                          (when input
-                            (recurse input input-reference 0))
+                          (if input
+                              (recurse input input-reference 0)
+                              (push (make-iomap/object* projection recursion
+                                                        input `(the null ,input-reference)
+                                                        output `(the sequence-position (pos (the string ,output-reference) 0)))
+                                    child-iomaps))
                           (setf line-index nil)
                           (next-line 0 typed-input-reference))))))
     (adjust-array output (length temporary))
@@ -160,7 +167,8 @@
     ((the sequence-position (pos (the string (?or (content-of (the ?type (?if (eq ?type 'tree/leaf)) ?a))
                                                   ((?or opening-delimiter closing-delimiter) (the ?type (?if (subtypep ?type 'tree/base)) ?a) ?b)
                                                   (separator (the ?type (?if (subtypep ?type 'tree/base)) ?a)
-                                                             (the ?type (?if (subtypep ?type 'tree/base)) ?a) ?b))) ?c))
+                                                             (the ?type (?if (subtypep ?type 'tree/base)) ?a) ?b)
+                                                  (indentation (the ?type (?if (subtypep ?type 'tree/base)) ?a) ?b))) ?c))
      `(the ,?type ,?a))))
 
 (def function find-tree-node-parent-reference (reference)
@@ -188,37 +196,70 @@
              (make-operation/replace-selection document `(the sequence-position (pos (the string (opening-delimiter ,node-reference "(")) 0)))))
           ((key-press? latest-gesture :key :sdl-key-down :modifier :sdl-key-mod-lalt)
            (when-bind node-reference (find-tree-node-reference (selection-of document))
-             ;; TODO:
-             (make-operation/replace-selection document nil)))
+             (bind ((node (eval-reference document node-reference)))
+               (when (and (typep node 'tree/node)
+                          (> (length (children-of node)) 0))
+                 (bind ((first-child (elt (children-of node) 0)))
+                   (make-operation/replace-selection document
+                                                     (etypecase first-child
+                                                       (tree/leaf `(the sequence-position (pos (the string (content-of (the tree/leaf (elt (the list (children-of ,node-reference)) 0)))) 0)))
+                                                       (tree/node `(the sequence-position (pos (the string (opening-delimiter (the tree/node (elt (the list (children-of ,node-reference)) 0)) "(")) 0))))))))))
           ((key-press? latest-gesture :key :sdl-key-left :modifier :sdl-key-mod-lalt)
            (when-bind node-reference (find-tree-node-reference (selection-of document))
-             ;; TODO:
-             (make-operation/replace-selection document nil)))
+             (pattern-case node-reference
+               ((the ?type (?if (subtypep ?type 'tree/base)) (elt (the list (children-of (the tree/node ?a))) ?b))
+                (when (> ?b 0)
+                  (bind ((parent-node (eval-reference document ?a))
+                         (type (type-of (elt (children-of parent-node) (1- ?b)))))
+                    (make-operation/replace-selection document
+                                                      (ecase type
+                                                        (tree/leaf `(the sequence-position (pos (the string (content-of (the ,type (elt (the list (children-of (the tree/node ,?a))) ,(1- ?b))))) 0)))
+                                                        (tree/node `(the sequence-position (pos (the string (opening-delimiter (the ,type (elt (the list (children-of (the tree/node ,?a))) ,(1- ?b))) "(")) 0)))))))))))
           ((key-press? latest-gesture :key :sdl-key-right :modifier :sdl-key-mod-lalt)
            (when-bind node-reference (find-tree-node-reference (selection-of document))
-             ;; TODO:
-             (make-operation/replace-selection document nil)))
+             (pattern-case node-reference
+               ((the ?type (?if (subtypep ?type 'tree/base)) (elt (the list (children-of (the tree/node ?a))) ?b))
+                (bind ((parent-node (eval-reference document ?a)))
+                  (when (< ?b (1- (length (children-of parent-node))))
+                    (bind ((type (type-of (elt (children-of parent-node) (1+ ?b)))))
+                      (make-operation/replace-selection document
+                                                        (ecase type
+                                                          (tree/leaf `(the sequence-position (pos (the string (content-of (the ,type (elt (the list (children-of (the tree/node ,?a))) ,(1+ ?b))))) 0)))
+                                                          (tree/node `(the sequence-position (pos (the string (opening-delimiter (the ,type (elt (the list (children-of (the tree/node ,?a))) ,(1+ ?b))) "(")) 0))))))))))))
           ((key-press? latest-gesture :key :sdl-key-delete :modifier :sdl-key-mod-lctrl)
-           (pattern-case (selection-of document)
-             ((the sequence-position (pos (the string (content-of (the tree/leaf (elt ?a ?b)))) ?c))
-              (make-operation/compound (list (make-operation/sequence/replace-element-range document (tree-replace `(the sequence (subseq ,?a ,?b ,(1+ ?b))) `(the document ,(third (second (input-reference-of projection-iomap)))) '(the document document))
-                                                                                            nil)
-                                             (make-operation/replace-selection document `(the sequence-position (pos (the string (elt ,?a ,(1+ ?b))) ,?c))))))))
+           (when-bind node-reference (find-tree-node-reference (selection-of document))
+             (pattern-case node-reference
+               ((the ?type (?if (subtypep ?type 'tree/base)) (elt ?a ?b))
+                (make-operation/compound (list (make-operation/sequence/replace-element-range document (tree-replace `(the sequence (subseq ,?a ,?b ,(1+ ?b))) `(the document ,(third (second (input-reference-of projection-iomap)))) '(the document document))
+                                                                                              nil)
+                                               (make-operation/replace-selection document `(the sequence-position (pos (the string (content-of (the tree/leaf (elt ,?a ,?b)))) 0))))))
+               ((the ?type (?if (subtypep ?type 'tree/base)) (content-of (the document ?a)))
+                (make-operation/compound (list (make-operation/replace-content document nil)
+                                               (make-operation/replace-selection document `(the null (content-of (the document ,?a))))))))))
           ((key-press? latest-gesture :character #\( :modifiers '(:sdl-key-mod-lshift :sdl-key-mod-lctrl))
            (pattern-case (selection-of document)
+             ;; content of a leaf being a child of a node
              ((the sequence-position (pos (the string (content-of (the tree/leaf (elt ?a ?b)))) ?c))
               (make-operation/compound (list (make-operation/sequence/replace-element-range document (tree-replace `(the sequence (subseq ,?a ,?b ,?b)) `(the document ,(third (second (input-reference-of projection-iomap)))) '(the document document))
                                                                                             (list (make-tree/node nil)))
                                              (make-operation/replace-selection document `(the sequence-position (pos (the string (opening-delimiter (the tree/node (elt ,?a ,?b)) "(")) 1))))))
+             ;; empty content of a document
              ((the null (content-of (the document ?a)))
               (make-operation/compound (list (make-operation/replace-content document (make-tree/node nil))
                                              (make-operation/replace-selection document `(the sequence-position (pos (the string (opening-delimiter (the tree/node (content-of (the document document))) "(")) 1))))))))
           ((key-press? latest-gesture :character #\" :modifiers '(:sdl-key-mod-lshift :sdl-key-mod-lctrl))
            (pattern-case (selection-of document)
+             ;; content of a leaf being a child of a node
              ((the sequence-position (pos (the string (content-of (the tree/leaf (elt ?a ?b)))) ?c))
               (make-operation/compound (list (make-operation/sequence/replace-element-range document (tree-replace `(the sequence (subseq ,?a ,?b ,?b)) `(the document ,(third (second (input-reference-of projection-iomap)))) '(the document document))
                                                                                             (list (make-tree/leaf "")))
                                              (make-operation/replace-selection document `(the sequence-position (pos (the string (content-of (the tree/leaf (elt ,?a ,?b)))) 0))))))
+             ;; delimiter of a node
+             ((the sequence-position (pos (the string (opening-delimiter (the tree/node ?a) "(")) ?b))
+              (make-operation/compound (list (make-operation/sequence/replace-element-range document (tree-replace `(the sequence (subseq (the list (children-of (the tree/node ,?a))) 0 0)) `(the document ,(third (second (input-reference-of projection-iomap)))) '(the document document))
+                                                                                            (list (make-tree/leaf "")))
+                                             (make-operation/replace-selection document `(the sequence-position (pos (the string (content-of (the tree/leaf (elt (the list (children-of (the tree/node ,?a))) 0)))) 0))))))
+             ;; empty content of a document
              ((the null (content-of (the document ?a)))
               (make-operation/compound (list (make-operation/replace-content document (make-tree/leaf ""))
                                              (make-operation/replace-selection document `(the sequence-position (pos (the string (content-of (the tree/leaf (content-of (the document document))))) 0))))))))

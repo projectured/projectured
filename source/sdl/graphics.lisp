@@ -17,6 +17,15 @@
   (or (call-next-method)
       (setf (raw-of color) (sdl:color :r (red-of color) :g (green-of color) :b (blue-of color) :a (alpha-of color)))))
 
+(def method raw-of :around ((image image/image))
+  (or (call-next-method)
+      (setf (raw-of image) (sdl-image:load-image (filename-of image) :color-key-at #(0 0)))))
+
 (def method measure-text (text font)
   (make-2d (sdl:get-font-size text :size :w :font (raw-of font))
            (sdl:get-font-size text :size :h :font (raw-of font))))
+
+(def method make-bounding-rectangle ((instance graphics/image))
+  (bind ((image (image-of instance))
+         (rectangle (sdl:get-surface-rect :surface (raw-of image))))
+    (make-rectangle (location-of instance) (make-2d (sdl:width rectangle) (sdl:height rectangle)))))

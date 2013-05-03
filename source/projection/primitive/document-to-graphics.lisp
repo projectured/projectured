@@ -106,4 +106,4 @@
                 (eq (key-of latest-gesture) :sdl-key-escape))
            (make-operation/quit))
           (t
-           (recurse-reader recursion printer-iomap (elt (child-iomaps-of projection-iomap) 1) gesture-queue operation (input-of projection-iomap))))))
+           (recurse-reader recursion printer-iomap (elt (child-iomaps-of projection-iomap) 1) gesture-queue operation projection-iomap)))))

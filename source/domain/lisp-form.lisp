@@ -10,11 +10,16 @@
 ;;;; Lisp form domain provides:
 ;;;;  - all types provided by the Common Lisp implementation
 
+;; TODO: either rename to s-expression or merge as literals into common-lisp?
+
 ;;;;;;
 ;;; Lisp form document classes
 
 (def document lisp-form/base ()
-  ())
+  ((indentation :type integer)))
+
+(def document lisp-form/comment (lisp-form/base)
+  ((content :type string)))
 
 (def document lisp-form/number (lisp-form/base)
   ((value :type number)))
@@ -23,86 +28,39 @@
   ((value :type string)))
 
 (def document lisp-form/symbol (lisp-form/base)
-  ((value :type symbol)))
-
-(def document lisp-form/list (lisp-form/base)
-  ((elements :type list)))
+  ((value :type symbol)
+   (font :type style/font)
+   (font-color :type style/color)))
 
 (def document lisp-form/object (lisp-form/base)
   ((value :type standard-object)))
 
+(def document lisp-form/list (lisp-form/base)
+  ((elements :type sequence)))
+
+(def document lisp-form/top-level (lisp-form/base)
+  ((elements :type sequence)))
+
 ;;;;;;
 ;;; Lisp form document constructors
 
-(def (function e) make-lisp-form/number (value)
-  (make-instance 'lisp-form/number :value value))
+(def (function e) make-lisp-form/comment (content &key indentation)
+  (make-instance 'lisp-form/comment :content content :indentation indentation))
 
-(def (function e) make-lisp-form/string (value)
-  (make-instance 'lisp-form/string :value value))
+(def (function e) make-lisp-form/number (value &key indentation)
+  (make-instance 'lisp-form/number :value value :indentation indentation))
 
-(def (function e) make-lisp-form/symbol (value)
-  (make-instance 'lisp-form/symbol :value value))
+(def (function e) make-lisp-form/string (value &key indentation)
+  (make-instance 'lisp-form/string :value value :indentation indentation))
 
-(def (function e) make-lisp-form/list (elements)
-  (make-instance 'lisp-form/list :elements elements))
+(def (function e) make-lisp-form/symbol (value &key indentation font font-color)
+  (make-instance 'lisp-form/symbol :value value :indentation indentation :font font :font-color font-color))
 
-(def (function e) make-lisp-form/object (value)
-  (make-instance 'lisp-form/object :value value))
+(def (function e) make-lisp-form/object (value &key indentation)
+  (make-instance 'lisp-form/object :value value :indentation indentation))
 
-;;;;;;
-;;; Lisp form provider
+(def (function e) make-lisp-form/list (elements &key indentation)
+  (make-instance 'lisp-form/list :elements elements :indentation indentation))
 
-(def (function e) lisp-form-font-color-provider (iomap reference)
-  (map-backward iomap reference (lambda (iomap reference)
-                                  (declare (ignore iomap))
-                                  (pattern-case reference
-                                    ((the character (elt (the string (?or (opening-delimiter ?a ?b)
-                                                                          (closing-delimiter ?a ?b))) ?c))
-                                     (return-from lisp-form-font-color-provider
-                                       (make-style/color 255 196 196 196)))
-                                    ((the character (elt (the string (write-to-string (the ?type (?if (subtypep ?type 'number)) ?a))) ?b))
-                                     (return-from lisp-form-font-color-provider
-                                       (make-style/color 255 0 196 0)))
-                                    ((the character (elt (the string (string-downcase (the symbol (value-of (the lisp-form/symbol ?a))))) ?b))
-                                     (return-from lisp-form-font-color-provider
-                                       (make-style/color 255 196 0 0)))
-                                    ((the character (elt (the string (value-of (the lisp-form/string ?a))) ?b))
-                                     (return-from lisp-form-font-color-provider
-                                       (make-style/color 255 196 0 196)))
-                                    ((the character (elt (the string (write-to-string (value-of (the lisp-form/object ?a)))) ?b))
-                                     (return-from lisp-form-font-color-provider
-                                       (make-style/color 255 0 196 196)))))))
-
-(def (function e) lisp-form-delimiter-provider (iomap reference)
-  (pattern-case reference
-    ((?or (opening-delimiter ?node)
-          (closing-delimiter ?node))
-     (bind ((delimiter (first reference)))
-       (map-backward iomap ?node
-                     (lambda (iomap reference)
-                       (declare (ignore iomap))
-                       (pattern-case reference
-                         ((the lisp-form/list ?a)
-                          (return-from lisp-form-delimiter-provider
-                            (ecase delimiter
-                              (opening-delimiter "(")
-                              (closing-delimiter ")")))))))))))
-
-(def (function e) lisp-form-separator-provider (iomap previous-child-reference next-child-reference)
-  (declare (ignore previous-child-reference))
-  (map-backward iomap next-child-reference
-                (lambda (iomap reference)
-                  (declare (ignore iomap))
-                  (pattern-case reference
-                    ((the ?a (elt (the list (elements-of (the lisp-form/list ?b))) ?c))
-                     (return-from lisp-form-separator-provider " "))))))
-
-(def (function e) lisp-form-indentation-provider (iomap previous-child-reference next-child-reference parent-node)
-  (declare (ignore previous-child-reference parent-node))
-  (map-backward iomap next-child-reference
-                (lambda (iomap reference)
-                  (declare (ignore iomap))
-                  (pattern-case reference
-                    ((the ?a (elt (the list (elements-of (the lisp-form/list ?b))) ?c))
-                     (when (> ?c 0)
-                       (return-from lisp-form-indentation-provider 2)))))))
+(def (function e) make-lisp-form/top-level (elements &key indentation)
+  (make-instance 'lisp-form/top-level :elements elements :indentation indentation))

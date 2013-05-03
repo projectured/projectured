@@ -27,11 +27,14 @@
 ;;;;;;
 ;;; Construction
 
-(def method make-editor (&key (width 800) (height 600))
+(def method make-editor (&key (width 1024) (height 768) (filename #P"/tmp/projectured.bmp"))
+  (declare (ignorable filename))
   (make-instance 'editor/sdl
                  :devices (list (make-instance 'device/mouse)
                                 (make-instance 'device/keyboard)
-                                (make-device/display/sdl width height))
+                                (make-device/display/sdl width height)
+                                #+nil
+                                (make-device/file/sdl filename))
                  :event-queue (make-instance 'event-queue :events nil)
                  :gesture-queue (make-instance 'gesture-queue :gestures nil)))
 
@@ -39,25 +42,39 @@
 ;;; API
 
 (def method run-read-evaluate-print-loop ((editor editor/sdl) document projection)
-  (bind ((display (find-if (of-type 'device/display/sdl) (devices-of editor))))
-    (unwind-protect
-         (progn
-           (sdl:init-video)
-           (setf (surface-of display) (sdl:window (width-of display) (height-of display) :double-buffer #t))
-           (call-next-method))
-      (sdl:quit-video))))
+  (unwind-protect
+       (progn
+         (sdl:init-video)
+         (call-next-method))
+    (sdl:quit-video)))
 
-(def method print-to-devices ((editor editor/sdl) document projection)
-  (bind ((display (find-if (of-type 'device/display/sdl) (devices-of editor))))
-    (sdl:with-surface ((surface-of display))
-      (sdl:fill-surface sdl:*white* :surface sdl:*default-display*)
+(def method print-to-device :around (instance (display device/display/sdl))
+  (if sdl:*default-surface*
       (call-next-method)
-      (sdl:update-display))))
+      (bind ((surface (sdl:window (width-of display) (height-of display) :double-buffer #t :title-caption "Projection Editor")))
+        (setf (surface-of display) surface)
+        (sdl:with-surface (surface)
+          (sdl:fill-surface sdl:*white*)
+          (call-next-method)
+          (sdl:update-display)))))
 
-;; KLUDGE: what shall dispatch on here? this is obviously wrong...
+(def method print-to-device :around (instance (display device/file/sdl))
+  (if sdl:*default-surface*
+      (call-next-method)
+      (bind ((size (size-of (make-bounding-rectangle instance)))
+             (surface (sdl:create-surface (2d-x size) (2d-y size))))
+        (setf (surface-of display) surface)
+        (sdl:with-surface (surface)
+          (sdl:fill-surface sdl:*white*)
+          (call-next-method)
+          (sdl:save-image surface (filename-of display))))))
+
+;; KLUDGE: what shall we dispatch on here? this is obviously wrong...
 (def method read-event ((devices sequence))
   (bind ((sdl:*sdl-event* (sdl:new-event)))
     (sdl:enable-unicode)
+    (sdl-cffi::sdl-wait-event sdl:*sdl-event*)
+    #+nil ;; TODO: poll or wait?
     (sdl-cffi::sdl-poll-event sdl:*sdl-event*)
     (prog1
         (case (sdl:event-type sdl:*sdl-event*)

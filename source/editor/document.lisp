@@ -56,5 +56,5 @@
   (typep object 'document))
 
 (def method print-document (document &optional (stream *standard-output*))
-  (princ (output-of (apply-printer document (make-projection/t->string document))) stream)
+  (princ (output-of (apply-printer document (make-projection/t->string))) stream)
   document)

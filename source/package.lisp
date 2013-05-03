@@ -15,5 +15,4 @@
         :hu.dwim.syntax-sugar
         :hu.dwim.util)
   (:readtable-setup
-   (hu.dwim.util:enable-standard-hu.dwim-syntaxes)
-   (hu.dwim.syntax-sugar:enable-lambda-with-bang-args-syntax)))
+   (hu.dwim.util:enable-standard-hu.dwim-syntaxes)))

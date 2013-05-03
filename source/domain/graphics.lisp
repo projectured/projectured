@@ -95,6 +95,9 @@
    (stroke-color :type style/color)
    (fill-color :type style/color)))
 
+(def document graphics/rounded-rectangle (graphics/rectangle)
+  ((radius :type number)))
+
 (def document graphics/polygon (graphics/base)
   ((points :type sequence)
    (stroke-color :type style/color)
@@ -121,7 +124,7 @@
 
 (def document graphics/image (graphics/base)
   ((location :type 2d)
-   (source :type pathname)))
+   (image :type image/image)))
 
 (def document graphics/viewport (graphics/base)
   ((content :type t)
@@ -144,6 +147,9 @@
 (def (function e) make-graphics/rectangle (location size &key stroke-color fill-color)
   (make-instance 'graphics/rectangle :location location :size size :stroke-color stroke-color :fill-color fill-color))
 
+(def (function e) make-graphics/rounded-rectangle (location size radius &key stroke-color fill-color)
+  (make-instance 'graphics/rounded-rectangle :location location :size size :radius radius :stroke-color stroke-color :fill-color fill-color))
+
 (def (function e) make-graphics/polygon (points &key stroke-color fill-color)
   (make-instance 'graphics/polygon :points points :stroke-color stroke-color :fill-color fill-color))
 
@@ -156,8 +162,8 @@
 (def (function e) make-graphics/text (location text &key font font-color fill-color)
   (make-instance 'graphics/text :location location :text text :font font :font-color font-color :fill-color fill-color))
 
-(def (function e) make-graphics/image (location source)
-  (make-instance 'graphics/image :location location :source source))
+(def (function e) make-graphics/image (location image)
+  (make-instance 'graphics/image :location location :image image))
 
 (def (function e) make-graphics/viewport (content location size)
   (make-instance 'graphics/viewport :content content :location location :size size))
@@ -210,13 +216,6 @@
 
   (:method ((instance graphics/text))
     (make-rectangle (location-of instance) (measure-text (text-of instance) (font-of instance))))
-
-  #+nil
-  (:method ((instance graphics/image))
-    ;; TODO: no sdl here please, move this code
-    (bind ((image (sdl-image:load-image (source-of instance) :color-key-at #(0 0)))
-           (rectangle (sdl:get-surface-rect :surface image)))
-      (make-rectangle (location-of instance) (make-2d (sdl:width rectangle) (sdl:height rectangle)))))
 
   (:method ((instance graphics/viewport))
     (make-rectangle (location-of instance) (size-of instance)))
@@ -328,7 +327,7 @@
             (return `(the character (elt (the string (text-of (the ,(form-type instance) ,reference))) ,(1- index)))))))
 
   (:method ((instance graphics/image) location reference)
-    (not-yet-implemented))
+    `(the ,(form-type instance) ,reference))
 
   (:method ((instance graphics/viewport) location reference)
     (make-reference (content-of instance) (- location

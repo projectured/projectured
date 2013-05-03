@@ -60,10 +60,10 @@
                             (bind ((content (get-output-stream-string stream)))
                               (when (or force (not (string= content "")))
                                 (push (make-iomap/string input input-reference input-offset content
-                                                         `(content-of (the styled-string/string (elt (the list (elements-of (the styled-string/document ,output-reference))) ,output-index))) 0 (length content))
+                                                         `(content-of (the text/string (elt (the list (elements-of (the text/text ,output-reference))) ,output-index))) 0 (length content))
                                       child-iomaps)
                                 (incf output-index)
-                                (list (make-styled-string/string content :font font :font-color font-color :fill-color fill-color :line-color line-color))))))
+                                (list (make-text/string content :font font :font-color font-color :fill-color fill-color :line-color line-color))))))
                      (iter (with font-provider = (font-provider-of projection))
                            (with font-color-provider = (font-color-provider-of projection))
                            (with fill-color-provider = (fill-color-provider-of projection))
@@ -95,7 +95,7 @@
                             (return (if styled-strings
                                         (append styled-strings (next-styled-string #f))
                                         (next-styled-string #t)))))))
-         (output (make-styled-string/document elements)))
+         (output (make-text/text elements)))
     (make-iomap/recursive projection recursion input input-reference output output-reference
                           (list* (make-iomap/object projection recursion input input-reference output output-reference) (nreverse child-iomaps)))))
 

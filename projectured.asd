@@ -14,8 +14,7 @@
   :depends-on (:hu.dwim.common
                :hu.dwim.computed-class+hu.dwim.defclass-star
                :hu.dwim.def
-               :hu.dwim.defclass-star
-               :hu.dwim.syntax-sugar+hu.dwim.walker
+               :hu.dwim.syntax-sugar
                :hu.dwim.util
                :parse-number)
   :components ((:module "source"
@@ -26,6 +25,7 @@
                              (:module "device"
                               :depends-on ("util")
                               :components ((:file "display")
+                                           (:file "file")
                                            (:file "keyboard")
                                            (:file "mouse")
                                            (:file "timer")))
@@ -47,7 +47,8 @@
                              (:module "style"
                               :depends-on ("editor")
                               :components ((:file "color")
-                                           (:file "font")))
+                                           (:file "font")
+                                           (:file "image")))
                              (:module "domain"
                               :depends-on ("util" "style" "editor")
                               :components ((:file "book")
@@ -55,6 +56,7 @@
                                            (:file "graph")
                                            (:file "graphics")
                                            (:file "java")
+                                           (:file "javascript")
                                            (:file "json")
                                            (:file "list")
                                            (:file "lisp-form")
@@ -62,11 +64,10 @@
                                            (:file "sequence")
                                            (:file "state-machine")
                                            (:file "string")
-                                           (:file "styled-string")
                                            (:file "table")
                                            (:file "text")
                                            (:file "tree")
-                                           (:file "walked-lisp-form")
+                                           (:file "common-lisp")
                                            (:file "widget")
                                            (:file "xml")))
                              (:module "projection"
@@ -96,6 +97,7 @@
                                                          (:file "graph-to-graphics")
                                                          (:file "inliner")
                                                          (:file "java-to-tree")
+                                                         (:file "javascript-to-tree")
                                                          (:file "json-to-tree")
                                                          (:file "lisp-form-to-tree")
                                                          (:file "list-to-string")
@@ -106,17 +108,23 @@
                                                          (:file "state-machine-to-tree")
                                                          (:file "state-machine-to-graph")
                                                          (:file "string-to-delimited-string")
+                                                         (:file "string-to-leaf")
                                                          (:file "string-to-line-numbered-string")
                                                          (:file "string-to-string")
                                                          (:file "string-to-styled-string")
                                                          (:file "styled-string-to-graphics")
+                                                         (:file "styled-string-to-line-numbered-styled-string")
+                                                         (:file "styled-string-to-string")
+                                                         (:file "styled-string-to-tree")
                                                          (:file "t-to-class-name")
                                                          (:file "t-to-table")
                                                          (:file "table-to-string")
                                                          (:file "text-to-string")
+                                                         (:file "text-to-tree")
                                                          (:file "tree-to-graphics")
                                                          (:file "tree-to-string")
-                                                         (:file "walked-lisp-form-to-lisp-form")
+                                                         (:file "tree-to-styled-string")
+                                                         (:file "common-lisp-to-lisp-form")
                                                          (:file "widget-to-graphics")
                                                          (:file "word-wrapping")
                                                          (:file "xml-to-tree")))

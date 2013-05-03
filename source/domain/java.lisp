@@ -52,7 +52,7 @@
 
 (def document java/statement/variable-declaration (java/statement)
   ((name :type string)
-   (type :type java/type :accessor nil)))
+   (type :type java/declaration/type :accessor nil)))
 
 ;;;;;;
 ;;; Java expression classes
@@ -64,7 +64,7 @@
   ())
 
 (def document java/expression/method-invocation (java/expression)
-  ((method :type java/method)
+  ((method :type java/declaration/method)
    (arguments :type sequence)))
 
 (def document java/expression/infix-operator (java/expression)
@@ -109,7 +109,7 @@
 
 (def document java/declaration/class (java/declaration)
   ((name :type string)
-   (extends :type java/class)
+   (extends :type java/declaration/class)
    (fields :type sequence)
    (methods :type sequence)))
 
@@ -119,14 +119,14 @@
 
 (def document java/declaration/argument (java/declaration)
   ((name :type string)
-   (type :type java/type :accessor nil)))
+   (type :type java/declaration/type :accessor nil)))
 
 (def document java/declaration/method (java/declaration)
-  ((qualifier :type java/qualifier)
-   (return-type :type java/type)
+  ((qualifier :type java/declaration/qualifier)
+   (return-type :type java/declaration/type)
    (name :type string)
    (arguments :type sequence)
-   (body :type java/block)))
+   (body :type java/base)))
 
 ;;;;;;
 ;;; Java statement constructors
@@ -186,93 +186,3 @@
                  :name name
                  :arguments arguments
                  :body body))
-
-;;;;;;
-;;; Java provider
-
-(def (function e) java-font-color-provider (iomap reference)
-  (map-backward iomap reference
-                (lambda (iomap reference)
-                  (declare (ignore iomap))
-                  (pattern-case reference
-                    ;; delimiters
-                    ((the character (elt (the string (?or (opening-delimiter ?a ?b)
-                                                          (closing-delimiter ?a ?b))) ?c))
-                     (return-from java-font-color-provider
-                       (make-style/color 255 196 196 196)))
-                    ;; function argument
-                    ((the character (elt (the string (name-of (the java/declaration/argument ?b))) ?c))
-                     (return-from java-font-color-provider
-                       (make-style/color 255 128 128 0)))
-                    ;; reference to a variable
-                    ((the character (elt (the string (name-of (the java/expression/variable-reference ?b))) ?c))
-                     (return-from java-font-color-provider
-                       (make-style/color 255 196 196 0)))
-                    ;; method name
-                    ((the character (elt (the string (name-of (the java/declaration/method ?b))) ?c))
-                     (return-from java-font-color-provider
-                       (make-style/color 255 128 0 0)))
-                    ;; operator name
-                    ((the character (elt (the string (operator-of (the java/expression/infix-operator ?b))) ?c))
-                     (return-from java-font-color-provider
-                       (make-style/color 255 128 0 0)))
-                    ;; method invocation name
-                    ((the character (elt (the string (method-of (the java/expression/method-invocation ?b))) ?c))
-                     (return-from java-font-color-provider
-                       (make-style/color 255 196 0 0)))
-                    ;; statement reserved word
-                    ((the character (elt (the string (form-name (the ?type (?if (subtypep ?type 'java/statement)) ?b))) ?c))
-                     (return-from java-font-color-provider
-                       (make-style/color 255 196 0 196)))
-                    ;; type name
-                    ((the character (elt (the string (name-of (the java/declaration/type ?b))) ?c))
-                     (return-from java-font-color-provider
-                       (make-style/color 255 0 0 196)))
-                    ;; qualifier name
-                    ((the character (elt (the string (name-of (the java/declaration/qualifier ?b))) ?c))
-                     (return-from java-font-color-provider
-                       (make-style/color 255 128 0 128)))
-                    ;; number literal
-                    ((the character (elt (the string (write-to-string (the number ?b))) ?c))
-                     (return-from java-font-color-provider
-                       (make-style/color 255 0 196 0)))))))
-
-(def (function e) java-delimiter-provider (iomap reference)
-  (pattern-case reference
-    ((?or (opening-delimiter ?node)
-          (closing-delimiter ?node))
-     (bind ((delimiter (first reference)))
-       (map-backward iomap (second reference)
-                     (lambda (iomap reference)
-                       (declare (ignore iomap))
-                       (pattern-case reference
-                         ((?or (the list (arguments-of (?or (the java/declaration/method ?a)
-                                                            (the java/expression/method-invocation ?b))))
-                               (the ?c (condition-of ?d)))
-                          (return-from java-delimiter-provider (if (eq delimiter 'opening-delimiter) "(" ")")))
-                         ((the java/statement/block ?a)
-                          (return-from java-delimiter-provider (if (eq delimiter 'opening-delimiter) "{" "}")))
-                         ((the java/statement/return ?a)
-                          (when (eq delimiter 'closing-delimiter)
-                            (return-from java-delimiter-provider ";"))))))))))
-
-(def (function e) java-separator-provider (iomap previous-child-reference next-child-reference)
-  (declare (ignore iomap previous-child-reference next-child-reference))
-  " ")
-
-(def (function e) java-indentation-provider (iomap previous-child-reference next-child-reference parent-node)
-  (declare (ignore parent-node))
-  (map-backward iomap previous-child-reference
-                (lambda (iomap reference)
-                  (declare (ignore iomap))
-                  (pattern-case reference
-                    ((the ?type (?if (subtypep ?type 'java/statement/return)) ?a)
-                     (return-from java-indentation-provider 0)))))
-  (map-backward iomap next-child-reference
-                (lambda (iomap reference)
-                  (declare (ignore iomap))
-                  (pattern-case reference
-                    ((the java/statement/block (body-of (the java/declaration/method ?a)))
-                     (return-from java-indentation-provider 0))
-                    ((the ?type (?if (subtypep ?type 'java/statement)) ?a)
-                     (return-from java-indentation-provider 4))))))

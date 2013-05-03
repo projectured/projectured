@@ -59,8 +59,10 @@
                 (return (lambda () (redo-operation operation)))))))))
 
 (def method print-to-devices ((editor editor) document projection)
-  (bind ((printer-iomap (if (slot-boundp editor 'printer-iomap)
+  (bind ((printer-iomap (setf (printer-iomap-of editor) (apply-printer document projection))
+                        #+nil
+                        (if (slot-boundp editor 'printer-iomap)
                             (printer-iomap-of editor)
                             (setf (printer-iomap-of editor) (time (apply-printer document projection))))))
     (iter (for device :in-sequence (remove-if-not 'output-device? (devices-of editor)))
-          (time (print-to-device (output-of printer-iomap) device)))))
+          (print-to-device (output-of printer-iomap) device))))

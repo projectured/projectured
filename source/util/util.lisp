@@ -18,6 +18,7 @@
 
 (def (function e) form-type (form)
   (typecase form
+    (null 'list)
     (cons 'list)
     (number 'number)
     (string 'string)

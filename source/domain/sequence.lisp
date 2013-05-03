@@ -47,6 +47,8 @@
              (values ?a ?b ?b))
             ((the sequence (subseq (the ?type (?if (subtypep ?type 'sequence)) ?a) ?b ?c))
              (values ?a ?b ?c))
+            ((elt (the list ?a) ?b)
+             (values ?a ?b (1+ ?b)))
             (?a
              (not-yet-implemented))))
          (document (document-of operation))

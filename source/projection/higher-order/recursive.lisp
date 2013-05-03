@@ -76,5 +76,6 @@
 ;;; Reader
 
 (def reader recursive (projection recursion printer-iomap projection-iomap gesture-queue operation document)
-  (declare (ignore projection recursion printer-iomap projection-iomap gesture-queue document))
-  operation)
+  (declare (ignore recursion))
+  (bind ((child (child-of projection)))
+    (funcall (reader-of child) child projection printer-iomap projection-iomap gesture-queue operation document)))

@@ -62,7 +62,10 @@
                            (for content = (content-of cell))
                            (unless (stringp content)
                              (setf content (output-of (recurse-printer projection iomap content nil nil))))
-                           (maximizing (+ (funcall 'count #\NewLine content)
+                           (maximizing (+ (text/count content #\NewLine)
+                                          ;; TODO:
+                                          1
+                                          #+nil
                                           (if (or (string= content "")
                                                   (char= #\NewLine (last-elt content)))
                                               0
@@ -76,17 +79,5 @@
                            (for content = (content-of (elt (cells-of row) index)))
                            (unless (stringp content)
                              (setf content (output-of (recurse-printer projection iomap content nil nil))))
-                           (maximizing (iter (for line :in (split-sequence #\NewLine content))
-                                             (maximizing (length line))))))))))
-
-;;;;;;
-;;; Provider
-
-(def (function e) table-font-color-provider (iomap reference)
-  (map-backward iomap reference
-                (lambda (iomap reference)
-                  (declare (ignore iomap))
-                  (pattern-case reference
-                    ((the character (elt (the string (border-of ?a)) ?b))
-                     (return-from table-font-color-provider
-                       (make-style/color 255 196 196 196)))))))
+                           (maximizing (iter (for line :in (text/split content #\NewLine))
+                                             (maximizing (text/length line))))))))))

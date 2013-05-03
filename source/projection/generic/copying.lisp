@@ -35,6 +35,9 @@
       (string (make-iomap/recursive projection recursion input input-reference input output-reference
                                     (list (make-iomap/object projection recursion input input-reference input output-reference)
                                           (make-iomap/string input input-reference 0 input output-reference 0 (length input)))))
+      (pathname (make-iomap/object projection recursion input input-reference input output-reference))
+      (style/color (make-iomap/object projection recursion input input-reference input output-reference))
+      (style/font (make-iomap/object projection recursion input input-reference input output-reference))
       (cons
        (bind ((car-iomap (recurse-printer recursion iomap (car input) `(car ,typed-input-reference) `(car (the ,(form-type input) ,output-reference))))
               (cdr-iomap (recurse-printer recursion iomap (cdr input) `(cdr ,typed-input-reference) `(cdr (the ,(form-type input) ,output-reference))))
@@ -46,18 +49,19 @@
               (child-iomaps nil)
               (output (prog1-bind clone (allocate-instance class)
                         (dolist (slot (class-slots class))
-                          (bind ((direct-slot (some (lambda (super) (find-direct-slot super (slot-definition-name slot) :otherwise nil)) (class-precedence-list class)))
-                                 (slot-reader (first (slot-definition-readers direct-slot)))
-                                 (slot-value (slot-value-using-class class input slot))
-                                 (iomap (recurse-printer recursion iomap slot-value
-                                                         (if slot-reader
-                                                             `(,slot-reader ,typed-input-reference)
-                                                             `(slot-value ,typed-input-reference ',(slot-definition-name slot)))
-                                                         (if slot-reader
-                                                             `(,slot-reader (the ,(form-type input) ,output-reference))
-                                                             `(slot-value (the ,(form-type input) ,output-reference) ',(slot-definition-name slot))))))
-                            (push iomap child-iomaps)
-                            (setf (slot-value-using-class class clone slot) (output-of iomap)))))))
+                          (when (slot-boundp-using-class class input slot)
+                            (bind ((direct-slot (some (lambda (super) (find-direct-slot super (slot-definition-name slot) :otherwise nil)) (class-precedence-list class)))
+                                   (slot-reader (first (slot-definition-readers direct-slot)))
+                                   (slot-value (slot-value-using-class class input slot))
+                                   (iomap (recurse-printer recursion iomap slot-value
+                                                           (if slot-reader
+                                                               `(,slot-reader ,typed-input-reference)
+                                                               `(slot-value ,typed-input-reference ',(slot-definition-name slot)))
+                                                           (if slot-reader
+                                                               `(,slot-reader (the ,(form-type input) ,output-reference))
+                                                               `(slot-value (the ,(form-type input) ,output-reference) ',(slot-definition-name slot))))))
+                              (push iomap child-iomaps)
+                              (setf (slot-value-using-class class clone slot) (output-of iomap))))))))
          (make-iomap/recursive projection recursion input input-reference output output-reference
                                (list* (make-iomap/object projection recursion input input-reference output output-reference) (nreverse child-iomaps))))))))
 

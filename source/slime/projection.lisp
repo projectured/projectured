@@ -37,11 +37,11 @@
 (def method print-to-device ((instance graphics/image) (display device/display/slime))
   (values))
 
-(def method print-to-device ((instance styled-string/document) (display device/display/slime))
+(def method print-to-device ((instance text/text) (display device/display/slime))
   (iter (for element :in (elements-of instance))
         (print-to-device element display)))
 
-(def method print-to-device ((instance styled-string/string) (display device/display/slime))
+(def method print-to-device ((instance text/string) (display device/display/slime))
   (bind ((fill-color (fill-color-of instance)))
     (swank::eval-in-emacs
      `(with-current-buffer (slime-repl-buffer)

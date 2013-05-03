@@ -11,7 +11,7 @@
 
 (def function make-test-document (content &key selection)
   (composite ()
-    (scroll-pane (:location (make-2d 0 0) :size (make-2d 800 600) :margin (make-inset :all 5))
+    (scroll-pane (:location (make-2d 0 0) :size (make-2d 1024 768) :margin (make-inset :all 5))
       (document (:selection selection)
         content))
     (tooltip (:location (make-2d 100 100) :margin (make-inset :all 5))
@@ -43,14 +43,21 @@
     (make-test-content/string)))
 
 ;;;;;;
+;;; Styled string
+
+(def function make-test-document/styled-string ()
+  (test-document (:selection '(the sequence-position (pos (the string (content-of (the text/string (elt (the list (elements-of (the text/text (content-of (the document document))))) 0)))) 2)))
+    (make-test-content/styled-string)))
+
+;;;;;;
 ;;; Text
 
 (def function make-test-document/text/empty ()
-  (test-document (:selection '(the sequence-position (pos (the string (content-of (the make-styled-string/string (elt (the list (elements-of (the text/paragraph (elt (the list (elements-of (the text/document (content-of (the document document))))) 0)))) 0)))) 0)))
+  (test-document (:selection '(the sequence-position (pos (the string (content-of (the make-text/string (elt (the list (elements-of (the text/paragraph (elt (the list (elements-of (the text/text (content-of (the document document))))) 0)))) 0)))) 0)))
     (make-test-content/text/empty)))
 
 (def function make-test-document/text ()
-  (test-document (:selection '(the sequence-position (pos (the string (content-of (the styled-string/string (elt (the list (elements-of (the text/paragraph (elt (the list (elements-of (the text/document (content-of (the document document))))) 1)))) 0)))) 4)))
+  (test-document (:selection '(the sequence-position (pos (the string (content-of (the text/string (elt (the list (elements-of (the text/paragraph (elt (the list (elements-of (the text/text (content-of (the document document))))) 1)))) 0)))) 4)))
     (make-test-content/text)))
 
 ;;;;;;
@@ -95,6 +102,20 @@
     (make-test-content/tree)))
 
 ;;;;;;
+;;; Graph
+
+(def function make-test-document/graph ()
+  (test-document ()
+    (make-test-content/graph)))
+
+;;;;;;
+;;; State machine
+
+(def function make-test-document/state-machine ()
+  (test-document ()
+    (make-test-content/state-machine)))
+
+;;;;;;
 ;;; Book
 
 (def function make-test-document/book/empty ()
@@ -113,7 +134,7 @@
     (make-test-content/xml/empty)))
 
 (def function make-test-document/xml ()
-  (test-document (:selection '(the sequence-position (pos (the string (value-of (the xml/attribute (elt (the list (attributes-of (the xml/element (elt (the list (children-of (the xml/element (elt (the list (children-of (the xml/element (content-of (the document document))))) 0)))) 1)))) 1)))) 2)))
+  (test-document (:selection '(the sequence-position (pos (the string (value-of (the xml/attribute (elt (the list (attributes-of (the xml/element (elt (the list (children-of (the xml/element (elt (the list (children-of (the xml/element (content-of (the document document))))) 1)))) 1)))) 1)))) 2)))
     (make-test-content/xml)))
 
 ;;;;;;
@@ -124,7 +145,7 @@
     (make-test-content/json/empty)))
 
 (def function make-test-document/json ()
-  (test-document (:selection '(the sequence-position (pos (the string (text-of (the json/string (elt (the list (elements-of (the json/array (content-of (the document document))))) 4)))) 10)))
+  (test-document (:selection '(the sequence-position (pos (the string (text-of (the json/string (elt (the list (elements-of (the json/array (content-of (the document document))))) 4)))) 8)))
     (make-test-content/json)))
 
 ;;;;;;
@@ -139,6 +160,13 @@
     (make-test-content/java)))
 
 ;;;;;;
+;;; Javascript
+
+(def function make-test-document/javascript ()
+  (test-document ()
+    (make-test-content/javascript)))
+
+;;;;;;
 ;;; Lisp form
 
 (def function make-test-document/lisp-form/empty ()
@@ -150,15 +178,15 @@
     (make-test-content/lisp-form)))
 
 ;;;;;;
-;;; Walked lisp form
+;;; Common lisp
 
-(def function make-test-document/walked-lisp-form/empty ()
+(def function make-test-document/common-lisp/empty ()
   (test-document (:selection '(content-of (the document document)))
-    (make-test-content/walked-lisp-form/empty)))
+    (make-test-content/common-lisp/empty)))
 
-(def function make-test-document/walked-lisp-form ()
-  (test-document (:selection '(the sequence-position (pos (the string (slot-value (the hu.dwim.walker:function-definition-form (content-of (the document document))) 'hu.dwim.walker::docstring)) 7)))
-    (make-test-content/walked-lisp-form)))
+(def function make-test-document/common-lisp ()
+  (test-document (:selection '(the sequence-position (pos (the string (slot-value (the common-lisp/function-definition (content-of (the document document))) 'documentation)) 7)))
+    (make-test-content/common-lisp)))
 
 ;;;;;
 ;;; Evaluator
@@ -189,15 +217,23 @@
 ;;; Nested
 
 (def function make-test-document/nested ()
-  (test-document (:selection '(the sequence-position (pos (the string (slot-value (the hu.dwim.walker:constant-form (elt (the list (slot-value (the hu.dwim.walker:free-application-form (slot-value (the hu.dwim.walker:if-form (elt (the list (slot-value (the hu.dwim.walker:lambda-function-form (content-of (the document document))) 'hu.dwim.walker::body)) 0)) 'hu.dwim.walker::condition)) 'hu.dwim.walker::arguments)) 0)) 'hu.dwim.walker::value)) 1)))
+  (test-document (:selection '(the sequence-position (pos (the string (slot-value (the common-lisp/constant (elt (the list (slot-value (the common-lisp/application (slot-value (the common-lisp/if (elt (the list (slot-value (the common-lisp/lambda-function (content-of (the document document))) 'body)) 0)) 'condition)) 'arguments)) 0)) 'value)) 1)))
     (make-test-content/nested)))
 
 ;;;;;;
 ;;; Complex
 
 (def function make-test-document/complex ()
-  (test-document (:selection '(the sequence-position (pos (the string (slot-value (the hu.dwim.walker:function-definition-form (content-of (content-of (the table/cell (elt (the list (cells-of (the table/row (elt (the list (rows-of (the table/table (content-of (the document document))))) 1)))) 1))))) 'hu.dwim.walker::docstring)) 7)))
+  (test-document (:selection '(the sequence-position (pos (the string (slot-value (the common-lisp/function-definition (content-of (content-of (the table/cell (elt (the list (cells-of (the table/row (elt (the list (rows-of (the table/table (content-of (the document document))))) 1)))) 1))))) 'documentation)) 7)))
     (make-test-content/complex)))
+
+;;;;;;
+;;; Demo
+
+;;(the sequence-position (pos (the string (title-of (the book/chapter (elt (the list (elements-of (the book/book (content-of (the document document))))) 0)))) 3))
+(def function make-test-document/demo ()
+  (test-document (:selection '(the sequence-position (pos (the string (title-of (the book/book (content-of (the document document))))) 2)))
+    (make-test-content/demo)))
 
 ;;;;;;
 ;;; Wow

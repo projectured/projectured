@@ -34,15 +34,18 @@
 ;;; Printer
 
 (def printer evaluator (projection recursion iomap input input-reference output-reference)
+  (declare (ignore iomap))
   (bind ((output nil))
     (labels ((evaluate (environment form)
                (etypecase form
-                 (hu.dwim.walker:constant-form (hu.dwim.walker:value-of form))
-                 (hu.dwim.walker:free-application-form
-                  (bind ((operator (hu.dwim.walker:operator-of form))
-                         (arguments (iter (for argument :in (hu.dwim.walker:arguments-of form))
+                 (common-lisp/constant (value-of form))
+                 (common-lisp/application
+                  (bind ((operator (operator-of form))
+                         (arguments (iter (for argument :in (arguments-of form))
                                           (collect (evaluate environment argument)))))
-                    (push (hu.dwim.walker:walk-form `(,operator ,@arguments)) output)
+                    ;; TODO:
+                    #+nil
+                    (push (common-lisp/walk-form `(,operator ,@arguments)) output)
                     (apply operator arguments))))))
       (evaluate (make-environment nil) input))
     (make-iomap/object projection recursion input input-reference (nreverse output) output-reference)))

@@ -46,6 +46,8 @@
      (bind ((old-sequence (write-to-string (eval-reference (document-of operation) ?a)))
             (new-sequence (concatenate (form-type old-sequence)
                                        (subseq old-sequence 0 ?b) (replacement-of operation) (subseq old-sequence ?b))))
-       (setf (eval-reference (document-of operation) ?a) (parse-integer new-sequence))))
+       (setf (eval-reference (document-of operation) ?a) (parse-number:parse-number new-sequence))
+       ;; KLUDGE: forece recomputation
+       (invalidate-computed-slot (document-of operation) 'content)))
     (?a
      (not-yet-implemented))))

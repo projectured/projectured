@@ -90,7 +90,7 @@
 ;;;
 ;;; http://ethanschoonover.com/solarized
 
-(def color *color/solarized/gray* (196 196 196))
+(def color *color/solarized/gray* (128 128 128))
 (def color *color/solarized/yellow* (181 137 0))
 (def color *color/solarized/orange* (203 75 22))
 (def color *color/solarized/red* (220 50 47))

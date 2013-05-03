@@ -37,10 +37,10 @@
          (temporary (with-output-to-string (stream)
                       (iter (with format-string = (format nil "\~~~A,' D " line-number-length))
                             (with input-offset = 0)
-                            (for index :from 0)
+                            (for line-index :from 0)
                             (for line :in (split-sequence #\NewLine input))
-                            (for line-number = (format nil format-string index))
-                            (push (make-iomap/string line-number `(line-number ,typed-input-reference ,index) 0
+                            (for line-number = (format nil format-string line-index))
+                            (push (make-iomap/string line-number `(line-number ,typed-input-reference ,line-index) 0
                                                      output output-reference (file-position stream)
                                                      (length line-number))
                                   child-iomaps)
@@ -63,15 +63,3 @@
 (def reader string->line-numbered-string (projection recursion printer-iomap projection-iomap gesture-queue operation document)
   (declare (ignore projection recursion printer-iomap projection-iomap gesture-queue document))
   operation)
-
-;;;;;;
-;;; Color
-
-;; TODO: move
-(def (function e) line-number-font-color-provider (iomap reference)
-  (map-backward iomap reference
-                (lambda (iomap reference)
-                  (declare (ignore iomap))
-                  (pattern-case reference
-                    ((the character (elt (the string (line-number ?a ?b)) ?c))
-                     (return-from line-number-font-color-provider *color/dark-red*))))))

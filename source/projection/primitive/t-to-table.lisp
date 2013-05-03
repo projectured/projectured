@@ -91,30 +91,35 @@
 ;;; Printer
 
 (def printer t/null->string (projection recursion iomap input input-reference output-reference)
-  (bind ((output "<empty list>"))
+  (declare (ignore iomap))
+  (bind ((output (make-text/text (list (make-text/string "NIL" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/red*)))))
     (make-iomap/object projection recursion input input-reference output output-reference)))
 
 (def printer t/number->string (projection recursion iomap input input-reference output-reference)
-  (bind ((output (write-to-string input)))
+  (declare (ignore iomap))
+  (bind ((output (make-text/text (list (make-text/string (write-to-string input) :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/magenta*)))))
     (make-iomap/object projection recursion input input-reference output output-reference)))
 
 (def printer t/string->string (projection recursion iomap input input-reference output-reference)
-  (bind ((output (string+ "\"" input "\"")))
+  (declare (ignore iomap))
+  (bind ((output (make-text/text (list (make-text/string (string+ "\"" input "\"") :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/green*)))))
     (make-iomap/object projection recursion input input-reference output output-reference)))
 
 (def printer t/symbol->string (projection recursion iomap input input-reference output-reference)
+  (declare (ignore iomap))
   (bind ((output (symbol-name input)))
     (make-iomap/object projection recursion input input-reference output output-reference)))
 
 (def printer t/sequence->table/table (projection recursion iomap input input-reference output-reference)
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
-         (output (make-table/table (list* (make-table/row (list (make-table/cell "TYPE")
-                                                                (make-table/cell (if (consp input)
-                                                                                     "LIST"
-                                                                                     "SEQUENCE"))))
+         (output (make-table/table (list* (make-table/row (list (make-table/cell (make-text/text (list (make-text/string "TYPE" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/blue*))))
+                                                                (make-table/cell (make-text/text (list (make-text/string (if (consp input)
+                                                                                                                                                   "LIST"
+                                                                                                                                                   "SEQUENCE")
+                                                                                                                                               :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/red*))))))
                                           (iter (for index :from 0)
                                                 (for element :in-sequence input)
-                                                (collect (make-table/row (list (make-table/cell (write-to-string index))
+                                                (collect (make-table/row (list (make-table/cell (make-text/text (list (make-text/string (write-to-string index) :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/blue*))))
                                                                                (make-table/cell (output-of (recurse-printer recursion iomap (elt input index)
                                                                                                                             `(elt ,typed-input-reference ,index)
                                                                                                                             `(content-of (the table/cell (elt (the list (cells-of (the table/row (elt (the list (rows-of (the table/table ,output-reference))) ,(1+ index))))) 1))))))))))))))
@@ -131,70 +136,51 @@
 
 (def printer t/object->table (projection recursion iomap input input-reference output-reference)
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
-         (output (make-table/table (list* (make-table/row (list (make-table/cell "TYPE")
-                                                                (make-table/cell (symbol-name (class-name (class-of input))))))
+         (output (make-table/table (list* (make-table/row (list (make-table/cell (make-text/text (list (make-text/string "TYPE" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/blue*))))
+                                                                (make-table/cell (make-text/text (list (make-text/string (symbol-name (class-name (class-of input))) :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/red*))))))
                                           (iter (with class = (class-of input))
                                                 (for index :from 0)
                                                 (for slot :in (class-slots class))
                                                 (for slot-name = (slot-definition-name slot))
-                                                (collect (make-table/row (list (make-table/cell (symbol-name slot-name))
+                                                (collect (make-table/row (list (make-table/cell (make-text/text (list (make-text/string (symbol-name slot-name) :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/blue*))))
                                                                                (make-table/cell (if (slot-boundp-using-class class input slot)
                                                                                                     (output-of (recurse-printer recursion iomap (slot-value-using-class class input slot)
                                                                                                                                 `(slot-value ,typed-input-reference ,slot-name)
                                                                                                                                 `(content-of (the table/cell (elt (the list (cells-of (the table/row (elt (the list (rows-of (the table/table ,output-reference))) ,(1+ index))))) 1)))))
-                                                                                                    "<unbound>"))))))))))
+                                                                                                    (make-text/text (list (make-text/string "<unbound>" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))))))))))))
     (make-iomap/object projection recursion input input-reference output output-reference)))
 
 ;;;;;;
 ;;; Reader
 
-(def reader t/null->string (projection recursion input input-reference output-reference)
-  (declare (ignore projection recursion input input-reference output-reference))
-  nil)
+(def reader t/null->string (projection recursion printer-iomap projection-iomap gesture-queue operation document)
+  (declare (ignore projection recursion printer-iomap projection-iomap gesture-queue document))
+  operation)
 
-(def reader t/number->string (projection recursion input input-reference output-reference)
-  (declare (ignore projection recursion input input-reference output-reference))
-  nil)
+(def reader t/number->string (projection recursion printer-iomap projection-iomap gesture-queue operation document)
+  (declare (ignore projection recursion printer-iomap projection-iomap gesture-queue document))
+  operation)
 
-(def reader t/string->string (projection recursion input input-reference output-reference)
-  (declare (ignore projection recursion input input-reference output-reference))
-  nil)
+(def reader t/string->string (projection recursion printer-iomap projection-iomap gesture-queue operation document)
+  (declare (ignore projection recursion printer-iomap projection-iomap gesture-queue document))
+  operation)
 
-(def reader t/symbol->string (projection recursion input input-reference output-reference)
-  (declare (ignore projection recursion input input-reference output-reference))
-  nil)
+(def reader t/symbol->string (projection recursion printer-iomap projection-iomap gesture-queue operation document)
+  (declare (ignore projection recursion printer-iomap projection-iomap gesture-queue document))
+  operation)
 
-(def reader t/sequence->table/table (projection recursion input input-reference output-reference)
-  (declare (ignore projection recursion input input-reference output-reference))
-  nil)
+(def reader t/sequence->table/table (projection recursion printer-iomap projection-iomap gesture-queue operation document)
+  (declare (ignore projection recursion printer-iomap projection-iomap gesture-queue document))
+  operation)
 
-(def reader t/hash-table->table/table (projection recursion input input-reference output-reference)
-  (declare (ignore projection recursion input input-reference output-reference))
-  nil)
+(def reader t/hash-table->table/table (projection recursion printer-iomap projection-iomap gesture-queue operation document)
+  (declare (ignore projection recursion printer-iomap projection-iomap gesture-queue document))
+  operation)
 
-(def reader t/function->table/table (projection recursion input input-reference output-reference)
-  (declare (ignore projection recursion input input-reference output-reference))
-  nil)
+(def reader t/function->table/table (projection recursion printer-iomap projection-iomap gesture-queue operation document)
+  (declare (ignore projection recursion printer-iomap projection-iomap gesture-queue document))
+  operation)
 
-(def reader t/object->table (projection recursion input input-reference output-reference)
-  (declare (ignore projection recursion input input-reference output-reference))
-  nil)
-
-(def (function e) t-font-color-provider (iomap reference)
-  (block nil
-    (map-backward iomap reference
-                  (lambda (iomap reference)
-                    (declare (ignore iomap))
-                    (pattern-case reference
-                      ;; class names
-                      ((the character (elt (the string (symbol-name (form-type ?a))) ?b))
-                       (return-from t-font-color-provider (make-style/color 255 0 0 196)))
-                      ;; slot names
-                      ((the character (elt (the string (symbol-name (slot-definition-name ?a))) ?b))
-                       (return-from t-font-color-provider (make-style/color 255 196 0 0)))
-                      ;; number
-                      ((the character (elt (the string (write->string (the ?type (?if (subtypep ?type 'number)) ?a))) ?b))
-                       (return-from t-font-color-provider (make-style/color 255 0 196 0)))
-                      ;; string
-                      ((the character (elt (the string (slot-value ?a ?b)) ?c))
-                       (return-from t-font-color-provider (make-style/color 255 0 196 0))))))))
+(def reader t/object->table (projection recursion printer-iomap projection-iomap gesture-queue operation document)
+  (declare (ignore projection recursion printer-iomap projection-iomap gesture-queue document))
+  operation)

@@ -12,7 +12,7 @@
 (def suite* (test/editor :in test))
 
 (def test test/editor/read-eval-print-loop (document projection)
-  (finishes (run-read-evaluate-print-loop (make-editor) document projection)))
+  (finishes (run-read-evaluate-print-loop (make-editor :filename "/tmp/projectured.bmp") document projection)))
 
 (def test test/editor/graphics ()
   (test/editor/read-eval-print-loop (make-test-document/graphics) (make-test-projection/graphics->graphics)))
@@ -31,6 +31,9 @@
 
 (def test test/editor/string/sorting ()
   (test/editor/read-eval-print-loop (make-test-document/string) (make-test-projection/string->graphics/sorting)))
+
+(def test test/editor/styled-string ()
+  (test/editor/read-eval-print-loop (make-test-document/styled-string) (make-test-projection/styled-string->graphics)))
 
 (def test test/editor/text ()
   (test/editor/read-eval-print-loop (make-test-document/text) (make-test-projection/text->graphics)))
@@ -59,6 +62,12 @@
 (def test test/editor/tree/sorting ()
   (test/editor/read-eval-print-loop (make-test-document/tree) (make-test-projection/tree->graphics/sorting)))
 
+(def test test/editor/graph ()
+  (test/editor/read-eval-print-loop (make-test-document/graph) (make-test-projection/graph->graphics)))
+
+(def test test/editor/state-machine ()
+  (test/editor/read-eval-print-loop (make-test-document/state-machine) (make-test-projection/state-machine->graphics)))
+
 (def test test/editor/book ()
   (test/editor/read-eval-print-loop (make-test-document/book) (make-test-projection/book->graphics)))
 
@@ -80,11 +89,14 @@
 (def test test/editor/java ()
   (test/editor/read-eval-print-loop (make-test-document/java) (make-test-projection/java->graphics)))
 
+(def test test/editor/javascript ()
+  (test/editor/read-eval-print-loop (make-test-document/javascript) (make-test-projection/javascript->graphics)))
+
 (def test test/editor/lisp-form ()
   (test/editor/read-eval-print-loop (make-test-document/lisp-form) (make-test-projection/lisp-form->graphics)))
 
-(def test test/editor/walked-lisp-form ()
-  (test/editor/read-eval-print-loop (make-test-document/walked-lisp-form) (make-test-projection/walked-lisp-form->graphics)))
+(def test test/editor/common-lisp ()
+  (test/editor/read-eval-print-loop (make-test-document/common-lisp) (make-test-projection/common-lisp->graphics)))
 
 (def test test/editor/evaluator ()
   (test/editor/read-eval-print-loop (make-test-document/evaluator) (make-test-projection/evaluator)))
@@ -100,6 +112,9 @@
 
 (def test test/editor/t ()
   (test/editor/read-eval-print-loop (make-test-document/t) (make-test-projection/t->graphics)))
+
+(def test test/editor/demo ()
+  (test/editor/read-eval-print-loop (make-test-document/demo) (make-test-projection/demo->graphics)))
 
 (def test test/editor/wow ()
   (test/editor/read-eval-print-loop (make-test-document/wow) (make-test-projection/wow->graphics)))
