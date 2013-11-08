@@ -47,8 +47,8 @@
     (text/string "Hello" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/red*)
     (image/image (asdf:system-relative-pathname :projectured "etc/lisp-flag.jpg"))
     (text/string "World" :font *font/ubuntu/monospace/bold/18* :font-color *color/solarized/green*)
-    (text/string "
-New line" :font *font/ubuntu/bold/24* :font-color *color/solarized/blue*)))
+    (text/newline)
+    (text/string "New line" :font *font/ubuntu/bold/24* :font-color *color/solarized/blue*)))
 
 ;;;;;;
 ;;; Text

@@ -88,7 +88,7 @@
                                                        :indentation 0))
                                  :separator (make-text/string " " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))))
     (make-iomap/compound projection recursion input input-reference output output-reference
-                          (list* (make-iomap/object projection recursion input input-reference output output-reference) (nreverse child-iomaps)))))
+                         (list* (make-iomap/object projection recursion input input-reference output output-reference) (nreverse child-iomaps)))))
 
 (def printer state-machine/state->tree/node (projection recursion iomap input input-reference output-reference)
   (declare (ignore iomap))
@@ -109,7 +109,7 @@
                                  :closing-delimiter (make-text/string ";" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)
                                  :separator (make-text/string " " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))))
     (make-iomap/compound projection recursion input input-reference output output-reference
-                          (list* (make-iomap/object projection recursion input input-reference output output-reference) (nreverse child-iomaps)))))
+                         (list* (make-iomap/object projection recursion input input-reference output output-reference) (nreverse child-iomaps)))))
 
 (def printer state-machine/transition->tree/node (projection recursion iomap input input-reference output-reference)
   (declare (ignore iomap))
@@ -173,19 +173,19 @@
                                                        :indentation 0))
                                  :separator (make-text/string " " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))))
     (make-iomap/compound projection recursion input input-reference output output-reference
-                          (list* (make-iomap/object projection recursion input input-reference output output-reference) (nreverse child-iomaps)))))
+                         (list* (make-iomap/object projection recursion input input-reference output output-reference) (nreverse child-iomaps)))))
 
 ;;;;;;
 ;;; Reader
 
-(def reader state-machine/state-machine->tree/node (projection recursion input input-reference output-reference)
-  (declare (ignore projection recursion input input-reference output-reference))
-  nil)
+(def reader state-machine/state-machine->tree/node (projection recursion printer-iomap projection-iomap gesture-queue operation document-iomap)
+  (declare (ignore projection recursion printer-iomap gesture-queue))
+  (operation/read-backward operation projection-iomap document-iomap))
 
-(def reader state-machine/state->tree/node (projection recursion input input-reference output-reference)
-  (declare (ignore projection recursion input input-reference output-reference))
-  nil)
+(def reader state-machine/state->tree/node (projection recursion printer-iomap projection-iomap gesture-queue operation document-iomap)
+  (declare (ignore projection recursion printer-iomap gesture-queue))
+  (operation/read-backward operation projection-iomap document-iomap))
 
-(def reader state-machine/transition->tree/node (projection recursion input input-reference output-reference)
-  (declare (ignore projection recursion input input-reference output-reference))
-  nil)
+(def reader state-machine/transition->tree/node (projection recursion printer-iomap projection-iomap gesture-queue operation document-iomap)
+  (declare (ignore projection recursion printer-iomap gesture-queue))
+  (operation/read-backward operation projection-iomap document-iomap))

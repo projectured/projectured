@@ -52,6 +52,11 @@
    (selection :type selection))
   (:documentation "An operation that replaces the selection of a document."))
 
+(def class* operation/replace-target (operation)
+  ((document :type document)
+   (target :type reference)
+   (replacement :type t)))
+
 (def class* operation/save-document (operation)
   ((document :type document)))
 
@@ -78,6 +83,9 @@
 
 (def (function e) make-operation/replace-selection (document selection)
   (make-instance 'operation/replace-selection :document document :selection selection))
+
+(def (function e) make-operation/replace-target (document target replacement)
+  (make-instance 'operation/replace-target :document document :target target :replacement replacement))
 
 (def (function e) make-operation/save-document (document)
   (make-instance 'operation/save-document :document document))
@@ -108,10 +116,13 @@
   (setf (content-of (document-of operation)) (content-of operation)))
 
 (def method redo-operation ((operation operation/replace-selection))
-  (setf (selection-of (document-of operation)) (selection-of operation)))
+  (print (setf (selection-of (document-of operation)) (selection-of operation))))
+
+(def method redo-operation ((operation operation/replace-target))
+  (setf (eval-reference (document-of operation) (target-of operation)) (replacement-of operation)))
 
 (def method redo-operation ((operation operation/save-document))
-  (with-output-to-file (output "/tmp/document.pred" :if-exists :overwrite :element-type '(unsigned-byte 8))
+  (with-output-to-file (output "/tmp/document.pred" :if-does-not-exist :create :if-exists :overwrite :element-type '(unsigned-byte 8))
     (hu.dwim.serializer:serialize (document-of operation) :output output)))
 
 (def method redo-operation ((operation operation/load-document))

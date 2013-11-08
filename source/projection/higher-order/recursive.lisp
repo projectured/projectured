@@ -24,8 +24,8 @@
 (def (function e) make-iomap/recursive (projection recursion input input-reference output output-reference)
   (make-iomap 'iomap/recursive
               :projection projection :recursion recursion
-              :input input :input-reference input-reference
-              :output output :output-reference output-reference))
+              :input input :input-reference (when input-reference `(the ,(form-type input) ,input-reference))
+              :output output :output-reference (when output-reference `(the ,(form-type output) ,output-reference))))
 
 (def (function e) make-iomap/compound (projection recursion input input-reference output output-reference child-iomaps)
   (assert (notany 'null child-iomaps))

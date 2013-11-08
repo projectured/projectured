@@ -280,17 +280,13 @@
   (bind ((latest-gesture (first (gestures-of gesture-queue)))
          (document (input-of document-iomap)))
     (cond ((typep operation 'operation/sequence/replace-element-range)
-           (bind ((tree-reference nil))
-             ;; KLUDGE:
-             (map-backward projection-iomap (tree-replace (target-of operation) '(the document document) `(the document ,(third (second (output-reference-of projection-iomap)))))
-                           (lambda (iomap reference)
-                             (declare (ignore iomap))
-                             (setf tree-reference reference)))
+           (bind ((tree-reference (map-backward/clever (target-of operation) projection-iomap document-iomap)))
              (pattern-case tree-reference
-               ((the sequence (subseq (the string (opening-delimiter-of (the tree/node (elt ?a ?b)))) 0 1))
+               ((the sequence (subseq (the string (content-of (the text/string (opening-delimiter-of (the tree/node (elt ?a ?b)))))) 0 1))
                 (make-operation/compound (list (make-operation/sequence/replace-element-range document (tree-replace `(the sequence (subseq ,?a ,?b ,(1+ ?b))) `(the document ,(third (second (input-reference-of projection-iomap)))) '(the document document)) nil)
                                                (make-operation/replace-selection document nil))))
-               (?a operation))))
+               (?a
+                (make-operation/sequence/replace-element-range document (tree-replace tree-reference `(the document ,(input-reference-of document-iomap)) '(the document document)) nil)))))
           ((key-press? latest-gesture :key :sdl-key-up :modifier :sdl-key-mod-lalt)
            (when-bind node-reference (find-tree-node-parent-reference (find-tree-node-reference (selection-of document)))
              (make-operation/replace-selection document `(the sequence-position (pos (the string (content-of (the text/string (opening-delimiter-of ,node-reference)))) 0)))))
@@ -367,7 +363,7 @@
           ((key-press? latest-gesture :key :sdl-key-u :modifier :sdl-key-mod-lctrl)
            (pattern-case (selection-of document)
              ;; content of a leaf being a child of a node that is a child of another node
-             ((the sequence-position (pos (the string (content-of (the tree/leaf (elt (the list (children-of (the tree/node (elt ?a ?b)))) ?c)))) ?d))
+             ((the sequence-position (pos (the string (content-of (the text/string (content-of (the tree/leaf (elt (the list (children-of (the tree/node (elt ?a ?b)))) ?c)))))) ?d))
               (bind ((value (eval-reference document (tree-replace `(elt (the list (children-of (the tree/node (elt ,?a ,?b)))) ,?c) `(the document ,(third (second (input-reference-of projection-iomap)))) '(the document document)))))
                 (make-operation/compound (list (make-operation/sequence/replace-element-range document (tree-replace `(the sequence (subseq ,?a ,?b ,(1+ ?b))) `(the document ,(third (second (input-reference-of projection-iomap)))) '(the document document))
                                                                                               (list value))
@@ -380,7 +376,7 @@
                                                (make-operation/replace-selection document `(the sequence-position (pos (the string (,?delimiter (the ,?type (elt ,?a ,?b)))) ,?e)))))))
              ;; TODO: indentation of a leaf/node being a child of a node that is a child of another node
              ;; TODO: content of a leaf being a child of a node that is the content of a document
-             ((the sequence-position (pos (the string (content-of (the tree/leaf (elt (the list (children-of (the tree/node (content-of (the document ?a))))) ?b)))) ?c))
+             ((the sequence-position (pos (the string (content-of (the text/string (content-of (the tree/leaf (elt (the list (children-of (the tree/node (content-of (the document ?a))))) ?b)))))) ?c))
               (bind ((value (eval-reference document (tree-replace `(elt (the list (children-of (the tree/node (content-of (the document ,?a))))) ,?b) `(the document ,(third (second (input-reference-of projection-iomap)))) '(the document document)))))
                 (make-operation/compound (list (make-operation/replace-content document value)
                                                (make-operation/replace-selection document `(the sequence-position (pos (the string (content-of (the tree/leaf (content-of (the document ,?a))))) ,?c)))))))

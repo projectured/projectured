@@ -6,6 +6,11 @@
 
 (in-package :projectured)
 
+;;;; TODO: backward mapping is not completely correct due to the following:
+;;;; TODO: "[" "null" "]" the positions between the delimiters and the content are ambiguous
+;;;; TODO: there's no easy way around this problem currently, because the same cursor positions can be represented in multiple ways
+;;;; TODO: what if we explicitely represent cursor positions too in the text domain?
+
 ;;;;;;
 ;;; Projection
 
@@ -201,7 +206,7 @@
                                  :closing-delimiter (make-text/string "}" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)
                                  :separator (make-text/string ", " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))))
     (make-iomap/compound projection recursion input input-reference output output-reference
-                         (list* (make-iomap/object projection recursion input input-reference output output-reference) (nreverse child-iomaps)))))
+                         (list* (make-iomap/recursive projection recursion input input-reference output output-reference) (nreverse child-iomaps)))))
 
 ;;;;;;
 ;;; Reader
@@ -214,20 +219,21 @@
     ((elt (the list ?a) ?b)
      (make-operation/sequence/replace-element-range document reference list-replacement))
     (?a
-     (not-yet-implemented))))
+     (make-operation/replace-target document reference replacement))))
 
 ;; TODO: rename and move
 (def function make-operation/replace-foo (document replacement-reference selection-reference replacement &optional (list-replacement (list replacement)))
   (make-operation/compound (list (make-operation/replace document replacement-reference replacement list-replacement)
                                  (make-operation/replace-selection document selection-reference))))
 
-(def function json/read-opeartion (projection-iomap gesture-queue operation document-iomap)
+(def function json/read-opeartion (projection-iomap gesture-queue document-iomap)
   (bind ((latest-gesture (first-elt (gestures-of gesture-queue)))
          (document (input-of document-iomap)))
     (cond ((key-press? latest-gesture :key :sdl-key-delete)
-           (make-operation/replace document
-                                   (tree-replace (input-reference-of projection-iomap) (input-reference-of document-iomap) 'document)
-                                   (json/nothing) nil))
+           (make-operation/replace-foo document
+                                       (tree-replace (input-reference-of projection-iomap) (input-reference-of document-iomap) 'document)
+                                       `(the sequence-position (pos (the string (value (the json/nothing ,(tree-replace (input-reference-of projection-iomap) (input-reference-of document-iomap) 'document)))) 0))
+                                       (json/nothing) nil))
           ((key-press? latest-gesture :character #\n)
            (make-operation/replace-foo document
                                        (tree-replace (input-reference-of projection-iomap) (input-reference-of document-iomap) 'document)
@@ -269,21 +275,23 @@
              (pattern-case target
                ((elt (the list ?a) ?b)
                 (make-operation/compound (list (make-operation/sequence/replace-element-range document `(the sequence (subseq (the list ,?a) ,?b ,?b)) (list (json/nothing)))
-                                               (make-operation/replace-selection document `(the sequence-position (pos (the string (value (the json/nothing (elt (the list ,?a) ,?b)))) 0))))))))))))
+                                               (make-operation/replace-selection document `(the sequence-position (pos (the string (value (the json/nothing (elt (the list ,?a) ,?b)))) 0))))))
+               ((value-of (the json/object-entry (elt (the list ?a) ?b)))
+                (make-operation/compound (list (make-operation/sequence/replace-element-range document `(the sequence (subseq (the list ,?a) ,?b ,?b)) (list (json/object-entry "" (json/nothing)))))))))))))
 
 (def reader json/nothing->tree/leaf (projection recursion printer-iomap projection-iomap gesture-queue operation document-iomap)
   (declare (ignore projection recursion printer-iomap))
-  (or (json/read-opeartion projection-iomap gesture-queue operation document-iomap)
+  (or (json/read-opeartion projection-iomap gesture-queue document-iomap)
       (operation/read-backward operation projection-iomap document-iomap)))
 
 (def reader json/null->tree/leaf (projection recursion printer-iomap projection-iomap gesture-queue operation document-iomap)
   (declare (ignore projection recursion printer-iomap))
-  (or (json/read-opeartion projection-iomap gesture-queue operation document-iomap)
+  (or (json/read-opeartion projection-iomap gesture-queue document-iomap)
       (operation/read-backward operation projection-iomap document-iomap)))
 
 (def reader json/boolean->tree/leaf (projection recursion printer-iomap projection-iomap gesture-queue operation document-iomap)
   (declare (ignore projection recursion printer-iomap))
-  (or (json/read-opeartion projection-iomap gesture-queue operation document-iomap)
+  (or (json/read-opeartion projection-iomap gesture-queue document-iomap)
       (operation/read-backward operation projection-iomap document-iomap)))
 
 (def reader json/number->tree/leaf (projection recursion printer-iomap projection-iomap gesture-queue operation document-iomap)
@@ -299,11 +307,10 @@
                    ((and (typep child-operation 'operation/sequence/replace-element-range)
                          (every 'digit-char-p (replacement-of child-operation)))
                     (awhen (map-backward/clever (target-of child-operation) projection-iomap document-iomap)
-                      (make-operation/number/replace-range (input-of document-iomap) (tree-replace it `(the document ,(input-reference-of document-iomap)) '(the document document)) (replacement-of child-operation))))
-                   (t
-                    (or (json/read-opeartion projection-iomap gesture-queue child-operation document-iomap)
-                        (operation/read-backward operation projection-iomap document-iomap))))))
-    (recurse operation)))
+                      (make-operation/number/replace-range (input-of document-iomap) (tree-replace it `(the document ,(input-reference-of document-iomap)) '(the document document)) (replacement-of child-operation)))))))
+    (or (recurse operation)
+        (json/read-opeartion projection-iomap gesture-queue document-iomap)
+        (operation/read-backward operation projection-iomap document-iomap))))
 
 (def reader json/string->tree/leaf (projection recursion printer-iomap projection-iomap gesture-queue operation document-iomap)
   (declare (ignore projection recursion printer-iomap))
@@ -317,11 +324,10 @@
                       (make-operation/replace-selection (input-of document-iomap) (tree-replace it `(the document ,(input-reference-of document-iomap)) '(the document document)))))
                    ((typep child-operation 'operation/sequence/replace-element-range)
                     (awhen (map-backward/clever (target-of child-operation) projection-iomap document-iomap)
-                      (make-operation/sequence/replace-element-range (input-of document-iomap) (tree-replace it `(the document ,(input-reference-of document-iomap)) '(the document document)) (replacement-of child-operation))))
-                   (t
-                    (or (json/read-opeartion projection-iomap gesture-queue child-operation document-iomap)
-                        (operation/read-backward operation projection-iomap document-iomap))))))
-    (recurse operation)))
+                      (make-operation/sequence/replace-element-range (input-of document-iomap) (tree-replace it `(the document ,(input-reference-of document-iomap)) '(the document document)) (replacement-of child-operation)))))))
+    (or (recurse operation)
+        (json/read-opeartion projection-iomap gesture-queue document-iomap)
+        (operation/read-backward operation projection-iomap document-iomap))))
 
 (def reader json/array->tree/node (projection recursion printer-iomap projection-iomap gesture-queue operation document-iomap)
   (declare (ignore projection))
@@ -333,7 +339,7 @@
                      (recurse-reader recursion printer-iomap child-iomap gesture-queue operation document-iomap)))
               (when child-operation
                 (return child-operation)))
-        (json/read-opeartion projection-iomap gesture-queue operation document-iomap)
+        (json/read-opeartion projection-iomap gesture-queue document-iomap)
         (operation/read-backward operation projection-iomap document-iomap))))
 
 (def reader json/object-entry->tree/node (projection recursion printer-iomap projection-iomap gesture-queue operation document-iomap)
@@ -350,5 +356,5 @@
                      (recurse-reader recursion printer-iomap child-iomap gesture-queue operation document-iomap)))
               (when child-operation
                 (return child-operation)))
-        (json/read-opeartion projection-iomap gesture-queue operation document-iomap)
+        (json/read-opeartion projection-iomap gesture-queue document-iomap)
         (operation/read-backward operation projection-iomap document-iomap))))
