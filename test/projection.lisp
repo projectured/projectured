@@ -180,11 +180,7 @@
 ;;; Tree
 
 (def function make-test-projection/tree->styled-string ()
-  (recursive (tree->styled-string :delimiter-provider (make-alternative-function (list (make-delimiter-provider "(" ")")))
-                                  :separator-provider (make-alternative-function (list (make-separator-provider " ")))
-                                  :indentation-provider (make-alternative-function (list (make-indentation-provider :indentation-width 1)
-                                                                                         (make-indentation-provider :indentation-width 0)
-                                                                                         (constantly nil))))))
+  (recursive (tree->styled-string)))
 
 (def function make-test-projection/tree->graphics ()
   (test-projection
@@ -390,7 +386,9 @@
       (sequential
         (nesting
           (document->document)
-          (focusing '(elt (elements-of (the json/array document)) 5)))
+          (focusing '(elt (the list (elements-of (the json/array document))) 4))
+          #+nil
+          (focusing '(value-of (the json/object-entry (elt (the list (entries-of (the json/object (elt (the list (elements-of (the json/array document))) 5)))) 2)))))
         (nesting
           (document->document)
           (make-test-projection/json->styled-string))

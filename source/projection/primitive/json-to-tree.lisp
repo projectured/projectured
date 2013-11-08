@@ -9,41 +9,47 @@
 ;;;;;;
 ;;; Projection
 
-(def (projection e) json/null->string ()
+(def projection json/nothing->tree/leaf ()
   ())
 
-(def (projection e) json/boolean->string ()
+(def projection json/null->tree/leaf ()
   ())
 
-(def (projection e) json/number->string ()
+(def projection json/boolean->tree/leaf ()
   ())
 
-(def (projection e) json/string->string ()
+(def projection json/number->tree/leaf ()
   ())
 
-(def (projection e) json/array->tree/node ()
+(def projection json/string->tree/leaf ()
   ())
 
-(def (projection e) json/object-entry->tree/node ()
+(def projection json/array->tree/node ()
   ())
 
-(def (projection e) json/object->tree/node ()
+(def projection json/object-entry->tree/node ()
+  ())
+
+(def projection json/object->tree/node ()
   ())
 
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/json/null->string ()
-  (make-projection 'json/null->string))
+(def (function e) make-projection/json/nothing->tree/leaf ()
+  (make-projection 'json/nothing->tree/leaf))
 
-(def (function e) make-projection/json/boolean->string ()
-  (make-projection 'json/boolean->string))
+(def (function e) make-projection/json/null->tree/leaf ()
+  (make-projection 'json/null->tree/leaf))
 
-(def (function e) make-projection/json/number->string ()
-  (make-projection 'json/number->string))
+(def (function e) make-projection/json/boolean->tree/leaf ()
+  (make-projection 'json/boolean->tree/leaf))
 
-(def (function e) make-projection/json/string->string ()
-  (make-projection 'json/string->string))
+(def (function e) make-projection/json/number->tree/leaf ()
+  (make-projection 'json/number->tree/leaf))
+
+(def (function e) make-projection/json/string->tree/leaf ()
+  (make-projection 'json/string->tree/leaf))
 
 (def (function e) make-projection/json/array->tree/node ()
   (make-projection 'json/array->tree/node))
@@ -57,17 +63,20 @@
 ;;;;;;
 ;;; Construction
 
-(def (macro e) json/null->string ()
-  '(make-projection/json/null->string))
+(def (macro e) json/nothing->tree/leaf ()
+  '(make-projection/json/nothing->tree/leaf))
 
-(def (macro e) json/boolean->string ()
-  '(make-projection/json/boolean->string))
+(def (macro e) json/null->tree/leaf ()
+  '(make-projection/json/null->tree/leaf))
 
-(def (macro e) json/number->string ()
-  '(make-projection/json/number->string))
+(def (macro e) json/boolean->tree/leaf ()
+  '(make-projection/json/boolean->tree/leaf))
 
-(def (macro e) json/string->string ()
-  '(make-projection/json/string->string))
+(def (macro e) json/number->tree/leaf ()
+  '(make-projection/json/number->tree/leaf))
+
+(def (macro e) json/string->tree/leaf ()
+  '(make-projection/json/string->tree/leaf))
 
 (def (macro e) json/array->tree/node ()
   '(make-projection/json/array->tree/node))
@@ -81,60 +90,62 @@
 ;;;;;;
 ;;; Printer
 
-;; TODO: rename projections ->tree/leaf
+;; TODO: rename and move
+(def function make-iomap/string->string (projection recursion input input-reference output output-reference string-content string-input-reference string-output-reference)
+  (make-iomap/compound projection recursion input input-reference output output-reference
+                       (list (make-iomap/recursive projection recursion input input-reference output output-reference)
+                             (make-iomap/string string-content string-input-reference 0
+                                                string-content string-output-reference 0
+                                                (length string-content)))))
 
-(def printer json/null->string (projection recursion iomap input input-reference output-reference)
-  (declare (ignore iomap))
-  (bind ((output-content "null")
-         (output (make-tree/leaf (make-text/string output-content :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/blue*)))
-         (name-reference `(value (the ,(form-type input) ,input-reference) ,output-content)))
-    (make-iomap/recursive projection recursion input input-reference output output-reference
-                          (list (make-iomap/object projection recursion input input-reference output output-reference)
-                                (make-iomap/string output-content name-reference 0
-                                                   output-content `(content-of (the text/string (content-of (the tree/leaf ,output-reference)))) 0
-                                                   (length output-content))))))
+;; TODO: rename and move
+(def function make-iomap/string->tree/leaf (projection recursion input input-reference output output-reference string-content string-input-reference)
+  (make-iomap/string->string projection recursion input input-reference output output-reference
+                             string-content string-input-reference `(content-of (the text/string (content-of (the tree/leaf ,output-reference))))))
 
-(def printer json/boolean->string (projection recursion iomap input input-reference output-reference)
+(def printer json/nothing->tree/leaf (projection recursion iomap input input-reference output-reference)
   (declare (ignore iomap))
-  (bind ((output-content (boolean-to-string (value-p input)))
-         (output (make-tree/leaf (make-text/string output-content :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/blue*)))
-         (name-reference `(boolean-to-string (the boolean (value-p (the ,(form-type input) ,input-reference))))))
-    (make-iomap/recursive projection recursion input input-reference output output-reference
-                          (list (make-iomap/object projection recursion input input-reference output output-reference)
-                                (make-iomap/string output-content name-reference 0
-                                                   output-content `(content-of (the text/string (content-of (the tree/leaf ,output-reference)))) 0
-                                                   (length output-content))))))
+  (bind ((string-content "")
+         (output (make-tree/leaf (make-text/string string-content :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/blue*))))
+    (make-iomap/string->tree/leaf projection recursion input input-reference output output-reference
+                                  string-content `(value (the ,(form-type input) ,input-reference)))))
 
-(def printer json/number->string (projection recursion iomap input input-reference output-reference)
+(def printer json/null->tree/leaf (projection recursion iomap input input-reference output-reference)
   (declare (ignore iomap))
-  (bind ((output-content (write-to-string (value-of input)))
-         (output (make-tree/leaf (make-text/string output-content :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/magenta*)))
-         (value-reference `(write-to-string (the number (value-of (the ,(form-type input) ,input-reference))))))
-    (make-iomap/recursive projection recursion input input-reference output output-reference
-                          (list (make-iomap/object projection recursion input input-reference output output-reference)
-                                (make-iomap/string output-content value-reference 0
-                                                   output-content `(content-of (the text/string (content-of (the tree/leaf ,output-reference)))) 0
-                                                   (length output-content))))))
+  (bind ((string-content "null")
+         (output (make-tree/leaf (make-text/string string-content :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/blue*))))
+    (make-iomap/string->tree/leaf projection recursion input input-reference output output-reference
+                                  string-content `(value (the ,(form-type input) ,input-reference)))))
 
-(def printer json/string->string (projection recursion iomap input input-reference output-reference)
+(def printer json/boolean->tree/leaf (projection recursion iomap input input-reference output-reference)
   (declare (ignore iomap))
-  (bind ((output-content (text-of input))
-         (output (make-tree/leaf (make-text/string output-content :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/green*)
+  (bind ((string-content (boolean-to-string (value-p input)))
+         (output (make-tree/leaf (make-text/string string-content :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/blue*))))
+    (make-iomap/string->tree/leaf projection recursion input input-reference output output-reference
+                                  string-content `(boolean-to-string (the boolean (value-p (the ,(form-type input) ,input-reference)))))))
+
+(def printer json/number->tree/leaf (projection recursion iomap input input-reference output-reference)
+  (declare (ignore iomap))
+  (bind ((string-content (write-to-string (value-of input)))
+         (output (make-tree/leaf (make-text/string string-content :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/magenta*))))
+    (make-iomap/string->tree/leaf projection recursion input input-reference output output-reference
+                                  string-content `(write-to-string (the number (value-of (the ,(form-type input) ,input-reference)))))))
+
+(def printer json/string->tree/leaf (projection recursion iomap input input-reference output-reference)
+  (declare (ignore iomap))
+  (bind ((string-content (value-of input))
+         (output (make-tree/leaf (make-text/string string-content :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/green*)
                                  :opening-delimiter (make-text/string "\"" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)
-                                 :closing-delimiter (make-text/string "\"" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))
-         (text-reference `(text-of (the ,(form-type input) ,input-reference))))
-    (make-iomap/recursive projection recursion input input-reference output output-reference
-                          (list (make-iomap/object projection recursion input input-reference output output-reference)
-                                (make-iomap/string output-content text-reference 0
-                                                   output-content `(content-of (the text/string (content-of (the tree/leaf ,output-reference)))) 0
-                                                   (length (text-of input)))))))
+                                 :closing-delimiter (make-text/string "\"" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))))
+    (make-iomap/string->tree/leaf projection recursion input input-reference output output-reference
+                                  string-content `(value-of (the ,(form-type input) ,input-reference)))))
 
 (def printer json/array->tree/node (projection recursion iomap input input-reference output-reference)
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
          (child-iomaps nil)
-         (deep-array (find-if-not (of-type '(or json/null json/boolean json/number json/string)) (elements-of input)))
-         (output (make-tree/node (iter (for element :in-sequence (elements-of input))
-                                       (for index :from 0)
+         (deep-array (find-if-not (of-type '(or json/nothing json/null json/boolean json/number json/string)) (elements-of input)))
+         (output (make-tree/node (iter (for index :from 0)
+                                       (for element :in-sequence (elements-of input))
                                        (for element-iomap = (recurse-printer recursion iomap element
                                                                              `(elt (the list (elements-of ,typed-input-reference)) ,index)
                                                                              `(elt (the list (children-of (the tree/node ,output-reference))) ,index)))
@@ -147,8 +158,8 @@
                                  :closing-delimiter (make-text/string "]" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)
                                  :separator (make-text/string ", " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)
                                  :indentation (indentation-of input))))
-    (make-iomap/recursive projection recursion input input-reference output output-reference
-                          (list* (make-iomap/object projection recursion input input-reference output output-reference) (nreverse child-iomaps)))))
+    (make-iomap/compound projection recursion input input-reference output output-reference
+                         (list* (make-iomap/recursive projection recursion input input-reference output output-reference) (nreverse child-iomaps)))))
 
 (def printer json/object-entry->tree/node (projection recursion iomap input input-reference output-reference)
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
@@ -161,15 +172,17 @@
                                                        :opening-delimiter (make-text/string "\"" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)
                                                        :closing-delimiter (make-text/string "\"" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))
                                        (output-of iomap))
-                                 :separator (make-text/string " : " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))))
-    (make-iomap/recursive projection recursion input input-reference output output-reference
-                          (list (make-iomap/object projection recursion input input-reference output output-reference)
-                                iomap
-                                (make-iomap/object* projection recursion input `(the string (key-of ,typed-input-reference))
-                                                    key `(the string (content-of (the tree/leaf ,key-node-reference))))
-                                (make-iomap/string key `(key-of ,typed-input-reference) 0
-                                                   key `(content-of (the text/string (content-of (the tree/leaf ,key-node-reference)))) 0
-                                                   (length key))))))
+                                 :separator (make-text/string " : " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)
+                                 :opening-delimiter (make-text/string "" :font *font/default* :font-color *color/default*)
+                                 :closing-delimiter (make-text/string "" :font *font/default* :font-color *color/default*))))
+    (make-iomap/compound projection recursion input input-reference output output-reference
+                         (list (make-iomap/object projection recursion input input-reference output output-reference)
+                               iomap
+                               (make-iomap/object* projection recursion input `(the string (key-of ,typed-input-reference))
+                                                   key `(the string (content-of (the tree/leaf ,key-node-reference))))
+                               (make-iomap/string key `(key-of ,typed-input-reference) 0
+                                                  key `(content-of (the text/string (content-of (the tree/leaf ,key-node-reference)))) 0
+                                                  (length key))))))
 
 (def printer json/object->tree/node (projection recursion iomap input input-reference output-reference)
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
@@ -177,8 +190,8 @@
          (output (make-tree/node (iter (for index :from 0)
                                        (for entry :in-sequence (entries-of input))
                                        (for entry-iomap = (recurse-printer recursion iomap entry
-                                                                     `(elt (the list (entries-of ,typed-input-reference)) ,index)
-                                                                     `(elt (the list (children-of (the tree/node ,output-reference))) ,index)))
+                                                                           `(elt (the list (entries-of ,typed-input-reference)) ,index)
+                                                                           `(elt (the list (children-of (the tree/node ,output-reference))) ,index)))
                                        (push entry-iomap child-iomaps)
                                        (unless (first-iteration-p)
                                          ;; KLUDGE:
@@ -187,85 +200,127 @@
                                  :opening-delimiter (make-text/string "{" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)
                                  :closing-delimiter (make-text/string "}" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)
                                  :separator (make-text/string ", " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))))
-    (make-iomap/recursive projection recursion input input-reference output output-reference
-                          (list* (make-iomap/object projection recursion input input-reference output output-reference) (nreverse child-iomaps)))))
+    (make-iomap/compound projection recursion input input-reference output output-reference
+                         (list* (make-iomap/object projection recursion input input-reference output output-reference) (nreverse child-iomaps)))))
 
 ;;;;;;
 ;;; Reader
 
-(def reader json/null->string (projection recursion printer-iomap projection-iomap gesture-queue operation document-iomap)
-  (declare (ignore projection recursion printer-iomap operation))
-  (bind ((latest-gesture (first (gestures-of gesture-queue))))
-    (cond ((key-press? latest-gesture :key :sdl-key-t)
-           (make-operation/sequence/replace-element-range (input-of document-iomap) (tree-replace (input-reference-of projection-iomap)
-                                                                                                  (input-reference-of document-iomap)
-                                                                                                  '(the document document))
-                                                          (list (make-json/boolean #t))))
-          ((key-press? latest-gesture :key :sdl-key-f)
-           (make-operation/sequence/replace-element-range (input-of document-iomap) (tree-replace (input-reference-of projection-iomap)
-                                                                                                  (input-reference-of document-iomap)
-                                                                                                  '(the document document))
-                                                          (list (make-json/boolean #f)))))))
+;; TODO: rename and move
+(def function make-operation/replace (document reference replacement &optional (list-replacement (list replacement)))
+  (pattern-case reference
+    ((content-of (the document ?a))
+     (make-operation/replace-content document replacement))
+    ((elt (the list ?a) ?b)
+     (make-operation/sequence/replace-element-range document reference list-replacement))
+    (?a
+     (not-yet-implemented))))
 
-(def reader json/boolean->string (projection recursion printer-iomap projection-iomap gesture-queue operation document-iomap)
-  (declare (ignore projection recursion printer-iomap operation))
-  (bind ((latest-gesture (first (gestures-of gesture-queue))))
-    (cond ((key-press? latest-gesture :key :sdl-key-n)
-           (make-operation/sequence/replace-element-range (input-of document-iomap) (tree-replace (input-reference-of projection-iomap)
-                                                                                                  (input-reference-of document-iomap)
-                                                                                                  '(the document document))
-                                                          (list (make-json/null)))))))
+;; TODO: rename and move
+(def function make-operation/replace-foo (document replacement-reference selection-reference replacement &optional (list-replacement (list replacement)))
+  (make-operation/compound (list (make-operation/replace document replacement-reference replacement list-replacement)
+                                 (make-operation/replace-selection document selection-reference))))
 
-(def reader json/number->string (projection recursion printer-iomap projection-iomap gesture-queue operation document-iomap)
-  (declare (ignore projection recursion printer-iomap gesture-queue))
-  (labels ((recurse (operation)
-             (cond ((typep operation 'operation/compound)
-                    (make-operation/compound (mapcar #'recurse (elements-of operation))))
-                   ((typep operation 'operation/replace-selection)
-                    (bind ((domain-reference nil))
-                      (map-backward projection-iomap (tree-replace (selection-of operation) '(the document document) `(the document ,(output-reference-of document-iomap)))
-                                    (lambda (iomap reference)
-                                      (declare (ignore iomap))
-                                      (setf domain-reference reference)))
-                      (if domain-reference
-                          (make-operation/replace-selection (input-of document-iomap) (tree-replace domain-reference `(the document ,(input-reference-of document-iomap)) '(the document document)))
-                          operation)))
-                   ((typep operation 'operation/sequence/replace-element-range)
-                    (bind ((domain-reference nil))
-                      (map-backward projection-iomap (tree-replace (target-of operation) '(the document document) `(the document ,(output-reference-of document-iomap)))
-                                    (lambda (iomap reference)
-                                      (declare (ignore iomap))
-                                      (setf domain-reference reference)))
-                      (if domain-reference
-                          (make-operation/number/replace-range (input-of document-iomap) (tree-replace domain-reference `(the document ,(input-reference-of document-iomap)) '(the document document)) (replacement-of operation))
-                          operation)))
-                   (t operation))))
+(def function json/read-opeartion (projection-iomap gesture-queue operation document-iomap)
+  (bind ((latest-gesture (first-elt (gestures-of gesture-queue)))
+         (document (input-of document-iomap)))
+    (cond ((key-press? latest-gesture :key :sdl-key-delete)
+           (make-operation/replace document
+                                   (tree-replace (input-reference-of projection-iomap) (input-reference-of document-iomap) 'document)
+                                   (json/nothing) nil))
+          ((key-press? latest-gesture :character #\n)
+           (make-operation/replace-foo document
+                                       (tree-replace (input-reference-of projection-iomap) (input-reference-of document-iomap) 'document)
+                                       `(the sequence-position (pos (the string (value (the json/null ,(tree-replace (input-reference-of projection-iomap) (input-reference-of document-iomap) 'document)))) 0))
+                                       (json/null)))
+          ((key-press? latest-gesture :character #\f)
+           (make-operation/replace-foo document
+                                       (tree-replace (input-reference-of projection-iomap) (input-reference-of document-iomap) 'document)
+                                       `(the sequence-position (pos (the string (boolean-to-string (the boolean (value-p (the json/boolean ,(tree-replace (input-reference-of projection-iomap) (input-reference-of document-iomap) 'document)))))) 0))
+                                       (json/boolean #f)))
+          ((key-press? latest-gesture :character #\t)
+           (make-operation/replace-foo document
+                                       (tree-replace (input-reference-of projection-iomap) (input-reference-of document-iomap) 'document)
+                                       `(the sequence-position (pos (the string (boolean-to-string (the boolean (value-p (the json/boolean ,(tree-replace (input-reference-of projection-iomap) (input-reference-of document-iomap) 'document)))))) 0))
+                                       (json/boolean #t)))
+          ((and (typep latest-gesture 'gesture/keyboard/key-press)
+                (digit-char-p (character-of latest-gesture)))
+           (make-operation/replace-foo document
+                                       (tree-replace (input-reference-of projection-iomap) (input-reference-of document-iomap) 'document)
+                                       `(the sequence-position (pos (the string (write-to-string (the number (value-of (the json/number ,(tree-replace (input-reference-of projection-iomap) (input-reference-of document-iomap) 'document)))))) 0))
+                                       (json/number (parse-integer (string (character-of latest-gesture))))))
+          ((key-press? latest-gesture :character #\")
+           (make-operation/replace-foo document
+                                       (tree-replace (input-reference-of projection-iomap) (input-reference-of document-iomap) 'document)
+                                       `(the sequence-position (pos (the string (value-of (the json/string ,(tree-replace (input-reference-of projection-iomap) (input-reference-of document-iomap) 'document)))) 0))
+                                       (json/string "")))
+          ((key-press? latest-gesture :character #\[)
+           (make-operation/replace-foo document
+                                       (tree-replace (input-reference-of projection-iomap) (input-reference-of document-iomap) 'document)
+                                       nil
+                                       (json/array)))
+          ((key-press? latest-gesture :character #\{)
+           (make-operation/replace-foo document
+                                       (tree-replace (input-reference-of projection-iomap) (input-reference-of document-iomap) 'document)
+                                       nil
+                                       (json/object)))
+          ((key-press? latest-gesture :character #\,)
+           (bind ((target (tree-replace (input-reference-of projection-iomap) (input-reference-of document-iomap) 'document)))
+             (pattern-case target
+               ((elt (the list ?a) ?b)
+                (make-operation/compound (list (make-operation/sequence/replace-element-range document `(the sequence (subseq (the list ,?a) ,?b ,?b)) (list (json/nothing)))
+                                               (make-operation/replace-selection document `(the sequence-position (pos (the string (value (the json/nothing (elt (the list ,?a) ,?b)))) 0))))))))))))
+
+(def reader json/nothing->tree/leaf (projection recursion printer-iomap projection-iomap gesture-queue operation document-iomap)
+  (declare (ignore projection recursion printer-iomap))
+  (or (json/read-opeartion projection-iomap gesture-queue operation document-iomap)
+      (operation/read-backward operation projection-iomap document-iomap)))
+
+(def reader json/null->tree/leaf (projection recursion printer-iomap projection-iomap gesture-queue operation document-iomap)
+  (declare (ignore projection recursion printer-iomap))
+  (or (json/read-opeartion projection-iomap gesture-queue operation document-iomap)
+      (operation/read-backward operation projection-iomap document-iomap)))
+
+(def reader json/boolean->tree/leaf (projection recursion printer-iomap projection-iomap gesture-queue operation document-iomap)
+  (declare (ignore projection recursion printer-iomap))
+  (or (json/read-opeartion projection-iomap gesture-queue operation document-iomap)
+      (operation/read-backward operation projection-iomap document-iomap)))
+
+(def reader json/number->tree/leaf (projection recursion printer-iomap projection-iomap gesture-queue operation document-iomap)
+  (declare (ignore projection recursion printer-iomap))
+  (labels ((recurse (child-operation)
+             (cond ((typep child-operation 'operation/compound)
+                    (bind ((child-operations (mapcar #'recurse (elements-of child-operation))))
+                      (unless (some 'null child-operations)
+                        (make-operation/compound child-operations))))
+                   ((typep child-operation 'operation/replace-selection)
+                    (awhen (map-backward/clever (selection-of child-operation) projection-iomap document-iomap)
+                      (make-operation/replace-selection (input-of document-iomap) (tree-replace it `(the document ,(input-reference-of document-iomap)) '(the document document)))))
+                   ((and (typep child-operation 'operation/sequence/replace-element-range)
+                         (every 'digit-char-p (replacement-of child-operation)))
+                    (awhen (map-backward/clever (target-of child-operation) projection-iomap document-iomap)
+                      (make-operation/number/replace-range (input-of document-iomap) (tree-replace it `(the document ,(input-reference-of document-iomap)) '(the document document)) (replacement-of child-operation))))
+                   (t
+                    (or (json/read-opeartion projection-iomap gesture-queue child-operation document-iomap)
+                        (operation/read-backward operation projection-iomap document-iomap))))))
     (recurse operation)))
 
-(def reader json/string->string (projection recursion printer-iomap projection-iomap gesture-queue operation document-iomap)
-  (declare (ignore projection recursion printer-iomap gesture-queue))
-  (labels ((recurse (operation)
-             (cond ((typep operation 'operation/compound)
-                    (make-operation/compound (mapcar #'recurse (elements-of operation))))
-                   ((typep operation 'operation/replace-selection)
-                    (bind ((domain-reference nil))
-                      (map-backward projection-iomap (tree-replace (selection-of operation) '(the document document) `(the document ,(output-reference-of document-iomap)))
-                                    (lambda (iomap reference)
-                                      (declare (ignore iomap))
-                                      (setf domain-reference reference)))
-                      (if domain-reference
-                          (make-operation/replace-selection (input-of document-iomap) (tree-replace domain-reference `(the document ,(input-reference-of document-iomap)) '(the document document)))
-                          operation)))
-                   ((typep operation 'operation/sequence/replace-element-range)
-                    (bind ((domain-reference nil))
-                      (map-backward projection-iomap (tree-replace (target-of operation) '(the document document) `(the document ,(output-reference-of document-iomap)))
-                                    (lambda (iomap reference)
-                                      (declare (ignore iomap))
-                                      (setf domain-reference reference)))
-                      (if domain-reference
-                          (make-operation/sequence/replace-element-range (input-of document-iomap) (tree-replace domain-reference `(the document ,(input-reference-of document-iomap)) '(the document document)) (replacement-of operation))
-                          operation)))
-                   (t operation))))
+(def reader json/string->tree/leaf (projection recursion printer-iomap projection-iomap gesture-queue operation document-iomap)
+  (declare (ignore projection recursion printer-iomap))
+  (labels ((recurse (child-operation)
+             (cond ((typep child-operation 'operation/compound)
+                    (bind ((child-operations (mapcar #'recurse (elements-of child-operation))))
+                      (unless (some 'null child-operations)
+                        (make-operation/compound child-operations))))
+                   ((typep child-operation 'operation/replace-selection)
+                    (awhen (map-backward/clever (selection-of child-operation) projection-iomap document-iomap)
+                      (make-operation/replace-selection (input-of document-iomap) (tree-replace it `(the document ,(input-reference-of document-iomap)) '(the document document)))))
+                   ((typep child-operation 'operation/sequence/replace-element-range)
+                    (awhen (map-backward/clever (target-of child-operation) projection-iomap document-iomap)
+                      (make-operation/sequence/replace-element-range (input-of document-iomap) (tree-replace it `(the document ,(input-reference-of document-iomap)) '(the document document)) (replacement-of child-operation))))
+                   (t
+                    (or (json/read-opeartion projection-iomap gesture-queue child-operation document-iomap)
+                        (operation/read-backward operation projection-iomap document-iomap))))))
     (recurse operation)))
 
 (def reader json/array->tree/node (projection recursion printer-iomap projection-iomap gesture-queue operation document-iomap)
@@ -278,12 +333,22 @@
                      (recurse-reader recursion printer-iomap child-iomap gesture-queue operation document-iomap)))
               (when child-operation
                 (return child-operation)))
-        operation)))
+        (json/read-opeartion projection-iomap gesture-queue operation document-iomap)
+        (operation/read-backward operation projection-iomap document-iomap))))
 
-(def reader json/object-entry->tree/node (projection recursion printer-iomap projection-iomap gesture-queue operation document)
-  (declare (ignore projection recursion printer-iomap projection-iomap gesture-queue document))
-  nil)
+(def reader json/object-entry->tree/node (projection recursion printer-iomap projection-iomap gesture-queue operation document-iomap)
+  (declare (ignore projection))
+  (recurse-reader recursion printer-iomap (elt (child-iomaps-of projection-iomap) 1) gesture-queue operation document-iomap))
 
-(def reader json/object->tree/node (projection recursion printer-iomap projection-iomap gesture-queue operation document)
-  (declare (ignore projection recursion printer-iomap projection-iomap gesture-queue document))
-  nil)
+(def reader json/object->tree/node (projection recursion printer-iomap projection-iomap gesture-queue operation document-iomap)
+  (declare (ignore projection))
+  (bind ((selection (tree-replace (selection-of (input-of document-iomap)) '(the document document) `(the document ,(input-reference-of document-iomap)))))
+    (or (iter (for index :from 0 :below (length (entries-of (input-of projection-iomap))))
+              (for child-iomap = (elt (child-iomaps-of projection-iomap) (1+ index)))
+              (for child-operation =
+                   (when (tree-search selection (input-reference-of child-iomap))
+                     (recurse-reader recursion printer-iomap child-iomap gesture-queue operation document-iomap)))
+              (when child-operation
+                (return child-operation)))
+        (json/read-opeartion projection-iomap gesture-queue operation document-iomap)
+        (operation/read-backward operation projection-iomap document-iomap))))

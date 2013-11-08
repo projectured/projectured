@@ -82,7 +82,7 @@
         (for element-input-reference :initially input-reference :then element-output-reference)
         (for element-output-reference = `(printer-output (the ,(form-type output) ,element-input-reference) ,element ,recursion))
         ;; TODO: KLUDGE: properly recurse with iomap
-        (for element-iomap = (bind ((iomap (make-iomap/recursive projection recursion input input-reference output output-reference
+        (for element-iomap = (bind ((iomap (make-iomap/compound projection recursion input input-reference output output-reference
                                                                  (list iomap (make-iomap/sequential input input-reference output element-output-reference element-iomaps)))))
                                (funcall (printer-of element) element recursion iomap output
                                         element-input-reference

@@ -33,7 +33,7 @@
                            (bind ((first-element (first elements)))
                              (funcall (printer-of first-element) first-element (make-projection/nesting (rest elements)) iomap input input-reference output-reference))
                            (recurse-printer recursion iomap input input-reference output-reference))))
-    (make-iomap/recursive projection recursion input input-reference (output-of output-iomap) output-reference
+    (make-iomap/compound projection recursion input input-reference (output-of output-iomap) output-reference
                           (list output-iomap))))
 
 ;;;;;;

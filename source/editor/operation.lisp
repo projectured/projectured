@@ -52,6 +52,12 @@
    (selection :type selection))
   (:documentation "An operation that replaces the selection of a document."))
 
+(def class* operation/save-document (operation)
+  ((document :type document)))
+
+(def class* operation/load-document (operation)
+  ((document :type document)))
+
 (def class* operation/select-next-alternative (operation)
   ((alternatives :type alternatives)))
 
@@ -72,6 +78,12 @@
 
 (def (function e) make-operation/replace-selection (document selection)
   (make-instance 'operation/replace-selection :document document :selection selection))
+
+(def (function e) make-operation/save-document (document)
+  (make-instance 'operation/save-document :document document))
+
+(def (function e) make-operation/load-document (document)
+  (make-instance 'operation/load-document :document document))
 
 (def (function e) make-operation/select-next-alternative (alternatives)
   (make-instance 'operation/select-next-alternative :alternatives alternatives))
@@ -97,6 +109,16 @@
 
 (def method redo-operation ((operation operation/replace-selection))
   (setf (selection-of (document-of operation)) (selection-of operation)))
+
+(def method redo-operation ((operation operation/save-document))
+  (with-output-to-file (output "/tmp/document.pred" :if-exists :overwrite :element-type '(unsigned-byte 8))
+    (hu.dwim.serializer:serialize (document-of operation) :output output)))
+
+(def method redo-operation ((operation operation/load-document))
+  (with-input-from-file (input "/tmp/document.pred" :element-type '(unsigned-byte 8))
+    (bind ((document (hu.dwim.serializer:deserialize input)))
+      (setf (content-of (document-of operation)) (content-of document))
+      (setf (selection-of (document-of operation)) (selection-of document)))))
 
 (def method redo-operation ((operation operation/select-next-alternative))
   (bind ((alternatives (alternatives-of operation)))

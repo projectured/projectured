@@ -57,16 +57,16 @@
 ;;;;;;
 ;;; Tree
 
-(def (function e) make-projection/tree->styled-string (&key delimiter-provider separator-provider indentation-provider)
+(def (function e) make-projection/tree->styled-string ()
   (type-dispatching
-    (tree/leaf (make-projection/tree/leaf->styled-string :indentation-provider indentation-provider :delimiter-provider delimiter-provider))
-    (tree/node (make-projection/tree/node->styled-string :indentation-provider indentation-provider :delimiter-provider delimiter-provider :separator-provider separator-provider))
+    (tree/leaf (tree/leaf->styled-string))
+    (tree/node (tree/node->styled-string))
     (text/base (preserving))
     (image/image (preserving))
     (string (preserving))))
 
-(def (macro e) tree->styled-string (&key delimiter-provider separator-provider indentation-provider)
-  `(make-projection/tree->styled-string :delimiter-provider ,delimiter-provider :separator-provider ,separator-provider :indentation-provider ,indentation-provider))
+(def (macro e) tree->styled-string ()
+  `(make-projection/tree->styled-string))
 
 (def (function e) make-projection/tree->list ()
   (type-dispatching
@@ -140,10 +140,11 @@
 
 (def (function e) make-projection/json->tree ()
   (type-dispatching
-    (json/null (make-projection/json/null->string))
-    (json/boolean (make-projection/json/boolean->string))
-    (json/number (make-projection/json/number->string))
-    (json/string (make-projection/json/string->string))
+    (json/nothing (make-projection/json/nothing->tree/leaf))
+    (json/null (make-projection/json/null->tree/leaf))
+    (json/boolean (make-projection/json/boolean->tree/leaf))
+    (json/number (make-projection/json/number->tree/leaf))
+    (json/string (make-projection/json/string->tree/leaf))
     (json/array (make-projection/json/array->tree/node))
     (json/object-entry (make-projection/json/object-entry->tree/node))
     (json/object (make-projection/json/object->tree/node))))

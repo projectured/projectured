@@ -30,7 +30,7 @@
 (def printer document->graphics (projection recursion iomap input input-reference output-reference)
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
          (iomap-cs (as (recurse-printer recursion iomap (content-of input) `(content-of ,typed-input-reference) `(elt (the list (elements-of (the graphics/canvas ,output-reference))) 0))))
-         (iomap (computed-state-value iomap-cs))
+         (iomap (computed-state-value* iomap-cs))
          (output-content (output-of iomap))
          (input-selection (selection-of input)))
     (pattern-case input-selection
@@ -61,11 +61,11 @@
                           (make-graphics/line (+ location (make-2d offset 0))
                                               (+ location (make-2d offset height))
                                               :stroke-color *color/black*)))))))
-              (output (make-graphics/canvas (as (optional-list (output-of (computed-state-value iomap-cs))
-                                                               (computed-state-value selection-graphics-cs)))
+              (output (make-graphics/canvas (as (optional-list (output-of (computed-state-value* iomap-cs))
+                                                               (computed-state-value* selection-graphics-cs)))
                                             (make-2d 0 0))))
-         (make-iomap/recursive projection recursion input input-reference output output-reference
-                               (list (make-iomap/object projection recursion input input-reference output output-reference) iomap))))
+         (make-iomap/compound projection recursion input input-reference output output-reference
+                              (list (make-iomap/object projection recursion input input-reference output output-reference) iomap))))
       ((the tree/node ?a)
        (not-yet-implemented)
        (bind ((opening-delimiter-graphics-reference nil)
@@ -88,22 +88,26 @@
                                                              (- closing-delimiter-location opening-delimiter-location)
                                                              :fill-color *color/light-cyan*))
                 (output (make-graphics/canvas (optional-list selection-graphics output-content) (make-2d 0 0))))
-           (make-iomap/recursive projection recursion input input-reference output output-reference
-                                 (list (make-iomap/object projection recursion input input-reference output output-reference) iomap)))))
+           (make-iomap/compound projection recursion input input-reference output output-reference
+                                (list (make-iomap/object projection recursion input input-reference output output-reference) iomap)))))
       (?a
-       (make-iomap/recursive projection recursion input input-reference output-content output-reference
-                             (list (make-iomap/object projection recursion input input-reference output-content output-reference) iomap))))))
+       (make-iomap/compound projection recursion input input-reference output-content output-reference
+                            (list (make-iomap/object projection recursion input input-reference output-content output-reference) iomap))))))
 
 ;;;;;;
 ;;; Reader
 
-(def reader document->graphics (projection recursion printer-iomap projection-iomap gesture-queue operation document)
-  (declare (ignore projection document))
+(def reader document->graphics (projection recursion printer-iomap projection-iomap gesture-queue operation document-iomap)
+  (declare (ignore projection document-iomap))
   (bind ((latest-gesture (first (gestures-of gesture-queue))))
     (cond ((typep latest-gesture 'gesture/window/quit)
            (make-operation/quit))
           ((and (typep latest-gesture 'gesture/keyboard/key-press)
                 (eq (key-of latest-gesture) :sdl-key-escape))
            (make-operation/quit))
+          ((key-press? latest-gesture :key :sdl-key-s :modifier :sdl-key-mod-lctrl)
+           (make-operation/save-document (input-of projection-iomap)))
+          ((key-press? latest-gesture :key :sdl-key-l :modifier :sdl-key-mod-lctrl)
+           (make-operation/load-document (input-of projection-iomap)))
           (t
            (recurse-reader recursion printer-iomap (elt (child-iomaps-of projection-iomap) 1) gesture-queue operation projection-iomap)))))

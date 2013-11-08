@@ -95,7 +95,7 @@
                          (until (and (= end-element-index (length elements))
                                      (= end-character-index 0)))))
          (output (make-text/text elements)))
-    (make-iomap/recursive projection recursion input input-reference output output-reference
+    (make-iomap/compound projection recursion input input-reference output output-reference
                           (list* (make-iomap/object projection recursion input input-reference output output-reference) (nreverse child-iomaps)))))
 
 ;;;;;;

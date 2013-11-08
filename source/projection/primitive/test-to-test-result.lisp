@@ -34,7 +34,7 @@
                          (hu.dwim.stefil::with-new-global-context* ()
                            (hu.dwim.stefil::run-test-body input (fdefinition name) nil t nil)))))
          (output (last-elt test-result)))
-    (make-iomap/recursive projection recursion input input-reference output output-reference nil)))
+    (make-iomap/compound projection recursion input input-reference output output-reference nil)))
 
 ;;;;;;
 ;;; Reader

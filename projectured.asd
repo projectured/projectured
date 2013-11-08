@@ -14,6 +14,7 @@
   :depends-on (:hu.dwim.common
                :hu.dwim.computed-class+hu.dwim.defclass-star
                :hu.dwim.def
+               :hu.dwim.serializer
                :hu.dwim.syntax-sugar
                :hu.dwim.util
                :parse-number)

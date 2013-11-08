@@ -9,6 +9,20 @@
 ;;;;;;
 ;;; Util
 
+(def special-variable *use-computed-class* #f)
+
+(if *use-computed-class*
+    (def (computed-universe e) projectured ()
+      ()
+      (:computed-state-factory-name as))
+    (def macro as (&body forms)
+      `(progn ,@forms)))
+
+(def (function e) computed-state-value* (computed-state)
+  (if *use-computed-class*
+      (computed-state-value computed-state)
+      computed-state))
+
 (def (class* ea) sequence-position ()
   ((sequence :type sequence)
    (index :type integer)))

@@ -74,8 +74,14 @@
 (def test test/editor/xml ()
   (test/editor/read-eval-print-loop (make-test-document/xml) (make-test-projection/xml->graphics)))
 
+(def test test/editor/xml/empty ()
+  (test/editor/read-eval-print-loop (make-test-document/xml/empty) (make-test-projection/xml->graphics)))
+
 (def test test/editor/json ()
   (test/editor/read-eval-print-loop (make-test-document/json) (make-test-projection/json->graphics)))
+
+(def test test/editor/json/empty ()
+  (test/editor/read-eval-print-loop (make-test-document/json/empty) (make-test-projection/json->graphics)))
 
 (def test test/editor/json/focusing ()
   (test/editor/read-eval-print-loop (make-test-document/json) (make-test-projection/json->graphics/focusing)))

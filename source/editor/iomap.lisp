@@ -10,10 +10,12 @@
 ;;; IO map
 
 (def (definer :available-flags "e") iomap (name supers slots &rest options)
-  `(def computed-class* ,name ,supers
-     ,(iter (for slot :in slots)
-            (collect (append slot (list :computed-in 'projectured))))
-     ,@options))
+  (if *use-computed-class*
+      `(def computed-class* ,name ,supers
+         ,(iter (for slot :in slots)
+                (collect (append slot (list :computed-in 'projectured))))
+         ,@options)
+      `(def class* ,name ,supers ,slots ,@options)))
 
 (def iomap iomap ()
   ((projection :type projection)

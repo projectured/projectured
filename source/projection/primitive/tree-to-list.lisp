@@ -36,7 +36,7 @@
                        (for iomap = (recurse-printer recursion iomap child `(elt (the list (children-of ,typed-input-reference)) ,index) `(elt (the list ,output-reference) ,index)))
                        (push iomap child-iomaps)
                        (collect (output-of iomap)))))
-    (make-iomap/recursive projection recursion input input-reference output output-reference
+    (make-iomap/compound projection recursion input input-reference output output-reference
                           (list* (make-iomap/object projection recursion input input-reference output output-reference) (nreverse child-iomaps)))))
 
 ;;;;;;

@@ -11,15 +11,25 @@
 
 (def iomap iomap/recursive (iomap)
   ((input-reference :type reference)
+   (output-reference :type reference)))
+
+(def iomap iomap/compound (iomap)
+  ((input-reference :type reference)
    (output-reference :type reference)
    (child-iomaps :type list)))
 
 ;;;;;;
 ;;; Constuction
 
-(def (function e) make-iomap/recursive (projection recursion input input-reference output output-reference child-iomaps)
-  (assert (notany 'null child-iomaps))
+(def (function e) make-iomap/recursive (projection recursion input input-reference output output-reference)
   (make-iomap 'iomap/recursive
+              :projection projection :recursion recursion
+              :input input :input-reference input-reference
+              :output output :output-reference output-reference))
+
+(def (function e) make-iomap/compound (projection recursion input input-reference output output-reference child-iomaps)
+  (assert (notany 'null child-iomaps))
+  (make-iomap 'iomap/compound
               :projection projection :recursion recursion
               :input input :input-reference input-reference
               :output output :output-reference output-reference
@@ -29,6 +39,10 @@
 ;;; Reference applier
 
 (def reference-applier iomap/recursive (iomap reference function)
+  (declare (ignore iomap reference function))
+  (not-yet-implemented))
+
+(def reference-applier iomap/compound (iomap reference function)
   (iter (for child-iomap :in (child-iomaps-of iomap))
         (apply-reference child-iomap reference function)))
 
@@ -36,6 +50,22 @@
 ;;; Forwar mapper
 
 (def forward-mapper iomap/recursive (iomap input-reference function)
+  (when (tree-search input-reference (input-reference-of iomap))
+    (funcall function iomap (tree-replace input-reference (input-reference-of iomap) (output-reference-of iomap)))))
+
+#+nil ;; TODO: it was like this, delme!
+(def forward-mapper iomap/recursive (iomap input-reference function)
+  (print (input-reference-of iomap))
+  (print input-reference)
+  (break)
+  (when (tree-search input-reference `(the ,(form-type (output-of iomap))
+                                        (printer-output ,(input-reference-of iomap) ,(projection-of iomap) ,(recursion-of iomap))))
+    (funcall function iomap (tree-replace input-reference
+                                          `(the ,(form-type (output-of iomap))
+                                             (printer-output ,(input-reference-of iomap) ,(projection-of iomap) ,(recursion-of iomap)))
+                                          (output-reference-of iomap)))))
+
+(def forward-mapper iomap/compound (iomap input-reference function)
   (iter (for child-iomap :in (child-iomaps-of iomap))
         (map-forward child-iomap input-reference function)))
 
@@ -43,6 +73,10 @@
 ;;; Backward mapper
 
 (def backward-mapper iomap/recursive (iomap output-reference function)
+  (when (tree-search output-reference (output-reference-of iomap))
+    (funcall function iomap (tree-replace output-reference (output-reference-of iomap) (input-reference-of iomap)))))
+
+(def backward-mapper iomap/compound (iomap output-reference function)
   (iter (for child-iomap :in (child-iomaps-of iomap))
         (map-backward child-iomap output-reference function)))
 

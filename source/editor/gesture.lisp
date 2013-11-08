@@ -97,11 +97,9 @@
     (when (> (length gestures) 0)
       (elt gestures 0))))
 
-(def function key-press? (gesture &key (key nil key?) (character nil character?) (modifier nil) (modifiers nil modifiers?))
+(def function key-press? (gesture &key (key nil key?) (character nil character?) (modifier nil modifier?) (modifiers nil modifiers?))
   (and (typep gesture 'gesture/keyboard/key-press)
        (or (not key?) (eq key (key-of gesture)))
-       (or (not character?) (eq character (character-of gesture)))
-       (if modifier
-           (equal (list modifier) (modifiers-of gesture))
-           (or modifiers? (null (modifiers-of gesture))))
+       (or (not character?) (char= character (character-of gesture)))
+       (or (not modifier?) (equal (list modifier) (modifiers-of gesture)))
        (or (not modifiers?) (equal modifiers (modifiers-of gesture)))))

@@ -94,7 +94,7 @@
                                                 (setf (output-of iomap) output)
                                                 (setf (output-reference-of iomap) nil)
                                                 (push iomap child-iomaps/object))
-                                               (iomap/recursive
+                                               (iomap/compound
                                                 (iter (for child-iomap :in (child-iomaps-of iomap))
                                                       (push-iomaps child-iomap)))
                                                (iomap (values)))))
@@ -115,7 +115,7 @@
                       (write-string closing-delimiter stream))))
     (adjust-array output (length temporary))
     (replace output temporary)
-    (make-iomap/recursive projection recursion input input-reference output output-reference
+    (make-iomap/compound projection recursion input input-reference output output-reference
                           (append (list (make-iomap/object projection recursion input input-reference output output-reference))
                                   (nreverse child-iomaps/object)
                                   (sort child-iomaps/string '< :key 'output-offset-of)))))

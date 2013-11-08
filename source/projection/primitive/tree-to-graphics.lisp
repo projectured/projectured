@@ -53,7 +53,7 @@
                                                              :fill-color *color/light-cyan*)))
                     (make-graphics/canvas (list rectangle text) location))))))
       (bind ((output (recurse input (make-2d 0 0) 0)))
-        (make-iomap/recursive projection recursion input input-reference output output-reference
+        (make-iomap/compound projection recursion input input-reference output output-reference
                               (list* (make-iomap/object projection recursion input input-reference output output-reference) (nreverse child-iomaps)))))))
 
 ;;;;;;

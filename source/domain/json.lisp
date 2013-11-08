@@ -12,6 +12,9 @@
 (def document json/base ()
   ((indentation :type integer)))
 
+(def document json/nothing (json/base)
+  ())
+
 (def document json/null (json/base)
   ())
 
@@ -22,7 +25,7 @@
   ((value :type number)))
 
 (def document json/string (json/base)
-  ((text :type string)))
+  ((value :type string)))
 
 (def document json/array (json/base)
   ((elements :type sequence)))
@@ -37,48 +40,54 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-json/null (&key indentation)
+(def (function e) make-document/json/nothing (&key indentation)
+  (make-instance 'json/nothing :indentation indentation))
+
+(def (function e) make-document/json/null (&key indentation)
   (make-instance 'json/null :indentation indentation))
 
-(def (function e) make-json/boolean (value &key indentation)
+(def (function e) make-document/json/boolean (value &key indentation)
   (make-instance 'json/boolean :value value :indentation indentation))
 
-(def (function e) make-json/number (value &key indentation)
+(def (function e) make-document/json/number (value &key indentation)
   (make-instance 'json/number :value value :indentation indentation))
 
-(def (function e) make-json/string (text &key indentation)
-  (make-instance 'json/string :text text :indentation indentation))
+(def (function e) make-document/json/string (value &key indentation)
+  (make-instance 'json/string :value value :indentation indentation))
 
-(def (function e) make-json/array (elements &key indentation)
+(def (function e) make-document/json/array (elements &key indentation)
   (make-instance 'json/array :elements elements :indentation indentation))
 
-(def (function e) make-json/object-entry (key value &key indentation)
+(def (function e) make-document/json/object-entry (key value &key indentation)
   (make-instance 'json/object-entry :key key :value value :indentation indentation))
 
-(def (function e) make-json/object (entries &key indentation)
+(def (function e) make-document/json/object (entries &key indentation)
   (make-instance 'json/object :entries entries :indentation indentation))
 
 ;;;;;;
 ;;; Construction
 
+(def (macro e) json/nothing ()
+  '(make-document/json/nothing))
+
 (def (macro e) json/null ()
-  '(make-json/null))
+  '(make-document/json/null))
 
 (def (macro e) json/boolean (value)
-  `(make-json/boolean ,value))
+  `(make-document/json/boolean ,value))
 
 (def (macro e) json/number (value)
-  `(make-json/number ,value))
+  `(make-document/json/number ,value))
 
-(def (macro e) json/string (text)
-  `(make-json/string ,text))
+(def (macro e) json/string (value)
+  `(make-document/json/string ,value))
 
 (def (macro e) json/array (&body elements)
-  `(make-json/array (list ,@elements)))
+  `(make-document/json/array (list ,@elements)))
 
 (def (macro e) json/object-entry (key value)
-  `(make-json/object-entry ,key ,value))
+  `(make-document/json/object-entry ,key ,value))
 
 (def (macro e) json/object (&body key-value-pairs)
-  `(make-json/object (list ,@(iter (for (key value) :in key-value-pairs)
-                                   (collect `(make-json/object-entry ,key ,value))))))
+  `(make-document/json/object (list ,@(iter (for (key value) :in key-value-pairs)
+                                            (collect `(make-document/json/object-entry ,key ,value))))))

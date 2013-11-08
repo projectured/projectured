@@ -61,7 +61,7 @@
                                                ;; KLUDGE:
                                                (setf (indentation-of (output-of element-iomap)) 0)
                                                (collect (output-of element-iomap)))))))
-    (make-iomap/recursive projection recursion input input-reference output output-reference
+    (make-iomap/compound projection recursion input input-reference output output-reference
                           (list* (make-iomap/object projection recursion input input-reference output output-reference)
                                  (reverse child-iomaps)))))
 
@@ -88,7 +88,7 @@
                                               ;; KLUDGE:
                                               (setf (indentation-of (output-of element-iomap)) 0)
                                               (collect (output-of element-iomap)))))))
-    (make-iomap/recursive projection recursion input input-reference output output-reference
+    (make-iomap/compound projection recursion input input-reference output output-reference
                           (list* (make-iomap/object projection recursion input input-reference output output-reference)
                                  (reverse child-iomaps)))))
 

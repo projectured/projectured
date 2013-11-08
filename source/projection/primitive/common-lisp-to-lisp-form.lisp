@@ -225,14 +225,14 @@
                          (make-iomap/string* input `(the string (string-downcase (the symbol (slot-value ,typed-input-reference 'value)))) 0
                                              value `(the string (string-downcase (the symbol (value-of (the lisp-form/symbol ,output-reference))))) 0
                                              (length (write-to-string value)))))))))
-    (make-iomap/recursive projection recursion input input-reference output output-reference
+    (make-iomap/compound projection recursion input input-reference output output-reference
                           (list (make-iomap/object projection recursion input input-reference output output-reference) value-iomap))))
 
 (def printer common-lisp/variable-reference-form->lisp-form/string (projection recursion iomap input input-reference output-reference)
   (declare (ignore iomap))
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
          (output (make-lisp-form/symbol (name-of input) :font-color *color/solarized/orange*)))
-    (make-iomap/recursive projection recursion input input-reference output output-reference
+    (make-iomap/compound projection recursion input input-reference output output-reference
                           (list (make-iomap/object projection recursion input input-reference output output-reference)
                                 (make-iomap/string* input `(the string (string-downcase (the symbol (slot-value ,typed-input-reference 'name)))) 0
                                                     output `(the string (string-downcase (the symbol (value-of (the lisp-form/symbol ,output-reference))))) 0
@@ -254,7 +254,7 @@
          (if-iomap (make-iomap/string* input `(the string (string-downcase (the symbol (slot-value ,typed-input-reference 'form-name)))) 0
                                        output `(the string (string-downcase (the symbol (value-of (the lisp-form/symbol (elt (the list (elements-of (the lisp-form/list ,output-reference))) 0)))))) 0
                                        2)))
-    (make-iomap/recursive projection recursion input input-reference output output-reference
+    (make-iomap/compound projection recursion input input-reference output output-reference
                           (list (make-iomap/object projection recursion input input-reference output output-reference)
                                 if-iomap
                                 condition-iomap
@@ -316,7 +316,7 @@
                                                   (unless (first-iteration-p)
                                                     (setf (indentation-of argument-output) (+ 2 (length (symbol-name (operator-of input))))))
                                                   (collect argument-output))))))
-    (make-iomap/recursive projection recursion input input-reference output output-reference
+    (make-iomap/compound projection recursion input input-reference output output-reference
                           (list* (make-iomap/object projection recursion input input-reference output output-reference)
                                  (make-iomap/string* input `(the string (string-downcase (the symbol (slot-value ,typed-input-reference 'operator)))) 0
                                                      output `(the string (string-downcase (the symbol (value-of (the lisp-form/symbol (elt (the list (elements-of (the lisp-form/list ,output-reference))) 0)))))) 0
@@ -355,7 +355,7 @@
                                                            output `(the string (value-of (the lisp-form/string (elt (the list (elements-of (the lisp-form/list ,output-reference))) 3))))))))
          (bindings-iomap (make-iomap/object* projection recursion input `(the list (slot-value ,typed-input-reference 'bindings))
                                              output `(the lisp-form/list (elt (the list (elements-of (the lisp-form/list ,output-reference))) 2)))))
-    (make-iomap/recursive projection recursion input input-reference output output-reference
+    (make-iomap/compound projection recursion input input-reference output output-reference
                           (append (list (make-iomap/object projection recursion input input-reference output output-reference)
                                         defun-iomap
                                         name-iomap
@@ -380,7 +380,7 @@
                                            6))
          (bindings-iomap (make-iomap/object* projection recursion input `(the list (slot-value ,typed-input-reference 'bindings))
                                              output `(the lisp-form/list (elt (the list (elements-of (the lisp-form/list ,output-reference))) 1)))))
-    (make-iomap/recursive projection recursion input input-reference output output-reference
+    (make-iomap/compound projection recursion input input-reference output output-reference
                           (append (list (make-iomap/object projection recursion input input-reference output output-reference)
                                         lambda-iomap
                                         bindings-iomap)
@@ -398,7 +398,7 @@
 
 (def printer common-lisp/comment->lisp-form/comment (projection recursion iomap input input-reference output-reference)
   (bind ((output (make-lisp-form/comment (output-of (recurse-printer recursion iomap (content-of input) input-reference output-reference)))))
-    (make-iomap/recursive projection recursion input input-reference output output-reference
+    (make-iomap/compound projection recursion input input-reference output output-reference
                           (list (make-iomap/object projection recursion input input-reference output output-reference)))))
 
 (def printer common-lisp/top-level->lisp-form/top-level (projection recursion iomap input input-reference output-reference)
@@ -408,7 +408,7 @@
                                                  ;; KLUDGE:
                                                  (setf (indentation-of body-output) 0)
                                                  (collect body-output)))))
-    (make-iomap/recursive projection recursion input input-reference output output-reference
+    (make-iomap/compound projection recursion input input-reference output output-reference
                           (list (make-iomap/object projection recursion input input-reference output output-reference)))))
 
 ;;;;;;

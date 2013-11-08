@@ -145,7 +145,7 @@
     (make-test-content/json/empty)))
 
 (def function make-test-document/json ()
-  (test-document (:selection '(the sequence-position (pos (the string (text-of (the json/string (elt (the list (elements-of (the json/array (content-of (the document document))))) 4)))) 8)))
+  (test-document (:selection '(the sequence-position (pos (the string (value-of (the json/string (elt (the list (elements-of (the json/array (content-of (the document document))))) 4)))) 8)))
     (make-test-content/json)))
 
 ;;;;;;

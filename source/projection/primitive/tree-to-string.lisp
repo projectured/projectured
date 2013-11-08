@@ -10,56 +10,25 @@
 ;;; Projection
 
 (def (projection e) tree->string ()
-  ((delimiter-provider :type function)
-   (separator-provider :type function)
-   (indentation-provider :type function)))
+  ())
 
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/tree->string (&key delimiter-provider separator-provider indentation-provider)
-  (make-projection 'tree->string
-                   :delimiter-provider (or delimiter-provider (make-delimiter-provider "(" ")"))
-                   :separator-provider (or separator-provider (make-separator-provider " "))
-                   :indentation-provider (or indentation-provider (make-indentation-provider :indentation-width 1 :wrap-from 0 :wrap-last-levels #f))))
-
-(def (function e) make-separator-provider (separator)
-  (lambda (iomap previous-child-reference next-child-reference)
-    (declare (ignore iomap previous-child-reference next-child-reference))
-    separator))
-
-(def (function e) make-delimiter-provider (opening-delimiter closing-delimiter)
-  (lambda (iomap reference)
-    (declare (ignore iomap))
-    (pattern-case reference
-      ((?or (opening-delimiter ?node)
-            (closing-delimiter ?node))
-       (bind ((delimiter (first reference)))
-         (ecase delimiter
-           (opening-delimiter opening-delimiter)
-           (closing-delimiter closing-delimiter)))))))
-
-(def (function e) make-indentation-provider (&key (indentation-width 1) (wrap-from 0) (wrap-last-levels #f))
-  (lambda (iomap previous-child-reference next-child-reference parent-node)
-    (declare (ignore iomap previous-child-reference))
-    (pattern-case next-child-reference
-      ((the ?a (elt (the ?type (?if (subtypep ?type 'sequence)) (children-of (the tree/node ?b))) ?c))
-       (when (and (> ?c wrap-from)
-                  (or wrap-last-levels (some (of-type 'tree/node) (children-of parent-node))))
-         indentation-width)))))
+(def (function e) make-projection/tree->string ()
+  (make-projection 'tree->string))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) tree->string (&key delimiter-provider separator-provider indentation-provider)
-  `(make-projection/tree->string :delimiter-provider ,delimiter-provider
-                                 :separator-provider ,separator-provider
-                                 :indentation-provider ,indentation-provider))
+(def (macro e) tree->string ()
+  `(make-projection/tree->string))
 
 ;;;;;;
 ;;; Printer
 
 (def printer tree->string (projection recursion iomap input input-reference output-reference)
+  (declare (ignore iomap))
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
          (delimiter-iomaps nil)
          (separator-iomaps nil)
@@ -91,52 +60,46 @@
                                    (setf string-reference output-reference))
                                  (recurse (input input-reference parent-indentation)
                                    (bind ((typed-input-reference `(the ,(form-type input) ,input-reference)))
-                                     (awhen (or (opening-delimiter-of input)
-                                                (funcall (delimiter-provider-of projection) iomap `(opening-delimiter ,typed-input-reference)))
-                                       (push (make-iomap/string it `(opening-delimiter ,typed-input-reference ,it) 0
+                                     (awhen (opening-delimiter-of input)
+                                       (push (make-iomap/string it `(opening-delimiter-of ,typed-input-reference) 0
                                                                 output string-reference (file-position stream)
                                                                 (length it))
                                              delimiter-iomaps)
                                        (write-string it stream))
                                      (etypecase input
                                        (tree/node
-                                        (if (expanded-p input)
-                                            (iter (with children = (children-of input))
-                                                  (for index :from 0)
-                                                  (for child :in-sequence children)
-                                                  (for child-path = `(elt (the ,(form-type children) (children-of ,typed-input-reference)) ,index))
-                                                  (for child-reference = `(the ,(form-type child) ,child-path))
-                                                  (for previous-child-reference :previous child-reference)
-                                                  (for indentation = (or (indentation-of child)
-                                                                         (funcall (indentation-provider-of projection) iomap previous-child-reference child-reference input)))
-                                                  (unless (first-iteration-p)
-                                                    (awhen (or (separator-of input)
-                                                               (funcall (separator-provider-of projection) iomap previous-child-reference child-reference))
-                                                      (push (make-iomap/string it `(separator ,previous-child-reference ,child-reference ,it) 0
-                                                                               output string-reference (file-position stream)
-                                                                               (length it))
-                                                            separator-iomaps)
-                                                      (write-string it stream)))
-                                                  (when indentation
-                                                    (next-line (+ parent-indentation indentation) child-reference))
-                                                  (recurse child child-path (- (file-position stream) line-position))
-                                                  (finally
-                                                   (when-bind indentation
-                                                       (or (indentation-of input)
-                                                           (funcall (indentation-provider-of projection) iomap child-reference nil input))
-                                                     (next-line indentation previous-child-reference))))
-                                            (write-string "..." stream)))
+                                           (if (expanded-p input)
+                                               (iter (with children = (children-of input))
+                                                     (for index :from 0)
+                                                     (for child :in-sequence children)
+                                                     (for child-path = `(elt (the ,(form-type children) (children-of ,typed-input-reference)) ,index))
+                                                     (for child-reference = `(the ,(form-type child) ,child-path))
+                                                     (for previous-child-reference :previous child-reference)
+                                                     (for indentation = (indentation-of child))
+                                                     (unless (first-iteration-p)
+                                                       (awhen (separator-of input)
+                                                         (push (make-iomap/string it `(separator ,previous-child-reference ,child-reference) 0
+                                                                                  output string-reference (file-position stream)
+                                                                                  (length it))
+                                                               separator-iomaps)
+                                                         (write-string it stream)))
+                                                     (when indentation
+                                                       (next-line (+ parent-indentation indentation) child-reference))
+                                                     (recurse child child-path (- (file-position stream) line-position))
+                                                     (finally
+                                                      (when-bind indentation (indentation-of input)
+                                                        (next-line indentation previous-child-reference))))
+                                               (write-string "..." stream)))
                                        (tree/leaf
-                                        (push (make-iomap/string* input `(the string (content-of ,typed-input-reference)) 0
-                                                                  output `(the string ,string-reference) (file-position stream)
-                                                                  (length (content-of input))) child-iomaps)
-                                        (iter (for line :in (split-sequence #\NewLine (content-of input)))
-                                              (unless (first-iteration-p)
-                                                (next-line parent-indentation typed-input-reference))
-                                              (write-string line stream))))
-                                     (awhen (or (closing-delimiter-of input)
-                                                (funcall (delimiter-provider-of projection) iomap `(closing-delimiter ,typed-input-reference)))
-                                       (push (make-iomap/string it `(closing-delimiter ,typed-input-reference ,it) 0
+                                           (push (make-iomap/string* input `(the string (content-of ,typed-input-reference)) 0
+                                                                     output `(the string ,string-reference) (file-position stream)
+                                                                     (length (content-of input))) child-iomaps)
+                                         (iter (for line :in (split-sequence #\NewLine (content-of input)))
+                                               (unless (first-iteration-p)
+                                                 (next-line parent-indentation typed-input-reference))
+                                               (write-string line stream))))
+                                     (awhen (closing-delimiter-of input)
+                                       (push (make-iomap/string it `(closing-delimiter-of ,typed-input-reference) 0
                                                                 output string-reference (file-position stream)
                                                                 (length it))
                                              delimiter-iomaps)
@@ -152,12 +115,12 @@
                           (next-line 0 typed-input-reference))))))
     (adjust-array output (length temporary))
     (replace output temporary)
-    (make-iomap/recursive projection recursion input input-reference output output-reference
-                          (append (list (make-iomap/object projection recursion input input-reference output output-reference))
-                                  (nreverse indentation-iomaps)
-                                  (nreverse separator-iomaps)
-                                  (nreverse delimiter-iomaps)
-                                  (nreverse child-iomaps)))))
+    (make-iomap/compound projection recursion input input-reference output output-reference
+                         (append (list (make-iomap/object projection recursion input input-reference output output-reference))
+                                 (nreverse indentation-iomaps)
+                                 (nreverse separator-iomaps)
+                                 (nreverse delimiter-iomaps)
+                                 (nreverse child-iomaps)))))
 
 ;;;;;;
 ;;; Reader
@@ -165,9 +128,9 @@
 (def function find-tree-node-reference (reference)
   (pattern-case reference
     ((the sequence-position (pos (the string (?or (content-of (the ?type (?if (eq ?type 'tree/leaf)) ?a))
-                                                  ((?or opening-delimiter closing-delimiter) (the ?type (?if (subtypep ?type 'tree/base)) ?a) ?b)
+                                                  ((?or opening-delimiter-of closing-delimiter-of) (the ?type (?if (subtypep ?type 'tree/base)) ?a))
                                                   (separator (the ?type (?if (subtypep ?type 'tree/base)) ?a)
-                                                             (the ?type (?if (subtypep ?type 'tree/base)) ?a) ?b)
+                                                             (the ?type (?if (subtypep ?type 'tree/base)) ?a))
                                                   (indentation (the ?type (?if (subtypep ?type 'tree/base)) ?a) ?b))) ?c))
      `(the ,?type ,?a))))
 
@@ -176,9 +139,11 @@
     ((the ?type (?if (subtypep ?type 'tree/base)) (elt (the list (children-of (the tree/node ?a))) ?b))
      `(the tree/node ,?a))))
 
-(def reader tree->string (projection recursion printer-iomap projection-iomap gesture-queue operation document)
-  (declare (ignore recursion printer-iomap))
-  (bind ((latest-gesture (first (gestures-of gesture-queue))))
+;; TODO: factor with tree->styled-string
+(def reader tree->string (projection recursion printer-iomap projection-iomap gesture-queue operation document-iomap)
+  (declare (ignore projection recursion printer-iomap))
+  (bind ((latest-gesture (first (gestures-of gesture-queue)))
+         (document (input-of document-iomap)))
     (cond ((typep operation 'operation/sequence/replace-element-range)
            (bind ((tree-reference nil))
              ;; KLUDGE:
@@ -187,13 +152,13 @@
                              (declare (ignore iomap))
                              (setf tree-reference reference)))
              (pattern-case tree-reference
-               ((the sequence (subseq (the string (opening-delimiter (the tree/node (elt ?a ?b)) ?c)) 0 1))
+               ((the sequence (subseq (the string (opening-delimiter-of (the tree/node (elt ?a ?b)))) 0 1))
                 (make-operation/compound (list (make-operation/sequence/replace-element-range document (tree-replace `(the sequence (subseq ,?a ,?b ,(1+ ?b))) `(the document ,(third (second (input-reference-of projection-iomap)))) '(the document document)) nil)
                                                (make-operation/replace-selection document nil))))
                (?a operation))))
           ((key-press? latest-gesture :key :sdl-key-up :modifier :sdl-key-mod-lalt)
            (when-bind node-reference (find-tree-node-parent-reference (find-tree-node-reference (selection-of document)))
-             (make-operation/replace-selection document `(the sequence-position (pos (the string (opening-delimiter ,node-reference "(")) 0)))))
+             (make-operation/replace-selection document `(the sequence-position (pos (the string (opening-delimiter-of ,node-reference)) 0)))))
           ((key-press? latest-gesture :key :sdl-key-down :modifier :sdl-key-mod-lalt)
            (when-bind node-reference (find-tree-node-reference (selection-of document))
              (bind ((node (eval-reference document node-reference)))
@@ -203,7 +168,7 @@
                    (make-operation/replace-selection document
                                                      (etypecase first-child
                                                        (tree/leaf `(the sequence-position (pos (the string (content-of (the tree/leaf (elt (the list (children-of ,node-reference)) 0)))) 0)))
-                                                       (tree/node `(the sequence-position (pos (the string (opening-delimiter (the tree/node (elt (the list (children-of ,node-reference)) 0)) "(")) 0))))))))))
+                                                       (tree/node `(the sequence-position (pos (the string (opening-delimiter-of (the tree/node (elt (the list (children-of ,node-reference)) 0)))) 0))))))))))
           ((key-press? latest-gesture :key :sdl-key-left :modifier :sdl-key-mod-lalt)
            (when-bind node-reference (find-tree-node-reference (selection-of document))
              (pattern-case node-reference
@@ -214,7 +179,7 @@
                     (make-operation/replace-selection document
                                                       (ecase type
                                                         (tree/leaf `(the sequence-position (pos (the string (content-of (the ,type (elt (the list (children-of (the tree/node ,?a))) ,(1- ?b))))) 0)))
-                                                        (tree/node `(the sequence-position (pos (the string (opening-delimiter (the ,type (elt (the list (children-of (the tree/node ,?a))) ,(1- ?b))) "(")) 0)))))))))))
+                                                        (tree/node `(the sequence-position (pos (the string (opening-delimiter-of (the ,type (elt (the list (children-of (the tree/node ,?a))) ,(1- ?b))))) 0)))))))))))
           ((key-press? latest-gesture :key :sdl-key-right :modifier :sdl-key-mod-lalt)
            (when-bind node-reference (find-tree-node-reference (selection-of document))
              (pattern-case node-reference
@@ -225,7 +190,7 @@
                       (make-operation/replace-selection document
                                                         (ecase type
                                                           (tree/leaf `(the sequence-position (pos (the string (content-of (the ,type (elt (the list (children-of (the tree/node ,?a))) ,(1+ ?b))))) 0)))
-                                                          (tree/node `(the sequence-position (pos (the string (opening-delimiter (the ,type (elt (the list (children-of (the tree/node ,?a))) ,(1+ ?b))) "(")) 0))))))))))))
+                                                          (tree/node `(the sequence-position (pos (the string (opening-delimiter-of (the ,type (elt (the list (children-of (the tree/node ,?a))) ,(1+ ?b))))) 0))))))))))))
           ((key-press? latest-gesture :key :sdl-key-delete :modifier :sdl-key-mod-lctrl)
            (when-bind node-reference (find-tree-node-reference (selection-of document))
              (pattern-case node-reference
@@ -242,11 +207,11 @@
              ((the sequence-position (pos (the string (content-of (the tree/leaf (elt ?a ?b)))) ?c))
               (make-operation/compound (list (make-operation/sequence/replace-element-range document (tree-replace `(the sequence (subseq ,?a ,?b ,?b)) `(the document ,(third (second (input-reference-of projection-iomap)))) '(the document document))
                                                                                             (list (make-tree/node nil)))
-                                             (make-operation/replace-selection document `(the sequence-position (pos (the string (opening-delimiter (the tree/node (elt ,?a ,?b)) "(")) 1))))))
+                                             (make-operation/replace-selection document `(the sequence-position (pos (the string (opening-delimiter-of (the tree/node (elt ,?a ,?b)))) 1))))))
              ;; empty content of a document
              ((the null (content-of (the document ?a)))
               (make-operation/compound (list (make-operation/replace-content document (make-tree/node nil))
-                                             (make-operation/replace-selection document `(the sequence-position (pos (the string (opening-delimiter (the tree/node (content-of (the document document))) "(")) 1))))))))
+                                             (make-operation/replace-selection document `(the sequence-position (pos (the string (opening-delimiter-of (the tree/node (content-of (the document document))))) 1))))))))
           ((key-press? latest-gesture :character #\" :modifiers '(:sdl-key-mod-lshift :sdl-key-mod-lctrl))
            (pattern-case (selection-of document)
              ;; content of a leaf being a child of a node
@@ -255,7 +220,7 @@
                                                                                             (list (make-tree/leaf "")))
                                              (make-operation/replace-selection document `(the sequence-position (pos (the string (content-of (the tree/leaf (elt ,?a ,?b)))) 0))))))
              ;; delimiter of a node
-             ((the sequence-position (pos (the string (opening-delimiter (the tree/node ?a) "(")) ?b))
+             ((the sequence-position (pos (the string (opening-delimiter-of (the tree/node ?a))) ?b))
               (make-operation/compound (list (make-operation/sequence/replace-element-range document (tree-replace `(the sequence (subseq (the list (children-of (the tree/node ,?a))) 0 0)) `(the document ,(third (second (input-reference-of projection-iomap)))) '(the document document))
                                                                                             (list (make-tree/leaf "")))
                                              (make-operation/replace-selection document `(the sequence-position (pos (the string (content-of (the tree/leaf (elt (the list (children-of (the tree/node ,?a))) 0)))) 0))))))
@@ -273,11 +238,11 @@
                                                                                               (list value))
                                                (make-operation/replace-selection document `(the sequence-position (pos (the string (content-of (the tree/leaf (elt ,?a ,?b)))) ,?d)))))))
              ;; delimiter of a leaf/node being a child of a node that is a child of another node
-             ((the sequence-position (pos (the string (?delimiter (?if (member ?delimiter '(opening-delimiter closing-delimiter))) (the ?type (?if (subtypep ?type 'tree/base)) (elt (the list (children-of (the tree/node (elt ?a ?b)))) ?c)) ?d)) ?e))
+             ((the sequence-position (pos (the string (?delimiter (?if (member ?delimiter '(opening-delimiter-of closing-delimiter-of))) (the ?type (?if (subtypep ?type 'tree/base)) (elt (the list (children-of (the tree/node (elt ?a ?b)))) ?c)))) ?e))
               (bind ((value (eval-reference document (tree-replace `(elt (the list (children-of (the tree/node (elt ,?a ,?b)))) ,?c) `(the document ,(third (second (input-reference-of projection-iomap)))) '(the document document)))))
                 (make-operation/compound (list (make-operation/sequence/replace-element-range document (tree-replace `(the sequence (subseq ,?a ,?b ,(1+ ?b))) `(the document ,(third (second (input-reference-of projection-iomap)))) '(the document document))
                                                                                               (list value))
-                                               (make-operation/replace-selection document `(the sequence-position (pos (the string (,?delimiter (the ,?type (elt ,?a ,?b)) ,?d)) ,?e)))))))
+                                               (make-operation/replace-selection document `(the sequence-position (pos (the string (,?delimiter (the ,?type (elt ,?a ,?b)))) ,?e)))))))
              ;; TODO: indentation of a leaf/node being a child of a node that is a child of another node
              ;; TODO: content of a leaf being a child of a node that is the content of a document
              ((the sequence-position (pos (the string (content-of (the tree/leaf (elt (the list (children-of (the tree/node (content-of (the document ?a))))) ?b)))) ?c))
@@ -285,10 +250,10 @@
                 (make-operation/compound (list (make-operation/replace-content document value)
                                                (make-operation/replace-selection document `(the sequence-position (pos (the string (content-of (the tree/leaf (content-of (the document ,?a))))) ,?c)))))))
              ;; TODO: delimiter of a leaf/node being a child of a node that is the content of a document
-             ((the sequence-position (pos (the string (?delimiter (?if (member ?delimiter '(opening-delimiter closing-delimiter))) (the ?type (?if (subtypep ?type 'tree/base)) (elt (the list (children-of (the tree/node (content-of (the document ?a))))) ?b)) ?c)) ?d))
+             ((the sequence-position (pos (the string (?delimiter (?if (member ?delimiter '(opening-delimiter-of closing-delimiter-of))) (the ?type (?if (subtypep ?type 'tree/base)) (elt (the list (children-of (the tree/node (content-of (the document ?a))))) ?b)))) ?d))
               (bind ((value (eval-reference document (tree-replace `(elt (the list (children-of (the tree/node (content-of (the document ,?a))))) ,?b) `(the document ,(third (second (input-reference-of projection-iomap)))) '(the document document)))))
                 (make-operation/compound (list (make-operation/replace-content document value)
-                                               (make-operation/replace-selection document `(the sequence-position (pos (the string (,?delimiter (the ,?type (content-of (the document ,?a))) ,?c)) ,?d)))))))
+                                               (make-operation/replace-selection document `(the sequence-position (pos (the string (,?delimiter (the ,?type (content-of (the document ,?a))))) ,?d)))))))
              ;; TODO: indentation of a leaf/node being a child of a node that is the content of a document
              ))
           ;; wrap leaf/node
@@ -301,11 +266,11 @@
                                                                                               (list (make-tree/node (list value))))
                                                (make-operation/replace-selection document `(the sequence-position (pos (the string (content-of (the tree/leaf (elt (the list (children-of (the tree/node (elt ,?a ,?b)))) 0)))) ,?c)))))))
              ;; delimiter of a leaf/node being a child of a node
-             ((the sequence-position (pos (the string (?delimiter (?if (member ?delimiter '(opening-delimiter closing-delimiter))) (the ?type (?if (subtypep ?type 'tree/base)) (elt ?a ?b)) ?c)) ?d))
+             ((the sequence-position (pos (the string (?delimiter (?if (member ?delimiter '(opening-delimiter-of closing-delimiter-of))) (the ?type (?if (subtypep ?type 'tree/base)) (elt ?a ?b)))) ?d))
               (bind ((value (eval-reference document (tree-replace `(elt ,?a ,?b) `(the document ,(third (second (input-reference-of projection-iomap)))) '(the document document)))))
                 (make-operation/compound (list (make-operation/sequence/replace-element-range document (tree-replace `(the sequence (subseq ,?a ,?b ,(1+ ?b))) `(the document ,(third (second (input-reference-of projection-iomap)))) '(the document document))
                                                                                               (list (make-tree/node (list value))))
-                                               (make-operation/replace-selection document `(the sequence-position (pos (the string (,?delimiter (the ,?type (elt (the list (children-of (the tree/node (elt ,?a ,?b)))) 0)) ,?c)) ,?d)))))))
+                                               (make-operation/replace-selection document `(the sequence-position (pos (the string (,?delimiter (the ,?type (elt (the list (children-of (the tree/node (elt ,?a ,?b)))) 0)))) ,?d)))))))
              ;; TODO: indentation of a leaf/node being a child of a node
              ;; content of a leaf being the content of a document
              ((the sequence-position (pos (the string (content-of (the tree/leaf (content-of (the document ?a))))) ?b))
@@ -313,10 +278,10 @@
                 (make-operation/compound (list (make-operation/replace-content document (make-tree/node (list value)))
                                                (make-operation/replace-selection document `(the sequence-position (pos (the string (content-of (the tree/leaf (elt (the list (children-of (the tree/node (content-of (the document ,?a))))) 0)))) ,?b)))))))
              ;; delimiter of a leaf/node being the content of a document
-             ((the sequence-position (pos (the string (?delimiter (?if (member ?delimiter '(opening-delimiter closing-delimiter))) (the ?type (?if (subtypep ?type 'tree/base)) (content-of (the document ?a))) ?b)) ?c))
+             ((the sequence-position (pos (the string (?delimiter (?if (member ?delimiter '(opening-delimiter-of closing-delimiter-of))) (the ?type (?if (subtypep ?type 'tree/base)) (content-of (the document ?a))))) ?c))
               (bind ((value (eval-reference document (tree-replace `(content-of (the document ,?a)) `(the document ,(third (second (input-reference-of projection-iomap)))) '(the document document)))))
                 (make-operation/compound (list (make-operation/replace-content document (make-tree/node (list value)))
-                                               (make-operation/replace-selection document `(the sequence-position (pos (the string (,?delimiter (the ,?type (elt (the list (children-of (the tree/node (content-of (the document ,?a))))) 0)) ,?b)) ,?c)))))))
+                                               (make-operation/replace-selection document `(the sequence-position (pos (the string (,?delimiter (the ,?type (elt (the list (children-of (the tree/node (content-of (the document ,?a))))) 0)))) ,?c)))))))
              ;; TODO: indentation of a leaf/node being the content of a document
              ))
           ;; transpose
@@ -343,13 +308,5 @@
           ((key-press? latest-gesture :key :sdl-key-tab :modifier :sdl-key-mod-lctrl)
            (awhen (find-tree-node-parent-reference (find-tree-node-reference (selection-of document)))
              (make-operation/tree/toggle-node document it)))
-          ((and (key-press? latest-gesture :key :sdl-key-i :modifier :sdl-key-mod-lctrl)
-                (typep (indentation-provider-of projection) 'alternative-function))
-           (make-operation/select-next-alternative (indentation-provider-of projection)))
-          ((and (key-press? latest-gesture :key :sdl-key-s :modifier :sdl-key-mod-lctrl)
-                (typep (separator-provider-of projection) 'alternative-function))
-           (make-operation/select-next-alternative (separator-provider-of projection)))
-          ((and (key-press? latest-gesture :key :sdl-key-d :modifier :sdl-key-mod-lctrl)
-                (typep (delimiter-provider-of projection) 'alternative-function))
-           (make-operation/select-next-alternative (delimiter-provider-of projection)))
-          (t operation))))
+          (t
+           (operation/read-backward operation projection-iomap document-iomap)))))

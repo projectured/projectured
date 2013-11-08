@@ -96,16 +96,17 @@
                                         (append styled-strings (next-styled-string #f))
                                         (next-styled-string #t)))))))
          (output (make-text/text elements)))
-    (make-iomap/recursive projection recursion input input-reference output output-reference
+    (make-iomap/compound projection recursion input input-reference output output-reference
                           (list* (make-iomap/object projection recursion input input-reference output output-reference) (nreverse child-iomaps)))))
 
 ;;;;;;
 ;;; Reader
 
-(def reader string->styled-string (projection recursion printer-iomap projection-iomap gesture-queue operation document)
+(def reader string->styled-string (projection recursion printer-iomap projection-iomap gesture-queue operation document-iomap)
   (declare (ignore recursion operation))
   (bind ((input (input-of projection-iomap))
-         (latest-gesture (first (gestures-of gesture-queue))))
+         (latest-gesture (first (gestures-of gesture-queue)))
+         (document (input-of document-iomap)))
     (cond ((and (key-press? latest-gesture :key :sdl-key-f :modifier :sdl-key-mod-lctrl)
                 (typep (font-provider-of projection) 'alternative-function))
            (make-operation/select-next-alternative (font-provider-of projection)))

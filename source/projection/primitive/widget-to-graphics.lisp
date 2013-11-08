@@ -62,7 +62,7 @@
                                                                           :stroke-color *color/blue*)
                                                  content-output)
                                            (location-of input))))
-        (make-iomap/recursive projection recursion input input-reference output output-reference
+        (make-iomap/compound projection recursion input input-reference output output-reference
                               (list (make-iomap/object projection recursion input input-reference output output-reference)
                                     content-iomap)))
       (make-iomap/object projection recursion input input-reference (make-graphics/canvas nil (make-2d 0 0)) output-reference)))
@@ -76,7 +76,7 @@
                                                          `(elt (the list (elements-of (the graphics/canvas ,output-reference))) ,index)))))
          (output (make-graphics/canvas (mapcar 'output-of element-iomaps)
                                        (make-2d 0 0))))
-    (make-iomap/recursive projection recursion input input-reference output output-reference
+    (make-iomap/compound projection recursion input input-reference output output-reference
                           (list* (make-iomap/object projection recursion input input-reference output output-reference)
                                  element-iomaps))))
 
@@ -91,7 +91,7 @@
          (output (make-graphics/canvas (list (make-graphics/viewport content location size)
                                              (make-graphics/rectangle location size :stroke-color *color/black*))
                                        (make-2d 0 0))))
-    (make-iomap/recursive projection recursion input input-reference output output-reference
+    (make-iomap/compound projection recursion input input-reference output output-reference
                           (list (make-iomap/object projection recursion input input-reference output output-reference)
                                 content-iomap))))
 

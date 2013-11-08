@@ -87,7 +87,7 @@
 }" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)
                                                        :indentation 0))
                                  :separator (make-text/string " " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))))
-    (make-iomap/recursive projection recursion input input-reference output output-reference
+    (make-iomap/compound projection recursion input input-reference output output-reference
                           (list* (make-iomap/object projection recursion input input-reference output output-reference) (nreverse child-iomaps)))))
 
 (def printer state-machine/state->tree/node (projection recursion iomap input input-reference output-reference)
@@ -108,7 +108,7 @@
                                          (make-tree/leaf (make-text/string name :font *font/ubuntu/monospace/bold/18* :font-color *color/solarized/red*))))
                                  :closing-delimiter (make-text/string ";" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)
                                  :separator (make-text/string " " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))))
-    (make-iomap/recursive projection recursion input input-reference output output-reference
+    (make-iomap/compound projection recursion input input-reference output output-reference
                           (list* (make-iomap/object projection recursion input input-reference output output-reference) (nreverse child-iomaps)))))
 
 (def printer state-machine/transition->tree/node (projection recursion iomap input input-reference output-reference)
@@ -172,7 +172,7 @@
     }" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)
                                                        :indentation 0))
                                  :separator (make-text/string " " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))))
-    (make-iomap/recursive projection recursion input input-reference output output-reference
+    (make-iomap/compound projection recursion input input-reference output output-reference
                           (list* (make-iomap/object projection recursion input input-reference output output-reference) (nreverse child-iomaps)))))
 
 ;;;;;;

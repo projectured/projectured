@@ -109,7 +109,7 @@
                                    (push-character #\U2500))
                              (finally
                               (push-character #\U2518)))))))))
-    (make-iomap/recursive projection recursion input input-reference output output-reference
+    (make-iomap/compound projection recursion input input-reference output output-reference
                           (list* (make-iomap/object projection recursion input input-reference output output-reference) (nreverse child-iomaps)))))
 
 ;;;;;;

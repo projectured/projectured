@@ -88,7 +88,7 @@
          (output (make-tree/node (list (output-of (recurse-printer recursion iomap content input-reference output-reference)))
                                  #+nil(make-text/string content :font *font/ubuntu/regular/18* :font-color *color/solarized/gray*)
                                  :opening-delimiter (make-text/string ";; " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))))
-    (make-iomap/recursive projection recursion input input-reference output output-reference
+    (make-iomap/compound projection recursion input input-reference output output-reference
                           nil
                           #+nil
                           (list (make-iomap/string* content `(the string (value-of ,typed-input-reference)) 0
@@ -102,7 +102,7 @@
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
          (output-content (write-to-string (value-of input)))
          (output (make-tree/leaf (make-text/string output-content :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/magenta*))))
-    (make-iomap/recursive projection recursion input input-reference output output-reference
+    (make-iomap/compound projection recursion input input-reference output output-reference
                           (list (make-iomap/object projection recursion input input-reference output output-reference)
                                 (make-iomap/string* input `(the string (write-to-string (the number (value-of ,typed-input-reference)))) 0
                                                     output-content `(the string (content-of (the tree/leaf ,output-reference))) 0
@@ -116,7 +116,7 @@
          (output (make-tree/leaf (make-text/string output-content :font (or (font-of input) *font/ubuntu/monospace/regular/18*) :font-color font-color)
                                  :opening-delimiter (when (keywordp (value-of input))
                                                       (make-text/string ":" :font *font/ubuntu/monospace/regular/18* :font-color font-color)))))
-    (make-iomap/recursive projection recursion input input-reference output output-reference
+    (make-iomap/compound projection recursion input input-reference output output-reference
                           (list (make-iomap/object projection recursion input input-reference output output-reference)
                                 (make-iomap/string* input `(the string (string-downcase (the symbol (value-of ,typed-input-reference)))) 0
                                                     output-content `(the string (content-of (the tree/leaf ,output-reference))) 0
@@ -130,7 +130,7 @@
          (output (make-tree/leaf (make-text/string output-content :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/green*)
                                  :opening-delimiter (make-text/string "\"" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)
                                  :closing-delimiter (make-text/string "\"" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))))
-    (make-iomap/recursive projection recursion input input-reference output output-reference
+    (make-iomap/compound projection recursion input input-reference output output-reference
                           (list (make-iomap/string* value `(the string (value-of ,typed-input-reference)) 0
                                                     output-content `(the string (content-of (the tree/leaf ,output-reference))) 0
                                                     (length value))
@@ -158,7 +158,7 @@
                                  :opening-delimiter (make-text/string "(" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)
                                  :closing-delimiter (make-text/string ")" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)
                                  :separator (make-text/string " " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))))
-    (make-iomap/recursive projection recursion input input-reference output output-reference
+    (make-iomap/compound projection recursion input input-reference output output-reference
                           (list* (make-iomap/object projection recursion input input-reference output output-reference) (nreverse child-iomaps)))))
 
 (def printer lisp-form/object->string (projection recursion iomap input input-reference output-reference)
@@ -166,7 +166,7 @@
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
          (output-content (write-to-string input))
          (output (make-tree/leaf (make-text/string output-content :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/red*))))
-    (make-iomap/recursive projection recursion input input-reference output output-reference
+    (make-iomap/compound projection recursion input input-reference output output-reference
                           (list (make-iomap/object projection recursion input input-reference output output-reference)
                                 (make-iomap/string* input `(the string (write-to-string (value-of ,typed-input-reference))) 0
                                                     output-content `(the string (content-of (the tree/leaf ,output-reference))) 0
@@ -190,7 +190,7 @@
                                        (collect element-output))
                                  :separator (make-text/string " " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)
                                  :indentation 2)))
-    (make-iomap/recursive projection recursion input input-reference output output-reference
+    (make-iomap/compound projection recursion input input-reference output output-reference
                           (list* (make-iomap/object projection recursion input input-reference output output-reference) (nreverse child-iomaps)))))
 
 ;;;;;;

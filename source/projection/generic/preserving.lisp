@@ -30,7 +30,7 @@
 (def printer preserving (projection recursion iomap input input-reference output-reference)
   (declare (ignore iomap))
   (if (stringp input)
-      (make-iomap/recursive projection recursion input input-reference input output-reference
+      (make-iomap/compound projection recursion input input-reference input output-reference
                             (list (make-iomap/object projection recursion input input-reference input output-reference)
                                   (make-iomap/string input input-reference 0 input output-reference 0 (length input))))
       (make-iomap/object projection recursion input input-reference input output-reference)))

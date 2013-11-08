@@ -34,17 +34,13 @@
          (line-count (1+ (text/count input #\NewLine)))
          (line-number-length (1+ (floor (log line-count) (log 10))))
          (element-index 0)
-         (string-position 0)
          (elements nil)
          (format-string (format nil "\~~~A,' D " line-number-length))
          (input-offset 0)
          (line-index 0)
          (output (labels ((write-element (element)
                             (push element elements)
-                            (incf element-index)
-                            (typecase element
-                              (text/string
-                               (incf string-position (length (content-of element)))))))
+                            (incf element-index)))
                    (text/map-split input #\NewLine
                                    (lambda (start-element-index start-character-index end-element-index end-character-index)
                                      (bind ((line-number (format nil format-string (1+ line-index)))
@@ -64,16 +60,24 @@
                                                                          (length line-content))
                                                       child-iomaps)))
                                              (write-element line-element))
+                                       (push (make-iomap/string (string #\NewLine) `(content-of (the text/string (elt (the list (elements-of ,typed-input-reference)) ,end-element-index))) 1
+                                                                (string #\NewLine) `(content-of (the text/string (elt (the list (elements-of (the text/text ,output-reference))) ,(+ 2 element-index)))) 0
+                                                                0)
+                                             child-iomaps)
                                        (write-element (make-text/string (string #\NewLine) :font *font/default* :font-color *color/default*))
                                        (incf input-offset (1+ (text/length line)))
                                        (incf line-index))))
-                   (make-text/text (nreverse elements)))))
-    (make-iomap/recursive projection recursion input input-reference output output-reference
-                          (list* (make-iomap/object projection recursion input input-reference output output-reference) (nreverse child-iomaps)))))
+                   (make-text/text (nreverse (rest elements))))))
+    (make-iomap/compound projection recursion input input-reference output output-reference
+                         (list* (make-iomap/object projection recursion input input-reference output output-reference) (nreverse child-iomaps)))))
 
 ;;;;;;
 ;;; Reader
 
-(def reader styled-string->line-numbered-styled-string (projection recursion printer-iomap projection-iomap gesture-queue operation document)
-  (declare (ignore projection recursion printer-iomap projection-iomap gesture-queue document))
-  operation)
+(def reader styled-string->line-numbered-styled-string (projection recursion printer-iomap projection-iomap gesture-queue operation document-iomap)
+  (declare (ignore projection recursion printer-iomap))
+  (bind ((input (input-of projection-iomap))
+         (document (input-of document-iomap))
+         (latest-gesture (first (gestures-of gesture-queue))))
+    (or (text/read-operation document input latest-gesture)
+        (operation/read-backward operation projection-iomap document-iomap))))

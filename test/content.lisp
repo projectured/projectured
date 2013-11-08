@@ -181,7 +181,7 @@ New line" :font *font/ubuntu/bold/24* :font-color *color/solarized/blue*)))
 ;;; JSON
 
 (def function make-test-content/json/empty ()
-  nil)
+  (json/nothing))
 
 (def function make-test-content/json ()
   (json/array

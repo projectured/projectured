@@ -9,10 +9,6 @@
 ;;;;;;
 ;;; API
 
-(def (computed-universe e) projectured ()
-  ()
-  (:computed-state-factory-name as))
-
 (def (generic e) document? (object)
   (:documentation "Returns TRUE if OBJECT is a document, otherwise returns FALSE. Purely functional."))
 
@@ -23,10 +19,12 @@
   (:documentation "Returns a new projection object that projects CONTENT to string."))
 
 (def (definer :available-flags "e") document (name supers slots &rest options)
-  `(def computed-class* ,name ,supers
-     ,(iter (for slot :in slots)
-            (collect (append slot (list :computed-in 'projectured))))
-     ,@options))
+  (if *use-computed-class*
+      `(def computed-class* ,name ,supers
+         ,(iter (for slot :in slots)
+                (collect (append slot (list :computed-in 'projectured))))
+         ,@options)
+      `(def class* ,name ,supers ,slots ,@options)))
 
 ;;;;;;
 ;;; Data structure

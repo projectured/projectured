@@ -42,30 +42,15 @@
 ;;; Forward mapper
 
 (def forward-mapper iomap/object (iomap input-reference function)
-  (if (equal input-reference (input-reference-of iomap))
-      (funcall function iomap (output-reference-of iomap))
-      ;; TODO: this is very inefficient
-      ;; TODO: is this wrapping with printer-output correct?
-      (when (tree-search input-reference `(the ,(form-type (output-of iomap))
-                                            (printer-output ,(input-reference-of iomap) ,(projection-of iomap) ,(recursion-of iomap))))
-        (funcall function iomap (tree-replace input-reference
-                                              `(the ,(form-type (output-of iomap))
-                                                 (printer-output ,(input-reference-of iomap) ,(projection-of iomap) ,(recursion-of iomap)))
-                                              (output-reference-of iomap))))))
+  (when (equal input-reference (input-reference-of iomap))
+    (funcall function iomap (output-reference-of iomap))))
 
 ;;;;;;
 ;;; Backward mapper
 
 (def backward-mapper iomap/object (iomap output-reference function)
-  (if (equal output-reference (output-reference-of iomap))
-      (funcall function iomap (input-reference-of iomap))
-      ;; TODO: this is very inefficient
-      ;; TODO: is this wrapping with printer-output correct?
-      (when (tree-search output-reference (output-reference-of iomap))
-        (funcall function iomap (tree-replace output-reference
-                                              (output-reference-of iomap)
-                                              `(the ,(form-type (output-of iomap))
-                                                 (printer-output ,(input-reference-of iomap) ,(projection-of iomap) ,(recursion-of iomap))))))))
+  (when (equal output-reference (output-reference-of iomap))
+    (funcall function iomap (input-reference-of iomap))))
 
 ;;;;;;
 ;;; Projection

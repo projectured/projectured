@@ -41,13 +41,16 @@
 ;;; Number operation API implementation
 
 (def method redo-operation ((operation operation/number/replace-range))
-  (pattern-case (target-of operation)
-    ((the sequence-position (pos (the string (write-to-string (the number ?a))) ?b))
-     (bind ((old-sequence (write-to-string (eval-reference (document-of operation) ?a)))
-            (new-sequence (concatenate (form-type old-sequence)
-                                       (subseq old-sequence 0 ?b) (replacement-of operation) (subseq old-sequence ?b))))
-       (setf (eval-reference (document-of operation) ?a) (parse-number:parse-number new-sequence))
-       ;; KLUDGE: forece recomputation
-       (invalidate-computed-slot (document-of operation) 'content)))
-    (?a
-     (not-yet-implemented))))
+  (bind (((:values reference start end)
+          (pattern-case (target-of operation)
+            ((the sequence-position (pos (the string (write-to-string (the number ?a))) ?b))
+             (values ?a ?b ?b))
+            ((the sequence (subseq (the ?type (?if (subtypep ?type 'sequence)) (write-to-string (the number ?a))) ?b ?c))
+             (values ?a ?b ?c)))))
+    (bind ((old-sequence (write-to-string (eval-reference (document-of operation) reference)))
+           (new-sequence (concatenate (form-type old-sequence)
+                                      (subseq old-sequence 0 start) (replacement-of operation) (subseq old-sequence end))))
+      (setf (eval-reference (document-of operation) reference) (parse-number:parse-number new-sequence))
+      (when *use-computed-class*
+        ;; KLUDGE: forece recomputation
+        (invalidate-computed-slot (document-of operation) 'content)))))

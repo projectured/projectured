@@ -24,7 +24,7 @@
 (def printer string->tree/leaf (projection recursion iomap input input-reference output-reference)
   (declare (ignore iomap))
   (bind ((output (make-tree/leaf input)))
-    (make-iomap/recursive projection recursion input input-reference output output-reference
+    (make-iomap/compound projection recursion input input-reference output output-reference
                           (list (make-iomap/object projection recursion
                                                    input input-reference
                                                    output output-reference)

@@ -40,7 +40,7 @@
              (funcall function iomap `(the sequence-position (pos ,(input-reference-of iomap) ,(+ index (input-offset-of iomap))))))))
     (iomap/sequential
      (map-input-references (first (element-iomaps-of iomap)) function))
-    (iomap/recursive
+    (iomap/compound
      (iter (for child-iomap :in (child-iomaps-of iomap))
            (map-input-references child-iomap function)))))
 
@@ -59,7 +59,7 @@
              (funcall function iomap `(the sequence-position (pos ,(output-reference-of iomap) ,(+ index (output-offset-of iomap))))))))
     (iomap/sequential
      (map-output-references (last-elt (element-iomaps-of iomap)) function))
-    (iomap/recursive
+    (iomap/compound
      (iter (for child-iomap :in (child-iomaps-of iomap))
            (map-output-references child-iomap function)))))
 

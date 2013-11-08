@@ -46,9 +46,9 @@
                                  (push (if (stringp input)
                                            ;; TODO:
                                            (make-iomap/string input input-reference input-index "TODO XXX" output-reference output-index 1)
-                                           (make-iomap/object projection recursion
-                                                              input-element `(elt ,typed-input-reference ,input-index)
-                                                              input-element `(elt (the list ,output-reference) ,output-index)))
+                                           (make-iomap/recursive projection recursion
+                                                                 input-element `(elt ,typed-input-reference ,input-index)
+                                                                 input-element `(elt (the list ,output-reference) ,output-index)))
                                        child-iomaps)
                                  (collect input-element)
                                  (incf output-index)))
@@ -58,12 +58,12 @@
                                 'list)
                                ((vectorp input)
                                 'vector)))))
-    (make-iomap/recursive projection recursion input input-reference output output-reference
-                          (list* (make-iomap/object projection recursion input input-reference output output-reference) (nreverse child-iomaps)))))
+    (make-iomap/compound projection recursion input input-reference output output-reference
+                         (list* (make-iomap/object projection recursion input input-reference output output-reference) (nreverse child-iomaps)))))
 
 ;;;;;;
 ;;; Reader
 
-(def reader removing (projection recursion printer-iomap projection-iomap gesture-queue operation document)
-  (declare (ignore projection recursion printer-iomap projection-iomap gesture-queue document))
-  operation)
+(def reader removing (projection recursion printer-iomap projection-iomap gesture-queue operation document-iomap)
+  (declare (ignore projection recursion printer-iomap gesture-queue))
+  (operation/read-backward operation projection-iomap document-iomap))
