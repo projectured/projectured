@@ -4,12 +4,9 @@
 ;;;
 ;;; See LICENCE for details.
 
-(load-system :hu.dwim.asdf)
-
-(in-package :hu.dwim.asdf)
-
 (defsystem :projectured.slime
-  :class hu.dwim.system
+  :defsystem-depends-on (:hu.dwim.asdf)
+  :class "hu.dwim.asdf:hu.dwim.system"
   :package-name :projectured
   :description "The SLIME backend for the generic purpose projectional editor."
   :depends-on (:projectured

@@ -4,12 +4,9 @@
 ;;;
 ;;; See LICENCE for details.
 
-(load-system :hu.dwim.asdf)
-
-(in-package :hu.dwim.asdf)
-
 (defsystem :projectured.web
-  :class hu.dwim.system
+  :defsystem-depends-on (:hu.dwim.asdf)
+  :class "hu.dwim.asdf:hu.dwim.system"
   :package-name :projectured
   :description "The web backend for the generic purpose projectional editor."
   :depends-on (:hu.dwim.util.production+swank
@@ -26,10 +23,10 @@
                                            (:file "projection" :depends-on ("device"))
                                            (:file "server" :depends-on ("package"))))))))
 
-(defmethod perform :after ((o develop-op) (c (eql (find-system :projectured.web))))
+(defmethod perform :after ((o hu.dwim.asdf:develop-op) (c (eql (find-system :projectured.web))))
   (eval (let ((*package* (find-package :projectured)))
           (read-from-string
            "(progn
               (setf *debug-on-error* t)
               (startup-server *projectional-editor-server*))")))
-  (warn "Made sideffects on the following global variables: *database*, *compiled-query-cache*, *debug-on-error*."))
+  (warn "Made sideffects on the following global variables: *debug-on-error*."))
