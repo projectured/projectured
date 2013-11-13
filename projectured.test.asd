@@ -8,6 +8,7 @@
   :defsystem-depends-on (:hu.dwim.asdf)
   :class "hu.dwim.asdf:hu.dwim.test-system"
   :depends-on (:projectured
+               :hu.dwim.computed-class+hu.dwim.logger
                :hu.dwim.stefil+hu.dwim.def+swank)
   :components ((:module "source"
                 :components ((:module "projection"
