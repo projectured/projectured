@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; Projection
 
-(def (projection e) reference-dispatching ()
+(def projection reference-dispatching ()
   ((default-projection :type projection)
    (reference-projection-pairs :type list)))
 

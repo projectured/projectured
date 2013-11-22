@@ -9,43 +9,43 @@
 ;;;;;;
 ;;; Projection
 
-(def (projection e) common-lisp/constant-form->lisp-form/string ()
+(def projection common-lisp/constant-form->lisp-form/string ()
   ())
 
-(def (projection e) common-lisp/variable-reference-form->lisp-form/string ()
+(def projection common-lisp/variable-reference-form->lisp-form/string ()
   ())
 
-(def (projection e) common-lisp/if-form->lisp-form/list ()
+(def projection common-lisp/if-form->lisp-form/list ()
   ())
 
-(def (projection e) common-lisp/the-form->lisp-form/list ()
+(def projection common-lisp/the-form->lisp-form/list ()
   ())
 
-(def (projection e) common-lisp/progn-form->lisp-form/list ()
+(def projection common-lisp/progn-form->lisp-form/list ()
   ())
 
-(def (projection e) common-lisp/lexical-variable-binding-form->lisp-form/list ()
+(def projection common-lisp/lexical-variable-binding-form->lisp-form/list ()
   ())
 
-(def (projection e) common-lisp/let-form->lisp-form/list ()
+(def projection common-lisp/let-form->lisp-form/list ()
   ())
 
-(def (projection e) common-lisp/application-form->lisp-form/list ()
+(def projection common-lisp/application-form->lisp-form/list ()
   ())
 
-(def (projection e) common-lisp/function-definition-form->lisp-form/list ()
+(def projection common-lisp/function-definition-form->lisp-form/list ()
   ())
 
-(def (projection e) common-lisp/lambda-function-form->lisp-form/list ()
+(def projection common-lisp/lambda-function-form->lisp-form/list ()
   ())
 
-(def (projection e) common-lisp/function-argument-form->lisp-form/string ()
+(def projection common-lisp/function-argument-form->lisp-form/string ()
   ())
 
-(def (projection e) common-lisp/comment->lisp-form/comment ()
+(def projection common-lisp/comment->lisp-form/comment ()
   ())
 
-(def (projection e) common-lisp/top-level->lisp-form/top-level ()
+(def projection common-lisp/top-level->lisp-form/top-level ()
   ())
 
 ;;;;;;

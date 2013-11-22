@@ -43,12 +43,12 @@
 (def document widget/menu-item (widget/base)
   ((content :type t)))
 
-(def document widget/panel ()
-  ((content :type t)
-   (location :type 2d)))
-
 (def document widget/composite (widget/base)
   ((elements :type sequence)))
+
+(def document widget/tabbed-pane (widget/base)
+  ((selector-element-pairs :type sequence)
+   (selected-index :type integer)))
 
 (def document widget/scroll-pane (widget/base)
   ((content :type t)
@@ -81,14 +81,14 @@
   (make-instance 'widget/menu-item
                  :content content))
 
-(def (function e) make-widget/panel (location content)
-  (make-instance 'widget/panel
-                 :location location
-                 :content content))
-
 (def (function e) make-widget/composite (elements)
   (make-instance 'widget/composite
                  :elements elements))
+
+(def (function e) make-widget/tabbed-pane (selector-element-pairs selected-index)
+  (make-instance 'widget/tabbed-pane
+                 :selector-element-pairs selector-element-pairs
+                 :selected-index selected-index))
 
 (def (function e) make-widget/scroll-pane (content &key location size margin padding)
   (make-instance 'widget/scroll-pane
@@ -102,6 +102,8 @@
 ;;;;;;
 ;;; Construction
 
+;; TODO: add widget prefix
+
 (def (macro e) tooltip ((&key location margin) &body content)
   `(make-widget/tooltip ,location ,(first content) :margin ,margin))
 
@@ -111,11 +113,13 @@
 (def (macro e) menu ((&key) &body elements)
   `(make-widget/menu (list ,@elements)))
 
-(def (macro e) panel ((&key location) &body content)
-  `(make-widget/panel ,location ,(first content)))
-
 (def (macro e) composite ((&key) &body elements)
   `(make-widget/composite (list ,@elements)))
+
+(def (macro e) tabbed-pane ((&key) &body selector-element-pairs)
+  `(make-widget/tabbed-pane (list ,@(iter (for pair :in-sequence selector-element-pairs)
+                                          (collect `(list ,(first pair) ,(second pair)))))
+                            0))
 
 (def (macro e) scroll-pane ((&key location size margin padding) &body content)
   `(make-widget/scroll-pane ,(first content)
@@ -141,6 +145,10 @@
   ((tooltip :type tooltip)
    (content :type content)))
 
+(def operation operation/widget/tabbed-pane/select-page (operation)
+  ((tabbed-pane :type widget/tabbed-pane)
+   (selected-index :type integer)))
+
 (def operation operation/widget/scroll-pane/scroll (operation)
   ((scroll-pane :type widget/scroll-pane)
    (scroll-delta :type 2d)))
@@ -159,6 +167,9 @@
 
 (def method redo-operation ((operation operation/widget/tooltip/replace-content))
   (setf (content-of (tooltip-of operation)) (content-of operation)))
+
+(def method redo-operation ((operation operation/widget/tabbed-pane/select-page))
+  (setf (selected-index-of (tabbed-pane-of operation)) (selected-index-of operation)))
 
 (def method redo-operation ((operation operation/widget/scroll-pane/scroll))
   (bind ((scroll-pane (scroll-pane-of operation)))

@@ -27,6 +27,12 @@
               :input input :input-reference (when input-reference `(the ,(form-type input) ,input-reference))
               :output output :output-reference (when output-reference `(the ,(form-type output) ,output-reference))))
 
+(def (function e) make-iomap/recursive* (projection recursion input input-reference output output-reference)
+  (make-iomap 'iomap/recursive
+              :projection projection :recursion recursion
+              :input input :input-reference input-reference
+              :output output :output-reference output-reference))
+
 (def (function e) make-iomap/compound (projection recursion input input-reference output output-reference child-iomaps)
   (assert (notany 'null child-iomaps))
   (make-iomap 'iomap/compound
@@ -53,18 +59,6 @@
   (when (tree-search input-reference (input-reference-of iomap))
     (funcall function iomap (tree-replace input-reference (input-reference-of iomap) (output-reference-of iomap)))))
 
-#+nil ;; TODO: it was like this, delme!
-(def forward-mapper iomap/recursive (iomap input-reference function)
-  (print (input-reference-of iomap))
-  (print input-reference)
-  (break)
-  (when (tree-search input-reference `(the ,(form-type (output-of iomap))
-                                        (printer-output ,(input-reference-of iomap) ,(projection-of iomap) ,(recursion-of iomap))))
-    (funcall function iomap (tree-replace input-reference
-                                          `(the ,(form-type (output-of iomap))
-                                             (printer-output ,(input-reference-of iomap) ,(projection-of iomap) ,(recursion-of iomap)))
-                                          (output-reference-of iomap)))))
-
 (def forward-mapper iomap/compound (iomap input-reference function)
   (iter (for child-iomap :in (child-iomaps-of iomap))
         (map-forward child-iomap input-reference function)))
@@ -83,7 +77,7 @@
 ;;;;;;
 ;;; Projection
 
-(def (projection e) recursive ()
+(def projection recursive ()
   ((child :type projection)))
 
 ;;;;;;

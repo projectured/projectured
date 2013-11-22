@@ -42,10 +42,10 @@
 ;;;;;;
 ;;; Styled string
 
-(def function make-test-content/styled-string ()
+(def function make-test-content/text ()
   (text/text ()
     (text/string "Hello" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/red*)
-    (image/image (asdf:system-relative-pathname :projectured "etc/lisp-flag.jpg"))
+    ;;(image/image (asdf:system-relative-pathname :projectured "etc/lisp-flag.jpg"))
     (text/string "World" :font *font/ubuntu/monospace/bold/18* :font-color *color/solarized/green*)
     (text/newline)
     (text/string "New line" :font *font/ubuntu/bold/24* :font-color *color/solarized/blue*)))
@@ -55,15 +55,7 @@
 
 (def function make-test-content/text/empty ()
   (text/text ()
-    (text/paragraph ()
-      (text/string ""))))
-
-(def function make-test-content/text ()
-  (text/text ()
-    (text/paragraph ()
-      (text/string "first paragraph in a text document"))
-    (text/paragraph ()
-      (text/string "second paragraph in a text document"))))
+    (text/string "")))
 
 ;;;;;;
 ;;; List
@@ -88,14 +80,18 @@
   (table/table ()
     (table/row ()
       (table/cell ()
-        "first cell of first row in a table")
+        (text/text ()
+          (text/string "first cell of first row in a table" :font *font/default* :font-color *color/default*)))
       (table/cell ()
-        "second cell of first row in a table"))
+        (text/text ()
+          (text/string "second cell of first row in a table" :font *font/default* :font-color *color/default*))))
     (table/row ()
       (table/cell ()
-        "first cell of second row in a table (padding)")
+        (text/text ()
+          (text/string  "first cell of second row in a table (padding)" :font *font/default* :font-color *color/default*)))
       (table/cell ()
-        "second cell of second row in a table"))))
+        (text/text ()
+          (text/string "second cell of second row in a table" :font *font/default* :font-color *color/default*))))))
 
 ;;;;;;
 ;;; Tree
@@ -110,12 +106,12 @@
   (make-tree/node nil))
 
 (def function make-test-content/tree ()
-  (make-tree/node (list (make-tree/leaf "first")
-                        (make-tree/node (list (make-tree/leaf "second") (make-tree/leaf "third")))
-                        (make-tree/leaf "fourth")
-                        (make-tree/node (list (make-tree/leaf "fifth")
-                                              (make-tree/node (list (make-tree/leaf "sixth") (make-tree/leaf "seventh")))
-                                              (make-tree/leaf "eigth"))))))
+  (make-tree/node (list (make-tree/leaf (text/string "first"))
+                        (make-tree/node (list (make-tree/leaf (text/string "second")) (make-tree/leaf (text/string "third"))))
+                        (make-tree/leaf (text/string "fourth"))
+                        (make-tree/node (list (make-tree/leaf (text/string "fifth"))
+                                              (make-tree/node (list (make-tree/leaf (text/string "sixth")) (make-tree/leaf (text/string "seventh"))))
+                                              (make-tree/leaf (text/string "eigth")))))))
 
 ;;;;;;
 ;;; Graph
@@ -180,8 +176,24 @@
 ;;;;;;
 ;;; JSON
 
-(def function make-test-content/json/empty ()
+(def function make-test-content/json/nothing ()
   (json/nothing))
+
+(def function make-test-content/json/object ()
+  (json/object
+    ("null" (json/null))
+    ("false" (json/boolean #f))
+    ("true" (json/boolean #t))
+    ("number" (json/number 42))
+    ("string" (json/string "Hello World"))))
+
+(def function make-test-content/json/array ()
+  (json/array
+    (json/null)
+    (json/boolean #f)
+    (json/boolean #t)
+    (json/number 42)
+    (json/string "Hello World")))
 
 (def function make-test-content/json ()
   (json/array
@@ -191,11 +203,17 @@
     (json/number 42)
     (json/string "Hello World")
     (json/object
-      ("foo" (json/number 43))
-      ("bar" (json/string "Hello World"))
-      ("baz" (json/array
-               (json/number 44)
-               (json/string "Welcome Home"))))))
+      ("null" (json/null))
+      ("false" (json/boolean #f))
+      ("true" (json/boolean #t))
+      ("number" (json/number 42))
+      ("string" (json/string "Hello World"))
+      ("array" (json/array
+                 (json/null)
+                 (json/boolean #f)
+                 (json/boolean #t)
+                 (json/number 42)
+                 (json/string "Hello World"))))))
 
 ;;;;;;
 ;;; Java
@@ -291,14 +309,8 @@
 ;;;;;;
 ;;; T
 
-(def function make-test-content/t/empty ()
+(def function make-test-content/t/null ()
   nil)
-
-(def function make-test-content/t ()
-  (make-xml/element "person"
-                    (list (make-xml/attribute "name" "John")
-                          (make-xml/attribute "sex" "female"))
-                    nil))
 
 ;;;;;;
 ;;; Nested

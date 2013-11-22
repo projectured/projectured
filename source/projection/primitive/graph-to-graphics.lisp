@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; Projection
 
-(def (projection e) graph->graphics ()
+(def projection graph->graphics ()
   ())
 
 ;;;;;;

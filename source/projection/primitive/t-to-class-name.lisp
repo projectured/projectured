@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; Projection
 
-(def (projection e) t->class-name ()
+(def projection t->class-name ()
   ())
 
 ;;;;;;

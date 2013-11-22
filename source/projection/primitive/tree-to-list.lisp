@@ -6,11 +6,10 @@
 
 (in-package :projectured)
 
-
 ;;;;;;
 ;;; Projection
 
-(def (projection e) tree/node->list ()
+(def projection tree/node->list ()
   ())
 
 ;;;;;;

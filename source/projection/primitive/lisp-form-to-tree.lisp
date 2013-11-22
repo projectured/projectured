@@ -10,25 +10,25 @@
 ;;; Projection
 
 ;; TODO: rename these to ->tree/leaf
-(def (projection e) lisp-form/comment->string ()
+(def projection lisp-form/comment->string ()
   ())
 
-(def (projection e) lisp-form/number->string ()
+(def projection lisp-form/number->string ()
   ())
 
-(def (projection e) lisp-form/symbol->string ()
+(def projection lisp-form/symbol->string ()
   ())
 
-(def (projection e) lisp-form/string->string ()
+(def projection lisp-form/string->string ()
   ())
 
-(def (projection e) lisp-form/list->tree/node ()
+(def projection lisp-form/list->tree/node ()
   ())
 
-(def (projection e) lisp-form/object->string ()
+(def projection lisp-form/object->string ()
   ())
 
-(def (projection e) lisp-form/top-level->tree/node ()
+(def projection lisp-form/top-level->tree/node ()
   ())
 
 ;;;;;;

@@ -9,6 +9,14 @@
 ;;;;;;
 ;;; Util
 
+(def logger editor ())
+
+(def logger printer ())
+
+(def logger reader ())
+
+(def logger backend ())
+
 (def special-variable *use-computed-class* #f)
 
 (if *use-computed-class*
@@ -30,6 +38,14 @@
 (def (function e) pos (sequence index)
   (make-instance 'sequence-position :sequence sequence :index index))
 
+(def (class* ea) sequence-box ()
+  ((sequence :type sequence)
+   (start :type integer)
+   (end :type integer)))
+
+(def (function e) box (sequence start end)
+  (make-instance 'sequence-box :sequence sequence :start start :end end))
+
 (def (function e) form-type (form)
   (typecase form
     (null 'list)
@@ -47,20 +63,25 @@
 (def (function e) boolean-to-string (value)
   (if value "true" "false"))
 
+(def (function e) object-class-name (object)
+  (class-name (class-of object)))
+
+(def (function e) object-class-symbol-name (object)
+  (symbol-name (object-class-name object)))
+
 (def (function e) tree-search (tree element)
-  (iter (for tree-element :in tree)
-        (thereis (cond ((equal tree-element element)
-                        #t)
-                       ((listp tree-element)
-                        (tree-search tree-element element))))))
+  (or (equal tree element)
+      (iter (for tree-element :in tree)
+            (thereis (when (listp tree-element)
+                       (tree-search tree-element element))))))
 
 (def (function e) tree-replace (tree element replacement)
-  (iter (for tree-element :in tree)
-        (collect (cond ((equal tree-element element)
-                        replacement)
-                       ((listp tree-element)
-                        (tree-replace tree-element element replacement))
-                       (t tree-element)))))
+  (cond ((equal tree element)
+         replacement)
+        ((listp tree)
+         (iter (for tree-element :in tree)
+               (collect (tree-replace tree-element element replacement))))
+        (t tree)))
 
 (def (class* ea) alternative-function ()
   ((alternatives :type sequence)

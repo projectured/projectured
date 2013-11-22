@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; Projection
 
-(def (projection e) test->test-result ()
+(def projection test->test-result ()
   ())
 
 ;;;;;;

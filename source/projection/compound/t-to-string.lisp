@@ -12,7 +12,7 @@
       (type-dispatching
         (string (preserving))
         (text/base (text->tree))
-        (text/base (styled-string->tree))
+        (text/base (text->tree))
         (book/base (book->tree))
         (xml/base (xml->tree))
         (json/base (json->tree))
@@ -20,5 +20,5 @@
         (javascript/base (javascript->tree))
         (lisp-form/base (lisp-form->tree))))
     (recursive
-      (tree->styled-string))
-    (styled-string->string)))
+      (tree->text))
+    (text->string)))

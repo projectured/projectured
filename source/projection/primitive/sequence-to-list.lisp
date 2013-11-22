@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; Projection
 
-(def (projection e) sequence->list ()
+(def projection sequence->list ()
   ())
 
 ;;;;;;

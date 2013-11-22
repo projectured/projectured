@@ -13,21 +13,11 @@
   (type-dispatching
     (widget/tooltip (make-projection/widget/tooltip->graphics/canvas))
     (widget/composite (make-projection/widget/composite->graphics/canvas))
+    (widget/tabbed-pane (make-projection/widget/tabbed-pane->graphics/canvas))
     (widget/scroll-pane (make-projection/widget/scroll-pane->graphics/canvas))))
 
 (def (macro e) widget->graphics ()
   '(make-projection/widget->graphics))
-
-;;;;;;
-;;; Styled string
-
-(def (function e) make-projection/styled-string->tree ()
-  (type-dispatching
-    (text/text (make-projection/text/text->tree/node))
-    (text/string (make-projection/text/string->tree/leaf))))
-
-(def (macro e) styled-string->tree ()
-  '(make-projection/styled-string->tree))
 
 ;;;;;;
 ;;; Book
@@ -48,8 +38,7 @@
   (type-dispatching
     (string (make-projection/string->tree/leaf))
     (text/string (make-projection/text/string->tree/leaf))
-    (text/text (make-projection/text/text->tree/node))
-    (text/paragraph (make-projection/text/paragraph->tree/node))))
+    (text/text (make-projection/text/text->tree/node))))
 
 (def (macro e) text->tree ()
   '(make-projection/text->tree))
@@ -57,16 +46,13 @@
 ;;;;;;
 ;;; Tree
 
-(def (function e) make-projection/tree->styled-string ()
+(def (function e) make-projection/tree->text ()
   (type-dispatching
-    (tree/leaf (tree/leaf->styled-string))
-    (tree/node (tree/node->styled-string))
-    (text/base (preserving))
-    (image/image (preserving))
-    (string (preserving))))
+    (tree/leaf (tree/leaf->text))
+    (tree/node (tree/node->text))))
 
-(def (macro e) tree->styled-string ()
-  `(make-projection/tree->styled-string))
+(def (macro e) tree->text ()
+  `(make-projection/tree->text))
 
 (def (function e) make-projection/tree->list ()
   (type-dispatching
@@ -101,24 +87,24 @@
 ;;;;;;
 ;;; Table
 
-(def (function e) make-projection/table->string ()
+(def (function e) make-projection/table->text ()
   (type-dispatching
-    (table/table (make-projection/table/table->string))
+    (table/table (make-projection/table/table->text))
     (t (preserving))))
 
 (def (function e) make-projection/t->table ()
   (type-dispatching
-    (null (make-projection/t/null->string))
-    (number (make-projection/t/number->string))
-    (string (make-projection/t/string->string))
-    (symbol (make-projection/t/symbol->string))
+    (null (make-projection/t/null->text/text))
+    (number (make-projection/t/number->text/text))
+    (string (make-projection/t/string->text/text))
+    (symbol (make-projection/t/symbol->text/text))
     (sequence (make-projection/t/sequence->table/table))
     (hash-table (make-projection/t/hash-table->table/table))
     (function (make-projection/t/function->table/table))
-    ((or structure-object standard-object) (make-projection/t/object->table))))
+    ((or structure-object standard-object) (make-projection/t/object->table/table))))
 
-(def (macro e) table->string ()
-  '(make-projection/table->string))
+(def (macro e) table->text ()
+  '(make-projection/table->text))
 
 (def (macro e) t->table ()
   '(make-projection/t->table))

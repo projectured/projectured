@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; Projection
 
-(def (projection e) string->styled-string ()
+(def projection string->text ()
   ((font-provider :type function)
    (font-color-provider :type function)
    (fill-color-provider :type function)
@@ -18,8 +18,8 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/string->styled-string (&key font-provider font-color-provider fill-color-provider line-color-provider)
-  (make-projection 'string->styled-string
+(def (function e) make-projection/string->text (&key font-provider font-color-provider fill-color-provider line-color-provider)
+  (make-projection 'string->text
                    :font-provider font-provider
                    :font-color-provider font-color-provider
                    :fill-color-provider fill-color-provider
@@ -38,8 +38,8 @@
 ;;;;;;
 ;;; Construction
 
-(def (macro e) string->styled-string (&key font-provider font-color-provider fill-color-provider line-color-provider)
-  `(make-projection/string->styled-string :font-provider ,font-provider
+(def (macro e) string->text (&key font-provider font-color-provider fill-color-provider line-color-provider)
+  `(make-projection/string->text :font-provider ,font-provider
                                           :font-color-provider ,font-color-provider
                                           :fill-color-provider ,fill-color-provider
                                           :line-color-provider ,line-color-provider))
@@ -47,7 +47,7 @@
 ;;;;;;
 ;;; Printer
 
-(def printer string->styled-string (projection recursion iomap input input-reference output-reference)
+(def printer string->text (projection recursion iomap input input-reference output-reference)
   (bind ((child-iomaps nil)
          (stream (make-string-output-stream))
          (font *font/default*)
@@ -56,7 +56,7 @@
          (line-color nil)
          (input-offset 0)
          (output-index 0)
-         (elements (flet ((next-styled-string (force)
+         (elements (flet ((next-text (force)
                             (bind ((content (get-output-stream-string stream)))
                               (when (or force (not (string= content "")))
                                 (push (make-iomap/string input input-reference input-offset content
@@ -83,7 +83,7 @@
                                      (not (color=* fill-color character-fill-color))
                                      (not (color=* line-color character-line-color))
                                      (not (eq font character-font)))
-                             (appending (next-styled-string #f) :into styled-strings)
+                             (appending (next-text #f) :into texts)
                              (setf stream (make-string-output-stream))
                              (setf input-offset character-index)
                              (setf font character-font)
@@ -92,9 +92,9 @@
                              (setf line-color character-line-color))
                            (write-char character stream)
                            (finally
-                            (return (if styled-strings
-                                        (append styled-strings (next-styled-string #f))
-                                        (next-styled-string #t)))))))
+                            (return (if texts
+                                        (append texts (next-text #f))
+                                        (next-text #t)))))))
          (output (make-text/text elements)))
     (make-iomap/compound projection recursion input input-reference output output-reference
                           (list* (make-iomap/object projection recursion input input-reference output output-reference) (nreverse child-iomaps)))))
@@ -102,20 +102,20 @@
 ;;;;;;
 ;;; Reader
 
-(def reader string->styled-string (projection recursion printer-iomap projection-iomap gesture-queue operation document-iomap)
+(def reader string->text (projection recursion printer-iomap projection-iomap gesture-queue operation document-iomap)
   (declare (ignore recursion operation))
   (bind ((input (input-of projection-iomap))
          (latest-gesture (first (gestures-of gesture-queue)))
          (document (input-of document-iomap)))
-    (cond ((and (key-press? latest-gesture :key :sdl-key-f :modifier :sdl-key-mod-lctrl)
+    (cond ((and (key-press? latest-gesture :key :sdl-key-f :modifier :control)
                 (typep (font-provider-of projection) 'alternative-function))
            (make-operation/select-next-alternative (font-provider-of projection)))
-          ((and (key-press? latest-gesture :key :sdl-key-c :modifier :sdl-key-mod-lctrl)
+          ((and (key-press? latest-gesture :key :sdl-key-c :modifier :control)
                 (typep (font-color-provider-of projection) 'alternative-function))
            (make-operation/select-next-alternative (font-color-provider-of projection)))
           ((and (typep latest-gesture 'gesture/keyboard/key-press)
                 (member (key-of latest-gesture) '(:sdl-key-home :sdl-key-end))
-                (equal '(:sdl-key-mod-lctrl) (modifiers-of latest-gesture)))
+                (equal '(:control) (modifiers-of latest-gesture)))
            (bind ((index (ecase (key-of latest-gesture)
                            (:sdl-key-home 0)
                            (:sdl-key-end (length (content-of document))))))
@@ -166,7 +166,7 @@
                                               (setf line-begin-index line-end-index))))
                   (make-operation/replace-selection document `(the sequence-position (pos (the string ,?a) ,character-index))))))))
           ((and (typep latest-gesture 'gesture/keyboard/key-press)
-                (null (set-difference (modifiers-of latest-gesture) '(:sdl-key-lshift :sdl-key-mod-rshift)))
+                (null (set-difference (modifiers-of latest-gesture) '(:shift)))
                 (or (graphic-char-p (character-of latest-gesture))
                     (whitespace? (character-of latest-gesture))))
            (bind ((character (character-of latest-gesture))

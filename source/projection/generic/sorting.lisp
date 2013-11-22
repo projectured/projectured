@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; Projection
 
-(def (projection e) sorting ()
+(def projection sorting ()
   ((key :type function)
    (predicate :type function)))
 

@@ -12,10 +12,11 @@
 (def (generic e) projection? (object)
   (:documentation "Returns TRUE if OBJECT is a projection, otherwise returns FALSE. Purely functional."))
 
-(def (definer e :available-flags "e") projection (name supers slots)
+(def (definer e :available-flags "e") projection (name supers slots &optional options)
   `(progn
      (def class* ,name (,@(append supers '(projection))) ,slots)
-     ,@(when (getf -options- :export) `((export ',name)))))
+     ,@(when (getf -options- :export) `((export ',name)))
+     ,@options))
 
 (def (function e) make-projection (name &rest args)
   (apply #'make-instance name

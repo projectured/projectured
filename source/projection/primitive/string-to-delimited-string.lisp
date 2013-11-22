@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; Projection
 
-(def (projection e) string->delimited-string ()
+(def projection string->delimited-string ()
   ((opening-delimiter :type string)
    (closing-delimiter :type string)))
 

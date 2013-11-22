@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; Projection
 
-(def (projection e) preserving ()
+(def projection preserving ()
   ())
 
 ;;;;;;

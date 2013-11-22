@@ -11,6 +11,7 @@
   :depends-on (:hu.dwim.common
                :hu.dwim.computed-class+hu.dwim.defclass-star
                :hu.dwim.def
+               :hu.dwim.logger
                :hu.dwim.serializer
                :hu.dwim.syntax-sugar
                :hu.dwim.util
@@ -89,6 +90,7 @@
                                            (:module "primitive"
                                             :depends-on ("generic")
                                             :components ((:file "book-to-tree")
+                                                         (:file "common-lisp-to-lisp-form")
                                                          (:file "document-to-document")
                                                          (:file "document-to-graphics")
                                                          (:file "evaluator")
@@ -100,29 +102,24 @@
                                                          (:file "lisp-form-to-tree")
                                                          (:file "list-to-string")
                                                          (:file "object-to-object")
-                                                         (:file "reference-to-string")
+                                                         (:file "reference-to-text")
                                                          (:file "sequence-to-list")
                                                          (:file "sequence-to-string")
-                                                         (:file "state-machine-to-tree")
                                                          (:file "state-machine-to-graph")
+                                                         (:file "state-machine-to-tree")
                                                          (:file "string-to-delimited-string")
                                                          (:file "string-to-leaf")
-                                                         (:file "string-to-line-numbered-string")
                                                          (:file "string-to-string")
-                                                         (:file "string-to-styled-string")
-                                                         (:file "styled-string-to-graphics")
-                                                         (:file "styled-string-to-line-numbered-styled-string")
-                                                         (:file "styled-string-to-string")
-                                                         (:file "styled-string-to-tree")
+                                                         (:file "string-to-text")
                                                          (:file "t-to-class-name")
                                                          (:file "t-to-table")
-                                                         (:file "table-to-string")
+                                                         (:file "table-to-text")
+                                                         (:file "text-to-graphics")
+                                                         (:file "text-to-line-numbered-text")
                                                          (:file "text-to-string")
                                                          (:file "text-to-tree")
                                                          (:file "tree-to-graphics")
-                                                         (:file "tree-to-string")
-                                                         (:file "tree-to-styled-string")
-                                                         (:file "common-lisp-to-lisp-form")
+                                                         (:file "tree-to-text")
                                                          (:file "widget-to-graphics")
                                                          (:file "word-wrapping")
                                                          (:file "xml-to-tree")))

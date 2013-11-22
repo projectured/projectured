@@ -139,7 +139,7 @@
                               :color (raw-of stroke-color)))))
 
 (def method print-to-device ((instance graphics/text) (display device/sdl))
-  (unless (string= "" (text-of instance))
+  (unless (zerop (length (text-of instance)))
     (bind ((text (text-of instance))
            (font (font-of instance))
            (fill-color (fill-color-of instance))
@@ -151,11 +151,12 @@
                           (round (2d-x size))
                           (round (2d-y size))
                           :color (raw-of fill-color))))
-      (sdl:draw-string-blended-* text
-                                 (round (2d-x location))
-                                 (round (2d-y location))
-                                 :font (raw-of font)
-                                 :color (raw-of (font-color-of instance))))))
+      (unless (every 'whitespace? (text-of instance))
+        (sdl:draw-string-blended-* text
+                                   (round (2d-x location))
+                                   (round (2d-y location))
+                                   :font (raw-of font)
+                                   :color (raw-of (font-color-of instance)))))))
 
 (def method print-to-device ((instance graphics/image) (display device/sdl))
   (bind ((location (+ *translation* (location-of instance))))

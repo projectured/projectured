@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; Projection
 
-(def (projection e) string->tree/leaf ()
+(def projection string->tree/leaf ()
   ())
 
 ;;;;;;

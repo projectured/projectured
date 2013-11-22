@@ -9,10 +9,10 @@
 ;;;;;;
 ;;; Projection
 
-(def (projection e) book/book->tree/node ()
+(def projection book/book->tree/node ()
   ())
 
-(def (projection e) book/chapter->tree/node ()
+(def projection book/chapter->tree/node ()
   ())
 
 ;;;;;;

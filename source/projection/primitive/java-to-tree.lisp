@@ -9,46 +9,46 @@
 ;;;;;;
 ;;; Projection
 
-(def (projection e) java/statement/block->tree/node ()
+(def projection java/statement/block->tree/node ()
   ())
 
-(def (projection e) java/statement/if->tree/node ()
+(def projection java/statement/if->tree/node ()
   ())
 
-(def (projection e) java/statement/return->tree/node ()
+(def projection java/statement/return->tree/node ()
   ())
 
-(def (projection e) java/expression/variable-reference->string ()
+(def projection java/expression/variable-reference->string ()
   ())
 
-(def (projection e) java/expression/method-invocation->tree/node  ()
+(def projection java/expression/method-invocation->tree/node  ()
   ())
 
-(def (projection e) java/expression/infix-operator->tree/node ()
+(def projection java/expression/infix-operator->tree/node ()
   ())
 
-(def (projection e) java/literal/null->string ()
+(def projection java/literal/null->string ()
   ())
 
-(def (projection e) java/literal/number->string ()
+(def projection java/literal/number->string ()
   ())
 
-(def (projection e) java/literal/character->string ()
+(def projection java/literal/character->string ()
   ())
 
-(def (projection e) java/literal/string->string  ()
+(def projection java/literal/string->string  ()
   ())
 
-(def (projection e) java/declaration/method->tree/node ()
+(def projection java/declaration/method->tree/node ()
   ())
 
-(def (projection e) java/declaration/argument->tree/node ()
+(def projection java/declaration/argument->tree/node ()
   ())
 
-(def (projection e) java/declaration/qualifier->string ()
+(def projection java/declaration/qualifier->string ()
   ())
 
-(def (projection e) java/declaration/type->string ()
+(def projection java/declaration/type->string ()
   ())
 
 ;;;;;;

@@ -20,51 +20,56 @@
 (def (generic e) undo-operation (operation)
   (:documentation "Undoes all side effects of OPERATION. Has side effects."))
 
-(def (definer :available-flags "e") operation (name supers slots)
-  `(def class* ,name ,supers ,slots))
+(def (definer :available-flags "e") operation (name supers slots &rest options)
+  `(def class* ,name ,supers ,slots ,@options))
 
 ;;;;;;
 ;;; Operation classes
 
-(def class* operation ()
+(def operation operation ()
   ()
   (:documentation "Base class for operations."))
 
-(def class* operation/compound (operation)
+(def operation operation/compound (operation)
   ((elements :type sequence))
   (:documentation "A sequence of operations carried out in the order they appear in elements."))
 
-(def class* operation/quit (operation)
+(def operation operation/quit (operation)
   ()
   (:documentation "An operation that quits the editor."))
 
-(def class* operation/undo (operation)
+(def operation operation/undo (operation)
   ()
   (:documentation "An operation that undoes the effect of the last operation."))
 
-(def class* operation/replace-content (operation)
+(def operation operation/replace-content (operation)
   ((document :type document)
    (content :type t))
   (:documentation "An operation that replaces the content of a document."))
 
-(def class* operation/replace-selection (operation)
+(def operation operation/replace-selection (operation)
   ((document :type document)
    (selection :type selection))
   (:documentation "An operation that replaces the selection of a document."))
 
-(def class* operation/replace-target (operation)
+(def operation operation/replace-target (operation)
   ((document :type document)
    (target :type reference)
    (replacement :type t)))
 
-(def class* operation/save-document (operation)
-  ((document :type document)))
+(def operation operation/save-document (operation)
+  ((document :type document)
+   (filename :type pathname)))
 
-(def class* operation/load-document (operation)
-  ((document :type document)))
+(def operation operation/load-document (operation)
+  ((document :type document)
+   (filename :type pathname)))
 
-(def class* operation/select-next-alternative (operation)
+(def operation operation/select-next-alternative (operation)
   ((alternatives :type alternatives)))
+
+(def operation operation/show-context-sensitive-help (operation)
+  ((operations :type sequence)))
 
 ;;;;;;
 ;;; Operation constructors
@@ -88,10 +93,10 @@
   (make-instance 'operation/replace-target :document document :target target :replacement replacement))
 
 (def (function e) make-operation/save-document (document)
-  (make-instance 'operation/save-document :document document))
+  (make-instance 'operation/save-document :document document :filename #P"/tmp/document.pred"))
 
 (def (function e) make-operation/load-document (document)
-  (make-instance 'operation/load-document :document document))
+  (make-instance 'operation/load-document :document document :filename #P"/tmp/document.pred"))
 
 (def (function e) make-operation/select-next-alternative (alternatives)
   (make-instance 'operation/select-next-alternative :alternatives alternatives))
@@ -116,17 +121,19 @@
   (setf (content-of (document-of operation)) (content-of operation)))
 
 (def method redo-operation ((operation operation/replace-selection))
-  (print (setf (selection-of (document-of operation)) (selection-of operation))))
+  (bind ((document (document-of operation)))
+    (setf (selection-of document) (selection-of operation))
+    (editor.debug "Selection of ~A is set to ~A" document (selection-of document))))
 
 (def method redo-operation ((operation operation/replace-target))
   (setf (eval-reference (document-of operation) (target-of operation)) (replacement-of operation)))
 
 (def method redo-operation ((operation operation/save-document))
-  (with-output-to-file (output "/tmp/document.pred" :if-does-not-exist :create :if-exists :overwrite :element-type '(unsigned-byte 8))
+  (with-output-to-file (output (filename-of operation) :if-does-not-exist :create :if-exists :overwrite :element-type '(unsigned-byte 8))
     (hu.dwim.serializer:serialize (document-of operation) :output output)))
 
 (def method redo-operation ((operation operation/load-document))
-  (with-input-from-file (input "/tmp/document.pred" :element-type '(unsigned-byte 8))
+  (with-input-from-file (input (filename-of operation) :element-type '(unsigned-byte 8))
     (bind ((document (hu.dwim.serializer:deserialize input)))
       (setf (content-of (document-of operation)) (content-of document))
       (setf (selection-of (document-of operation)) (selection-of document)))))
@@ -135,3 +142,6 @@
   (bind ((alternatives (alternatives-of operation)))
     (setf (selection-of alternatives) (mod (1+ (selection-of alternatives))
                                            (length (alternatives-of alternatives))))))
+
+(def method redo-operation ((operation operation/show-context-sensitive-help))
+  (values))

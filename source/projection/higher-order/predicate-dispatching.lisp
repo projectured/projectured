@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; Projection
 
-(def (projection e) predicate-dispatching ()
+(def projection predicate-dispatching ()
   ((predicate-projection-pairs :type list)))
 
 ;;;;;;

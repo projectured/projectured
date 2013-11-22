@@ -14,6 +14,12 @@
 (def test test/editor/read-eval-print-loop (document projection)
   (finishes (run-read-evaluate-print-loop (make-editor :filename "/tmp/projectured.bmp") document projection)))
 
+(def test test/editor/read-eval-print-loop* (content selection projection)
+  (bind ((editor (make-editor :filename "/tmp/projectured.bmp"))
+         (document (make-test-document content :selection selection :projection projection))
+         (projection (make-test-projection projection)))
+    (finishes (run-read-evaluate-print-loop editor document projection))))
+
 (def test test/editor/graphics ()
   (test/editor/read-eval-print-loop (make-test-document/graphics) (make-test-projection/graphics->graphics)))
 
@@ -32,8 +38,14 @@
 (def test test/editor/string/sorting ()
   (test/editor/read-eval-print-loop (make-test-document/string) (make-test-projection/string->graphics/sorting)))
 
-(def test test/editor/styled-string ()
-  (test/editor/read-eval-print-loop (make-test-document/styled-string) (make-test-projection/styled-string->graphics)))
+(def test test/editor/text/pos ()
+  (test/editor/read-eval-print-loop (make-test-document/text/pos) (make-test-projection/text->graphics)))
+
+(def test test/editor/text/elt ()
+  (test/editor/read-eval-print-loop (make-test-document/text/elt) (make-test-projection/text->graphics)))
+
+(def test test/editor/text/box ()
+  (test/editor/read-eval-print-loop (make-test-document/text/box) (make-test-projection/text->graphics)))
 
 (def test test/editor/text ()
   (test/editor/read-eval-print-loop (make-test-document/text) (make-test-projection/text->graphics)))
@@ -78,19 +90,47 @@
   (test/editor/read-eval-print-loop (make-test-document/xml/empty) (make-test-projection/xml->graphics)))
 
 (def test test/editor/json ()
-  (test/editor/read-eval-print-loop (make-test-document/json) (make-test-projection/json->graphics)))
-
-(def test test/editor/json/empty ()
-  (test/editor/read-eval-print-loop (make-test-document/json/empty) (make-test-projection/json->graphics)))
+  (test/editor/read-eval-print-loop* (make-test-content/json) (make-test-selection/json/character-position) (make-test-projection/json->graphics)))
 
 (def test test/editor/json/focusing ()
-  (test/editor/read-eval-print-loop (make-test-document/json) (make-test-projection/json->graphics/focusing)))
+  (test/editor/read-eval-print-loop* (make-test-content/json) (make-test-selection/json/character-position) (make-test-projection/json->graphics/focusing)))
 
 (def test test/editor/json/removing ()
-  (test/editor/read-eval-print-loop (make-test-document/json) (make-test-projection/json->graphics/removing)))
+  (test/editor/read-eval-print-loop* (make-test-content/json) (make-test-selection/json/character-position) (make-test-projection/json->graphics/removing)))
 
 (def test test/editor/json/sorting ()
-  (test/editor/read-eval-print-loop (make-test-document/json) (make-test-projection/json->graphics/sorting)))
+  (test/editor/read-eval-print-loop* (make-test-content/json) (make-test-selection/json/character-position) (make-test-projection/json->graphics/sorting)))
+
+(def test test/editor/json/common-lisp ()
+  (test/editor/read-eval-print-loop* (bind ((h (make-adjustable-string "Hello World")))
+                                       (json/array
+                                         (make-instance 'common-lisp/application :operator 'make-instance
+                                                        :arguments (list (make-instance 'common-lisp/constant :value 'json/number)
+                                                                         (make-instance 'common-lisp/constant :value :value)
+                                                                         (make-instance 'common-lisp/application :operator 'length :arguments (list (make-instance 'common-lisp/constant :value h)))))
+                                         (json/string h)))
+                                     (make-test-selection/json/character-position)
+                                     (sequential
+                                       (nesting
+                                         (document->document)
+                                         (recursive
+                                           (type-dispatching
+                                             (common-lisp/base (evaluator))
+                                             (json/array (copying))
+                                             (json/base (preserving))
+                                             (list (copying)))))
+                                       (nesting
+                                         (document->document)
+                                         (recursive (json->tree)))
+                                       (nesting
+                                         (document->document)
+                                         (recursive (tree->text)))
+                                       (nesting
+                                         (document->document)
+                                         (text->line-numbered-text))
+                                       (nesting
+                                         (document->graphics)
+                                         (make-test-projection/text->output)))))
 
 (def test test/editor/java ()
   (test/editor/read-eval-print-loop (make-test-document/java) (make-test-projection/java->graphics)))
@@ -102,7 +142,7 @@
   (test/editor/read-eval-print-loop (make-test-document/lisp-form) (make-test-projection/lisp-form->graphics)))
 
 (def test test/editor/common-lisp ()
-  (test/editor/read-eval-print-loop (make-test-document/common-lisp) (make-test-projection/common-lisp->graphics)))
+  (test/editor/read-eval-print-loop* (make-test-content/common-lisp) nil (make-test-projection/common-lisp->graphics)))
 
 (def test test/editor/evaluator ()
   (test/editor/read-eval-print-loop (make-test-document/evaluator) (make-test-projection/evaluator)))
@@ -116,8 +156,20 @@
 (def test test/editor/complex ()
   (test/editor/read-eval-print-loop (make-test-document/complex) (make-test-projection/complex->graphics)))
 
-(def test test/editor/t ()
-  (test/editor/read-eval-print-loop (make-test-document/t) (make-test-projection/t->graphics)))
+(def test test/editor/t/null ()
+  (test/editor/read-eval-print-loop* (make-test-content/t/null) nil (make-test-projection/t->graphics)))
+
+(def test test/editor/t/text ()
+  (test/editor/read-eval-print-loop* (make-test-content/text) nil (make-test-projection/t->graphics)))
+
+(def test test/editor/t/tree ()
+  (test/editor/read-eval-print-loop* (make-test-content/tree) nil (make-test-projection/t->graphics)))
+
+(def test test/editor/t/xml ()
+  (test/editor/read-eval-print-loop* (make-test-content/xml) nil (make-test-projection/t->graphics)))
+
+(def test test/editor/t/json ()
+  (test/editor/read-eval-print-loop* (make-test-content/json) nil (make-test-projection/t->graphics)))
 
 (def test test/editor/demo ()
   (test/editor/read-eval-print-loop (make-test-document/demo) (make-test-projection/demo->graphics)))

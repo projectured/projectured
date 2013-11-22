@@ -51,7 +51,7 @@
 (def method print-to-device :around (instance (display device/display/sdl))
   (if sdl:*default-surface*
       (call-next-method)
-      (bind ((surface (sdl:window (width-of display) (height-of display) :double-buffer #t :title-caption "Projection Editor")))
+      (bind ((surface (sdl:window (width-of display) (height-of display) :double-buffer #t :title-caption "Projectional Editor")))
         (setf (surface-of display) surface)
         (sdl:with-surface (surface)
           (sdl:fill-surface sdl:*white*)
@@ -86,14 +86,14 @@
            (sdl:with-key-down-event ((mod-key :mod-key) (key :key) (character :unicode)) sdl:*sdl-event*
              (make-instance 'event/keyboard/key-down
                             :timestamp (iolib.syscalls:get-monotonic-time)
-                            :modifiers mod-key
+                            :modifiers (mapcar 'modifier-key mod-key)
                             :key key
                             :character (code-char character))))
           (:key-up-event
            (sdl:with-key-down-event ((mod-key :mod-key) (key :key) (character :unicode)) sdl:*sdl-event*
              (make-instance 'event/keyboard/key-up
                             :timestamp (iolib.syscalls:get-monotonic-time)
-                            :modifiers mod-key
+                            :modifiers (mapcar 'modifier-key mod-key)
                             :key key
                             :character (code-char character))))
           (:mouse-motion-event
@@ -135,3 +135,9 @@
          :wheel-down)
         ((= sdl::mouse-wheel-up button)
          :wheel-up)))
+
+(def function modifier-key (key)
+  (ecase key
+    ((:sdl-key-mod-lctrl :sdl-key-mod-rctrl) :control)
+    ((:sdl-key-mod-lshift :sdl-key-mod-rshift) :shift)
+    ((:sdl-key-mod-lalt :sdl-key-mod-ralt) :alt)))

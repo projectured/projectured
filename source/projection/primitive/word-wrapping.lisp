@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; Projection
 
-(def (projection e) word-wrapping ()
+(def projection word-wrapping ()
   ((wrap-width :type number)))
 
 ;;;;;;

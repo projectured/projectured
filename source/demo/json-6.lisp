@@ -17,20 +17,20 @@
 
 (in-package :projectured.test)
 
-(def function make-test-projection/jjson ()
+(def function make-test-projection/json ()
   (make-test-projection
    (nesting
      (widget->graphics)
      (sequential
        (nesting
          (document->document)
-         (recursive (jjson->tree)))
+         (recursive (json->tree)))
        (nesting
          (document->document)
-         (recursive (tree->styled-string)))
+         (recursive (tree->text)))
        (nesting
          (document->document)
-         (styled-string->line-numbered-styled-string))
+         (text->line-numbered-text))
        (nesting
          (document->graphics)
-         (styled-string->graphics))))))
+         (text->graphics))))))

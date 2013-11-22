@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; Projection
 
-(def (projection e) alternative ()
+(def projection alternative ()
   ((alternatives :type list)
    (selection :type positive-integer)))
 
@@ -39,7 +39,7 @@
   (bind ((latest-gesture (first (gestures-of gesture-queue))))
     (cond ((and (typep latest-gesture 'gesture/keyboard/key-press)
                 (eq (key-of latest-gesture) :sdl-key-p)
-                (member :sdl-key-mod-lctrl (modifiers-of latest-gesture)))
+                (member :control (modifiers-of latest-gesture)))
            (make-operation/select-next-alternative projection))
           (t
            (bind ((selection-element (elt (alternatives-of projection) (selection-of projection))))

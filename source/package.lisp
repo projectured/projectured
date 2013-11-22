@@ -12,6 +12,7 @@
         :hu.dwim.computed-class
         :hu.dwim.def
         :hu.dwim.defclass-star
+        :hu.dwim.logger
         :hu.dwim.syntax-sugar
         :hu.dwim.util)
   (:readtable-setup

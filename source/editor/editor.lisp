@@ -56,7 +56,9 @@
             (when-bind gesture (read-gesture event-queue)
               (push gesture (gestures-of gesture-queue))
               (when-bind operation (apply-reader projection (printer-iomap-of editor) gesture-queue)
-                (return (lambda () (redo-operation operation)))))))))
+                (return (lambda ()
+                          (editor.debug "Redoing ~A" operation)
+                          (redo-operation operation)))))))))
 
 (def method print-to-devices ((editor editor) document projection)
   (bind ((printer-iomap (setf (printer-iomap-of editor) (apply-printer document projection))

@@ -38,6 +38,13 @@
        #+nil
        (iter (for index :from 0 :to length)
              (funcall function iomap `(the sequence-position (pos ,(input-reference-of iomap) ,(+ index (input-offset-of iomap))))))))
+    (iomap/text
+     (bind ((length (length-of iomap)))
+       (iter (for index :from 0 :below length)
+             (funcall function iomap `(the character (,(if (stringp (input-of iomap)) 'elt 'text/elt) ,(input-reference-of iomap) ,(+ index (input-offset-of iomap))))))
+       #+nil
+       (iter (for index :from 0 :to length)
+             (funcall function iomap `(the sequence-position (,(if (stringp (input-of iomap)) 'pos 'text/pos) ,(input-reference-of iomap) ,(+ index (input-offset-of iomap))))))))
     (iomap/sequential
      (map-input-references (first (element-iomaps-of iomap)) function))
     (iomap/compound
@@ -57,6 +64,13 @@
        #+nil
        (iter (for index :from 0 :to length)
              (funcall function iomap `(the sequence-position (pos ,(output-reference-of iomap) ,(+ index (output-offset-of iomap))))))))
+    (iomap/text
+     (bind ((length (length-of iomap)))
+       (iter (for index :from 0 :below length)
+             (funcall function iomap `(the character (,(if (stringp (output-of iomap)) 'elt 'text/elt) ,(output-reference-of iomap) ,(+ index (output-offset-of iomap))))))
+       #+nil
+       (iter (for index :from 0 :to length)
+             (funcall function iomap `(the sequence-position (,(if (stringp (output-of iomap)) 'pos 'text/pos) ,(output-reference-of iomap) ,(+ index (output-offset-of iomap))))))))
     (iomap/sequential
      (map-output-references (last-elt (element-iomaps-of iomap)) function))
     (iomap/compound

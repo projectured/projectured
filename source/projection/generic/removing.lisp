@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; Projection
 
-(def (projection e) removing ()
+(def projection removing ()
   ((element :type t)
    (predicate :type function)
    (key :type function)))

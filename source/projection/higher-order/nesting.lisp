@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; Projection
 
-(def (projection e) nesting ()
+(def projection nesting ()
   ((elements :type list)))
 
 ;;;;;;

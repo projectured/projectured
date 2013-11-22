@@ -9,16 +9,42 @@
 ;;;;;;
 ;;; Widget
 
-(def function make-test-document (content &key selection)
+(def function make-test-document (content &key selection projection)
   (composite ()
-    (scroll-pane (:location (make-2d 0 0) :size (make-2d 1024 768) :margin (make-inset :all 5))
-      (document (:selection selection)
-        content))
+    (tabbed-pane ()
+      ((text/text ()
+         (text/string "Document in Domain Specific Notation" :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*))
+       (scroll-pane (:location (make-2d 0 0) :size (make-2d 1024 768) :margin (make-inset :all 5))
+         (document (:selection selection)
+           content)))
+      ((text/text ()
+         (text/string "Document in Generic Notation" :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*))
+       (scroll-pane (:location (make-2d 0 0) :size (make-2d 1024 768) :margin (make-inset :all 5))
+         (document ()
+           content)))
+      ((text/text ()
+         (text/string "Projection in Generic Notation" :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*))
+       (scroll-pane (:location (make-2d 0 0) :size (make-2d 1024 768) :margin (make-inset :all 5))
+         (document ()
+           projection)))
+      ((text/text ()
+         (text/string "Intermediate Documents in Generic Notation" :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*))
+       (make-widget/tabbed-pane
+        (when (typep projection 'sequential)
+          (iter (for element-projection :in-sequence (elements-of projection))
+                (repeat 2)
+                (collect (list
+                          (text/text ()
+                            (text/string (object-class-symbol-name element-projection) :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*))
+                          (scroll-pane (:location (make-2d 0 0) :size (make-2d 1024 768) :margin (make-inset :all 5))
+                            (document ()
+                              content))))))
+        0)))
     (tooltip (:location (make-2d 100 100) :margin (make-inset :all 5))
       nil)))
 
-(def macro test-document ((&key selection) &body content)
-  `(make-test-document ,(first content) :selection ,selection))
+(def macro test-document ((&key selection projection) &body content)
+  `(make-test-document ,(first content) :selection ,selection :projection ,projection))
 
 ;;;;;;
 ;;; Graphics
@@ -45,19 +71,27 @@
 ;;;;;;
 ;;; Styled string
 
-(def function make-test-document/styled-string ()
-  (test-document (:selection '(the sequence-position (pos (the string (content-of (the text/string (elt (the list (elements-of (the text/text (content-of (the document document))))) 0)))) 2)))
-    (make-test-content/styled-string)))
+(def function make-test-document/text/pos ()
+  (test-document (:selection '(the sequence-position (text/pos (the text/text (content-of (the document document))) 2)))
+    (make-test-content/text)))
+
+(def function make-test-document/text/elt ()
+  (test-document (:selection '(the character (text/elt (the text/text (content-of (the document document))) 2)))
+    (make-test-content/text)))
+
+(def function make-test-document/text/box ()
+  (test-document (:selection '(the sequence-box (text/subbox (the text/text (content-of (the document document))) 5 18)))
+    (make-test-content/text)))
 
 ;;;;;;
 ;;; Text
 
 (def function make-test-document/text/empty ()
-  (test-document (:selection '(the sequence-position (pos (the string (content-of (the make-text/string (elt (the list (elements-of (the text/paragraph (elt (the list (elements-of (the text/text (content-of (the document document))))) 0)))) 0)))) 0)))
+  (test-document (:selection '(the sequence-position (pos (the string (content-of (the make-text/string (elt (the list (elements-of (the text/text (content-of (the document document))))) 0)))) 0)))
     (make-test-content/text/empty)))
 
 (def function make-test-document/text ()
-  (test-document (:selection '(the sequence-position (pos (the string (content-of (the text/string (elt (the list (elements-of (the text/paragraph (elt (the list (elements-of (the text/text (content-of (the document document))))) 1)))) 0)))) 4)))
+  (test-document (:selection '(the sequence-position (pos (the string (content-of (the text/string (elt (the list (elements-of (the text/text (content-of (the document document))))) 0)))) 4)))
     (make-test-content/text)))
 
 ;;;;;;
@@ -75,11 +109,11 @@
 ;;; Table
 
 (def function make-test-document/table/empty ()
-  (test-document (:selection '(the sequence-position (pos (the list (cells-of (the table/row (elt (the list (rows-of (the table/table (content-of (the document document))))) 0)))) 0)))
+  (test-document (:selection '(the sequence-position (text/pos (the list (cells-of (the table/row (elt (the list (rows-of (the table/table (content-of (the document document))))) 0)))) 0)))
     (make-test-content/table/empty)))
 
 (def function make-test-document/table ()
-  (test-document (:selection '(the sequence-position (pos (the string (content-of (the table/cell (elt (the list (cells-of (the table/row (elt (the list (rows-of (the table/table (content-of (the document document))))) 1)))) 0)))) 25)))
+  (test-document (:selection '(the sequence-position (text/pos (the text/text (content-of (the table/cell (elt (the list (cells-of (the table/row (elt (the list (rows-of (the table/table (content-of (the document document))))) 1)))) 0)))) 25)))
     (make-test-content/table)))
 
 ;;;;;;
@@ -146,6 +180,10 @@
 
 (def function make-test-document/json ()
   (test-document (:selection '(the sequence-position (pos (the string (value-of (the json/string (elt (the list (elements-of (the json/array (content-of (the document document))))) 4)))) 8)))
+    (make-test-content/json)))
+
+(def function make-test-document/json/element ()
+  (test-document (:selection '(the json/object (elt (the list (elements-of (the json/array (content-of (the document document))))) 5)))
     (make-test-content/json)))
 
 ;;;;;;

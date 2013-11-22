@@ -10,63 +10,63 @@
 ;;;; STEP 1
 ;;;;
 ;;;; Goal:
-;;;;  - allow creating empty jjson document
+;;;;  - allow creating empty json document
 ;;;;
 ;;;; Implementation:
-;;;;  - define jjson/nothing document
-;;;;  - define jjson/nothing->tree/leaf primitive projection
-;;;;  - define jjson->tree compound projection
+;;;;  - define json/nothing document
+;;;;  - define json/nothing->tree/leaf primitive projection
+;;;;  - define json->tree compound projection
 ;;;;  - define test document and test projection
 
 ;;;;;;
 ;;; Document
 
-(def document jjson/nothing ()
+(def document json/nothing ()
   ())
 
-(def function make-document/jjson/nothing ()
-  (make-instance 'jjson/nothing))
+(def function make-document/json/nothing ()
+  (make-instance 'json/nothing))
 
-(def (macro e) jjson/nothing ()
-  '(make-document/jjson/nothing))
+(def (macro e) json/nothing ()
+  '(make-document/json/nothing))
 
 ;;;;;;
 ;;; Projection
 
-(def projection jjson/nothing->tree/leaf ()
+(def projection json/nothing->tree/leaf ()
   ())
 
-(def function make-projection/jjson/nothing->tree/leaf ()
-  (make-projection 'jjson/nothing->tree/leaf))
+(def function make-projection/json/nothing->tree/leaf ()
+  (make-projection 'json/nothing->tree/leaf))
 
-(def (macro e) jjson/nothing->tree/leaf ()
-  '(make-projection/jjson/nothing->tree/leaf))
+(def (macro e) json/nothing->tree/leaf ()
+  '(make-projection/json/nothing->tree/leaf))
 
-(def function make-projection/jjson->tree ()
+(def function make-projection/json->tree ()
   (type-dispatching
-    (jjson/nothing (jjson/nothing->tree/leaf))))
+    (json/nothing (json/nothing->tree/leaf))))
 
-(def (macro e) jjson->tree ()
-  '(make-projection/jjson->tree))
+(def (macro e) json->tree ()
+  '(make-projection/json->tree))
 
 ;;;;;;
 ;;; Printer
 
-(def printer jjson/nothing->tree/leaf (projection recursion iomap input input-reference output-reference)
+(def printer json/nothing->tree/leaf (projection recursion iomap input input-reference output-reference)
   (declare (ignore iomap))
   (bind ((output-content "")
          (output (make-tree/leaf (make-text/string output-content :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/blue*)))
          (name-reference `(value (the ,(form-type input) ,input-reference))))
     (make-iomap/compound projection recursion input input-reference output output-reference
-                          (list (make-iomap/object projection recursion input input-reference output output-reference)
-                                (make-iomap/string output-content name-reference 0
-                                                   output-content `(content-of (the text/string (content-of (the tree/leaf ,output-reference)))) 0
-                                                   (length output-content))))))
+                         (list (make-iomap/object projection recursion input input-reference output output-reference)
+                               (make-iomap/string output-content name-reference 0
+                                                  output-content `(content-of (the text/string (content-of (the tree/leaf ,output-reference)))) 0
+                                                  (length output-content))))))
 
 ;;;;;;
 ;;; Reader
 
-(def reader jjson/nothing->tree/leaf (projection recursion printer-iomap projection-iomap gesture-queue operation document-iomap)
+(def reader json/nothing->tree/leaf (projection recursion printer-iomap projection-iomap gesture-queue operation document-iomap)
   (declare (ignore projection recursion printer-iomap projection-iomap gesture-queue document-iomap))
   (when (typep operation 'operation/quit)
     operation))
@@ -76,27 +76,27 @@
 
 (in-package :projectured.test)
 
-(def function make-test-document/jjson ()
-  (bind ((selection '(the sequence-position (pos (the string (value (the jjson/nothing (content-of (the document document))))) 0))))
-    (make-test-document (jjson/nothing) :selection selection)))
+(def function make-test-document/json ()
+  (bind ((selection '(the sequence-position (pos (the string (value (the json/nothing (content-of (the document document))))) 0))))
+    (make-test-document (json/nothing) :selection selection)))
 
-(def function make-test-projection/jjson ()
+(def function make-test-projection/json ()
   (make-test-projection
    (nesting
      (widget->graphics)
      (sequential
        (nesting
          (document->document)
-         (recursive (jjson->tree)))
+         (recursive (json->tree)))
        (nesting
          (document->document)
-         (recursive (tree->styled-string)))
+         (recursive (tree->text)))
        (nesting
          (document->graphics)
-         (styled-string->graphics))))))
+         (text->graphics))))))
 
-(def function test/editor/jjson ()
+(def function test/editor/json ()
   (bind ((editor (make-editor))
-         (document (make-test-document/jjson))
-         (projection (make-test-projection/jjson)))
+         (document (make-test-document/json))
+         (projection (make-test-projection/json)))
     (run-read-evaluate-print-loop editor document projection)))

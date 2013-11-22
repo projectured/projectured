@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; Projection
 
-(def (projection e) copying ()
+(def projection copying ()
   ())
 
 ;;;;;;
@@ -33,8 +33,8 @@
       (symbol (make-iomap/object projection recursion input input-reference input output-reference))
       (number (make-iomap/object projection recursion input input-reference input output-reference))
       (string (make-iomap/compound projection recursion input input-reference input output-reference
-                                    (list (make-iomap/object projection recursion input input-reference input output-reference)
-                                          (make-iomap/string input input-reference 0 input output-reference 0 (length input)))))
+                                   (list (make-iomap/object projection recursion input input-reference input output-reference)
+                                         (make-iomap/string input input-reference 0 input output-reference 0 (length input)))))
       (pathname (make-iomap/object projection recursion input input-reference input output-reference))
       (style/color (make-iomap/object projection recursion input input-reference input output-reference))
       (style/font (make-iomap/object projection recursion input input-reference input output-reference))
@@ -43,7 +43,7 @@
               (cdr-iomap (recurse-printer recursion iomap (cdr input) `(cdr ,typed-input-reference) `(cdr (the ,(form-type input) ,output-reference))))
               (output (cons (output-of car-iomap) (output-of cdr-iomap))))
          (make-iomap/compound projection recursion input input-reference output output-reference
-                               (list (make-iomap/object projection recursion input input-reference output output-reference) car-iomap cdr-iomap))))
+                              (list (make-iomap/object projection recursion input input-reference output output-reference) car-iomap cdr-iomap))))
       (standard-object
        (bind ((class (class-of input))
               (child-iomaps nil)
@@ -63,7 +63,7 @@
                               (push iomap child-iomaps)
                               (setf (slot-value-using-class class clone slot) (output-of iomap))))))))
          (make-iomap/compound projection recursion input input-reference output output-reference
-                               (list* (make-iomap/object projection recursion input input-reference output output-reference) (nreverse child-iomaps))))))))
+                              (list* (make-iomap/object projection recursion input input-reference output output-reference) (nreverse child-iomaps))))))))
 
 ;;;;;;
 ;;; Reader
@@ -71,10 +71,11 @@
 (def reader copying (projection recursion printer-iomap projection-iomap gesture-queue operation document-iomap)
   (declare (ignore projection))
   (bind ((selection (tree-replace (selection-of (input-of document-iomap)) '(the document document) `(the document ,(input-reference-of document-iomap)))))
-    (iter (for index :from 0 :below (length (class-slots (class-of (input-of projection-iomap)))))
-          (for child-iomap = (elt (child-iomaps-of projection-iomap) (1+ index)))
-          (for child-operation =
-               (when (tree-search selection (input-reference-of child-iomap))
-                 (recurse-reader recursion printer-iomap child-iomap gesture-queue operation document-iomap)))
-          (when child-operation
-            (return child-operation)))))
+    (or (iter (for index :from 0 :below (length (class-slots (class-of (input-of projection-iomap)))))
+              (for child-iomap = (elt (child-iomaps-of projection-iomap) (1+ index)))
+              (for child-operation =
+                   (when (tree-search selection (input-reference-of child-iomap))
+                     (recurse-reader recursion printer-iomap child-iomap gesture-queue operation document-iomap)))
+              (when child-operation
+                (return child-operation)))
+        (operation/read-backward operation projection-iomap document-iomap))))

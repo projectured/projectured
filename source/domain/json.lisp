@@ -10,7 +10,7 @@
 ;;; Document
 
 (def document json/base ()
-  ((indentation :type integer)))
+  ())
 
 (def document json/nothing (json/base)
   ())
@@ -31,8 +31,8 @@
   ((elements :type sequence)))
 
 (def document json/object-entry (json/base)
-  ((key :type t)
-   (value :type t)))
+  ((key :type string)
+   (value :type json/base)))
 
 (def document json/object (json/base)
   ((entries :type sequence)))
@@ -40,29 +40,29 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-document/json/nothing (&key indentation)
-  (make-instance 'json/nothing :indentation indentation))
+(def (function e) make-document/json/nothing ()
+  (make-instance 'json/nothing))
 
-(def (function e) make-document/json/null (&key indentation)
-  (make-instance 'json/null :indentation indentation))
+(def (function e) make-document/json/null ()
+  (make-instance 'json/null))
 
-(def (function e) make-document/json/boolean (value &key indentation)
-  (make-instance 'json/boolean :value value :indentation indentation))
+(def (function e) make-document/json/boolean (value)
+  (make-instance 'json/boolean :value value))
 
-(def (function e) make-document/json/number (value &key indentation)
-  (make-instance 'json/number :value value :indentation indentation))
+(def (function e) make-document/json/number (value)
+  (make-instance 'json/number :value value))
 
-(def (function e) make-document/json/string (value &key indentation)
-  (make-instance 'json/string :value value :indentation indentation))
+(def (function e) make-document/json/string (value)
+  (make-instance 'json/string :value value))
 
-(def (function e) make-document/json/array (elements &key indentation)
-  (make-instance 'json/array :elements elements :indentation indentation))
+(def (function e) make-document/json/array (elements)
+  (make-instance 'json/array :elements elements))
 
-(def (function e) make-document/json/object-entry (key value &key indentation)
-  (make-instance 'json/object-entry :key key :value value :indentation indentation))
+(def (function e) make-document/json/object-entry (key value)
+  (make-instance 'json/object-entry :key key :value value))
 
-(def (function e) make-document/json/object (entries &key indentation)
-  (make-instance 'json/object :entries entries :indentation indentation))
+(def (function e) make-document/json/object (entries)
+  (make-instance 'json/object :entries entries))
 
 ;;;;;;
 ;;; Construction

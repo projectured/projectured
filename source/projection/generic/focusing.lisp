@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; Projection
 
-(def (projection e) focusing ()
+(def projection focusing ()
   ((part :type reference)
    (part-evaluator :type function)))
 
@@ -34,28 +34,49 @@
   (declare (ignore iomap))
   (bind ((part (part-of projection))
          (output (funcall (part-evaluator-of projection) input)))
-    (make-iomap/recursive projection recursion input (tree-replace part 'document input-reference) output output-reference)))
+    (make-iomap/recursive* projection recursion
+                           output (tree-replace part 'document input-reference)
+                           output `(the ,(form-type output) ,output-reference))))
 
 ;;;;;;
 ;;; Reader
 
+(def operation operation/focusing/replace-part ()
+  ((projection :type focusing)
+   (part :type reference)))
+
+(def method redo-operation ((operation operation/focusing/replace-part))
+  (bind ((projection (projection-of operation))
+         (part (part-of operation)))
+    (setf (part-of projection) part)
+    (setf (part-evaluator-of projection) (compile nil `(lambda (document) ,part)))))
+
 (def reader focusing (projection recursion printer-iomap projection-iomap gesture-queue operation document-iomap)
-  (declare (ignore projection recursion printer-iomap gesture-queue))
-  (bind ((document (input-of document-iomap)))
-    (labels ((recurse (child-operation)
-               (cond ((typep child-operation 'operation/compound)
-                      (bind ((child-operations (mapcar #'recurse (elements-of child-operation))))
-                        (unless (some 'null child-operations)
-                          (make-operation/compound child-operations))))
-                     ((typep child-operation 'operation/replace-selection)
-                      (awhen (map-backward/clever (selection-of child-operation) projection-iomap document-iomap)
-                        (make-operation/replace-selection document (tree-replace it `(the document ,(input-reference-of projection-iomap)) '(the document document)))))
-                     ((typep child-operation 'operation/sequence/replace-element-range)
-                      (awhen (map-backward/clever (target-of child-operation) projection-iomap document-iomap)
-                        (make-operation/sequence/replace-element-range document (tree-replace it `(the document ,(input-reference-of document-iomap)) '(the document document)) (replacement-of child-operation))))
-                     ((typep child-operation 'operation/number/replace-range)
-                      (awhen (map-backward/clever (target-of child-operation) projection-iomap document-iomap)
-                        (make-operation/number/replace-range document (tree-replace it `(the document ,(input-reference-of document-iomap)) '(the document document)) (replacement-of child-operation))))
-                     (t
-                      (operation/read-backward operation projection-iomap document-iomap)))))
-      (recurse operation))))
+  (declare (ignore recursion printer-iomap))
+  (bind ((latest-gesture (first-elt (gestures-of gesture-queue)))
+         (document (input-of document-iomap))
+         (child-operation (operation/read-backward operation projection-iomap document-iomap)))
+    (merge-operations (gesture-case latest-gesture
+                        ((gesture/keyboard/key-press #\, :control)
+                         :domain "Focusing" :help "Moves the focus one level up"
+                         :operation (pattern-case (part-of projection)
+                                      ((the ?a (?b (the ?c ?d)))
+                                       (make-instance 'operation/focusing/replace-part
+                                                      :projection projection
+                                                      :part `(the ,?c ,?d)))
+                                      ((the ?a (elt (the list (?b (the ?c ?d))) ?e))
+                                       (make-instance 'operation/focusing/replace-part
+                                                      :projection projection
+                                                      :part `(the ,?c ,?d)))))
+                        ((gesture/keyboard/key-press #\. :control)
+                         :domain "Focusing" :help "Moves the focus to the selection"
+                         :operation (pattern-case (selection-of document)
+                                      ((the sequence-position ?a)
+                                       nil)
+                                      ((the ?a ?b)
+                                       (bind ((new-part (tree-replace `(the ,?a ,?b) '(content-of (the document document)) 'document)))
+                                         (unless (equal new-part (part-of projection))
+                                           (make-instance 'operation/focusing/replace-part
+                                                          :projection projection
+                                                          :part new-part)))))))
+                      child-operation)))

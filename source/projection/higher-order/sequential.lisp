@@ -57,7 +57,7 @@
 ;;;;;;
 ;;; Projection
 
-(def (projection e) sequential ()
+(def projection sequential ()
   ((elements :type list)))
 
 ;;;;;;

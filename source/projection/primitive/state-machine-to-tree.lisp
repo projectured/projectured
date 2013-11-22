@@ -9,13 +9,13 @@
 ;;;;;;
 ;;; Projection
 
-(def (projection e) state-machine/state-machine->tree/node ()
+(def projection state-machine/state-machine->tree/node ()
   ())
 
-(def (projection e) state-machine/state->tree/node ()
+(def projection state-machine/state->tree/node ()
   ())
 
-(def (projection e) state-machine/transition->tree/node ()
+(def projection state-machine/transition->tree/node ()
   ())
 
 ;;;;;;

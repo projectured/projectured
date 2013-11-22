@@ -9,31 +9,31 @@
 ;;;;;;
 ;;; Projection
 
-(def (projection e) javascript/statement/block->tree/node ()
+(def projection javascript/statement/block->tree/node ()
   ())
 
-(def (projection e) javascript/statement/top-level->tree/node ()
+(def projection javascript/statement/top-level->tree/node ()
   ())
 
-(def (projection e) javascript/expression/variable-reference->tree/leaf ()
+(def projection javascript/expression/variable-reference->tree/leaf ()
   ())
 
-(def (projection e) javascript/expression/property-access->tree/node ()
+(def projection javascript/expression/property-access->tree/node ()
   ())
 
-(def (projection e) javascript/expression/constructor-invocation->tree/node ()
+(def projection javascript/expression/constructor-invocation->tree/node ()
   ())
 
-(def (projection e) javascript/expression/method-invocation->tree/node ()
+(def projection javascript/expression/method-invocation->tree/node ()
   ())
 
-(def (projection e) javascript/literal/string->tree/leaf ()
+(def projection javascript/literal/string->tree/leaf ()
   ())
 
-(def (projection e) javascript/declaration/variable->tree/node ()
+(def projection javascript/declaration/variable->tree/node ()
   ())
 
-(def (projection e) javascript/declaration/function->tree/node ()
+(def projection javascript/declaration/function->tree/node ()
   ())
 
 ;;;;;;

@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; Projection
 
-(def (projection e) iterating ()
+(def projection iterating ()
   ((elements :type list)
    (test :type function)))
 

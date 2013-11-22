@@ -45,13 +45,13 @@
                          (json/base (json->tree)))))
           (nesting
             (document->document)
-            (recursive (tree->styled-string)))
+            (recursive (tree->text)))
           (nesting
             (document->document)
-            (styled-string->line-numbered-styled-string))
+            (text->line-numbered-text))
           (nesting
             (document->graphics)
-            (make-test-projection/styled-string->output)))
+            (make-test-projection/text->output)))
         (nesting
           (document->graphics)
           (sequential

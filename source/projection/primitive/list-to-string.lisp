@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; Projection
 
-(def (projection e) list->string ()
+(def projection list->string ()
   ())
 
 ;;;;;;

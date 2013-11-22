@@ -10,49 +10,49 @@
 ;;;; STEP 5
 ;;;;
 ;;;; Goal:
-;;;;  - allow inserting jjson array into document
+;;;;  - allow inserting json array into document
 ;;;;
 ;;;; Implementation:
-;;;;  - define jjson/array document
-;;;;  - define jjson/array->tree/node primitive projection
-;;;;  - redefine jjson->tree compound projection
+;;;;  - define json/array document
+;;;;  - define json/array->tree/node primitive projection
+;;;;  - redefine json->tree compound projection
 
 ;;;;;;
 ;;; Document
 
-(def document jjson/array ()
+(def document json/array ()
   ((elements :type sequence)))
 
-(def function make-document/jjson/array (elements)
-  (make-instance 'jjson/array :elements elements))
+(def function make-document/json/array (elements)
+  (make-instance 'json/array :elements elements))
 
-(def (macro e) jjson/array (&body elements)
-  `(make-document/jjson/array (list ,@elements)))
+(def (macro e) json/array (&body elements)
+  `(make-document/json/array (list ,@elements)))
 
 ;;;;;;
 ;;; Projection
 
-(def projection jjson/array->tree/node ()
+(def projection json/array->tree/node ()
   ())
 
-(def function make-projection/jjson/array->tree/node ()
-  (make-projection 'jjson/array->tree/node))
+(def function make-projection/json/array->tree/node ()
+  (make-projection 'json/array->tree/node))
 
-(def (macro e) jjson/array->tree/node ()
-  '(make-projection/jjson/array->tree/node))
+(def (macro e) json/array->tree/node ()
+  '(make-projection/json/array->tree/node))
 
-(def function make-projection/jjson->tree ()
+(def function make-projection/json->tree ()
   (type-dispatching
-    (jjson/nothing (jjson/nothing->tree/leaf))
-    (jjson/null (jjson/null->tree/leaf))
-    (jjson/boolean (jjson/boolean->tree/leaf))
-    (jjson/string (jjson/string->tree/leaf))
-    (jjson/array (jjson/array->tree/node))))
+    (json/nothing (json/nothing->tree/leaf))
+    (json/null (json/null->tree/leaf))
+    (json/boolean (json/boolean->tree/leaf))
+    (json/string (json/string->tree/leaf))
+    (json/array (json/array->tree/node))))
 
 ;;;;;;
 ;;; Printer
 
-(def printer jjson/array->tree/node (projection recursion iomap input input-reference output-reference)
+(def printer json/array->tree/node (projection recursion iomap input input-reference output-reference)
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
          (child-iomaps nil)
          (output (make-tree/node (iter (for element :in-sequence (elements-of input))
@@ -69,7 +69,7 @@
                                  :separator (make-text/string ", " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)
                                  :indentation nil)))
     (make-iomap/compound projection recursion input input-reference output output-reference
-                          (list* (make-iomap/object projection recursion input input-reference output output-reference) (nreverse child-iomaps)))))
+                         (list* (make-iomap/object projection recursion input input-reference output output-reference) (nreverse child-iomaps)))))
 
 ;;;;;;
 ;;; Reader
@@ -83,46 +83,46 @@
     (?a
      (not-yet-implemented))))
 
-(def function jjson/read-opeartion (projection-iomap gesture-queue operation document-iomap)
+(def function json/read-opeartion (projection-iomap gesture-queue operation document-iomap)
   (bind ((latest-gesture (first-elt (gestures-of gesture-queue)))
          (document (input-of document-iomap)))
     (cond ((key-press? latest-gesture :key :sdl-key-delete)
            (bind ((target (tree-replace (input-reference-of projection-iomap) (input-reference-of document-iomap) 'document)))
-             (make-operation/compound (list (make-operation/replace document target (jjson/nothing) nil)
-                                            (make-operation/replace-selection document `(the sequence-position (pos (the string (value (the jjson/nothing ,target))) 0)))))))
+             (make-operation/compound (list (make-operation/replace document target (json/nothing) nil)
+                                            (make-operation/replace-selection document `(the sequence-position (pos (the string (value (the json/nothing ,target))) 0)))))))
           ((key-press? latest-gesture :key :sdl-key-n)
            (bind ((target (tree-replace (input-reference-of projection-iomap) (input-reference-of document-iomap) 'document)))
-             (make-operation/compound (list (make-operation/replace document target (jjson/null))
-                                            (make-operation/replace-selection document `(the sequence-position (pos (the string (value (the jjson/null ,target))) 0)))))))
+             (make-operation/compound (list (make-operation/replace document target (json/null))
+                                            (make-operation/replace-selection document `(the sequence-position (pos (the string (value (the json/null ,target))) 0)))))))
           ((key-press? latest-gesture :key :sdl-key-t)
            (bind ((target (tree-replace (input-reference-of projection-iomap) (input-reference-of document-iomap) 'document)))
-             (make-operation/compound (list (make-operation/replace document target (jjson/boolean #t))
-                                            (make-operation/replace-selection document `(the sequence-position (pos (the string (boolean-to-string (the boolean (value-p (the jjson/boolean ,target))))) 0)))))))
+             (make-operation/compound (list (make-operation/replace document target (json/boolean #t))
+                                            (make-operation/replace-selection document `(the sequence-position (pos (the string (boolean-to-string (the boolean (value-p (the json/boolean ,target))))) 0)))))))
           ((key-press? latest-gesture :key :sdl-key-f)
            (bind ((target (tree-replace (input-reference-of projection-iomap) (input-reference-of document-iomap) 'document)))
-             (make-operation/compound (list (make-operation/replace document target (jjson/boolean #f))
-                                            (make-operation/replace-selection document `(the sequence-position (pos (the string (boolean-to-string (the boolean (value-p (the jjson/boolean ,target))))) 0)))))))
+             (make-operation/compound (list (make-operation/replace document target (json/boolean #f))
+                                            (make-operation/replace-selection document `(the sequence-position (pos (the string (boolean-to-string (the boolean (value-p (the json/boolean ,target))))) 0)))))))
           ((key-press? latest-gesture :character #\")
            (bind ((target (tree-replace (input-reference-of projection-iomap) (input-reference-of document-iomap) 'document)))
-             (make-operation/compound (list (make-operation/replace document target (jjson/string ""))
-                                            (make-operation/replace-selection document `(the sequence-position (pos (the string (text-of (the jjson/string ,target))) 0)))))))
+             (make-operation/compound (list (make-operation/replace document target (json/string ""))
+                                            (make-operation/replace-selection document `(the sequence-position (pos (the string (text-of (the json/string ,target))) 0)))))))
           ((key-press? latest-gesture :character #\[)
            (bind ((target (tree-replace (input-reference-of projection-iomap) (input-reference-of document-iomap) 'document)))
-             (make-operation/compound (list (make-operation/replace document target (jjson/array (jjson/nothing)))
-                                            (make-operation/replace-selection document `(the sequence-position (pos (the string (value (the jjson/nothing (elt (the list (elements-of (the jjson/array ,target))) 0)))) 0)))))))
+             (make-operation/compound (list (make-operation/replace document target (json/array (json/nothing)))
+                                            (make-operation/replace-selection document `(the sequence-position (pos (the string (value (the json/nothing (elt (the list (elements-of (the json/array ,target))) 0)))) 0)))))))
           ((key-press? latest-gesture :character #\,)
            (bind ((target (tree-replace (input-reference-of projection-iomap) (input-reference-of document-iomap) 'document)))
              (pattern-case target
                ((elt (the list ?a) ?b)
-                (make-operation/compound (list (make-operation/sequence/replace-element-range document `(the sequence (subseq (the list ,?a) ,?b ,?b)) (list (jjson/nothing)))
-                                               (make-operation/replace-selection document `(the sequence-position (pos (the string (value (the jjson/nothing (elt (the list ,?a) ,?b)))) 0)))))))))
+                (make-operation/compound (list (make-operation/sequence/replace-element-range document `(the sequence (subseq (the list ,?a) ,?b ,?b)) (list (json/nothing)))
+                                               (make-operation/replace-selection document `(the sequence-position (pos (the string (value (the json/nothing (elt (the list ,?a) ,?b)))) 0)))))))))
           ((typep operation 'operation/replace-selection)
            ;; TODO: map backward
            operation)
           ((typep operation 'operation/quit)
            operation))))
 
-(def reader jjson/array->tree/node (projection recursion printer-iomap projection-iomap gesture-queue operation document-iomap)
+(def reader json/array->tree/node (projection recursion printer-iomap projection-iomap gesture-queue operation document-iomap)
   (declare (ignore projection))
   (bind ((selection (tree-replace (selection-of (input-of document-iomap)) '(the document document) `(the document ,(input-reference-of document-iomap)))))
     (or (iter (for index :from 0 :below (length (elements-of (input-of projection-iomap))))
@@ -132,4 +132,4 @@
                      (recurse-reader recursion printer-iomap child-iomap gesture-queue operation document-iomap)))
               (when child-operation
                 (return child-operation)))
-        (jjson/read-opeartion projection-iomap gesture-queue operation document-iomap))))
+        (json/read-opeartion projection-iomap gesture-queue operation document-iomap))))

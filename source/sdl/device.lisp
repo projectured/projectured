@@ -26,3 +26,9 @@
 
 (def (function e) make-device/file/sdl (filename)
   (make-instance 'device/file/sdl :filename filename))
+
+;;;;;;
+;;; API
+
+(def method mouse-position ()
+  (make-2d (sdl:mouse-x) (sdl:mouse-y)))

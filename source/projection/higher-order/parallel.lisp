@@ -21,7 +21,7 @@
 ;;;;;;
 ;;; Projection
 
-(def (projection e) parallel ()
+(def projection parallel ()
   ((elements :type list)))
 
 ;;;;;;

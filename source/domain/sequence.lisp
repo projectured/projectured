@@ -55,7 +55,12 @@
          (old-sequence (eval-reference document reference))
          (new-sequence (concatenate (form-type old-sequence)
                                     (subseq old-sequence 0 start) (replacement-of operation) (subseq old-sequence end))))
-    (setf (eval-reference document reference) new-sequence)
+    ;; KLUDGE: somewhat kludgie to keep the original identity of the string
+    (if (adjustable-array-p old-sequence)
+        (progn
+          (adjust-array old-sequence (length new-sequence))
+          (replace old-sequence new-sequence))
+        (setf (eval-reference document reference) new-sequence))
     (when *use-computed-class*
       ;; KLUDGE: forece recomputation
       (invalidate-computed-slot (document-of operation) 'content))))

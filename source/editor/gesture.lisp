@@ -62,6 +62,23 @@
   ((gestures :type sequence)))
 
 ;;;;;;
+;;; Construction
+
+(def function make-gesture/keyboard/key-press (key-or-character &optional modifier-or-modifiers)
+  (make-instance 'gesture/keyboard/key-press
+                 :key (when (symbolp key-or-character) key-or-character)
+                 :character (when (characterp key-or-character) key-or-character)
+                 :modifiers (if (listp modifier-or-modifiers)
+                                modifier-or-modifiers
+                                (list modifier-or-modifiers))))
+
+;;;;;;
+;;; Construction
+
+(def macro gesture/keyboard/key-press (key-or-character &optional modifier-or-modifiers)
+  `(make-gesture/keyboard/key-press ,key-or-character ,modifier-or-modifiers))
+
+;;;;;;
 ;;; Gesture API implementation
 
 (def method read-gesture ((event-queue event-queue))
@@ -103,3 +120,52 @@
        (or (not character?) (char= character (character-of gesture)))
        (or (not modifier?) (equal (list modifier) (modifiers-of gesture)))
        (or (not modifiers?) (equal modifiers (modifiers-of gesture)))))
+
+(def function gesture= (g1 g2)
+  (typecase g1
+    (gesture/keyboard/key-press
+     (and (eq (class-of g1) (class-of g2))
+          (or (eq (key-of g1) (key-of g2))
+              (equal (character-of g1) (character-of g2)))
+          (equal (modifiers-of g1) (modifiers-of g2))))
+    (gesture/mouse/button/click
+     (and (eq (class-of g1) (class-of g2))
+          (eq (button-of g1) (button-of g2))
+          (equal (modifiers-of g1) (modifiers-of g2))))))
+
+;; TODO: move and rename
+(def class* gesture->operation ()
+  ((gesture :type gesture)
+   (domain :type string)
+   (description :type string)
+   (operation :type operation)))
+
+(def macro gesture-case (gesture &body cases)
+  (with-unique-names (gesture-variable)
+    `(bind ((,gesture-variable ,gesture))
+       (or (and (key-press? ,gesture-variable :key :sdl-key-h :modifier :control)
+                (make-instance 'operation/show-context-sensitive-help
+                               :operations (optional-list ,@(iter (for case :in cases)
+                                                                  (for operation = (getf (rest case) :operation))
+                                                                  (collect `(bind ((operation ,(getf (rest case) :operation)))
+                                                                              (when operation
+                                                                                (make-instance 'gesture->operation
+                                                                                               :gesture ,(first case)
+                                                                                               :domain ,(getf (rest case) :domain)
+                                                                                               ;; TODO: make consistent
+                                                                                               :description ,(getf (rest case) :help)
+                                                                                               :operation ,operation))))))))
+           ,@(iter (for case :in cases)
+                   (collect `(and (gesture= ,gesture-variable ,(first case))
+                                  ,(getf (rest case) :operation))))))))
+
+(def function merge-operations (operation-1 operation-2)
+  (cond ((and (typep operation-1 'operation/show-context-sensitive-help)
+              (typep operation-2 'operation/show-context-sensitive-help))
+         (make-instance 'operation/show-context-sensitive-help
+                        :operations (append (operations-of operation-1)
+                                            (operations-of operation-2)
+                                            #+nil
+                                            (set-difference (operations-of operation-2) (operations-of operation-1) :key 'gesture-of :test 'gesture=))))
+        (t
+         (or operation-1 operation-2))))
