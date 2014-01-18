@@ -33,13 +33,13 @@
   (notf *kludge*)
   (if *kludge*
       (make-instance 'event/keyboard/key-down
-                     :timestamp (iolib.syscalls:get-monotonic-time)
+                     :timestamp (get-internal-real-time)
                      :modifiers nil
                      :key :sdl-key-left
                      ;; TODO:
                      :character #\Space)
       (make-instance 'event/keyboard/key-up
-                     :timestamp (iolib.syscalls:get-monotonic-time)
+                     :timestamp (get-internal-real-time)
                      :modifiers nil
                      :key :sdl-key-left
                      ;; TODO:

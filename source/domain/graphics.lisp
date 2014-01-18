@@ -306,7 +306,7 @@
     nil)
 
   (:method ((instance graphics/rectangle) location reference)
-    `(the ,(form-type instance) ,reference))
+    (typed-reference 'graphics/rectangle reference))
 
   (:method ((instance graphics/polygon) location reference)
     (not-yet-implemented))
@@ -324,21 +324,26 @@
           (for index :from 0 :to (length text))
           (for size = (measure-text (subseq text 0 index) font))
           (when (rectangle-contains-point? (make-rectangle (location-of instance) size) location)
-            (return `(the character (elt (the string (text-of (the ,(form-type instance) ,reference))) ,(1- index)))))))
+            (return
+              `((the character (elt (the string document) ,(1- index)))
+                (the string (text-of (the graphics/text document)))
+                ,@(typed-reference 'graphics/text reference))))))
 
   (:method ((instance graphics/image) location reference)
-    `(the ,(form-type instance) ,reference))
+    (typed-reference (form-type instance) reference))
 
   (:method ((instance graphics/viewport) location reference)
-    (make-reference (content-of instance) (- location
-                                             (location-of instance))
-                    `(content-of (the ,(form-type instance) ,reference))))
+    (make-reference (content-of instance) (- location (location-of instance))
+                    `((content-of (the graphics/viewport document))
+                      ,@(typed-reference 'graphics/viewport reference))))
 
   (:method ((instance graphics/canvas) location reference)
     (iter (for index :from 0)
           (for element :in (elements-of instance))
           (thereis (make-reference element (- location (location-of instance))
-                                   `(elt (the list (elements-of (the ,(form-type instance) ,reference))) ,index))))))
+                                   `((elt (the list document) ,index)
+                                     (the list (elements-of (the graphics/canvas document)))
+                                     ,@(typed-reference 'graphics/canvas reference)))))))
 
 ;;;;;;
 ;;; Graphics operation classes
@@ -369,6 +374,15 @@
 
 ;;;;;;
 ;;; Graphics operation API implementation
+
+(def (function e) graphics/read-operation (graphics gesture)
+  (gesture-case gesture
+    ((make-instance 'gesture/mouse/button/click :button :button-left :modifiers nil)
+     :domain "Graphics" :help "Moves the selection to where the mouse is pointing at"
+     :operation (make-operation/replace-selection graphics (make-reference graphics (location-of gesture) nil)))
+    ((gesture/keyboard/key-press :sdl-key-d :control)
+     :domain "Graphics" :help "Describes what is where the mouse is pointing at"
+     :operation (make-instance 'operation/describe :target (make-reference graphics (location-of gesture) nil)))))
 
 (def method redo-operation ((operation operation/graphics/translate-location))
   (translate-location (target-of (selection-of operation)) (translation-of operation)))

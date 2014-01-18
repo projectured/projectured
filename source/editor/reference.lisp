@@ -54,3 +54,10 @@
 
 (def method reference? (object)
   (typep object 'reference))
+
+(def function typed-reference (type reference)
+  (assert (symbolp type))
+  (assert (or (not (consp (first reference)))
+              (not (eq 'the (first (first reference))))))
+  (when reference
+    `((the ,type ,(first reference)) ,@(rest reference))))

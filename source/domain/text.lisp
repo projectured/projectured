@@ -23,15 +23,9 @@
 (def (function e) make-iomap/text (projection recursion input input-reference input-offset output output-reference output-offset length)
   (make-iomap 'iomap/text
               :projection projection :recursion recursion
-              :input input :input-reference (when input-reference `(the ,(form-type input) ,input-reference)) :input-offset input-offset
-              :output output :output-reference (when output-reference `(the ,(form-type output) ,output-reference)) :output-offset output-offset
-              :length length))
-
-(def (function e) make-iomap/text* (projection recursion input input-reference input-offset output output-reference output-offset length)
-  (make-iomap 'iomap/text
-              :projection projection :recursion recursion
-              :input input :input-reference input-reference :input-offset input-offset
-              :output output :output-reference output-reference :output-offset output-offset
+              ;; TODO: when?
+              :input input :input-reference (when input-reference (typed-reference (form-type input) input-reference)) :input-offset input-offset
+              :output output :output-reference (typed-reference (form-type output) output-reference) :output-offset output-offset
               :length length))
 
 ;;;;;;
@@ -54,41 +48,33 @@
          (string-output? (stringp (output-of iomap))))
     (if string-input?
         (pattern-case input-reference
-          ((the character (elt (the string ?a) ?b))
-           (when (and (equal `(the string ,?a) (input-reference-of iomap))
-                      (<= (input-offset-of iomap) ?b (+ -1 (input-offset-of iomap) (length-of iomap))))
-             (funcall function iomap `(the character (,(if string-output? 'elt 'text/elt) ,(output-reference-of iomap)
-                                                       ,(+ (- ?b (input-offset-of iomap)) (output-offset-of iomap)))))))
-          ((the sequence-position (pos (the string ?a) ?b))
-           (when (and (equal `(the string ,?a) (input-reference-of iomap))
+          (((the sequence-position (pos (the string document) ?b)) . ?rest)
+           (when (and (equal ?rest (input-reference-of iomap))
                       (<= (input-offset-of iomap) ?b (+ (input-offset-of iomap) (length-of iomap))))
-             (funcall function iomap `(the sequence-position (,(if string-output? 'pos 'text/pos) ,(output-reference-of iomap)
-                                                               ,(+ (- ?b (input-offset-of iomap)) (output-offset-of iomap)))))))
-          ((the sequence (subseq (the string ?a) ?b ?c))
+             (funcall function iomap `((the sequence-position (,(if string-output? 'pos 'text/pos) (the ,(if string-output? 'string 'text/text) document)
+                                                                ,(+ (- ?b (input-offset-of iomap)) (output-offset-of iomap))))
+                                       ,@(output-reference-of iomap)))))
+          (((the sequence (subseq (the string ?a) ?b ?c)))
            (when (and (equal `(the string ,?a) (input-reference-of iomap))
                       (<= (input-offset-of iomap) ?b (+ (input-offset-of iomap) (length-of iomap)))
                       (<= (input-offset-of iomap) ?c (+ (input-offset-of iomap) (length-of iomap))))
-             (funcall function iomap `(the sequence (,(if string-output? 'subseq 'text/subseq) ,(output-reference-of iomap)
-                                                      ,(+ (- ?b (input-offset-of iomap)) (output-offset-of iomap))
-                                                      ,(+ (- ?c (input-offset-of iomap)) (output-offset-of iomap))))))))
+             (funcall function iomap `((the sequence (,(if string-output? 'subseq 'text/subseq) ,(output-reference-of iomap)
+                                                       ,(+ (- ?b (input-offset-of iomap)) (output-offset-of iomap))
+                                                       ,(+ (- ?c (input-offset-of iomap)) (output-offset-of iomap)))))))))
         (pattern-case input-reference
-          ((the character (text/elt (the text/text ?a) ?b))
-           (when (and (equal `(the text/text ,?a) (input-reference-of iomap))
-                      (<= (input-offset-of iomap) ?b (+ -1 (input-offset-of iomap) (length-of iomap))))
-             (funcall function iomap `(the character (,(if string-output? 'elt 'text/elt) ,(output-reference-of iomap)
-                                                       ,(+ (- ?b (input-offset-of iomap)) (output-offset-of iomap)))))))
-          ((the sequence-position (text/pos (the text/text ?a) ?b))
-           (when (and (equal `(the text/text ,?a) (input-reference-of iomap))
+          (((the sequence-position (text/pos (the text/text document) ?b)) . ?rest)
+           (when (and (equal ?rest (input-reference-of iomap))
                       (<= (input-offset-of iomap) ?b (+ (input-offset-of iomap) (length-of iomap))))
-             (funcall function iomap `(the sequence-position (,(if string-output? 'pos 'text/pos) ,(output-reference-of iomap)
-                                                               ,(+ (- ?b (input-offset-of iomap)) (output-offset-of iomap)))))))
-          ((the sequence (text/subseq (the text/text ?a) ?b ?c))
+             (funcall function iomap `((the sequence-position (,(if string-output? 'pos 'text/pos) (the ,(if string-output? 'string 'text/text) document)
+                                                                ,(+ (- ?b (input-offset-of iomap)) (output-offset-of iomap))))
+                                       ,@(output-reference-of iomap)))))
+          (((the sequence (text/subseq (the text/text ?a) ?b ?c)))
            (when (and (equal `(the text/text ,?a) (input-reference-of iomap))
                       (<= (input-offset-of iomap) ?b (+ (input-offset-of iomap) (length-of iomap)))
                       (<= (input-offset-of iomap) ?c (+ (input-offset-of iomap) (length-of iomap))))
-             (funcall function iomap `(the sequence (,(if string-output? 'subseq 'text/subseq) ,(output-reference-of iomap)
-                                                      ,(+ (- ?b (input-offset-of iomap)) (output-offset-of iomap))
-                                                      ,(+ (- ?c (input-offset-of iomap)) (output-offset-of iomap)))))))))))
+             (funcall function iomap `((the sequence (,(if string-output? 'subseq 'text/subseq) ,(output-reference-of iomap)
+                                                       ,(+ (- ?b (input-offset-of iomap)) (output-offset-of iomap))
+                                                       ,(+ (- ?c (input-offset-of iomap)) (output-offset-of iomap))))))))))))
 
 ;;;;;;
 ;;; Backward mapper
@@ -98,47 +84,53 @@
          (string-output? (stringp (output-of iomap))))
     (if string-output?
         (pattern-case output-reference
-          ((the character (elt (the string ?a) ?b))
-           (when (and (equal `(the string ,?a) (output-reference-of iomap))
-                      (<= (output-offset-of iomap) ?b (+ -1 (output-offset-of iomap) (length-of iomap))))
-             (funcall function iomap `(the character (text/elt ,(input-reference-of iomap)
-                                                               ,(+ (- ?b (output-offset-of iomap)) (input-offset-of iomap)))))))
-          ((the sequence-position (pos (the string ?a) ?b))
-           (when (and (equal `(the text/string ,?a) (output-reference-of iomap))
+          (((the character (elt (the string ?a) ?b)) . ?rest)
+           (when (and (equal ?rest (output-reference-of iomap))
                       (<= (output-offset-of iomap) ?b (+ (output-offset-of iomap) (length-of iomap))))
-             (funcall function iomap `(the sequence-position (text/pos ,(input-reference-of iomap)
-                                                                       ,(+ (- ?b (output-offset-of iomap)) (input-offset-of iomap)))))))
-          ((the sequence (subseq (the string ?a) ?b ?c))
-           (when (and (equal `(the string ,?a) (output-reference-of iomap))
+             (funcall function iomap `((the character (text/elt (the ,(if string-input? 'string 'text/text) document)
+                                                                ,(+ (- ?b (output-offset-of iomap)) (input-offset-of iomap))))
+                                       ,@(input-reference-of iomap)))))
+          (((the sequence-position (pos (the string ?a) ?b)) . ?rest)
+           (when (and (equal ?rest (output-reference-of iomap))
+                      (<= (output-offset-of iomap) ?b (+ (output-offset-of iomap) (length-of iomap))))
+             (funcall function iomap `((the sequence-position (text/pos (the ,(if string-input? 'string 'text/text) document)
+                                                                        ,(+ (- ?b (output-offset-of iomap)) (input-offset-of iomap))))
+                                       ,@(input-reference-of iomap)))))
+          (((the sequence (subseq (the string ?a) ?b ?c)) . ?rest)
+           (when (and (equal ?rest (output-reference-of iomap))
                       (<= (output-offset-of iomap) ?b (+ (output-offset-of iomap) (length-of iomap)))
                       (<= (output-offset-of iomap) ?c (+ (output-offset-of iomap) (length-of iomap))))
-             (funcall function iomap `(the sequence (text/subseq ,(input-reference-of iomap)
-                                                                 ,(+ (- ?b (output-offset-of iomap)) (input-offset-of iomap))
-                                                                 ,(+ (- ?c (output-offset-of iomap)) (input-offset-of iomap))))))))
+             (funcall function iomap `((the sequence (text/subseq (the ,(if string-input? 'string 'text/text) document)
+                                                                  ,(+ (- ?b (output-offset-of iomap)) (input-offset-of iomap))
+                                                                  ,(+ (- ?c (output-offset-of iomap)) (input-offset-of iomap))))
+                                       ,@(input-reference-of iomap))))))
         (pattern-case output-reference
-          ((the character (text/elt (the text/text ?a) ?b))
-           (when (and (equal `(the text/text ,?a) (output-reference-of iomap))
-                      (<= (output-offset-of iomap) ?b (+ -1 (output-offset-of iomap) (length-of iomap))))
-             (funcall function iomap `(the character (,(if string-input? 'elt 'text/elt) ,(input-reference-of iomap)
-                                                       ,(+ (- ?b (output-offset-of iomap)) (input-offset-of iomap)))))))
-          ((the sequence-position (text/pos (the text/text ?a) ?b))
-           (when (and (equal `(the text/text ,?a) (output-reference-of iomap))
+          (((the character (text/elt (the text/text ?a) ?b)) . ?rest)
+           (when (and (equal ?rest (output-reference-of iomap))
                       (<= (output-offset-of iomap) ?b (+ (output-offset-of iomap) (length-of iomap))))
-             (funcall function iomap `(the sequence-position (,(if string-input? 'pos 'text/pos) ,(input-reference-of iomap)
-                                                               ,(+ (- ?b (output-offset-of iomap)) (input-offset-of iomap)))))))
-          ((the sequence (text/subseq (the text/text ?a) ?b ?c))
-           (when (and (equal `(the text/text ,?a) (output-reference-of iomap))
+             (funcall function iomap `((the character (,(if string-input? 'elt 'text/elt) (the ,(if string-input? 'string 'text/text) document)
+                                                        ,(+ (- ?b (output-offset-of iomap)) (input-offset-of iomap))))
+                                       ,@(input-reference-of iomap)))))
+          (((the sequence-position (text/pos (the text/text ?a) ?b)) . ?rest)
+           (when (and (equal ?rest (output-reference-of iomap))
+                      (<= (output-offset-of iomap) ?b (+ (output-offset-of iomap) (length-of iomap))))
+             (funcall function iomap `((the sequence-position (,(if string-input? 'pos 'text/pos) (the ,(if string-input? 'string 'text/text) document)
+                                                                ,(+ (- ?b (output-offset-of iomap)) (input-offset-of iomap))))
+                                       ,@(input-reference-of iomap)))))
+          (((the sequence (text/subseq (the text/text ?a) ?b ?c)) . ?rest)
+           (when (and (equal ?rest (output-reference-of iomap))
                       (<= (output-offset-of iomap) ?b (+ (output-offset-of iomap) (length-of iomap)))
                       (<= (output-offset-of iomap) ?c (+ (output-offset-of iomap) (length-of iomap))))
-             (funcall function iomap `(the sequence (,(if string-input? 'subseq 'text/subseq) ,(input-reference-of iomap)
-                                                      ,(+ (- ?b (output-offset-of iomap)) (input-offset-of iomap))
-                                                      ,(+ (- ?c (output-offset-of iomap)) (input-offset-of iomap)))))))))))
+             (funcall function iomap `((the sequence (,(if string-input? 'subseq 'text/subseq) (the ,(if string-input? 'string 'text/text) document)
+                                                       ,(+ (- ?b (output-offset-of iomap)) (input-offset-of iomap))
+                                                       ,(+ (- ?c (output-offset-of iomap)) (input-offset-of iomap))))
+                                       ,@(input-reference-of iomap)))))))))
 
 ;;;;;;
 ;;; Data structure
 
 (def document text/base ()
-  ((indentation :type integer)))
+  ())
 
 (def document text/element (text/base)
   ((font :type style/font)
@@ -146,17 +138,27 @@
    (fill-color :type style/color)
    (line-color :type style/color)))
 
+(def document text/spacing (text/element)
+  ((size :type number)
+   (unit :type (member :pixel :space))))
+
 (def document text/character (text/element)
   ((content :type character)))
 
 (def document text/string (text/element)
   ((content :type string)))
 
-(def document text/text (text/base)
+(def document text/text (text/base document/base)
   ((elements :type sequence)))
 
 ;;;;;;
 ;;; Construction
+
+(def (function e) make-text/spacing (size &key font (unit :pixel))
+  (make-instance 'text/spacing
+                 :size size
+                 :font font
+                 :unit unit))
 
 (def (function e) make-text/character (content &key font font-color fill-color line-color)
   (make-instance 'text/character
@@ -174,14 +176,17 @@
                  :fill-color fill-color
                  :line-color line-color))
 
-(def (function e) make-text/text (elements)
-  (make-instance 'text/text :elements (coerce elements 'vector)))
+(def (function e) make-text/text (elements &key selection)
+  (make-instance 'text/text :elements (coerce elements 'vector) :selection selection))
 
 ;;;;;;
 ;;; Construction
 
+(def (macro e) text/spacing (size &key font unit)
+  `(make-text/spacing ,size :font ,(or font '*font/default*) :unit ,unit))
+
 (def (macro e) text/character (content &key font font-color fill-color line-color)
-  `(make-text/character ,content :font ,font :font-color ,font-color :fill-color ,fill-color :line-color ,line-color))
+  `(make-text/character ,content :font ,(or font '*font/default*) :font-color ,font-color :fill-color ,fill-color :line-color ,line-color))
 
 (def (macro e) text/string (content &key font font-color fill-color line-color)
   `(make-text/string ,content :font ,(or font '*font/default*) :font-color ,(or font-color '*color/default*) :fill-color ,fill-color :line-color ,line-color))
@@ -190,8 +195,8 @@
   `(make-text/string "
 " :font *font/default* :font-color *color/default*))
 
-(def (macro e) text/text ((&key) &body elements)
-  `(make-text/text (list ,@elements)))
+(def (macro e) text/text ((&key selection) &body elements)
+  `(make-text/text (list ,@elements) :selection ,selection))
 
 ;;;;;;
 ;;; Operation data structure
@@ -278,6 +283,11 @@
            (t
             (collect element))))))
 
+(def (function e) text/substring* (text start-character-index &optional (end-character-index (text/length text)))
+  (text/substring text
+                  (text/element-index text start-character-index) (text/character-index text start-character-index)
+                  (text/element-index text end-character-index) (text/character-index text end-character-index)))
+
 (def (function e) text/find (text start-element-index start-character-index test)
   (iter (with elements = (elements-of text))
         (with element-index = start-element-index)
@@ -345,6 +355,10 @@
 (def (function e) text/concatenate (&rest texts)
   (make-text/text (apply #'concatenate 'vector (mapcar #'elements-of texts))))
 
+(def (function e) text/push (text other)
+  (setf (elements-of text) (concatenate 'vector (elements-of text) (elements-of other)))
+  text)
+
 (def (function e) text/element-index (text index)
   (iter (for element-index :from 0)
         (for element :in-sequence (elements-of text))
@@ -372,33 +386,23 @@
               (t 0))))
      character-index))
 
+
 ;; TODO: move and rename
-(def function make-gesture-help-text (gesture->operation)
-  (bind ((gesture (gesture-of gesture->operation))
-         (modifier-text (when (modifiers-of gesture)
-                          (with-output-to-string (string)
-                            (iter (for modifier :in (modifiers-of gesture))
-                                  (write-string (symbol-name modifier) string)
-                                  (write-string  " + " string)))))
-         (gesture-text (etypecase gesture
-                         (gesture/keyboard/key-press
-                          (string+ modifier-text
-                                   (if (character-of gesture)
-                                       (string (character-of gesture))
-                                       (subseq (symbol-name (key-of gesture)) (length "SDL-KEY-")))))
-                         (gesture/mouse/button/click
-                          (string+ modifier-text (symbol-name (button-of gesture)))))))
+(def function make-command-help-text (command)
+  (bind ((gesture (gesture-of command))
+         (modifier-text (gesture/describe-modifiers gesture))
+         (gesture-text (gesture/describe-key gesture)))
     (list
-     (text/string (domain-of gesture->operation) :font *font/default* :font-color *color/solarized/red*)
+     (text/string (domain-of command) :font *font/default* :font-color *color/solarized/red*)
      (text/string " " :font *font/default* :font-color *color/black*)
-     (text/string gesture-text :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/blue*)
+     (text/string (string+ modifier-text gesture-text) :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/blue*)
      (text/string " " :font *font/default* :font-color *color/black*)
-     (text/string (description-of gesture->operation) :font *font/default* :font-color *color/black*)
+     (text/string (description-of command) :font *font/default* :font-color *color/black*)
      (text/newline))))
 
-(def (function e) text/read-operation/replace-selection (document text key &optional modifier)
-  (pattern-case (selection-of document)
-    ((the sequence-position (text/pos (the text/text ?a) ?character-index))
+(def (function e) text/read-operation/replace-selection (text key &optional modifier)
+  (pattern-case (selection-of text)
+    (((the sequence-position (text/pos (the text/text ?a) ?character-index)) . ?rest)
      (bind ((string (text/as-string text))
             (string-length (length string))
             (character-index ?character-index)
@@ -428,7 +432,7 @@
                                       -1))))
                     (if (= x 0)
                         (unless (= y 0)
-                          (values (length (elt lines y)) y))
+                          (values (length (elt lines (1- y))) (1- y)))
                         (values (1- x) y))))
                (:sdl-key-right
                 (if (eq modifier :control)
@@ -483,8 +487,8 @@
                                            (when (= new-y line-y)
                                              (return (+ line-begin-index new-x)))
                                            (setf line-begin-index line-end-index)))))
-              (selection (when character-index `(the sequence-position (text/pos (the text/text ,?a) ,character-index)))))
-         (when selection (make-operation/replace-selection document selection)))))
+              (selection (when character-index `((the sequence-position (text/pos (the text/text ,?a) ,character-index)) ,@?rest))))
+         (when selection (make-operation/replace-selection text selection)))))
     (?a
      (bind ((character-index (case key
                                (:sdl-key-home
@@ -493,67 +497,67 @@
                                (:sdl-key-end
                                 (when (eq modifier :control)
                                   (text/length text)))))
-            (selection (when character-index `(the sequence-position (text/pos (the text/text (content-of (the document document))) ,character-index)))))
-       (when selection (make-operation/replace-selection document selection))))))
+            (selection (when character-index `((the sequence-position (text/pos (the text/text document) ,character-index))))))
+       (when selection (make-operation/replace-selection text selection))))))
 
-(def (function e) text/read-operation (document text gesture)
+(def (function e) text/read-operation (text gesture)
   (or (gesture-case gesture
         ((gesture/keyboard/key-press :sdl-key-left)
          :domain "Text" :help "Moves the selection one character to the left"
-         :operation (text/read-operation/replace-selection document text :sdl-key-left))
+         :operation (text/read-operation/replace-selection text :sdl-key-left))
         ((gesture/keyboard/key-press :sdl-key-right)
          :domain "Text" :help "Moves the selection one character to the right"
-         :operation (text/read-operation/replace-selection document text :sdl-key-right))
+         :operation (text/read-operation/replace-selection text :sdl-key-right))
         ((gesture/keyboard/key-press :sdl-key-left :control)
          :domain "Text" :help "Moves the selection one word to the left"
-         :operation (text/read-operation/replace-selection document text :sdl-key-left :control))
+         :operation (text/read-operation/replace-selection text :sdl-key-left :control))
         ((gesture/keyboard/key-press :sdl-key-right :control)
          :domain "Text" :help "Moves the selection one word to the right"
-         :operation (text/read-operation/replace-selection document text :sdl-key-right :control))
+         :operation (text/read-operation/replace-selection text :sdl-key-right :control))
         ((gesture/keyboard/key-press :sdl-key-up)
          :domain "Text" :help "Moves the selection one line up"
-         :operation (text/read-operation/replace-selection document text :sdl-key-up))
+         :operation (text/read-operation/replace-selection text :sdl-key-up))
         ((gesture/keyboard/key-press :sdl-key-down)
          :domain "Text" :help "Moves the selection one line down"
-         :operation (text/read-operation/replace-selection document text :sdl-key-down))
+         :operation (text/read-operation/replace-selection text :sdl-key-down))
         ((gesture/keyboard/key-press :sdl-key-pageup)
          :domain "Text" :help "Moves the selection one page up"
-         :operation (text/read-operation/replace-selection document text :sdl-key-pageup))
+         :operation (text/read-operation/replace-selection text :sdl-key-pageup))
         ((gesture/keyboard/key-press :sdl-key-pagedown)
          :domain "Text" :help "Moves the selection pne page down"
-         :operation (text/read-operation/replace-selection document text :sdl-key-pagedown))
+         :operation (text/read-operation/replace-selection text :sdl-key-pagedown))
         ((gesture/keyboard/key-press :sdl-key-home)
          :domain "Text" :help "Moves the selection to the beginning of the line"
-         :operation (text/read-operation/replace-selection document text :sdl-key-home))
+         :operation (text/read-operation/replace-selection text :sdl-key-home))
         ((gesture/keyboard/key-press :sdl-key-end)
          :domain "Text" :help "Moves the selection to the end of the line"
-         :operation (text/read-operation/replace-selection document text :sdl-key-end))
+         :operation (text/read-operation/replace-selection text :sdl-key-end))
         ((gesture/keyboard/key-press :sdl-key-home :control)
          :domain "Text" :help "Moves the selection to the beginning of the text"
-         :operation (text/read-operation/replace-selection document text :sdl-key-home :control))
+         :operation (text/read-operation/replace-selection text :sdl-key-home :control))
         ((gesture/keyboard/key-press :sdl-key-end :control)
          :domain "Text" :help "Moves the selection to the end of the text"
-         :operation (text/read-operation/replace-selection document text :sdl-key-end :control))
+         :operation (text/read-operation/replace-selection text :sdl-key-end :control))
         ((gesture/keyboard/key-press :sdl-key-delete)
-         :domain "Text" :help "Deletes the character immediately following the selection"
-         :operation (pattern-case (selection-of document)
+         :domain "Text" :help "Deletes the character following the selection"
+         :operation (pattern-case (selection-of text)
                       ((the sequence-position (pos (the string ?a) ?b))
-                       (when (< ?b (text/length (content-of document)))
-                         (make-operation/sequence/replace-element-range document `(the sequence (subseq (the string ,?a) ,?b ,(1+ ?b))) "")))
+                       (when (< ?b (text/length text))
+                         (make-operation/sequence/replace-element-range text `(the sequence (subseq (the string ,?a) ,?b ,(1+ ?b))) "")))
                       ((the sequence-position (text/pos (the text/text ?a) ?b))
-                       (when (< ?b (text/length (content-of document)))
-                         (make-operation/sequence/replace-element-range document `(the sequence (text/subseq (the text/text ,?a) ,?b ,(1+ ?b))) "")))))
+                       (when (< ?b (text/length text))
+                         (make-operation/sequence/replace-element-range text `(the sequence (text/subseq (the text/text ,?a) ,?b ,(1+ ?b))) "")))))
         ((gesture/keyboard/key-press :sdl-key-backspace)
-         :domain "Text" :help "Deletes the character immediately preceding the selection"
-         :operation (pattern-case (selection-of document)
+         :domain "Text" :help "Deletes the character preceding the selection"
+         :operation (pattern-case (selection-of text)
                       ((the sequence-position (pos (the string ?a) ?b))
                        (when (> ?b 0)
-                         (make-operation/compound (list (make-operation/sequence/replace-element-range document `(the sequence (subseq (the string ,?a) ,(1- ?b) ,?b)) "")
-                                                        (make-operation/replace-selection document `(the sequence-position (pos (the string ,?a) ,(1- ?b))))))))
+                         (make-operation/compound (list (make-operation/sequence/replace-element-range text `(the sequence (subseq (the string ,?a) ,(1- ?b) ,?b)) "")
+                                                        (make-operation/replace-selection text `(the sequence-position (pos (the string ,?a) ,(1- ?b))))))))
                       ((the sequence-position (text/pos (the text/text ?a) ?b))
                        (when (> ?b 0)
-                         (make-operation/compound (list (make-operation/sequence/replace-element-range document `(the sequence (text/subseq (the text/text ,?a) ,(1- ?b) ,?b)) "")
-                                                        (make-operation/replace-selection document `(the sequence-position (text/pos (the text/text ,?a) ,(1- ?b)))))))))))
+                         (make-operation/compound (list (make-operation/sequence/replace-element-range text `(the sequence (text/subseq (the text/text ,?a) ,(1- ?b) ,?b)) "")
+                                                        (make-operation/replace-selection text `(the sequence-position (text/pos (the text/text ,?a) ,(1- ?b)))))))))))
       ;; TODO: move into gesture-case
       (cond ((and (typep gesture 'gesture/keyboard/key-press)
                   (null (set-difference (modifiers-of gesture) '(:shift)))
@@ -563,12 +567,12 @@
                     (replacement (cond ((eq character #\Return)
                                         (string #\NewLine))
                                        (t (string character)))))
-               (pattern-case (selection-of document)
-                 ((the sequence-position (pos (the string (write-to-string (the number ?a))) ?b))
-                  (make-operation/number/replace-range document (selection-of document) replacement))
-                 ((the sequence-position (pos (the string ?a) ?b))
-                  (make-operation/compound (list (make-operation/sequence/replace-element-range document (selection-of document) replacement)
-                                                 (make-operation/replace-selection document `(the sequence-position (pos (the string ,?a) ,(1+ ?b)))))))
-                 ((the sequence-position (text/pos (the text/text ?a) ?b))
-                  (make-operation/compound (list (make-operation/sequence/replace-element-range document (selection-of document) replacement)
-                                                 (make-operation/replace-selection document `(the sequence-position (text/pos (the text/text ,?a) ,(1+ ?b)))))))))))))
+               (pattern-case (selection-of text)
+                 (((the sequence-position (pos (the string (write-to-string (the number ?a))) ?b)))
+                  (make-operation/number/replace-range text (selection-of text) replacement))
+                 (((the sequence-position (pos (the string ?a) ?b)))
+                  (make-operation/compound (list (make-operation/sequence/replace-element-range text (selection-of text) replacement)
+                                                 (make-operation/replace-selection text `(the sequence-position (pos (the string ,?a) ,(1+ ?b)))))))
+                 (((the sequence-position (text/pos (the text/text document) ?b)) . ?rest)
+                  (make-operation/compound (list (make-operation/sequence/replace-element-range text (selection-of text) replacement)
+                                                 (make-operation/replace-selection text `((the sequence-position (text/pos (the text/text document) ,(1+ ?b))) ,@?rest)))))))))))

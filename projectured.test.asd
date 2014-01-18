@@ -16,8 +16,7 @@
                                                         (:file "test-result-to-table")))))))
                (:module "test"
                 :depends-on ("source")
-                :components ((:file "content" :depends-on ("suite"))
-                             (:file "document" :depends-on ("content"))
+                :components ((:file "document" :depends-on ("suite"))
                              (:file "package")
                              (:file "projection" :depends-on ("document"))
                              (:file "editor" :depends-on ("projection"))

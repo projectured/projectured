@@ -24,7 +24,8 @@
 ;;; Gesture classes
 
 (def class* gesture ()
-  ((modifiers :type list))
+  ((modifiers :type list)
+   (location :type 2d))
   (:documentation "Base class for gestures."))
 
 (def class* gesture/window (gesture)
@@ -47,16 +48,16 @@
   (:documentation "Base class for mouse gestures."))
 
 (def class* gesture/mouse/move (gesture/mouse)
-  ((location :type 2d)))
+  ())
 
 (def class* gesture/mouse/hover (gesture/mouse)
-  ((location :type 2d)))
+  ())
 
 (def class* gesture/mouse/button (gesture/mouse)
   ((button :type (member :button-left :button-middle :button-right))))
 
 (def class* gesture/mouse/button/click (gesture/mouse/button)
-  ((location :type 2d)))
+  ())
 
 (def class* gesture-queue ()
   ((gestures :type sequence)))
@@ -87,23 +88,24 @@
          (event0 (when (> length 0) (elt events 0)))
          (event1 (when (> length 1) (elt events 1))))
     (cond ((typep event0 'event/window/quit)
-           (make-instance 'gesture/window/quit))
+           (make-instance 'gesture/window/quit :modifiers nil))
           ((and (typep event0 'event/keyboard/key-up)
                 (typep event1 'event/keyboard/key-down)
                 (eq (key-of event0) (key-of event1)))
            (make-instance 'gesture/keyboard/key-press
                           :modifiers (modifiers-of event0)
+                          :location (location-of event0)
                           :key (key-of event1)
                           :character (character-of event1)))
           ((and (typep event0 'event/mouse/button/release)
                 (typep event1 'event/mouse/button/press))
            (make-instance 'gesture/mouse/button/click
                           :modifiers (modifiers-of event0)
-                          :button (button-of event0)
-                          :location (location-of event0)))
+                          :location (location-of event0)
+                          :button (button-of event0)))
           ((and (typep event0 'event/mouse/move)
                 ;; TODO: need a timer that kicks in every now and them to make this work
-                (> (- (iolib.syscalls:get-monotonic-time) (timestamp-of event0)) 3))
+                (> (- (get-internal-real-time) (timestamp-of event0)) 3))
            (make-instance 'gesture/mouse/hover :location (location-of event0)))
           ((and (typep event0 'event/mouse/move))
            (make-instance 'gesture/mouse/move :location (location-of event0)))
@@ -125,47 +127,38 @@
   (typecase g1
     (gesture/keyboard/key-press
      (and (eq (class-of g1) (class-of g2))
-          (or (eq (key-of g1) (key-of g2))
-              (equal (character-of g1) (character-of g2)))
+          (or (and (key-of g1)
+                   (key-of g2)
+                   (eq (key-of g1) (key-of g2)))
+              (and (character-of g1)
+                   (character-of g2)
+                   (char= (character-of g1) (character-of g2))))
           (equal (modifiers-of g1) (modifiers-of g2))))
     (gesture/mouse/button/click
      (and (eq (class-of g1) (class-of g2))
           (eq (button-of g1) (button-of g2))
+          (equal (modifiers-of g1) (modifiers-of g2))))
+    (gesture
+     (and (eq (class-of g1) (class-of g2))
           (equal (modifiers-of g1) (modifiers-of g2))))))
 
-;; TODO: move and rename
-(def class* gesture->operation ()
-  ((gesture :type gesture)
-   (domain :type string)
-   (description :type string)
-   (operation :type operation)))
+(def function gesture/describe-modifiers (gesture)
+  (when (modifiers-of gesture)
+    (with-output-to-string (string)
+      (iter (for modifier :in (modifiers-of gesture))
+            (write-string (symbol-name modifier) string)
+            (write-string  " + " string)))))
 
-(def macro gesture-case (gesture &body cases)
-  (with-unique-names (gesture-variable)
-    `(bind ((,gesture-variable ,gesture))
-       (or (and (key-press? ,gesture-variable :key :sdl-key-h :modifier :control)
-                (make-instance 'operation/show-context-sensitive-help
-                               :operations (optional-list ,@(iter (for case :in cases)
-                                                                  (for operation = (getf (rest case) :operation))
-                                                                  (collect `(bind ((operation ,(getf (rest case) :operation)))
-                                                                              (when operation
-                                                                                (make-instance 'gesture->operation
-                                                                                               :gesture ,(first case)
-                                                                                               :domain ,(getf (rest case) :domain)
-                                                                                               ;; TODO: make consistent
-                                                                                               :description ,(getf (rest case) :help)
-                                                                                               :operation ,operation))))))))
-           ,@(iter (for case :in cases)
-                   (collect `(and (gesture= ,gesture-variable ,(first case))
-                                  ,(getf (rest case) :operation))))))))
+(def function gesture/describe-key (gesture)
+  (etypecase gesture
+    (gesture/keyboard/key-press
+     (if (character-of gesture)
+         (string (character-of gesture))
+         (subseq (symbol-name (key-of gesture)) (length "SDL-KEY-"))))
+    (gesture/mouse/button/click
+     (symbol-name (button-of gesture)))
+    (gesture/window/quit
+     "<close window>")))
 
-(def function merge-operations (operation-1 operation-2)
-  (cond ((and (typep operation-1 'operation/show-context-sensitive-help)
-              (typep operation-2 'operation/show-context-sensitive-help))
-         (make-instance 'operation/show-context-sensitive-help
-                        :operations (append (operations-of operation-1)
-                                            (operations-of operation-2)
-                                            #+nil
-                                            (set-difference (operations-of operation-2) (operations-of operation-1) :key 'gesture-of :test 'gesture=))))
-        (t
-         (or operation-1 operation-2))))
+(def function gesture/describe (gesture)
+  (string+ (gesture/describe-modifiers gesture) (gesture/describe-key gesture)))

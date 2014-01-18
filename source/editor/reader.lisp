@@ -15,23 +15,16 @@
 (def (namespace e) reader)
 
 (def (definer e) reader (name arguments &body forms)
-  `(setf (find-reader ',name) (lambda ,arguments ,@forms)))
-
-;;;;;;
-;;; TODO:
-;;;
-;;; Recurse with:
-;;;  - input (event -> gesture-queue -> operation)
-;;;  - printer-iomap (top level printer result)
-;;;  - printer-current-iomap
-;;;  - printer-input (the current input object of the printer)
-;;;  - document (holding the current selection)
+  (bind ((function-name (format-symbol (symbol-package name) "READER/~A" name)))
+    `(progn
+       (def function ,function-name ,arguments ,@forms)
+       (setf (find-reader ',name) ',function-name))))
 
 (def (function e) apply-reader (projection printer-iomap gesture-queue &optional (recursion (make-projection/preserving)))
-  (funcall (reader-of projection) projection recursion printer-iomap printer-iomap gesture-queue nil nil))
+  (funcall (reader-of projection) projection recursion printer-iomap gesture-queue nil))
 
-(def (function e) recurse-reader (recursion printer-iomap projection-iomap gesture-queue operation document)
-  (funcall (reader-of recursion) recursion recursion printer-iomap projection-iomap gesture-queue operation document))
+(def (function e) recurse-reader (recursion projection-iomap gesture-queue operation)
+  (funcall (reader-of recursion) recursion recursion projection-iomap gesture-queue operation))
 
 (def (function e) reader-output (projection printer-iomap gesture-queue &optional (recursion (make-projection/preserving)))
   (output-of (apply-reader projection printer-iomap gesture-queue recursion)))

@@ -14,81 +14,149 @@
 (def test test/projection/apply-printer (document projection)
   (finishes (apply-printer document projection)))
 
-(def function make-test-projection (projection)
+(def function make-test-projection/plain (projection)
   (nesting
     (widget->graphics)
     (reference-dispatching ()
-      ((elt (the list (elements-of (the widget/composite document))) 0)
+      (((the widget/scroll-pane (elt (the list document) 0)))
+       (nesting
+         (widget->graphics)
+         projection))
+      (((the widget/tooltip (elt (the list document) 1)))
+       (nesting
+         (widget->graphics)
+         (sequential
+           (type-dispatching
+             (text/base (preserving))
+             (t (reference->text)))
+           (make-test-projection/text->output)))))))
+
+(def function make-test-projection/ide (projection)
+  (nesting
+    (widget->graphics)
+    (reference-dispatching ()
+      (((the widget/split-pane (elt (the list document) 0)))
+       (nesting
+         (widget->graphics)
+         (type-dispatching
+           (widget/base
+            (nesting
+              (widget->graphics)
+              (reference-dispatching ()
+                ;; TODO: this is very fragile, create a class for tabbed-pane selectors would probably help
+                (((the widget/label (elt (the list document) 0))
+                  (the list (elt (the list document) 0)))
+                 (recursive
+                   (type-dispatching
+                     (widget/base (widget/label->graphics/canvas))
+                     (text/base (text->graphics)))))
+                (((the widget/scroll-pane (elt (the list document) 1))
+                  (the list (elt (the list document) 0)))
+                 (nesting
+                   (widget->graphics)
+                   projection)))))
+           (t
+            (sequential
+              (recursive (file-system->tree))
+              (recursive (type-dispatching
+                           (tree/base (tree->text))
+                           (t (preserving))))
+              (text->graphics))))))
+      (((the widget/tooltip (elt (the list document) 1)))
+       (nesting
+         (widget->graphics)
+         (sequential
+           (type-dispatching
+             (text/base (preserving))
+             (t (reference->text)))
+           (make-test-projection/text->output)))))))
+
+(def function make-test-projection/reflection (projection)
+  (nesting
+    (widget->graphics)
+    (reference-dispatching ()
+      (((the widget/tabbed-pane (elt (the list document) 0)))
        (nesting
          (widget->graphics)
          (reference-dispatching ()
            ;; TODO: this is very fragile, create a class for tabbed-pane selectors would probably help
-           ((elt (the list (elt (the list (selector-element-pairs-of (the widget/tabbed-pane (elt (the list (elements-of (the widget/composite document))) 0)))) 0)) 0)
-            (text->graphics))
-           ((elt (the list (elt (the list (selector-element-pairs-of (the widget/tabbed-pane (elt (the list (elements-of (the widget/composite document))) 0)))) 1)) 0)
-            (text->graphics))
-           ((elt (the list (elt (the list (selector-element-pairs-of (the widget/tabbed-pane (elt (the list (elements-of (the widget/composite document))) 0)))) 2)) 0)
-            (text->graphics))
-           ((elt (the list (elt (the list (selector-element-pairs-of (the widget/tabbed-pane (elt (the list (elements-of (the widget/composite document))) 0)))) 3)) 0)
-            (text->graphics))
-           ((elt (the list (elt (the list (selector-element-pairs-of (the widget/tabbed-pane (elt (the list (elements-of (the widget/composite document))) 0)))) 0)) 1)
+           (((the widget/label (elt (the list document) 0))
+             (the list (elt (the list document) 0)))
+            (recursive
+              (type-dispatching
+                (widget/base (widget/label->graphics/canvas))
+                (text/base (text->graphics)))))
+           (((the widget/label (elt (the list document) 0))
+             (the list (elt (the list document) 1)))
+            (recursive
+              (type-dispatching
+                (widget/base (widget/label->graphics/canvas))
+                (text/base (text->graphics)))))
+           (((the widget/label (elt (the list document) 0))
+             (the list (elt (the list document) 2 )))
+            (recursive
+              (type-dispatching
+                (widget/base (widget/label->graphics/canvas))
+                (text/base (text->graphics)))))
+           (((the widget/label (elt (the list document) 0))
+             (the list (elt (the list document) 3)))
+            (recursive
+              (type-dispatching
+                (widget/base (widget/label->graphics/canvas))
+                (text/base (text->graphics)))))
+           (((the widget/scroll-pane (elt (the list document) 1))
+             (the list (elt (the list document) 0)))
             (nesting
               (widget->graphics)
               projection))
-           ((elt (the list (elt (the list (selector-element-pairs-of (the widget/tabbed-pane (elt (the list (elements-of (the widget/composite document))) 0)))) 1)) 1)
+           (((the widget/scroll-pane (elt (the list document) 1))
+             (the list (elt (the list document) 1)))
             (nesting
               (widget->graphics)
               (sequential
-                (nesting
-                  (document->document)
-                  (make-test-projection/t->text))
-                (nesting
-                  (document->graphics)
-                  (make-test-projection/text->output)))))
-           ((elt (the list (elt (the list (selector-element-pairs-of (the widget/tabbed-pane (elt (the list (elements-of (the widget/composite document))) 0)))) 2)) 1)
+                (recursive (t->table))
+                (recursive
+                  (type-dispatching
+                    (table/base (table->text))
+                    (t (preserving))))
+                (make-test-projection/text->output))))
+           (((the widget/scroll-pane (elt (the list document) 1))
+             (the list (elt (the list document) 2)))
             (nesting
               (widget->graphics)
               (sequential
-                (nesting
-                  (document->document)
-                  (make-test-projection/t->text))
-                (nesting
-                  (document->graphics)
-                  (make-test-projection/text->output)))))
-           ((elt (the list (elt (the list (selector-element-pairs-of (the widget/tabbed-pane (elt (the list (elements-of (the widget/composite document))) 0)))) 3)) 1)
+                (recursive (t->table))
+                (recursive
+                  (type-dispatching
+                    (table/base (table->text))
+                    (t (preserving))))
+                (make-test-projection/text->output))))
+           (((the widget/tabbed-pane (elt (the list document) 1))
+             (the list (elt (the list document) 3)))
             (nesting
               (widget->graphics)
               ;; TODO: this is very fragile, create a class for tabbed-pane selectors would probably help
               ;; TODO: add more stages?
               (reference-dispatching ()
-                ((elt (the list (elt (the list (selector-element-pairs-of (the widget/tabbed-pane (elt (the list (elt (the list (selector-element-pairs-of (the widget/tabbed-pane (elt (the list (elements-of (the widget/composite document))) 0)))) 3)) 1)))) 0)) 0)
-                 (text->graphics))
-                ((elt (the list (elt (the list (selector-element-pairs-of (the widget/tabbed-pane (elt (the list (elt (the list (selector-element-pairs-of (the widget/tabbed-pane (elt (the list (elements-of (the widget/composite document))) 0)))) 3)) 1)))) 1)) 0)
-                 (text->graphics))
-                ((elt (the list (elt (the list (selector-element-pairs-of (the widget/tabbed-pane (elt (the list (elt (the list (selector-element-pairs-of (the widget/tabbed-pane (elt (the list (elements-of (the widget/composite document))) 0)))) 3)) 1)))) 0)) 1)
+                (((the widget/label (elt (the list document) 0))
+                  (the list (elt (the list document) 0)))
+                 (recursive
+                   (type-dispatching
+                     (widget/base (widget/label->graphics/canvas))
+                     (text/base (text->graphics)))))
+                (((the widget/scroll-pane (elt (the list document) 1))
+                  (the list (elt (the list document) 0)))
                  (nesting
                    (widget->graphics)
                    (sequential
-                     (elt (elements-of projection) 0)
-                     (nesting
-                       (document->document)
-                       (make-test-projection/t->text))
-                     (nesting
-                       (document->graphics)
-                       (make-test-projection/text->output)))))
-                ((elt (the list (elt (the list (selector-element-pairs-of (the widget/tabbed-pane (elt (the list (elt (the list (selector-element-pairs-of (the widget/tabbed-pane (elt (the list (elements-of (the widget/composite document))) 0)))) 3)) 1)))) 1)) 1)
-                 (nesting
-                   (widget->graphics)
-                   (sequential
-                     (elt (elements-of projection) 0)
-                     (elt (elements-of projection) 1)
-                     (nesting
-                       (document->document)
-                       (make-test-projection/t->text))
-                     (nesting
-                       (document->graphics)
-                       (make-test-projection/text->output)))))))))))
-      ((elt (the list (elements-of (the widget/composite document))) 1)
+                     #+nil (elt (elements-of projection) 0)
+                     (recursive (t->table))
+                     (recursive
+                       (type-dispatching
+                         (table/base (table->text))
+                         (t (preserving))))
+                     (make-test-projection/text->output))))))))))
+      (((the widget/tooltip (elt (the list document) 1)))
        (nesting
          (widget->graphics)
          (sequential
@@ -98,14 +166,14 @@
            (make-test-projection/text->output)))))))
 
 (def macro test-projection (&body projection)
-  `(make-test-projection ,(first projection)))
+  `(make-test-projection/reflection ,(first projection)))
 
 (def function make-test-projection/string->output (&key font-provider font-color-provider fill-color-provider line-color-provider)
   ;; KLUDGE:
   (bind ((string->text (string->text :font-provider font-provider
-                                                       :font-color-provider font-color-provider
-                                                       :fill-color-provider fill-color-provider
-                                                       :line-color-provider line-color-provider)))
+                                     :font-color-provider font-color-provider
+                                     :fill-color-provider fill-color-provider
+                                     :line-color-provider line-color-provider)))
     (if (search "SLIME" (symbol-name (class-name (class-of (make-editor)))))
         string->text
         (sequential
@@ -122,73 +190,36 @@
 ;;; Graphics
 
 (def function make-test-projection/graphics->graphics ()
-  (test-projection
-    (nesting
-      (widget->graphics)
-      (document->graphics)
-      (preserving))))
+  (preserving))
 
 ;;;;;;
 ;;; String
 
 (def function make-test-projection/string->graphics ()
-  (test-projection
-    (nesting
-      (widget->graphics)
-      (document->graphics)
-      (make-test-projection/string->output))))
+  (make-test-projection/string->output))
 
 (def function make-test-projection/string->graphics/delimited ()
-  (test-projection
-    (nesting
-      (widget->graphics)
-      (sequential
-        (nesting
-          (document->document)
-          (string->delimited-string "(" ")"))
-        (nesting
-          (document->graphics)
-          (make-test-projection/string->output))))))
+  (sequential
+    (string->delimited-string "(" ")")
+    (make-test-projection/string->output)))
 
 (def function make-test-projection/string->graphics/removing ()
-  (test-projection
-    (nesting
-      (widget->graphics)
-      (sequential
-        (nesting
-          (document->document)
-          (removing #\s 'char= 'identity))
-        (nesting
-          (document->graphics)
-          (make-test-projection/string->output))))))
+  (sequential
+    (removing #\s 'char= 'identity)
+    (make-test-projection/string->output)))
 
 (def function make-test-projection/string->graphics/sorting ()
-  (test-projection
-    (nesting
-      (widget->graphics)
-      (sequential
-        (nesting
-          (document->document)
-          (sorting 'identity 'char<))
-        (nesting
-          (document->graphics)
-          (make-test-projection/string->output))))))
+  (sequential
+    (sorting 'identity 'char<)
+    (make-test-projection/string->output)))
 
 ;;;;;;
 ;;; Styled string
 
 (def function make-test-projection/text->graphics ()
-  (test-projection
-    (nesting
-      (widget->graphics)
-      (sequential
-        #+nil
-        (nesting
-          (document->document)
-          (text->line-numbered-text))
-        (nesting
-          (document->graphics)
-          (text->graphics))))))
+  (sequential
+    (text->line-numbered-text)
+    (text->graphics)))
 
 ;;;;;;
 ;;; Text
@@ -198,34 +229,29 @@
 
 #+nil
 (def function make-test-projection/text->graphics ()
-  (test-projection
-    (nesting
-      (widget->graphics)
-      (sequential
-        (nesting
-          (document->document)
-          (text->string))
-        (nesting
-          (document->graphics)
-          (make-test-projection/string->output))))))
+  (sequential
+    (text->string)
+    (make-test-projection/string->output)))
 
 ;;;;;;
 ;;; List
 
-(def function make-test-projection/list->string ()
-  (list->string))
+(def function make-test-projection/widget->graphics ()
+  (recursive
+    (type-dispatching
+      (widget/base (widget->graphics))
+      (text/base (text->graphics)))))
+
+;;;;;;
+;;; List
+
+(def function make-test-projection/list->text ()
+  (list->text))
 
 (def function make-test-projection/list->graphics ()
-  (test-projection
-    (nesting
-      (widget->graphics)
-      (sequential
-        (nesting
-          (document->document)
-          (make-test-projection/list->string))
-        (nesting
-          (document->graphics)
-          (make-test-projection/string->output))))))
+  (sequential
+    (make-test-projection/list->text)
+    (make-test-projection/text->output)))
 
 ;;;;;;
 ;;; Table
@@ -237,107 +263,54 @@
       (t (preserving)))))
 
 (def function make-test-projection/table->graphics ()
-  (test-projection
-    (nesting
-      (widget->graphics)
-      (sequential
-        (nesting
-          (document->document)
-          (make-test-projection/table->text))
-        (nesting
-          (document->graphics)
-          (make-test-projection/text->output))))))
+  (sequential
+    (make-test-projection/table->text)
+    (text->line-numbered-text)
+    (make-test-projection/text->output)))
 
 ;;;;;;
 ;;; Tree
 
 (def function make-test-projection/tree->text ()
-  (recursive (tree->text)))
+  (recursive
+    (type-dispatching
+      (tree/base (tree->text))
+      (t (preserving)))))
 
 (def function make-test-projection/tree->graphics ()
-  (test-projection
-    (nesting
-      (widget->graphics)
-      (alternative
-        (sequential
-          (nesting
-            (document->document)
-            (make-test-projection/tree->text))
-          #+nil
-          (nesting
-            (document->document)
-            (text->line-numbered-text))
-          (nesting
-            (document->graphics)
-            (make-test-projection/text->output)))
-        (nesting
-          (document->graphics)
-          (tree->graphics))))))
+  (sequential
+    (make-test-projection/tree->text)
+    (text->line-numbered-text)
+    (make-test-projection/text->output)))
 
 ;; TODO: factor
 (def function make-test-projection/tree->graphics/removing ()
-  (test-projection
-    (nesting
-      (widget->graphics)
-      (alternative
-        (sequential
-          (nesting
-            (document->document)
-            ;; TODO: make really recursive
-            (recursive
-              (type-dispatching
-                (list (removing #\s 'find (lambda (element) (when (typep element 'tree/leaf) (content-of element)))))
-                (t (copying)))))
-          (nesting
-            (document->document)
-            (make-test-projection/tree->text))
-          (nesting
-            (document->document)
-            (text->line-numbered-text))
-          (nesting
-            (document->graphics)
-            (make-test-projection/text->output)))
-        (nesting
-          (document->graphics)
-          (tree->graphics))))))
+  (sequential
+    ;; TODO: make really recursive
+    (recursive
+      (type-dispatching
+        (list (removing #\s 'find (lambda (element) (when (typep element 'tree/leaf) (content-of element)))))
+        (t (copying))))
+    (make-test-projection/tree->text)
+    (text->line-numbered-text)
+    (make-test-projection/text->output)))
 
 (def function make-test-projection/tree->graphics/sorting ()
-  (test-projection
-    (nesting
-      (widget->graphics)
-      (alternative
-        (sequential
-          (nesting
-            (document->document)
-            ;; TODO: make really recursive
-            (recursive
-              (type-dispatching
-                (list (sorting (lambda (element) (when (typep element 'tree/leaf) (content-of element))) 'string<))
-                (t (copying)))))
-          (nesting
-            (document->document)
-            (make-test-projection/tree->text))
-          (nesting
-            (document->document)
-            (text->line-numbered-text))
-          (nesting
-            (document->graphics)
-            (make-test-projection/text->output)))
-        (nesting
-          (document->graphics)
-          (tree->graphics))))))
+  (sequential
+    ;; TODO: make really recursive
+    (recursive
+      (type-dispatching
+        (list (sorting (lambda (element) (when (typep element 'tree/leaf) (content-of element))) 'string<))
+        (t (copying))))
+    (make-test-projection/tree->text)
+    (text->line-numbered-text)
+    (make-test-projection/text->output)))
 
 ;;;;;;
 ;;; Graph
 
 (def function make-test-projection/graph->graphics ()
-  (test-projection
-    (nesting
-      (widget->graphics)
-      (sequential
-        (nesting
-          (document->document)
-          (graph->graphics))))))
+  (graph->graphics))
 
 ;;;;;;
 ;;; State machine
@@ -349,19 +322,10 @@
     (recursive (tree->text))))
 
 (def function make-test-projection/state-machine->graphics ()
-  (test-projection
-    (nesting
-      (widget->graphics)
-      (sequential
-        (nesting
-          (document->document)
-          (make-test-projection/state-machine->text))
-        (nesting
-          (document->document)
-          (text->line-numbered-text))
-        (nesting
-          (document->graphics)
-          (make-test-projection/text->output))))))
+  (sequential
+    (make-test-projection/state-machine->text)
+    (text->line-numbered-text)
+    (make-test-projection/text->output)))
 
 ;;;;;;
 ;;; Book
@@ -369,23 +333,16 @@
 (def function make-test-projection/book->text ()
   (sequential
     (recursive
-      (book->tree))
-    (recursive (tree->text))))
+      (type-dispatching
+        (book/base (book->tree))
+        (text/text (text/text->tree/leaf))))
+    (make-test-projection/tree->text)))
 
 (def function make-test-projection/book->graphics ()
-  (test-projection
-    (nesting
-      (widget->graphics)
-      (sequential
-        (nesting
-          (document->document)
-          (make-test-projection/book->text))
-        (nesting
-          (document->document)
-          (word-wrapping :wrap-width 1024))
-        (nesting
-          (document->graphics)
-          (make-test-projection/text->output))))))
+  (sequential
+    (make-test-projection/book->text)
+    (word-wrapping :wrap-width 1024)
+    (make-test-projection/text->output)))
 
 ;;;;;;
 ;;; XML
@@ -396,28 +353,11 @@
     (recursive (tree->text))))
 
 (def function make-test-projection/xml->graphics ()
-  (test-projection
-    (nesting
-      (widget->graphics)
-      (alternative
-        (sequential
-          (nesting
-            (document->document)
-            (recursive (xml->tree)))
-          (nesting
-            (document->document)
-            (recursive (tree->text)))
-          (nesting
-            (document->document)
-            (text->line-numbered-text))
-          (nesting
-            (document->graphics)
-            (make-test-projection/text->output)))
-        (nesting
-          (document->graphics)
-          (sequential
-            (recursive (xml->tree))
-            (tree->graphics)))))))
+  (sequential
+    (recursive (xml->tree))
+    (make-test-projection/tree->text)
+    (text->line-numbered-text)
+    (make-test-projection/text->output)))
 
 ;;;;;;
 ;;; JSON
@@ -425,80 +365,65 @@
 (def function make-test-projection/json->text ()
   (sequential
     (recursive (json->tree))
-    (recursive (tree->text))))
+    (make-test-projection/tree->text)))
 
 (def function make-test-projection/json->graphics ()
   (sequential
-    (nesting
-      (document->document)
-      (recursive (json->tree)))
-    (nesting
-      (document->document)
-      (recursive (tree->text)))
-    (nesting
-      (document->document)
-      (text->line-numbered-text))
-    (nesting
-      (document->graphics)
-      (make-test-projection/text->output))))
+    (recursive (json->tree))
+    (make-test-projection/tree->text)
+    (text->line-numbered-text)
+    (make-test-projection/text->output)))
 
 (def function make-test-projection/json->graphics/focusing ()
   (sequential
-    (nesting
-      (document->document)
-      (focusing '(the json/string (elt (the list (elements-of (the json/array document))) 4))))
-    (nesting
-      (document->document)
-      (recursive (json->tree)))
-    (nesting
-      (document->document)
-      (recursive (tree->text)))
-    (nesting
-      (document->document)
-      (text->line-numbered-text))
-    (nesting
-      (document->graphics)
-      (make-test-projection/text->output))))
+    (focusing 'json/base '((the json/string (elt (the list document) 4))
+                           (the list (elements-of (the json/array document)))))
+    (recursive (json->tree))
+    (make-test-projection/tree->text)
+    (text->line-numbered-text)
+    (make-test-projection/text->output)))
 
 (def function make-test-projection/json->graphics/removing ()
   (sequential
     (nesting
-      (document->document)
       (copying)
       (removing 'json/boolean 'eq 'object-class-name)
       (preserving))
-    (nesting
-      (document->document)
-      (recursive (json->tree)))
-    (nesting
-      (document->document)
-      (recursive (tree->text)))
-    (nesting
-      (document->document)
-      (text->line-numbered-text))
-    (nesting
-      (document->graphics)
-      (make-test-projection/text->output))))
+    #+nil
+    (recursive
+      (type-dispatching
+        (list (removing 'json/boolean 'eq 'object-class-name))
+        (t (copying))))
+    (recursive (json->tree))
+    (make-test-projection/tree->text)
+    (text->line-numbered-text)
+    (make-test-projection/text->output)))
 
 (def function make-test-projection/json->graphics/sorting ()
   (sequential
     (nesting
-      (document->document)
       (copying)
       (sorting 'object-class-symbol-name 'string>)
       (preserving))
-    (nesting
-      (document->document)
-      (recursive (json->tree)))
-    (nesting
-      (document->document)
-      (recursive (tree->text)))
-    (nesting
-      (document->document)
-      (text->line-numbered-text))
-    (nesting
-      (document->graphics)
-      (make-test-projection/text->output))))
+    #+nil
+    (recursive
+      (type-dispatching
+        (list (sorting 'object-class-symbol-name 'string>))
+        (t (copying))))
+    (recursive (json->tree))
+    (make-test-projection/tree->text)
+    (text->line-numbered-text)
+    (make-test-projection/text->output)))
+
+;;;;;;
+;;; File system
+
+(def function make-test-projection/file-system->graphics ()
+  (sequential
+    (recursive (file-system->tree))
+    (make-test-projection/tree->text)
+    (text->line-numbered-text)
+    (make-test-projection/text->output)))
 
 ;;;;;;
 ;;; Java
@@ -512,19 +437,10 @@
     (recursive (tree->text))))
 
 (def function make-test-projection/java->graphics ()
-  (test-projection
-    (nesting
-      (widget->graphics)
-      (sequential
-        (nesting
-          (document->document)
-          (make-test-projection/java->text))
-        (nesting
-          (document->document)
-          (text->line-numbered-text))
-        (nesting
-          (document->graphics)
-          (make-test-projection/text->output))))))
+  (sequential
+    (make-test-projection/java->text)
+    (text->line-numbered-text)
+    (make-test-projection/text->output)))
 
 ;;;;;;
 ;;; Javascript
@@ -538,19 +454,10 @@
     (recursive (tree->text))))
 
 (def function make-test-projection/javascript->graphics ()
-  (test-projection
-    (nesting
-      (widget->graphics)
-      (sequential
-        (nesting
-          (document->document)
-          (make-test-projection/javascript->text))
-        (nesting
-          (document->document)
-          (text->line-numbered-text))
-        (nesting
-          (document->graphics)
-          (make-test-projection/text->output))))))
+  (sequential
+    (make-test-projection/javascript->text)
+    (text->line-numbered-text)
+    (make-test-projection/text->output)))
 
 ;;;;;;
 ;;; Lisp form
@@ -564,19 +471,10 @@
     (recursive (tree->text))))
 
 (def function make-test-projection/lisp-form->graphics ()
-  (test-projection
-    (nesting
-      (widget->graphics)
-      (sequential
-        (nesting
-          (document->document)
-          (make-test-projection/lisp-form->text))
-        (nesting
-          (document->document)
-          (text->line-numbered-text))
-        (nesting
-          (document->graphics)
-          (make-test-projection/text->output))))))
+  (sequential
+    (make-test-projection/lisp-form->text)
+    (text->line-numbered-text)
+    (make-test-projection/text->output)))
 
 ;;;;;;
 ;;; Common lisp
@@ -592,66 +490,37 @@
 
 (def function make-test-projection/common-lisp->graphics ()
   (sequential
-    (nesting
-      (document->document)
-      (make-test-projection/common-lisp->text))
-    (nesting
-      (document->document)
-      (text->line-numbered-text))
-    (nesting
-      (document->graphics)
-      (make-test-projection/text->output))))
+    (make-test-projection/common-lisp->text)
+    (text->line-numbered-text)
+    (make-test-projection/text->output)))
 
 ;;;;;;
 ;;; Evaluator
 
 (def function make-test-projection/evaluator ()
-  (test-projection
+  (sequential
+    (evaluator)
     (nesting
-      (widget->graphics)
-      (sequential
-        (nesting
-          (document->document)
-          (evaluator))
-        (nesting
-          (document->document)
-          (sequence->list)
-          (make-test-projection/common-lisp->text))
-        (nesting
-          (document->document)
-          (list->string))
-        (nesting
-          (document->graphics)
-          (make-test-projection/string->output))))))
+      (copying)
+      (make-test-projection/common-lisp->text))
+    (list->text)
+    (make-test-projection/text->output)))
 
 ;;;;;;
 ;;; Test
 
 (def function make-test-projection/test->text ()
   (sequential
-    (nesting
-      (document->document)
-      (test->test-result))
-    (nesting
-      (document->document)
-      (test-result->table))
-    (nesting
-      (document->document)
-      (recursive
-        (table->text)))))
+    (test->test-result)
+    (test-result->table)
+    (recursive
+      (table->text))))
 
 (def function make-test-projection/test->graphics ()
-  (test-projection
-    (nesting
-      (widget->graphics)
-      (sequential
-        (make-test-projection/test->text)
-        (nesting
-          (document->document)
-          (text->line-numbered-text))
-        (nesting
-          (document->graphics)
-          (make-test-projection/text->output))))))
+  (sequential
+    (make-test-projection/test->text)
+    (text->line-numbered-text)
+    (make-test-projection/text->output)))
 
 ;;;;;;
 ;;; T
@@ -666,16 +535,34 @@
 
 (def function make-test-projection/t->graphics ()
   (sequential
-    (nesting
-      (document->document)
-      (make-test-projection/t->text))
-    #+nil
-    (nesting
-      (document->document)
-      (text->line-numbered-text))
-    (nesting
-      (document->graphics)
-      (make-test-projection/text->output))))
+    (recursive (t->table))
+    (recursive
+      (type-dispatching
+        (table/base (table->text))
+        (t (preserving))))
+    (text->line-numbered-text)
+    (make-test-projection/text->output)))
+
+;;;;;;
+;;; Inspector
+
+(def function make-test-projection/inspector->text ()
+  (sequential
+    (recursive (inspector->table))
+    (recursive
+      (type-dispatching
+        (table/base (table->text))
+        (t (preserving))))))
+
+(def function make-test-projection/inspector->graphics ()
+  (sequential
+    (recursive (inspector->table))
+    (recursive
+      (type-dispatching
+        (table/base (table->text))
+        (t (preserving))))
+    (text->line-numbered-text)
+    (make-test-projection/text->output)))
 
 ;;;;;;
 ;;; Nested
@@ -694,19 +581,10 @@
     (recursive (tree->text))))
 
 (def function make-test-projection/nested->graphics ()
-  (test-projection
-    (nesting
-      (widget->graphics)
-      (sequential
-        (nesting
-          (document->document)
-          (make-test-projection/nested->text))
-        (nesting
-          (document->document)
-          (text->line-numbered-text))
-        (nesting
-          (document->graphics)
-          (make-test-projection/text->output))))))
+  (sequential
+    (make-test-projection/nested->text)
+    (text->line-numbered-text)
+    (make-test-projection/text->output)))
 
 ;;;;;;
 ;;; Complex
@@ -730,185 +608,75 @@
                           (recursive (tree->text)))))))
 
 (def function make-test-projection/complex->graphics ()
-  (test-projection
-    (nesting
-      (widget->graphics)
-      (sequential
-        (nesting
-          (document->document)
-          (make-test-projection/complex->text))
-        (nesting
-          (document->document)
-          (text->line-numbered-text))
-        (nesting
-          (document->graphics)
-          (make-test-projection/text->output))))))
+  (sequential
+    (make-test-projection/complex->text)
+    (text->line-numbered-text)
+    (make-test-projection/text->output)))
 
 ;;;;;;
 ;;; Demo
 
 (def function make-test-projection/demo->graphics ()
-  (test-projection
-    (nesting
-      (widget->graphics)
-      (sequential
-        (nesting
-          (document->document)
-          (recursive
-            (type-dispatching
-              (book/base (book->tree))
-              (text/base (text->tree))
-              (image/image (make-projection/image/image->tree/leaf))
-              (t
-               (sequential
-                 (recursive
-                   (type-dispatching
-                     (text/base (text->tree))
-                     (book/base (book->tree))
-                     (xml/base (xml->tree))
-                     (json/base (json->tree))
-                     (javascript/base (javascript->tree))
-                     (table/base (sequential
-                                   (recursive (table->text))
-                                   (text->tree)))
-                     (common-lisp/base (sequential
-                                         (common-lisp->lisp-form)
-                                         (lisp-form->tree)))
-                     (lisp-form/base (lisp-form->tree))
-                     (image/image (make-projection/image/image->tree/leaf))
-                     (t (preserving))))
-                 (recursive (tree->text))
-                 ;; TODO: slow due to text/split
-                 (text->line-numbered-text)
-                 (text->tree))))))
-        (nesting
-          (document->document)
-          (recursive (tree->text)))
-        ;; TODO: this is slow due to text/find
-        (nesting
-          (document->document)
-          (word-wrapping :wrap-width 1024))
-        (nesting
-          (document->graphics)
-          (make-test-projection/text->output))))))
+  (sequential
+    (recursive
+      (type-dispatching
+        (book/base (book->tree))
+        (text/base (text->tree))
+        (image/image (make-projection/image/image->tree/leaf))
+        (t
+         (sequential
+           (recursive
+             (type-dispatching
+               (text/base (text->tree))
+               (book/base (book->tree))
+               (xml/base (xml->tree))
+               (json/base (json->tree))
+               (javascript/base (javascript->tree))
+               (table/base (sequential
+                             (recursive (table->text))
+                             (text->tree)))
+               (common-lisp/base (sequential
+                                   (common-lisp->lisp-form)
+                                   (lisp-form->tree)))
+               (lisp-form/base (lisp-form->tree))
+               (image/image (make-projection/image/image->tree/leaf))
+               (t (preserving))))
+           (recursive (tree->text))
+           ;; TODO: slow due to text/split
+           (text->line-numbered-text)
+           (text->tree)))))
+    (recursive (tree->text))
+    ;; TODO: this is slow due to text/find
+    (word-wrapping :wrap-width 1024)
+    (make-test-projection/text->output)))
 
 ;;;;;;
-;;; Wow
+;;; Documentation
 
-(def function make-test-projection/wow->graphics ()
-  (test-projection
-    (nesting
-      (widget->graphics)
-      (sequential
-        (nesting
-          (document->document)
-          (recursive
-            (type-dispatching
-              (json/base (json->tree))
-              (xml/base (xml->tree))
-              (book/base (book->tree))
-              (java/base (java->tree))
-              (javascript/base (javascript->tree))
-              (lisp-form/base (lisp-form->tree))
-              (common-lisp/base
-               (sequential
-                 (recursive (common-lisp->lisp-form))
-                 (recursive (lisp-form->tree))))
-              (table/base (table->text))
-              (text/base (text->string))
-              (list/base (list->string))
-              (string (make-projection/string->tree/leaf))
-              (t (preserving)))))
-        (nesting
-          (document->document)
-          (recursive (tree->text)))
-        (nesting
-          (document->graphics)
-          (make-test-projection/text->output))))))
-
-;;;;;;
-;;; Test
-
-(def test test/projection/string->graphics ()
-  (test/projection/apply-printer (make-test-document/string) (make-test-projection/string->graphics)))
-
-(def test test/projection/text->graphics ()
-  (test/projection/apply-printer (make-test-document/text) (make-test-projection/text->graphics)))
-
-(def test test/projection/list->string ()
-  (test/projection/apply-printer (make-test-content/list) (make-test-projection/list->string)))
-
-(def test test/projection/list->graphics ()
-  (test/projection/apply-printer (make-test-document/list) (make-test-projection/list->graphics)))
-
-(def test test/projection/table->text ()
-  (test/projection/apply-printer (make-test-content/table) (make-test-projection/table->text)))
-
-(def test test/projection/table->graphics ()
-  (test/projection/apply-printer (make-test-document/table) (make-test-projection/table->graphics)))
-
-(def test test/projection/tree->text ()
-  (test/projection/apply-printer (make-test-content/tree) (make-test-projection/tree->text)))
-
-(def test test/projection/tree->graphics ()
-  (test/projection/apply-printer (make-test-document/tree) (make-test-projection/tree->graphics)))
-
-(def test test/projection/book->text ()
-  (test/projection/apply-printer (make-test-content/book) (make-test-projection/book->text)))
-
-(def test test/projection/book->graphics ()
-  (test/projection/apply-printer (make-test-document/book) (make-test-projection/book->graphics)))
-
-(def test test/projection/xml->text ()
-  (test/projection/apply-printer (make-test-content/xml) (make-test-projection/xml->text)))
-
-(def test test/projection/xml->graphics ()
-  (test/projection/apply-printer (make-test-document/xml) (make-test-projection/xml->graphics)))
-
-(def test test/projection/json->text ()
-  (test/projection/apply-printer (make-test-content/json) (make-test-projection/json->text)))
-
-(def test test/projection/json->graphics ()
-  (test/projection/apply-printer (make-test-document/json) (make-test-projection/json->graphics)))
-
-(def test test/projection/lisp-form->tree ()
-  (test/projection/apply-printer (make-test-document/lisp-form) (make-test-projection/lisp-form->tree)))
-
-(def test test/projection/lisp-form->text ()
-  (test/projection/apply-printer (make-test-document/lisp-form) (make-test-projection/lisp-form->text)))
-
-(def test test/projection/lisp-form->graphics ()
-  (test/projection/apply-printer (make-test-document/lisp-form) (make-test-projection/lisp-form->graphics)))
-
-(def test test/projection/common-lisp->lisp-form ()
-  (test/projection/apply-printer (make-test-content/common-lisp) (make-test-projection/common-lisp->lisp-form)))
-
-(def test test/projection/common-lisp->text ()
-  (test/projection/apply-printer (make-test-content/common-lisp) (make-test-projection/common-lisp->text)))
-
-(def test test/projection/common-lisp->graphics ()
-  (test/projection/apply-printer (make-test-document/common-lisp) (make-test-projection/common-lisp->graphics)))
-
-(def test test/projection/evaluator ()
-  (test/projection/apply-printer (make-test-document/evaluator) (make-test-projection/evaluator)))
-
-(def test test/projection/test->graphics ()
-  (test/projection/apply-printer (make-test-document/test) (make-test-projection/test->graphics)))
-
-(def test test/projection/t->string ()
-  (test/projection/apply-printer (make-test-document/t) (make-test-projection/t->text)))
-
-(def test test/projection/t->graphics ()
-  (test/projection/apply-printer (make-test-document/t) (make-test-projection/t->graphics)))
-
-(def test test/projection/nested->text ()
-  (test/projection/apply-printer (make-test-content/nested) (make-test-projection/nested->text)))
-
-(def test test/projection/nested->graphics ()
-  (test/projection/apply-printer (make-test-document/nested) (make-test-projection/nested->graphics)))
-
-(def test test/projection/complex->text ()
-  (test/projection/apply-printer (make-test-content/complex) (make-test-projection/complex->text)))
-
-(def test test/projection/complex->graphics ()
-  (test/projection/apply-printer (make-test-document/complex) (make-test-projection/complex->graphics)))
+(def function make-test-projection/documentation->graphics ()
+  (sequential
+    (focusing '(or json/base xml/base book/base) nil)
+    (recursive
+      (type-dispatching
+        (json/base (json->tree))
+        (xml/base (xml->tree))
+        (book/base (book->tree))
+        (java/base (java->tree))
+        (javascript/base (javascript->tree))
+        (lisp-form/base (lisp-form->tree))
+        (common-lisp/base
+         (sequential
+           (recursive (common-lisp->lisp-form))
+           (recursive (lisp-form->tree))))
+        (table/base
+         (sequential
+           (make-test-projection/table->text)
+           (text/text->tree/leaf)))
+        (list/base (list->text))
+        (text/text (text/text->tree/leaf))))
+    (make-test-projection/tree->text)
+    #+nil
+    (text->line-numbered-text)
+    #+nil
+    (word-wrapping :wrap-width 1024)
+    (make-test-projection/text->output)))

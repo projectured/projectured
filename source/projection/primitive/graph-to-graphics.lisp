@@ -27,13 +27,12 @@
 ;;;;;;
 ;;; Printer
 
-(def printer graph->graphics (projection recursion iomap input input-reference output-reference)
-  (declare (ignore iomap))
+(def printer graph->graphics (projection recursion input input-reference)
   nil)
 
 ;;;;;;
 ;;; Reader
 
-(def reader graph->graphics (projection recursion printer-iomap projection-iomap gesture-queue operation document)
-  (declare (ignore projection recursion printer-iomap projection-iomap gesture-queue document))
+(def reader graph->graphics (projection recursion projection-iomap gesture-queue operation)
+  (declare (ignore projection recursion projection-iomap gesture-queue document))
   operation)

@@ -27,18 +27,18 @@
 ;;;;;;
 ;;; Printer
 
-(def printer test->test-result (projection recursion iomap input input-reference output-reference)
+(def printer test->test-result (projection recursion input input-reference)
   (bind ((name (hu.dwim.stefil::name-of input))
          (test-result (multiple-value-list
                        (handler-bind ((condition (lambda (c) (continue c))))
                          (hu.dwim.stefil::with-new-global-context* ()
                            (hu.dwim.stefil::run-test-body input (fdefinition name) nil t nil)))))
          (output (last-elt test-result)))
-    (make-iomap/compound projection recursion input input-reference output output-reference nil)))
+    (make-iomap/compound projection recursion input input-reference output nil)))
 
 ;;;;;;
 ;;; Reader
 
-(def reader test->test-result (projection recursion printer-iomap projection-iomap gesture-queue operation document)
-  (declare (ignore projection recursion printer-iomap projection-iomap gesture-queue document))
+(def reader test->test-result (projection recursion projection-iomap gesture-queue operation)
+  (declare (ignore projection recursion projection-iomap gesture-queue document))
   operation)

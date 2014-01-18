@@ -38,7 +38,7 @@
   (values))
 
 (def method print-to-device ((instance text/text) (display device/display/slime))
-  (iter (for element :in (elements-of instance))
+  (iter (for element :in-sequence (elements-of instance))
         (print-to-device element display)))
 
 (def method print-to-device ((instance text/string) (display device/display/slime))

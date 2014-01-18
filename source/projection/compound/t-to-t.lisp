@@ -11,8 +11,13 @@
 
 (def (function e) make-projection/widget->graphics ()
   (type-dispatching
+    (widget/label (make-projection/widget/label->graphics/canvas))
     (widget/tooltip (make-projection/widget/tooltip->graphics/canvas))
+    (widget/menu (make-projection/widget/menu->graphics/canvas))
+    (widget/menu-item (make-projection/widget/menu-item->graphics/canvas))
+    (widget/shell (make-projection/widget/shell->graphics/canvas))
     (widget/composite (make-projection/widget/composite->graphics/canvas))
+    (widget/split-pane (make-projection/widget/split-pane->graphics/canvas))
     (widget/tabbed-pane (make-projection/widget/tabbed-pane->graphics/canvas))
     (widget/scroll-pane (make-projection/widget/scroll-pane->graphics/canvas))))
 
@@ -25,8 +30,7 @@
 (def (function e) make-projection/book->tree ()
   (type-dispatching
     (book/book (make-projection/book/book->tree/node))
-    (book/chapter (make-projection/book/chapter->tree/node))
-    (string (make-projection/string->tree/leaf))))
+    (book/chapter (make-projection/book/chapter->tree/node))))
 
 (def (macro e) book->tree ()
   '(make-projection/book->tree))
@@ -48,19 +52,11 @@
 
 (def (function e) make-projection/tree->text ()
   (type-dispatching
-    (tree/leaf (tree/leaf->text))
-    (tree/node (tree/node->text))))
+    (tree/leaf (tree/leaf->text/text))
+    (tree/node (tree/node->text/text))))
 
 (def (macro e) tree->text ()
   `(make-projection/tree->text))
-
-(def (function e) make-projection/tree->list ()
-  (type-dispatching
-    (string (make-projection/preserving))
-    (tree/node (make-projection/tree->list))))
-
-(def (macro e) tree->list ()
-  '(make-projection/tree->list))
 
 ;;;;;;
 ;;; Graph
@@ -85,12 +81,36 @@
   '(make-projection/state-machine->tree))
 
 ;;;;;;
+;;; List
+
+(def (function e) make-projection/list->text ()
+  (make-projection/list/list->text))
+
+(def (macro e) list->text ()
+  '(make-projection/list->text))
+
+;;;;;;
 ;;; Table
 
 (def (function e) make-projection/table->text ()
+  (make-projection/table/table->text))
+
+(def (macro e) table->text ()
+  '(make-projection/table->text))
+
+;;;;;;
+;;; Inspector
+
+(def (function e) make-projection/inspector->table ()
   (type-dispatching
-    (table/table (make-projection/table/table->text))
-    (t (preserving))))
+    (inspector/object (make-projection/inspector/object->table/table))
+    (inspector/object-slot (make-projection/inspector/object-slot->table/row))))
+
+(def (macro e) inspector->table ()
+  '(make-projection/inspector->table))
+
+;;;;;;
+;;; T
 
 (def (function e) make-projection/t->table ()
   (type-dispatching
@@ -102,9 +122,6 @@
     (hash-table (make-projection/t/hash-table->table/table))
     (function (make-projection/t/function->table/table))
     ((or structure-object standard-object) (make-projection/t/object->table/table))))
-
-(def (macro e) table->text ()
-  '(make-projection/table->text))
 
 (def (macro e) t->table ()
   '(make-projection/t->table))
@@ -137,6 +154,17 @@
 
 (def (macro e) json->tree ()
   '(make-projection/json->tree))
+
+;;;;;;
+;;; File system
+
+(def (function e) make-projection/file-system->tree ()
+  (type-dispatching
+    (file-system/file (make-projection/file-system/file->tree/leaf))
+    (file-system/directory (make-projection/file-system/directory->tree/node))))
+
+(def (macro e) file-system->tree ()
+  '(make-projection/file-system->tree))
 
 ;;;;;;
 ;;; Java

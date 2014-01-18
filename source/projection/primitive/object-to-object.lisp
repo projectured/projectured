@@ -16,17 +16,12 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-iomap/object (projection recursion input input-reference output output-reference)
+;; TODO: eventually kill output-reference
+(def (function e) make-iomap/object (projection recursion input input-reference output &optional output-reference)
   (make-iomap 'iomap/object
               :projection projection :recursion recursion
-              :input input :input-reference (when input-reference `(the ,(form-type input) ,input-reference))
-              :output output :output-reference (when output-reference `(the ,(form-type output) ,output-reference))))
-
-(def (function e) make-iomap/object* (projection recursion input input-reference output output-reference)
-  (make-iomap 'iomap/object
-              :projection projection :recursion recursion
-              :input input :input-reference input-reference
-              :output output :output-reference output-reference))
+              :input input :input-reference (when input-reference (typed-reference (form-type input) input-reference))
+              :output output :output-reference (when output-reference (typed-reference (form-type output) output-reference))))
 
 ;;;;;;
 ;;; Reference applier
@@ -44,14 +39,14 @@
 (def forward-mapper iomap/object (iomap input-reference function)
   (if (equal input-reference (input-reference-of iomap))
       (funcall function iomap (output-reference-of iomap))
-      ;; TODO: this is very inefficient
-      ;; TODO: is this wrapping with printer-output correct?
-      (when (tree-search input-reference `(the ,(form-type (output-of iomap))
-                                            (printer-output ,(input-reference-of iomap) ,(projection-of iomap) ,(recursion-of iomap))))
-        (funcall function iomap (tree-replace input-reference
-                                              `(the ,(form-type (output-of iomap))
-                                                 (printer-output ,(input-reference-of iomap) ,(projection-of iomap) ,(recursion-of iomap)))
-                                              (output-reference-of iomap))))))
+      (bind ((start (- (length input-reference) (1+ (length (input-reference-of iomap))))))
+        (when (and (>= start 0)
+                   (equal `((the ,(form-type (output-of iomap)) (printer-output (the ,(form-type (input-of iomap)) document) ,(projection-of iomap) ,(recursion-of iomap)))
+                            ,@(input-reference-of iomap))
+                          (subseq input-reference start)))
+          (funcall function iomap (print`(,@(subseq input-reference 0 start)
+                                            ,@(subseq input-reference 0 (1+ (length (input-reference-of iomap))))
+                                            ,@(output-reference-of iomap))))))))
 
 ;;;;;;
 ;;; Backward mapper
@@ -59,41 +54,9 @@
 (def backward-mapper iomap/object (iomap output-reference function)
   (if (equal output-reference (output-reference-of iomap))
       (funcall function iomap (input-reference-of iomap))
-      ;; TODO: this is very inefficient
-      ;; TODO: is this wrapping with printer-output correct?
-      (when (tree-search output-reference (output-reference-of iomap))
-        (funcall function iomap (tree-replace output-reference
-                                              (output-reference-of iomap)
-                                              `(the ,(form-type (output-of iomap))
-                                                 (printer-output ,(input-reference-of iomap) ,(projection-of iomap) ,(recursion-of iomap))))))))
-
-;;;;;;
-;;; Projection
-
-(def projection object->object ()
-  ())
-
-;;;;;;
-;;; Construction
-
-(def (function e) make-projection/object->object ()
-  (make-projection 'object->object))
-
-;;;;;;
-;;; Construction
-
-(def (macro e) object->object ()
-  `(make-projection/object->object))
-
-;;;;;;
-;;; Printer
-
-(def printer object->object (projection recursion iomap input input-reference output-reference)
-  (make-iomap/object projection recursion input input-reference output-reference))
-
-;;;;;;
-;;; Reader
-
-(def reader object->object (projection recursion input input-reference output-reference)
-  (declare (ignore projection recursion input input-reference output-reference))
-  nil)
+      (bind ((start (- (length output-reference) (length (output-reference-of iomap)))))
+        (when (and (>= start 0)
+                   (equal (output-reference-of iomap) (subseq output-reference start)))
+          (funcall function iomap `(,@(subseq output-reference 0 start)
+                                    (the ,(form-type (output-of iomap)) (printer-output (the ,(form-type (input-of iomap)) document) ,(projection-of iomap) ,(recursion-of iomap)))
+                                    ,@(input-reference-of iomap)))))))

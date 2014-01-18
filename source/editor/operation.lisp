@@ -42,6 +42,9 @@
   ()
   (:documentation "An operation that undoes the effect of the last operation."))
 
+(def operation operation/describe (operation)
+  ((target :type reference)))
+
 (def operation operation/replace-content (operation)
   ((document :type document)
    (content :type t))
@@ -49,7 +52,7 @@
 
 (def operation operation/replace-selection (operation)
   ((document :type document)
-   (selection :type selection))
+   (selection :type reference))
   (:documentation "An operation that replaces the selection of a document."))
 
 (def operation operation/replace-target (operation)
@@ -65,11 +68,19 @@
   ((document :type document)
    (filename :type pathname)))
 
+(def operation operation/export-document (operation)
+  ((document :type document)
+   (filename :type pathname)))
+
+(def operation operation/import-document (operation)
+  ((document :type document)
+   (filename :type pathname)))
+
 (def operation operation/select-next-alternative (operation)
   ((alternatives :type alternatives)))
 
 (def operation operation/show-context-sensitive-help (operation)
-  ((operations :type sequence)))
+  ((commands :type sequence)))
 
 ;;;;;;
 ;;; Operation constructors
@@ -98,6 +109,12 @@
 (def (function e) make-operation/load-document (document)
   (make-instance 'operation/load-document :document document :filename #P"/tmp/document.pred"))
 
+(def (function e) make-operation/export-document (document)
+  (make-instance 'operation/export-document :document document :filename #P"/tmp/document.txt"))
+
+(def (function e) make-operation/import-document (document)
+  (make-instance 'operation/import-document :document document :filename #P"/tmp/document.txt"))
+
 (def (function e) make-operation/select-next-alternative (alternatives)
   (make-instance 'operation/select-next-alternative :alternatives alternatives))
 
@@ -121,9 +138,15 @@
   (setf (content-of (document-of operation)) (content-of operation)))
 
 (def method redo-operation ((operation operation/replace-selection))
-  (bind ((document (document-of operation)))
-    (setf (selection-of document) (selection-of operation))
-    (editor.debug "Selection of ~A is set to ~A" document (selection-of document))))
+  (bind ((document (document-of operation))
+         (selection (selection-of operation)))
+    (labels ((recurse (document selection)
+               (when (typep document 'document/base)
+                 (setf (selection-of document) (reverse selection)))
+               (when (rest selection)
+                 (recurse (eval-reference document (first selection)) (rest selection)))))
+      (recurse document (reverse selection)))
+    (editor.debug "Selection of ~A is set to ~A" document selection)))
 
 (def method redo-operation ((operation operation/replace-target))
   (setf (eval-reference (document-of operation) (target-of operation)) (replacement-of operation)))
@@ -137,6 +160,14 @@
     (bind ((document (hu.dwim.serializer:deserialize input)))
       (setf (content-of (document-of operation)) (content-of document))
       (setf (selection-of (document-of operation)) (selection-of document)))))
+
+(def method redo-operation ((operation operation/export-document))
+  (with-output-to-file (output (filename-of operation) :if-does-not-exist :create :if-exists :overwrite :element-type 'character)
+    (print-document (content-of (document-of operation)) output)))
+
+(def method redo-operation ((operation operation/import-document))
+  (with-input-from-file (input (filename-of operation) :element-type 'character)
+    (not-yet-implemented)))
 
 (def method redo-operation ((operation operation/select-next-alternative))
   (bind ((alternatives (alternatives-of operation)))

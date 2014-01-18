@@ -6,6 +6,8 @@
 
 (in-package :projectured.test)
 
+(def logger test ())
+
 (def suite* (test :in root-suite))
 
 (def function walk-object (object)

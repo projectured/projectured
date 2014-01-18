@@ -28,19 +28,19 @@
 ;;;;;;
 ;;; Printer
 
-(def printer type-dispatching (projection recursion iomap input input-reference output-reference)
+(def printer type-dispatching (projection recursion input input-reference)
   (iter (with type-projection-pairs = (type-projection-pairs-of projection))
         (for (type projection) :in-sequence type-projection-pairs)
         (when (typep input type)
-          (return (funcall (printer-of projection) projection recursion iomap input input-reference output-reference)))
+          (return (funcall (printer-of projection) projection recursion input input-reference)))
         (finally (error "Input is not an instance of the given types ~A" (mapcar 'first type-projection-pairs)))))
 
 ;;;;;;
 ;;; Reader
 
-(def reader type-dispatching (projection recursion printer-iomap projection-iomap gesture-queue operation document)
+(def reader type-dispatching (projection recursion projection-iomap gesture-queue operation)
   (iter (with type-projection-pairs = (type-projection-pairs-of projection))
         (for (type projection) :in-sequence type-projection-pairs)
         (when (typep (input-of projection-iomap) type)
-          (return (funcall (reader-of projection) projection recursion printer-iomap projection-iomap gesture-queue operation document)))
+          (return (funcall (reader-of projection) projection recursion projection-iomap gesture-queue operation)))
         (finally (error "Input is not an instance of the given types ~A" (mapcar 'first type-projection-pairs)))))

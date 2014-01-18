@@ -27,19 +27,19 @@
 ;;;;;;
 ;;; Printer
 
-(def printer sequence->list (projection recursion iomap input input-reference output-reference)
+(def printer sequence->list (projection recursion input input-reference)
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
          (output (make-list/list (iter (for index :from 0)
                                        (for element :in-sequence input)
-                                       (for iomap = (recurse-printer recursion iomap element
-                                                                     `(elt ,typed-input-reference ,index)
-                                                                     `(elt (the list (elements-of (the list/list ,output-reference))) ,index)))
+                                       (for iomap = (recurse-printer recursion element
+                                                                     `((elt (the list document) ,index)
+                                                                       ,@(typed-reference (form-type input) input-reference))))
                                        (collect (make-list/element (output-of iomap)))))))
-    (make-iomap/object projection recursion input input-reference output output-reference)))
+    (make-iomap/object projection recursion input input-reference output nil)))
 
 ;;;;;;
 ;;; Reader
 
-(def reader sequence->list (projection recursion input input-reference output-reference)
-  (declare (ignore projection recursion input input-reference output-reference))
-  nil)
+(def reader sequence->list (projection recursion projection-iomap gesture-queue operation)
+  (declare (ignore projection recursion operation))
+  (document/read-operation (input-of projection-iomap) (first (gestures-of gesture-queue))))

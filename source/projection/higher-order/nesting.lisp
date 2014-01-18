@@ -10,13 +10,14 @@
 ;;; Projection
 
 (def projection nesting ()
-  ((elements :type list)))
+  ((elements :type list)
+   (rest :type nesting)))
 
 ;;;;;;
 ;;; Construction
 
 (def (function e) make-projection/nesting (elements)
-  (make-projection 'nesting :elements elements))
+  (make-projection 'nesting :elements elements :rest (when elements (make-projection/nesting (rest elements)))))
 
 ;;;;;;
 ;;; Construction
@@ -27,21 +28,20 @@
 ;;;;;;
 ;;; Printer
 
-(def printer nesting (projection recursion iomap input input-reference output-reference)
+(def printer nesting (projection recursion input input-reference)
   (bind ((elements (elements-of projection))
          (output-iomap (if elements
                            (bind ((first-element (first elements)))
-                             (funcall (printer-of first-element) first-element (make-projection/nesting (rest elements)) iomap input input-reference output-reference))
-                           (recurse-printer recursion iomap input input-reference output-reference))))
-    (make-iomap/compound projection recursion input input-reference (output-of output-iomap) output-reference
-                          (list output-iomap))))
+                             (funcall (printer-of first-element) first-element (rest-of projection) input input-reference))
+                           (recurse-printer recursion input input-reference))))
+    (make-iomap/compound projection recursion input input-reference (output-of output-iomap) (list output-iomap))))
 
 ;;;;;;
 ;;; Reader
 
-(def reader nesting (projection recursion printer-iomap projection-iomap gesture-queue operation document)
+(def reader nesting (projection recursion projection-iomap gesture-queue operation)
   (bind ((elements (elements-of projection)))
     (if elements
         (bind ((first-element (first elements)))
-          (funcall (reader-of first-element) first-element (make-projection/nesting (rest elements)) printer-iomap (the-only-element (child-iomaps-of projection-iomap)) gesture-queue operation document))
-        (recurse-reader recursion printer-iomap (the-only-element (child-iomaps-of projection-iomap)) gesture-queue operation document))))
+          (funcall (reader-of first-element) first-element (rest-of projection) (the-only-element (child-iomaps-of projection-iomap)) gesture-queue operation))
+        (recurse-reader recursion (the-only-element (child-iomaps-of projection-iomap)) gesture-queue operation))))

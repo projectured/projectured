@@ -28,14 +28,14 @@
 ;;;;;;
 ;;; Printer
 
-(def printer alternative (projection recursion iomap input input-reference output-reference)
+(def printer alternative (projection recursion input input-reference)
   (bind ((selection-element (elt (alternatives-of projection) (selection-of projection))))
-    (funcall (printer-of selection-element) selection-element recursion iomap input input-reference output-reference)))
+    (funcall (printer-of selection-element) selection-element recursion input input-reference output-reference)))
 
 ;;;;;;
 ;;; Reader
 
-(def reader alternative (projection recursion printer-iomap projection-iomap gesture-queue operation document)
+(def reader alternative (projection recursion projection-iomap gesture-queue operation)
   (bind ((latest-gesture (first (gestures-of gesture-queue))))
     (cond ((and (typep latest-gesture 'gesture/keyboard/key-press)
                 (eq (key-of latest-gesture) :sdl-key-p)
@@ -43,4 +43,4 @@
            (make-operation/select-next-alternative projection))
           (t
            (bind ((selection-element (elt (alternatives-of projection) (selection-of projection))))
-             (funcall (reader-of selection-element) selection-element recursion printer-iomap projection-iomap gesture-queue operation document))))))
+             (funcall (reader-of selection-element) selection-element recursion projection-iomap gesture-queue operation))))))

@@ -33,8 +33,7 @@
 ;;;;;;
 ;;; Printer
 
-(def printer evaluator (projection recursion iomap input input-reference output-reference)
-  (declare (ignore iomap))
+(def printer evaluator (projection recursion input input-reference)
   (bind ((output (labels ((evaluate (environment form)
                             (etypecase form
                               (common-lisp/constant (value-of form))
@@ -49,6 +48,6 @@
 ;;;;;;
 ;;; Reader
 
-(def reader evaluator (projection recursion printer-iomap projection-iomap gesture-queue operation document-iomap)
-  (declare (ignore projection recursion printer-iomap projection-iomap gesture-queue document-iomap))
+(def reader evaluator (projection recursion projection-iomap gesture-queue operation)
+  (declare (ignore projection recursion projection-iomap gesture-queue))
   operation)

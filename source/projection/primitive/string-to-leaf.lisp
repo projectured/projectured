@@ -9,32 +9,56 @@
 ;;;;;;
 ;;; Projection
 
-(def projection string->tree/leaf ()
+(def projection text/text->tree/leaf ()
   ())
 
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/string->tree/leaf ()
-  (make-projection 'string->tree/leaf))
+(def (function e) make-projection/text/text->tree/leaf ()
+  (make-projection 'text/text->tree/leaf))
+
+;;;;;;
+;;; Construction
+
+(def (macro e) text/text->tree/leaf ()
+  '(make-projection/text/text->tree/leaf))
 
 ;;;;;;
 ;;; Printer
 
-(def printer string->tree/leaf (projection recursion iomap input input-reference output-reference)
-  (declare (ignore iomap))
-  (bind ((output (make-tree/leaf input)))
-    (make-iomap/compound projection recursion input input-reference output output-reference
-                          (list (make-iomap/object projection recursion
-                                                   input input-reference
-                                                   output output-reference)
-                                (make-iomap/string input input-reference 0
-                                                   input `(content-of (the tree/leaf ,output-reference)) 0
-                                                   (length input))))))
+(def printer text/text->tree/leaf (projection recursion input input-reference)
+  (bind ((output-selection (pattern-case (selection-of input)
+                             (((the sequence-position (text/pos (the text/text document) ?character-index)))
+                              `((the sequence-position (text/pos (the text/text document) ,?character-index))
+                                (the text/text (content-of (the tree/leaf document)))))))
+         (output (tree/leaf (:selection output-selection)
+                   input)))
+    (make-iomap/object projection recursion input input-reference output)))
 
 ;;;;;;
 ;;; Reader
 
-(def reader string->tree/leaf (projection recursion printer-iomap projection-iomap gesture-queue operation document)
-  (declare (ignore projection recursion printer-iomap projection-iomap gesture-queue document))
-  operation)
+(def reader text/text->tree/leaf (projection recursion projection-iomap gesture-queue operation)
+  (declare (ignore projection recursion gesture-queue))
+  (bind ((input (input-of projection-iomap)))
+    (labels ((recurse (operation)
+               (typecase operation
+                 (operation/quit operation)
+                 (operation/replace-selection
+                  (make-operation/replace-selection input
+                                                    (pattern-case (selection-of operation)
+                                                      (((the sequence-position (text/pos (the text/text document) ?character-index))
+                                                        (the text/text (content-of (the tree/leaf document))))
+                                                       `((the sequence-position (text/pos (the text/text document) ,?character-index)))))))
+                 (operation/sequence/replace-element-range
+                  (awhen (pattern-case (target-of operation)
+                           (((the sequence-position (text/pos (the text/text document) ?character-index))
+                             (the text/text (content-of (the tree/leaf document))))
+                            `((the sequence-position (text/pos (the text/text document) ,?character-index)))))
+                    (make-operation/sequence/replace-element-range input it (replacement-of operation))))
+                 (operation/compound
+                  (bind ((operations (mapcar #'recurse (elements-of operation))))
+                    (unless (some 'null operations)
+                      (make-operation/compound operations)))))))
+      (recurse operation))))

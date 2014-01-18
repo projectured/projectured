@@ -28,3 +28,7 @@
 
 (def method read-event ((devices sequence))
   (make-instance 'event/window/quit))
+
+(def method print-document (document (stream (eql :slime)))
+  (print-to-device (output-of (apply-printer document (make-projection/t->text))) (make-instance 'device/display/slime))
+  (values))

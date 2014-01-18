@@ -30,13 +30,12 @@
 ;;;;;;
 ;;; Printer
 
-(def printer string->delimited-string (projection recursion iomap input input-reference output-reference)
-  (declare (ignore iomap))
+(def printer string->delimited-string (projection recursion input input-reference)
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
          (opening-delimiter (opening-delimiter-of projection))
          (closing-delimiter (closing-delimiter-of projection))
          (output (string+ opening-delimiter input closing-delimiter)))
-    (make-iomap/compound projection recursion input input-reference output output-reference
+    (make-iomap/compound projection recursion input input-reference output
                           (list (make-iomap/object projection recursion input input-reference output output-reference)
                                 (make-iomap/string* opening-delimiter `(the string (opening-delimiter ,typed-input-reference (opening-delimiter-of ,projection))) 0
                                                     output `(the string ,output-reference) 0
@@ -51,6 +50,6 @@
 ;;;;;;
 ;;; Reader
 
-(def reader string->delimited-string (projection recursion printer-iomap projection-iomap gesture-queue operation document)
-  (declare (ignore projection recursion printer-iomap projection-iomap gesture-queue document))
+(def reader string->delimited-string (projection recursion projection-iomap gesture-queue operation)
+  (declare (ignore projection recursion projection-iomap gesture-queue document))
   operation)

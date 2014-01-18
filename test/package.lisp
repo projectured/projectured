@@ -10,6 +10,7 @@
   (:use :hu.dwim.common
         :hu.dwim.def
         :hu.dwim.defclass-star
+        :hu.dwim.logger
         :hu.dwim.stefil
         :hu.dwim.syntax-sugar
         :hu.dwim.util

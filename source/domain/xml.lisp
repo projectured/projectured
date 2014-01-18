@@ -9,8 +9,8 @@
 ;;;;;;
 ;;; Document
 
-(def document xml/base ()
-  ((indentation :type integer)))
+(def document xml/base (document/base)
+  ())
 
 (def document xml/element (xml/base)
   ((name :type string)
@@ -27,14 +27,14 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-xml/element (name attributes children &key indentation)
-  (make-instance 'xml/element :name name :attributes attributes :children children :indentation indentation))
+(def (function e) make-xml/element (name attributes children)
+  (make-instance 'xml/element :name name :attributes attributes :children children))
 
-(def (function e) make-xml/attribute (name value &key indentation)
-  (make-instance 'xml/attribute :name name :value value :indentation indentation))
+(def (function e) make-xml/attribute (name value)
+  (make-instance 'xml/attribute :name name :value value))
 
-(def (function e) make-xml/text (text &key indentation)
-  (make-instance 'xml/text :text text :indentation indentation))
+(def (function e) make-xml/text (text)
+  (make-instance 'xml/text :text text))
 
 ;;;;;;
 ;;; Construction

@@ -33,7 +33,7 @@
 ;;;;;;
 ;;; Printer
 
-(def printer state-machine/state-machine->tree/node (projection recursion iomap input input-reference output-reference)
+(def printer state-machine/state-machine->tree/node (projection recursion iomap input input-reference)
   (declare (ignore iomap))
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
          (child-iomaps nil)
@@ -58,8 +58,7 @@
                                                                                     (iter (for index :from 0)
                                                                                           (for state :in (states-of input))
                                                                                           (for iomap = (recurse-printer recursion iomap state
-                                                                                                                        `(elt (the list (states-of ,typed-input-reference)) ,index)
-                                                                                                                        `(elt (the list (children-of (the tree/node (elt (the list (children-of (the tree/node (elt (the list (children-of (the tree/node ,output-reference))) 2)))) 0)))) ,(1+ index))))
+                                                                                                                        `(elt (the list (states-of ,typed-input-reference)) ,index)))
                                                                                           (push iomap child-iomaps)
                                                                                           ;; KLUDGE:
                                                                                           (setf (indentation-of (output-of iomap)) 2)
@@ -74,8 +73,7 @@
                                                                                     (iter (for index :from 0)
                                                                                           (for transition :in (transitions-of input))
                                                                                           (for iomap = (recurse-printer recursion iomap transition
-                                                                                                                        `(elt (the list (transitions-of ,typed-input-reference)) ,index)
-                                                                                                                        `(elt (the list (children-of (the tree/node (elt (the list (children-of (the tree/node (elt (the list (children-of (the tree/node ,output-reference))) 2)))) 1)))) ,(1+ index))))
+                                                                                                                        `(elt (the list (transitions-of ,typed-input-reference)) ,index)))
                                                                                           (push iomap child-iomaps)
                                                                                           ;; KLUDGE:
                                                                                           (setf (indentation-of (output-of iomap)) 2)
@@ -87,10 +85,10 @@
 }" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)
                                                        :indentation 0))
                                  :separator (make-text/string " " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))))
-    (make-iomap/compound projection recursion input input-reference output output-reference
+    (make-iomap/compound projection recursion input input-reference output
                          (list* (make-iomap/object projection recursion input input-reference output output-reference) (nreverse child-iomaps)))))
 
-(def printer state-machine/state->tree/node (projection recursion iomap input input-reference output-reference)
+(def printer state-machine/state->tree/node (projection recursion iomap input input-reference)
   (declare (ignore iomap))
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
          (child-iomaps nil)
@@ -108,10 +106,10 @@
                                          (make-tree/leaf (make-text/string name :font *font/ubuntu/monospace/bold/18* :font-color *color/solarized/red*))))
                                  :closing-delimiter (make-text/string ";" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)
                                  :separator (make-text/string " " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))))
-    (make-iomap/compound projection recursion input input-reference output output-reference
+    (make-iomap/compound projection recursion input input-reference output
                          (list* (make-iomap/object projection recursion input input-reference output output-reference) (nreverse child-iomaps)))))
 
-(def printer state-machine/transition->tree/node (projection recursion iomap input input-reference output-reference)
+(def printer state-machine/transition->tree/node (projection recursion iomap input input-reference)
   (declare (ignore iomap))
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
          (child-iomaps nil)
@@ -172,20 +170,20 @@
     }" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)
                                                        :indentation 0))
                                  :separator (make-text/string " " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))))
-    (make-iomap/compound projection recursion input input-reference output output-reference
+    (make-iomap/compound projection recursion input input-reference output
                          (list* (make-iomap/object projection recursion input input-reference output output-reference) (nreverse child-iomaps)))))
 
 ;;;;;;
 ;;; Reader
 
-(def reader state-machine/state-machine->tree/node (projection recursion printer-iomap projection-iomap gesture-queue operation document-iomap)
-  (declare (ignore projection recursion printer-iomap gesture-queue))
-  (operation/read-backward operation projection-iomap document-iomap))
+(def reader state-machine/state-machine->tree/node (projection recursion projection-iomap gesture-queue operation)
+  (declare (ignore projection recursion gesture-queue))
+  (operation/read-backward operation projection-iomap))
 
-(def reader state-machine/state->tree/node (projection recursion printer-iomap projection-iomap gesture-queue operation document-iomap)
-  (declare (ignore projection recursion printer-iomap gesture-queue))
-  (operation/read-backward operation projection-iomap document-iomap))
+(def reader state-machine/state->tree/node (projection recursion projection-iomap gesture-queue operation)
+  (declare (ignore projection recursion gesture-queue))
+  (operation/read-backward operation projection-iomap))
 
-(def reader state-machine/transition->tree/node (projection recursion printer-iomap projection-iomap gesture-queue operation document-iomap)
-  (declare (ignore projection recursion printer-iomap gesture-queue))
-  (operation/read-backward operation projection-iomap document-iomap))
+(def reader state-machine/transition->tree/node (projection recursion projection-iomap gesture-queue operation)
+  (declare (ignore projection recursion gesture-queue))
+  (operation/read-backward operation projection-iomap))

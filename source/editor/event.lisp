@@ -22,7 +22,8 @@
 
 (def class* event ()
   ((timestamp :type integer)
-   (modifiers :type list))
+   (modifiers :type list)
+   (location :type 2d))
   (:documentation "Base class for events."))
 
 (def class* event/window (event)
@@ -62,8 +63,7 @@
   (:documentation "Base class for mouse events."))
 
 (def class* event/mouse/button (event/mouse)
-  ((location :type 2d)
-   (button :type (member :button-left :button-middle :button-right)))
+  ((button :type (member :button-left :button-middle :button-right)))
   (:documentation "Base class for mouse button events."))
 
 (def class* event/mouse/button/press (event/mouse/button)
@@ -75,7 +75,7 @@
   (:documentation "A mouse button release event."))
 
 (def class* event/mouse/move (event/mouse)
-  ((location :type 2d))
+  ()
   (:documentation "A mouse move event."))
 
 (def class* event-queue ()

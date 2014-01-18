@@ -24,6 +24,10 @@
    (padding :type inset)
    (padding-color :type style/color)))
 
+(def document widget/label (widget/base)
+  ((location :type 2d)
+   (content :type t)))
+
 (def document widget/checkbox (widget/base)
   ())
 
@@ -43,8 +47,19 @@
 (def document widget/menu-item (widget/base)
   ((content :type t)))
 
+(def document widget/shell (widget/base)
+  ((content :type t)
+   (tooltip :type widget/tooltip)
+   (menu-bar :type widget/menu)
+   (context-menu :type widget/menu)))
+
 (def document widget/composite (widget/base)
   ((elements :type sequence)))
+
+(def document widget/split-pane (widget/base)
+  ((orientation :type (member :horizontal :vertical))
+   (elements :type sequence)
+   (sizes :type sequence)))
 
 (def document widget/tabbed-pane (widget/base)
   ((selector-element-pairs :type sequence)
@@ -66,6 +81,12 @@
                  :left (or left horizontal all)
                  :right (or right horizontal all)))
 
+(def (function e) make-widget/label (location content &key margin)
+  (make-instance 'widget/label
+                 :location location
+                 :content content
+                 :margin margin))
+
 (def (function e) make-widget/tooltip (location content &key margin)
   (make-instance 'widget/tooltip
                  :visible #f
@@ -73,17 +94,27 @@
                  :content content
                  :margin margin))
 
-(def (function e) make-widget/menu (elements)
+(def (function e) make-widget/menu (elements &key margin)
   (make-instance 'widget/menu
-                 :elements elements))
+                 :visible #t
+                 :elements elements
+                 :margin margin))
 
-(def (function e) make-widget/menu-item (content)
+(def (function e) make-widget/menu-item (content &key margin)
   (make-instance 'widget/menu-item
-                 :content content))
+                 :visible #t
+                 :content content
+                 :margin (or margin (make-inset :all 5))))
 
 (def (function e) make-widget/composite (elements)
   (make-instance 'widget/composite
                  :elements elements))
+
+(def (function e) make-widget/split-pane (orientation elements)
+  (make-instance 'widget/split-pane
+                 :orientation orientation
+                 :elements elements
+                 :sizes nil))
 
 (def (function e) make-widget/tabbed-pane (selector-element-pairs selected-index)
   (make-instance 'widget/tabbed-pane
@@ -104,24 +135,30 @@
 
 ;; TODO: add widget prefix
 
-(def (macro e) tooltip ((&key location margin) &body content)
+(def (macro e) widget/label ((&key location margin) &body content)
+  `(make-widget/label ,location ,(first content) :margin ,margin))
+
+(def (macro e) widget/tooltip ((&key location margin) &body content)
   `(make-widget/tooltip ,location ,(first content) :margin ,margin))
 
-(def (macro e) menu-item ((&key) &body content)
+(def (macro e) widget/menu-item ((&key) &body content)
   `(make-widget/menu-item ,(first content)))
 
-(def (macro e) menu ((&key) &body elements)
+(def (macro e) widget/menu ((&key) &body elements)
   `(make-widget/menu (list ,@elements)))
 
-(def (macro e) composite ((&key) &body elements)
+(def (macro e) widget/composite ((&key) &body elements)
   `(make-widget/composite (list ,@elements)))
 
-(def (macro e) tabbed-pane ((&key) &body selector-element-pairs)
+(def (macro e) widget/split-pane ((&key orientation) &body elements)
+  `(make-widget/split-pane ,orientation (list ,@elements)))
+
+(def (macro e) widget/tabbed-pane ((&key) &body selector-element-pairs)
   `(make-widget/tabbed-pane (list ,@(iter (for pair :in-sequence selector-element-pairs)
                                           (collect `(list ,(first pair) ,(second pair)))))
                             0))
 
-(def (macro e) scroll-pane ((&key location size margin padding) &body content)
+(def (macro e) widget/scroll-pane ((&key location size margin padding) &body content)
   `(make-widget/scroll-pane ,(first content)
                             :location ,location
                             :size ,size

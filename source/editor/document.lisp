@@ -12,7 +12,7 @@
 (def (generic e) document? (object)
   (:documentation "Returns TRUE if OBJECT is a document, otherwise returns FALSE. Purely functional."))
 
-(def (generic e) print-document (document &optional stream)
+(def (generic e) print-document (document stream)
   (:documentation "Prints the content of DOCUMENT to STREAM. Has side effects on STREAM."))
 
 (def (generic e) make-projection/t->string (content)
@@ -32,6 +32,9 @@
 (def document document ()
   ((content :type t)
    (selection :type selection)))
+
+(def document document/base ()
+  ((selection nil :type selection)))
 
 ;;;;;;
 ;;; Construction
@@ -53,6 +56,6 @@
 (def method document? (object)
   (typep object 'document))
 
-(def method print-document (document &optional (stream *standard-output*))
+(def method print-document (document stream)
   (princ (output-of (apply-printer document (make-projection/t->string))) stream)
-  document)
+  (values))

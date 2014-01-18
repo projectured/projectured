@@ -52,6 +52,7 @@
     (cons 'list)
     (number 'number)
     (string 'string)
+    (vector 'vector)
     (t (type-of form))))
 
 ;; TODO: rename
@@ -64,6 +65,8 @@
   (if value "true" "false"))
 
 (def (function e) object-class-name (object)
+  (form-type object)
+  #+nil
   (class-name (class-of object)))
 
 (def (function e) object-class-symbol-name (object)
@@ -71,9 +74,9 @@
 
 (def (function e) tree-search (tree element)
   (or (equal tree element)
-      (iter (for tree-element :in tree)
-            (thereis (when (listp tree-element)
-                       (tree-search tree-element element))))))
+      (when (listp tree)
+        (iter (for tree-element :in tree)
+              (thereis (tree-search tree-element element))))))
 
 (def (function e) tree-replace (tree element replacement)
   (cond ((equal tree element)
@@ -82,6 +85,13 @@
          (iter (for tree-element :in tree)
                (collect (tree-replace tree-element element replacement))))
         (t tree)))
+
+(def (function e) rempend (l1 l2)
+  (bind ((end (- (length l1) (length l2))))
+    (if (equal (subseq l1 end) l2)
+        (subseq l1 0 end)
+        #+nil
+        (error "Not found"))))
 
 (def (class* ea) alternative-function ()
   ((alternatives :type sequence)

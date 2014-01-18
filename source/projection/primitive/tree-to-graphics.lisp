@@ -27,8 +27,7 @@
 ;;;;;;
 ;;; Printer
 
-(def printer tree->graphics (projection recursion iomap input input-reference output-reference)
-  (declare (ignore iomap))
+(def printer tree->graphics (projection recursion input input-reference)
   (bind ((child-iomaps nil))
     (labels ((recurse (input location depth)
                (etypecase input
@@ -53,12 +52,12 @@
                                                              :fill-color *color/light-cyan*)))
                     (make-graphics/canvas (list rectangle text) location))))))
       (bind ((output (recurse input (make-2d 0 0) 0)))
-        (make-iomap/compound projection recursion input input-reference output output-reference
+        (make-iomap/compound projection recursion input input-reference output
                               (list* (make-iomap/object projection recursion input input-reference output output-reference) (nreverse child-iomaps)))))))
 
 ;;;;;;
 ;;; Reader
 
-(def reader tree->graphics (projection recursion printer-iomap projection-iomap gesture-queue operation document)
-  (declare (ignore projection recursion printer-iomap projection-iomap gesture-queue document))
+(def reader tree->graphics (projection recursion projection-iomap gesture-queue operation)
+  (declare (ignore projection recursion projection-iomap gesture-queue document))
   operation)

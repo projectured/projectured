@@ -21,14 +21,8 @@
 
 (def (function e) make-iomap/string (input input-reference input-offset output output-reference output-offset length)
   (make-iomap 'iomap/string
-              :input input :input-reference (when input-reference `(the ,(form-type input) ,input-reference)) :input-offset input-offset
-              :output output :output-reference (when output-reference `(the ,(form-type output) ,output-reference)) :output-offset output-offset
-              :length length))
-
-(def (function e) make-iomap/string* (input input-reference input-offset output output-reference output-offset length)
-  (make-iomap 'iomap/string
-              :input input :input-reference input-reference :input-offset input-offset
-              :output output :output-reference output-reference :output-offset output-offset
+              :input input :input-reference (typed-reference (form-type input) input-reference) :input-offset input-offset
+              :output output :output-reference (typed-reference (form-type output) output-reference) :output-offset output-offset
               :length length))
 
 ;;;;;;
@@ -88,35 +82,3 @@
        (funcall function iomap `(the sequence (subseq ,(input-reference-of iomap)
                                                       ,(+ (- ?b (output-offset-of iomap)) (input-offset-of iomap))
                                                       ,(+ (- ?c (output-offset-of iomap)) (input-offset-of iomap)))))))))
-
-;;;;;;
-;;; Projection
-
-(def projection string->string ()
-  ())
-
-;;;;;;
-;;; Construction
-
-(def (function e) make-projection/string->string ()
-  (make-projection 'string->string))
-
-;;;;;;
-;;; Construction
-
-(def (macro e) string->string ()
-  `(make-projection/string->string))
-
-;;;;;;
-;;; Printer
-
-(def printer string->string (projection recursion iomap input input-reference output-reference)
-  (declare (ignore projection recursion))
-  (make-iomap/string input input-reference 0 input output-reference 0 (length input)))
-
-;;;;;;
-;;; Reader
-
-(def reader string->string (projection recursion input input-reference output-reference)
-  (declare (ignore projection recursion input input-reference output-reference))
-  nil)

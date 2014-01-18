@@ -6,19 +6,25 @@
 
 (in-package :projectured)
 
-(def (function e) make-projection/t->string ()
+(def (function e) make-projection/t->text ()
   (sequential
     (recursive
       (type-dispatching
-        (string (preserving))
-        (text/base (text->tree))
-        (text/base (text->tree))
+        (string (string->text))
+        (text/text (text/text->tree/leaf))
         (book/base (book->tree))
         (xml/base (xml->tree))
         (json/base (json->tree))
         (java/base (java->tree))
         (javascript/base (javascript->tree))
-        (lisp-form/base (lisp-form->tree))))
+        (lisp-form/base (lisp-form->tree))
+        (tree/base (preserving))))
     (recursive
-      (tree->text))
+      (type-dispatching
+        (tree/base (tree->text))
+        (text/text (preserving))))))
+
+(def (function e) make-projection/t->string ()
+  (sequential
+    (make-projection/t->text)
     (text->string)))

@@ -15,17 +15,17 @@
 (def (namespace e) printer)
 
 (def (definer e) printer (name arguments &body forms)
-  `(setf (find-printer ',name) (lambda ,arguments ,@forms)))
+  (bind ((function-name (format-symbol (symbol-package name) "PRINTER/~A" name)))
+    `(progn
+       (def function ,function-name ,arguments ,@forms)
+       (setf (find-printer ',name) ',function-name))))
 
 (def (function e) apply-printer (input projection &optional (recursion (make-projection/preserving)))
-  (bind ((iomap (make-iomap 'iomap
-                            :reference-applier(constantly nil)
-                            :forward-mapper (constantly nil)
-                            :backward-mapper (constantly nil))))
-    (funcall (printer-of projection) projection recursion iomap input 'document `(printer-output (the ,(form-type input) document) ,projection ,recursion))))
+  (funcall (printer-of projection) projection recursion input nil))
 
-(def (function e) recurse-printer (recursion iomap input input-reference output-reference)
-  (funcall (printer-of recursion) recursion recursion iomap input input-reference output-reference))
+(def (function e) recurse-printer (recursion input input-reference)
+  (assert (not (eq 'the (first (first input-reference)))))
+  (funcall (printer-of recursion) recursion recursion input input-reference))
 
 (def (function e) printer-output (input projection &optional (recursion (make-projection/preserving)))
   (output-of (apply-printer input projection recursion)))

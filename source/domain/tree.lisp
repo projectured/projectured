@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; Document
 
-(def document tree/base ()
+(def document tree/base (document/base)
   ((opening-delimiter :type string)
    (closing-delimiter :type string)
    (indentation :type integer)))
@@ -25,54 +25,41 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-tree/leaf (content &key opening-delimiter closing-delimiter indentation)
+(def (function e) make-tree/leaf (content &key opening-delimiter closing-delimiter indentation selection)
   (make-instance 'tree/leaf
                  :content content
                  :opening-delimiter opening-delimiter
                  :closing-delimiter closing-delimiter
-                 :indentation indentation))
+                 :indentation indentation
+                 :selection selection))
 
-(def (function e) make-tree/node (children &key opening-delimiter closing-delimiter separator indentation)
+(def (function e) make-tree/node (children &key opening-delimiter closing-delimiter separator indentation selection)
   (make-instance 'tree/node
                  :children children
                  :opening-delimiter opening-delimiter
                  :closing-delimiter closing-delimiter
+                 :separator separator
                  :indentation indentation
                  :expanded #t
-                 :separator separator))
+                 :selection selection))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) tree/leaf (() &body content)
-  `(make-tree/leaf ,(first content)))
+(def (macro e) tree/leaf ((&key opening-delimiter closing-delimiter indentation selection) &body content)
+  `(make-tree/leaf ,(first content)
+                   :opening-delimiter ,opening-delimiter
+                   :closing-delimiter ,closing-delimiter
+                   :indentation ,indentation
+                   :selection ,selection))
 
-(def (macro e) tree/node (() &body children)
-  `(make-tree/node (list ,@children)))
-
-;;;;;;
-;;; Reference
-
-(def macro opening-delimiter (reference value)
-  (declare (ignore reference))
-  value)
-
-(def macro closing-delimiter (reference value)
-  (declare (ignore reference))
-  value)
-
-(def macro separator (previous-child-reference next-child-reference value)
-  (declare (ignore previous-child-reference next-child-reference))
-  value)
-
-(def macro indentation (reference value)
-  (declare (ignore reference))
-  value)
-
-(def (function e) new-line (reference)
-  (declare (ignore reference))
-  "
-")
+(def (macro e) tree/node ((&key opening-delimiter closing-delimiter separator indentation selection) &body children)
+  `(make-tree/node (list ,@children)
+                   :opening-delimiter ,opening-delimiter
+                   :closing-delimiter ,closing-delimiter
+                   :separator ,separator
+                   :indentation ,indentation
+                   :selection ,selection))
 
 ;;;;;;
 ;;; Operation
@@ -80,18 +67,18 @@
 (def operation operation/tree (operation)
   ())
 
-(def operation operation/tree/toggle-node (operation/tree)
+(def operation operation/tree/toggle-expanded (operation/tree)
   ((document :type document)
    (target :type reference)))
 
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-operation/tree/toggle-node (document target)
-  (make-instance 'operation/tree/toggle-node :document document :target target))
+(def (function e) make-operation/tree/toggle-expanded (document target)
+  (make-instance 'operation/tree/toggle-expanded :document document :target target))
 
 ;;;;;;
 ;;; Redo
 
-(def method redo-operation ((operation operation/tree/toggle-node))
+(def method redo-operation ((operation operation/tree/toggle-expanded))
   (notf (expanded-p (eval-reference (document-of operation) (target-of operation)))))

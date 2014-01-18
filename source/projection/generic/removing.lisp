@@ -29,41 +29,59 @@
 (def (macro e) removing (element predicate key)
   `(make-projection/removing ,element ,predicate ,key))
 
+;;;;;
+;;; IO map
+
+(def iomap iomap/removing (iomap)
+  ((element-iomaps :type sequence)
+   (input-indices :type sequence)))
+
 ;;;;;;
 ;;; Printer
 
-(def printer removing (projection recursion iomap input input-reference output-reference)
-  (declare (ignore iomap))
-  (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
-         (element (element-of projection))
+(def printer removing (projection recursion input input-reference)
+  (bind ((input-indices nil)
+         (element-iomaps (iter (for index :from 0)
+                               (for element :in-sequence input)
+                               (collect (recurse-printer recursion element `((elt (the list document) ,index)
+                                                                             ,@(typed-reference (form-type input) input-reference))))))
          (key (key-of projection))
          (predicate (predicate-of projection))
-         (child-iomaps nil)
-         (output (coerce (iter (with output-index = 0)
-                               (for input-index :from 0)
+         (output (coerce (iter (for input-index :from 0)
                                (for input-element :in-sequence input)
-                               (unless (funcall predicate element (funcall key input-element))
-                                 (push (if (stringp input)
-                                           ;; TODO:
-                                           (make-iomap/string input input-reference input-index "TODO XXX" output-reference output-index 1)
-                                           (make-iomap/recursive projection recursion
-                                                                 input-element `(elt ,typed-input-reference ,input-index)
-                                                                 input-element `(elt (the list ,output-reference) ,output-index)))
-                                       child-iomaps)
-                                 (collect input-element)
-                                 (incf output-index)))
+                               (for output-element = (output-of (elt element-iomaps input-index)))
+                               (unless (funcall predicate (element-of projection) (funcall key input-element))
+                                 (collect output-element)
+                                 (push input-index input-indices)))
                          (cond ((stringp input)
                                 'string)
                                ((listp input)
                                 'list)
                                ((vectorp input)
                                 'vector)))))
-    (make-iomap/compound projection recursion input input-reference output output-reference
-                         (list* (make-iomap/object projection recursion input input-reference output output-reference) (nreverse child-iomaps)))))
+    (make-iomap 'iomap/removing
+                :projection projection :recursion recursion
+                :input input :output output
+                :element-iomaps element-iomaps
+                :input-indices (nreverse input-indices))))
 
 ;;;;;;
 ;;; Reader
 
-(def reader removing (projection recursion printer-iomap projection-iomap gesture-queue operation document-iomap)
-  (declare (ignore projection recursion printer-iomap gesture-queue))
-  (operation/read-backward operation projection-iomap document-iomap))
+(def reader removing (projection recursion projection-iomap gesture-queue operation)
+  (declare (ignore projection recursion gesture-queue))
+  (labels ((recurse (operation)
+             (typecase operation
+               (operation/quit operation)
+               (operation/replace-selection
+                (pattern-case (reverse (selection-of operation))
+                  (((the ?type (elt (the list document) ?output-element-index))
+                    . ?rest)
+                   (bind ((input-element-index (elt (input-indices-of projection-iomap) ?output-element-index)))
+                     (make-operation/replace-selection (input-of projection-iomap) (reverse (append `((the ,?type (elt (the list document) ,input-element-index))) ?rest)))))))
+               (operation/sequence/replace-element-range)
+               (operation/compound
+                (bind ((operations (mapcar #'recurse (elements-of operation))))
+                  (unless (some 'null operations)
+                    (make-operation/compound operations)))))))
+    (recurse operation)))

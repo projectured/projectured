@@ -11,6 +11,7 @@
   :description "The web backend for the generic purpose projectional editor."
   :depends-on (:hu.dwim.util.production+swank
                :hu.dwim.web-server.application
+               :iolib
                :lispbuilder-sdl-ttf
                :projectured)
   :components ((:module "source"

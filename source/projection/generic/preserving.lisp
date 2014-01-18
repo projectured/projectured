@@ -7,6 +7,31 @@
 (in-package :projectured)
 
 ;;;;;;
+;;; IO map
+
+(def iomap iomap/preserving (iomap)
+  ())
+
+;;;;;;
+;;; Reference applier
+
+(def reference-applier iomap/preserving (iomap reference function)
+  (declare (ignore iomap reference function))
+  (not-yet-implemented))
+
+;;;;;;
+;;; Forward mapper
+
+(def forward-mapper iomap/preserving (iomap input-reference function)
+  (funcall function iomap input-reference))
+
+;;;;;;
+;;; Backward mapper
+
+(def backward-mapper iomap/preserving (iomap output-reference function)
+  (funcall function iomap output-reference))
+
+;;;;;;
 ;;; Projection
 
 (def projection preserving ()
@@ -27,17 +52,13 @@
 ;;;;;;
 ;;; Printer
 
-(def printer preserving (projection recursion iomap input input-reference output-reference)
-  (declare (ignore iomap))
-  (if (stringp input)
-      (make-iomap/compound projection recursion input input-reference input output-reference
-                            (list (make-iomap/object projection recursion input input-reference input output-reference)
-                                  (make-iomap/string input input-reference 0 input output-reference 0 (length input))))
-      (make-iomap/object projection recursion input input-reference input output-reference)))
+(def printer preserving (projection recursion input input-reference)
+  (declare (ignore projection recursion input-reference))
+  (make-iomap 'iomap/preserving :input input :output input))
 
 ;;;;;;
 ;;; Reader
 
-(def reader preserving (projection recursion printer-iomap projection-iomap gesture-queue operation document)
-  (declare (ignore projection recursion printer-iomap projection-iomap gesture-queue document))
+(def reader preserving (projection recursion projection-iomap gesture-queue operation)
+  (declare (ignore projection recursion projection-iomap gesture-queue document))
   operation)

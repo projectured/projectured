@@ -15,7 +15,6 @@
 
 (def iomap iomap/compound (iomap)
   ((input-reference :type reference)
-   (output-reference :type reference)
    (child-iomaps :type list)))
 
 ;;;;;;
@@ -24,22 +23,13 @@
 (def (function e) make-iomap/recursive (projection recursion input input-reference output output-reference)
   (make-iomap 'iomap/recursive
               :projection projection :recursion recursion
-              :input input :input-reference (when input-reference `(the ,(form-type input) ,input-reference))
-              :output output :output-reference (when output-reference `(the ,(form-type output) ,output-reference))))
+              :input input :input-reference (typed-reference (form-type input) input-reference)
+              :output output :output-reference (typed-reference (form-type output) output-reference)))
 
-(def (function e) make-iomap/recursive* (projection recursion input input-reference output output-reference)
-  (make-iomap 'iomap/recursive
-              :projection projection :recursion recursion
-              :input input :input-reference input-reference
-              :output output :output-reference output-reference))
-
-(def (function e) make-iomap/compound (projection recursion input input-reference output output-reference child-iomaps)
-  (assert (notany 'null child-iomaps))
-  (make-iomap 'iomap/compound
-              :projection projection :recursion recursion
-              :input input :input-reference input-reference
-              :output output :output-reference output-reference
-              :child-iomaps child-iomaps))
+(def (function e) make-iomap/compound (projection recursion input input-reference output child-iomaps)
+  (make-iomap 'iomap/compound :projection projection :recursion recursion
+              :input input :input-reference (typed-reference (form-type input) input-reference)
+              :output output :child-iomaps child-iomaps))
 
 ;;;;;;
 ;;; Reference applier
@@ -95,15 +85,15 @@
 ;;;;;;
 ;;; Printer
 
-(def printer recursive (projection recursion iomap input input-reference output-reference)
+(def printer recursive (projection recursion input input-reference)
   (declare (ignore recursion))
   (bind ((child (child-of projection)))
-    (funcall (printer-of child) child projection iomap input input-reference output-reference)))
+    (funcall (printer-of child) child projection input input-reference)))
 
 ;;;;;;
 ;;; Reader
 
-(def reader recursive (projection recursion printer-iomap projection-iomap gesture-queue operation document)
+(def reader recursive (projection recursion projection-iomap gesture-queue operation)
   (declare (ignore recursion))
   (bind ((child (child-of projection)))
-    (funcall (reader-of child) child projection printer-iomap projection-iomap gesture-queue operation document)))
+    (funcall (reader-of child) child projection projection-iomap gesture-queue operation)))

@@ -32,23 +32,24 @@
 ;;;;;;
 ;;; Printer
 
-(def printer reference-dispatching (projection recursion iomap input input-reference output-reference)
+(def printer reference-dispatching (projection recursion input input-reference)
   (declare (ignore recursion))
-  (iter (with default-projection = (default-projection-of projection))
+  (iter (with typed-input-reference = (typed-reference (form-type input) input-reference))
+        (with default-projection = (default-projection-of projection))
         (with reference-projection-pairs = (reference-projection-pairs-of projection))
         (for (reference projection) :in-sequence reference-projection-pairs)
-        (when (equal reference input-reference)
-          (return (funcall (printer-of projection) projection projection iomap input input-reference output-reference)))
-        (finally (return (funcall (printer-of default-projection) default-projection projection iomap input input-reference output-reference)))))
+        (when (equal reference (subseq typed-input-reference 0 (length reference)))
+          (return (funcall (printer-of projection) projection projection input input-reference)))
+        (finally (return (funcall (printer-of default-projection) default-projection projection input input-reference)))))
 
 ;;;;;;
 ;;; Reader
 
-(def reader reference-dispatching (projection recursion printer-iomap projection-iomap gesture-queue operation document)
+(def reader reference-dispatching (projection recursion projection-iomap gesture-queue operation)
   (declare (ignore recursion))
   (iter (with default-projection = (default-projection-of projection))
         (with reference-projection-pairs = (reference-projection-pairs-of projection))
         (for (reference projection) :in-sequence reference-projection-pairs)
-        (when (equal reference (input-reference-of projection-iomap))
-          (return (funcall (reader-of projection) projection projection printer-iomap projection-iomap gesture-queue operation document)))
-        (finally (return (funcall (reader-of default-projection) default-projection projection printer-iomap projection-iomap gesture-queue operation document)))))
+        (when (equal reference (subseq (input-reference-of projection-iomap) 0 (length reference)))
+          (return (funcall (reader-of projection) projection projection projection-iomap gesture-queue operation)))
+        (finally (return (funcall (reader-of default-projection) default-projection projection projection-iomap gesture-queue operation)))))

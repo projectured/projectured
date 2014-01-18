@@ -1,0 +1,73 @@
+erdekes, hogy vegul is milyen egyszeru ez a projekcios editor
+ - minden fuggveny funkcionalis, csak adatot transzformal es semmi side-effekt
+ - egy printer meg az egyik domainbol egy masikba (vagy ugyanoda) transzformalja az adatokat
+ - egy reader meg a deltakat transzformalja az egyik domain-bol a masikba (kiindulasnak egy gesture-t kap)
+
+olyan mapping kell, hogy
+ - az osszetett projekciok az alattuk levok eredmenyeit felhasznalva adjanak valaszokat a forward es backward mappingre
+ - kell tudja tamogatni a printer-output-ot is, hogy tudjuk pl az opening-delimiter-t mappelni a tree-nel ugy hogy a korabbi stage-k nem tudnak rola
+ - a rekurziv tablazatokat, tree nodeokat is kell tudni tamogatni ugy hogy egymas iomap-jeire epitunk es nem tologatjuk a returnolt iomapeket
+ - kell tudni kezelni a lapito es a nem lapito transzformaciokat
+ - neha a referencia vegere, neha az elejere kell matchelni a forward es backward mapping-nel
+ - a referenciaknak kiertekelhetonek kell lennie, azaz mindig kell, hogy valamilyen tenyleges result-ra vezessen
+ - eleg mappelni az object-eket, a subsequence-eket es a subbox-okat, nem kell kulon a pos es az elt
+ - kezelni kell tudni azt is, hogy ugyanazt a dolgot tobbszor is projektaljuk de kulonbozo keppen (lasd reference-dispatching)
+ - jo lenne elkerulni, hogy a porjekciok tudjanak a global input es output referenciakrol, csak local referenciaik legyenek
+ - meg kell tudni talalni a selection-hoz tartozo iomap-et lokalisan, mert arra kell rekurzivan lemenni
+ - tudni kell kezelni, hogy ugyanabba a dologba tobb kulonbozo selection mutat
+
+erdekes esetek:
+
+1. text->graphics
+-----------------
+text/text
+->
+graphhics/canvas
+  graphics/text
+
+2. tree->text
+-------------
+tree/leaf
+  text/text
+->
+text/text
+
+tree/node
+  tree/leaf
+  tree/node
+->
+text/text
+
+3. table->text
+--------------
+table/table
+  table/row
+    table/cell
+->
+text/text
+
+4. json->tree
+-------------
+json/null
+->
+tree/leaf
+  text/text
+
+json/array
+  json/null
+  json/boolean
+  json/number
+  json/string
+->
+tree/node
+  tree/leaf
+
+5. widget->graphics
+-------------------
+widget/composite
+->
+graphics/canvas
+
+widget/tabbed-pane
+->
+graphics/canvas

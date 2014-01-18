@@ -35,13 +35,3 @@
 
 (def (macro e) list/element (() &body content)
   `(make-list/element ,(first content)))
-
-;;;;;;
-;;; API
-
-(def (function e) list/width (list)
-  (bind ((elements (elements-of list)))
-    (iter (for element :in-sequence elements)
-          (for content = (content-of element))
-          (maximizing (etypecase content
-                        (string (length content)))))))

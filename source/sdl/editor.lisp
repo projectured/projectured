@@ -85,26 +85,28 @@
           (:key-down-event
            (sdl:with-key-down-event ((mod-key :mod-key) (key :key) (character :unicode)) sdl:*sdl-event*
              (make-instance 'event/keyboard/key-down
-                            :timestamp (iolib.syscalls:get-monotonic-time)
+                            :timestamp (get-internal-real-time)
                             :modifiers (mapcar 'modifier-key mod-key)
+                            :location (make-2d (sdl:mouse-x) (sdl:mouse-y))
                             :key key
                             :character (code-char character))))
           (:key-up-event
            (sdl:with-key-down-event ((mod-key :mod-key) (key :key) (character :unicode)) sdl:*sdl-event*
              (make-instance 'event/keyboard/key-up
-                            :timestamp (iolib.syscalls:get-monotonic-time)
+                            :timestamp (get-internal-real-time)
                             :modifiers (mapcar 'modifier-key mod-key)
+                            :location (make-2d (sdl:mouse-x) (sdl:mouse-y))
                             :key key
                             :character (code-char character))))
           (:mouse-motion-event
            (sdl:with-mouse-motion-event ((x :x) (y :y)) sdl:*sdl-event*
              (make-instance 'event/mouse/move
-                            :timestamp (iolib.syscalls:get-monotonic-time)
+                            :timestamp (get-internal-real-time)
                             :location (make-2d x y))))
           (:mouse-button-down-event
            (sdl:with-mouse-button-down-event ((x :x) (y :y) (button :button)) sdl:*sdl-event*
              (make-instance 'event/mouse/button/press
-                            :timestamp (iolib.syscalls:get-monotonic-time)
+                            :timestamp (get-internal-real-time)
                             ;; TODO:
                             :modifiers nil
                             :button (mouse-button button)
@@ -112,7 +114,7 @@
           (:mouse-button-up-event
            (sdl:with-mouse-button-up-event ((x :x) (y :y) (button :button)) sdl:*sdl-event*
              (make-instance 'event/mouse/button/release
-                            :timestamp (iolib.syscalls:get-monotonic-time)
+                            :timestamp (get-internal-real-time)
                             ;; TODO:
                             :modifiers nil
                             :button (mouse-button button)

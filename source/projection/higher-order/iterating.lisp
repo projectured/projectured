@@ -30,17 +30,17 @@
 ;;;;;;
 ;;; Printer
 
-(def printer iterating (projection recursion iomap input input-reference output-reference)
+(def printer iterating (projection recursion input input-reference)
   (iter (for output :initially input :then (output-of iomap))
         (for previous-output :previous output)
-        (for iomap = (funcall (printer-of projection) projection recursion iomap output input-reference output-reference))
+        (for iomap = (funcall (printer-of projection) projection recursion output input-reference output-reference))
         (collect iomap :into element-iomaps)
         (until (funcall (test-of projection) previous-output output))
-        (finally (return (make-iomap/sequential input output element-iomaps)))))
+        (finally (return (make-iomap/sequential projection recursion input output element-iomaps)))))
 
 ;;;;;;
 ;;; Reader
 
-(def reader iterating (projection recursion input input-reference output-reference)
-  (declare (ignore projection recursion input input-reference output-reference))
+(def reader iterating (projection recursion projection-iomap gesture-queue operation)
+  (declare (ignore projection recursion projection-iomap gesture-queue operation))
   nil)

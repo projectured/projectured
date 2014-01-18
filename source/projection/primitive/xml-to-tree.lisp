@@ -43,126 +43,235 @@
   '(make-projection/xml/element->tree/node))
 
 ;;;;;;
+;;; IO map
+
+(def iomap iomap/xml/element->tree/node (iomap)
+  ((attribute-iomaps :type sequence)
+   (child-iomaps :type sequence)))
+
+;;;;;;
 ;;; Printer
 
-(def printer xml/text->tree/leaf (projection recursion iomap input input-reference output-reference)
-  (declare (ignore iomap))
-  (bind ((text (text-of input))
-         (typed-input-reference `(the ,(form-type input) ,input-reference))
-         (output (make-tree/leaf (make-text/string text :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/green*))))
-    (make-iomap/compound projection recursion input input-reference output output-reference
-                         (list (make-iomap/object projection recursion input input-reference output output-reference)
-                               (make-iomap/string text `(text-of ,typed-input-reference) 0
-                                                  text `(content-of (the text/string (content-of (the tree/leaf ,output-reference)))) 0
-                                                  (length text))))))
+(def printer xml/text->tree/leaf (projection recursion input input-reference)
+  (bind ((output-reference (pattern-case (reverse (selection-of input))
+                             (((the string (text-of (the xml/text document)))
+                               (the sequence-position (pos (the string document) ?index)))
+                              `((the sequence-position (text/pos (the text/text document) ,?index))
+                                (the text/text (content-of (the tree/leaf document)))))))
+         (output (tree/leaf (:selection output-reference)
+                   (text/text (:selection (butlast output-reference))
+                     (text/string (text-of input) :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/green*)))))
+    (make-iomap/compound projection recursion input input-reference output nil)))
 
-(def printer xml/attribute->tree/node (projection recursion iomap input input-reference output-reference)
-  (declare (ignore iomap))
-  (bind ((name (name-of input))
-         (value (value-of input))
-         (name-leaf (make-tree/leaf (make-text/string name :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/red*)))
-         (value-leaf (make-tree/leaf (make-text/string value :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/green*)
-                                     :opening-delimiter (make-text/string "\"" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)
-                                     :closing-delimiter (make-text/string "\"" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))
-         (output (make-tree/node (list name-leaf value-leaf)
-                                 :opening-delimiter (make-text/string "" :font *font/default* :font-color *color/default*)
-                                 :closing-delimiter (make-text/string "" :font *font/default* :font-color *color/default*)
-                                 :separator (make-text/string "=" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))
-         (typed-input-reference `(the ,(form-type input) ,input-reference))
-         (name-reference `(elt (the list (children-of (the tree/node ,output-reference))) 0))
-         (value-reference `(elt (the list (children-of (the tree/node ,output-reference))) 1)))
-    (make-iomap/compound projection recursion input input-reference output output-reference
-                         (list (make-iomap/recursive projection recursion input input-reference output output-reference)
-                               (make-iomap/object projection recursion
-                                                  name `(name-of ,typed-input-reference)
-                                                  name-leaf name-reference)
-                               (make-iomap/string name `(name-of ,typed-input-reference) 0
-                                                  name `(content-of (the text/string (content-of (the tree/leaf ,name-reference)))) 0
-                                                  (length name))
-                               (make-iomap/object projection recursion
-                                                  value `(value-of ,typed-input-reference)
-                                                  value-leaf value-reference)
-                               (make-iomap/string value `(value-of ,typed-input-reference) 0
-                                                  value `(content-of (the text/string (content-of (the tree/leaf ,value-reference)))) 0
-                                                  (length value))))))
+(def printer xml/attribute->tree/node (projection recursion input input-reference)
+  (bind ((output-selection (pattern-case (selection-of input)
+                             (((the sequence-position (pos (the string document) ?character-index))
+                               (the string (name-of (the xml/attribute document))))
+                              `((the sequence-position (text/pos (the text/text document) ,?character-index))
+                                (the text/text (content-of (the tree/leaf document)))
+                                (the tree/leaf (elt (the list document) 0))
+                                (the list (children-of (the tree/node document)))))
+                             (((the sequence-position (pos (the string document) ?character-index))
+                               (the string (value-of (the xml/attribute document))))
+                              `((the sequence-position (text/pos (the text/text document) ,?character-index))
+                                (the text/text (content-of (the tree/leaf document)))
+                                (the tree/leaf (elt (the list document) 1))
+                                (the list (children-of (the tree/node document)))))))
+         (output (tree/node (:opening-delimiter (text/text () (text/string "" :font *font/default* :font-color *color/default*))
+                             :closing-delimiter (text/text () (text/string "" :font *font/default* :font-color *color/default*))
+                             :separator (text/text () (text/string "=" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))
+                             :selection output-selection)
+                   (tree/leaf (:selection (butlast output-selection 2))
+                     (text/text (:selection (butlast output-selection 3))
+                       (text/string (name-of input) :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/red*)))
+                   (tree/leaf (:opening-delimiter (text/text () (text/string "\"" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))
+                               :closing-delimiter (text/text () (text/string "\"" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))
+                               :selection (butlast output-selection 2))
+                     (text/text (:selection (butlast output-selection 3))
+                       (text/string (value-of input) :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/green*))))))
+    (make-iomap/compound projection recursion input input-reference output nil)))
 
-(def printer xml/element->tree/node (projection recursion iomap input input-reference output-reference)
-  (declare (ignore iomap))
-  (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
-         (child-iomaps nil)
-         (name (name-of input))
-         (attributes (attributes-of input))
-         (children (children-of input))
-         (deep-element (find-if (of-type 'xml/element) (children-of input)))
-         (output (make-tree/node (append (list (prog1 (make-tree/leaf (make-text/string name :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/blue*)
-                                                                      :opening-delimiter (make-text/string "<" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)
-                                                                      :closing-delimiter (unless attributes
-                                                                                           (make-text/string (if children ">" "/>") :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))
-                                                 (push (make-iomap/object* projection recursion input `(the string (start-tag ,typed-input-reference))
-                                                                           name `(the tree/leaf (elt (the list (children-of (the tree/node ,output-reference))) 0)))
-                                                       child-iomaps)
-                                                 (push (make-iomap/string name `(start-tag ,typed-input-reference) 0
-                                                                          name `(content-of (the text/string (content-of (the tree/leaf (elt (the list (children-of (the tree/node ,output-reference))) 0))))) 0
-                                                                          (length name))
-                                                       child-iomaps)))
-                                         (when attributes
-                                           (list (prog1-bind output
-                                                     (make-tree/node (iter (for attribute :in attributes)
-                                                                           (for attribute-index :from 0)
-                                                                           (for iomap = (recurse-printer recursion iomap attribute
-                                                                                                         `(elt (the list (attributes-of ,typed-input-reference)) ,attribute-index)
-                                                                                                         `(elt (the list (children-of (the tree/node (elt (the list (children-of (the tree/node ,output-reference))) ,1)))) ,attribute-index)))
-                                                                           (push iomap child-iomaps)
-                                                                           (collect (output-of iomap)))
-                                                                     :opening-delimiter (make-text/string "" :font *font/default* :font-color *color/default*)
-                                                                     :closing-delimiter (make-text/string (if children ">" "/>") :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)
-                                                                     :separator (make-text/string " " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))
-                                                   ;; TODO: this kills editing xml attribute names and values because it kicks in when mapping backward
-                                                   #+nil
-                                                   (push (make-iomap/object* projection recursion input `(the list (attributes-of ,typed-input-reference))
-                                                                             output `(the tree/node (elt (the list (children-of (the tree/node ,output-reference))) 1)))
-                                                         child-iomaps))))
-                                         (when children
-                                           (append (prog1-bind output
-                                                       (iter (for child :in children)
-                                                             (for child-index :from 0)
-                                                             (for iomap = (recurse-printer recursion iomap child
-                                                                                           `(elt (the list (children-of ,typed-input-reference)) ,child-index)
-                                                                                           `(elt (the list (children-of (the tree/node ,output-reference))) ,(+ child-index (if attributes 2 1)))))
-                                                             (push iomap child-iomaps)
-                                                             ;; KLUDGE:
-                                                             (when deep-element
-                                                               (setf (indentation-of (output-of iomap)) 2))
-                                                             (collect (output-of iomap))))
-                                                   (prog1 (list (make-tree/leaf (make-text/string name :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/blue*)
-                                                                                :indentation (if deep-element 0 nil)
-                                                                                :opening-delimiter (make-text/string "</" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)
-                                                                                :closing-delimiter (make-text/string ">" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))
-                                                     (push (make-iomap/object* projection recursion input `(the string (end-tag ,typed-input-reference))
-                                                                               name `(the tree/leaf (elt (the list (children-of (the tree/node ,output-reference))) ,(+ (length children) (if attributes 2 1)))))
-                                                           child-iomaps)
-                                                     (push (make-iomap/string name `(end-tag ,typed-input-reference) 0
-                                                                              name `(content-of (the text/string (content-of (the tree/leaf (elt (the list (children-of (the tree/node ,output-reference))) ,(+ (length children) (if attributes 2 1))))))) 0
-                                                                              (length name))
-                                                           child-iomaps)))))
+(def printer xml/element->tree/node (projection recursion input input-reference)
+  (bind ((deep-element (find-if (of-type 'xml/element) (children-of input)))
+         (attribute-iomaps (iter (for attribute :in (attributes-of input))
+                                 (for attribute-index :from 0)
+                                 (collect (recurse-printer recursion attribute
+                                                           `((elt (the list document) ,attribute-index)
+                                                             (the list (attributes-of document))
+                                                             ,@(typed-reference (form-type input) input-reference))))))
+         (child-iomaps (iter (for child :in (children-of input))
+                             (for child-index :from 0)
+                             (for child-iomap = (recurse-printer recursion child
+                                                                 `((elt (the list document) ,child-index)
+                                                                   (the list (children-of document))
+                                                                   ,@(typed-reference (form-type input) input-reference))))
+                             ;; KLUDGE:
+                             (when deep-element
+                               (setf (indentation-of (output-of child-iomap)) 2))
+                             (collect child-iomap)))
+         (output-selection (pattern-case (reverse (selection-of input))
+                             (((the string (name-of (the xml/element document)))
+                               (the sequence-position (pos (the string document) ?character-index)))
+                              `((the sequence-position (text/pos (the text/text document) ,?character-index))
+                                (the text/text (content-of (the tree/leaf document)))
+                                (the tree/leaf (elt (the list document) 0))
+                                (the list (children-of (the tree/node document)))))
+                             (((the list (children-of (the xml/element document)))
+                               (the ?child-type (elt (the list document) ?child-index))
+                               . ?rest)
+                              (bind ((child-iomap (elt child-iomaps ?child-index))
+                                     (child-output (output-of child-iomap)))
+                                (append (selection-of child-output)
+                                        `((the ,(form-type child-output) (elt (the list document) ,(+ ?child-index (if attribute-iomaps 2 1))))
+                                          (the list (children-of (the tree/node document)))))))))
+         (output (make-tree/node (append (list (tree/leaf (:opening-delimiter (text/text () (text/string "<" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))
+                                                           :closing-delimiter (unless attribute-iomaps
+                                                                                (text/text () (text/string (if child-iomaps ">" "/>") :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))
+                                                           :selection (butlast output-selection 2))
+                                                 (text/text (:selection (butlast output-selection 3))
+                                                   (text/string (name-of input) :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/blue*))))
+                                         (when attribute-iomaps
+                                           (list (make-tree/node (mapcar 'output-of attribute-iomaps)
+                                                                 :opening-delimiter (text/text () (text/string "" :font *font/default* :font-color *color/default*))
+                                                                 :closing-delimiter (text/text () (text/string (if child-iomaps ">" "/>") :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))
+                                                                 :separator (text/text () (text/string " " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))))
+                                         (when child-iomaps
+                                           (append (mapcar 'output-of child-iomaps)
+                                                   (list (tree/leaf (:indentation (if deep-element 0 nil)
+                                                                     :opening-delimiter (text/text () (text/string "</" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))
+                                                                     :closing-delimiter (text/text () (text/string ">" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))
+                                                           (text/text () (text/string (name-of input) :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/blue*)))))))
                                  :indentation 4
-                                 :opening-delimiter (make-text/string "" :font *font/default* :font-color *color/default*)
-                                 :closing-delimiter (make-text/string "" :font *font/default* :font-color *color/default*)
-                                 :separator (make-text/string " " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))))
-    (make-iomap/compound projection recursion input input-reference output output-reference
-                         (list* (make-iomap/recursive projection recursion input input-reference output output-reference) (nreverse child-iomaps)))))
+                                 :opening-delimiter (text/text () (text/string "" :font *font/default* :font-color *color/default*))
+                                 :closing-delimiter (text/text () (text/string "" :font *font/default* :font-color *color/default*))
+                                 :separator (text/text () (text/string " " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))
+                                 :selection output-selection)))
+    (make-iomap 'iomap/xml/element->tree/node
+                :projection projection :recursion recursion
+                :input input :output output
+                :attribute-iomaps attribute-iomaps
+                :child-iomaps child-iomaps)))
 
 ;;;;;;
 ;;; Reader
 
-(def reader xml/text->tree/leaf (projection recursion printer-iomap projection-iomap gesture-queue operation document-iomap)
-  (declare (ignore projection recursion printer-iomap gesture-queue))
-  (operation/read-backward operation projection-iomap document-iomap))
+(def reader xml/text->tree/leaf (projection recursion projection-iomap gesture-queue operation)
+  (declare (ignore projection recursion gesture-queue))
+  (bind ((input (input-of projection-iomap)))
+    (labels ((recurse (operation)
+               (typecase operation
+                 (operation/quit operation)
+                 (operation/replace-selection
+                  (make-operation/replace-selection input
+                                                    (pattern-case (selection-of operation)
+                                                      (((the sequence-position (text/pos (the text/text document) ?index))
+                                                        (the text/text (content-of (the tree/leaf document))))
+                                                       `((the sequence-position (pos (the string document) ,?index))
+                                                         (the string (text-of (the xml/text document))))))))
+                 (operation/sequence/replace-element-range
+                  (make-operation/sequence/replace-element-range input
+                                                                 (pattern-case (target-of operation)
+                                                                   (((the sequence-position (text/pos (the text/text document) ?index))
+                                                                     (the text/text (content-of (the tree/leaf document))))
+                                                                    `((the sequence-position (pos (the string document) ,?index))
+                                                                      (the string (text-of (the xml/text document))))))
+                                                                 (replacement-of operation)))
+                 (operation/compound
+                  (bind ((operations (mapcar #'recurse (elements-of operation))))
+                    (unless (some 'null operations)
+                      (make-operation/compound operations)))))))
+      (recurse operation))))
 
-(def reader xml/attribute->tree/node (projection recursion printer-iomap projection-iomap gesture-queue operation document-iomap)
-  (declare (ignore projection recursion printer-iomap gesture-queue))
-  (operation/read-backward operation projection-iomap document-iomap))
+(def reader xml/attribute->tree/node (projection recursion projection-iomap gesture-queue operation)
+  (declare (ignore projection recursion gesture-queue))
+  (bind ((input (input-of projection-iomap)))
+    (labels ((recurse (operation)
+               (typecase operation
+                 (operation/quit operation)
+                 (operation/replace-selection
+                  (make-operation/replace-selection input
+                                                    (pattern-case (selection-of operation)
+                                                      (((the sequence-position (text/pos (the text/text document) ?character-index))
+                                                        (the text/text (content-of (the tree/leaf document)))
+                                                        (the tree/leaf (elt (the list document) 0))
+                                                        (the list (children-of (the tree/node document))))
+                                                       `((the sequence-position (pos (the string document) ,?character-index))
+                                                         (the string (name-of (the xml/attribute document)))))
+                                                      (((the sequence-position (text/pos (the text/text document) ?character-index))
+                                                        (the text/text (content-of (the tree/leaf document)))
+                                                        (the tree/leaf (elt (the list document) 1))
+                                                        (the list (children-of (the tree/node document))))
+                                                       `((the sequence-position (pos (the string document) ,?character-index))
+                                                         (the string (value-of (the xml/attribute document))))))))
+                 (operation/sequence/replace-element-range
+                  (make-operation/sequence/replace-element-range input
+                                                                 (pattern-case (target-of operation)
+                                                                   (((the sequence-position (text/pos (the text/text document) ?character-index))
+                                                                     (the text/text (content-of (the tree/leaf document)))
+                                                                     (the tree/leaf (elt (the list document) 0))
+                                                                     (the list (children-of (the tree/node document))))
+                                                                    `((the sequence-position (pos (the string document) ,?character-index))
+                                                                      (the string (name-of (the xml/attribute document)))))
+                                                                   (((the sequence-position (text/pos (the text/text document) ?character-index))
+                                                                     (the text/text (content-of (the tree/leaf document)))
+                                                                     (the tree/leaf (elt (the list document) 1))
+                                                                     (the list (children-of (the tree/node document))))
+                                                                    `((the sequence-position (pos (the string document) ,?character-index))
+                                                                      (the string (value-of (the xml/attribute document))))))
+                                                                 (replacement-of operation)))
+                 (operation/compound
+                  (bind ((operations (mapcar #'recurse (elements-of operation))))
+                    (unless (some 'null operations)
+                      (make-operation/compound operations)))))))
+      (recurse operation))))
 
-(def reader xml/element->tree/node (projection recursion printer-iomap projection-iomap gesture-queue operation document-iomap)
-  (declare (ignore projection recursion printer-iomap gesture-queue))
-  (operation/read-backward operation projection-iomap document-iomap))
+(def reader xml/element->tree/node (projection recursion projection-iomap gesture-queue operation)
+  (declare (ignore projection))
+  (bind ((input (input-of projection-iomap)))
+    (labels ((recurse (operation)
+               (typecase operation
+                 (operation/quit operation)
+                 (operation/replace-selection
+                  (make-operation/replace-selection input
+                                                    (pattern-case (reverse (selection-of operation))
+                                                      (((the list (children-of (the tree/node document)))
+                                                        (the tree/leaf (elt (the list document) 0))
+                                                        (the text/text (content-of (the tree/leaf document)))
+                                                        (the sequence-position (text/pos (the text/text document) ?character-index)))
+                                                       `((the sequence-position (pos (the string document) ,?character-index))
+                                                         (the string (name-of (the xml/element document)))))
+                                                      (((the list (children-of (the tree/node document)))
+                                                        (the ?child-type (elt (the list document) ?child-index))
+                                                        . ?rest)
+                                                       (bind ((child-index (- ?child-index (if (attribute-iomaps-of projection-iomap) 2 1)))
+                                                              (child (elt (children-of input) child-index))
+                                                              (input-operation (make-operation/replace-selection child (reverse ?rest)))
+                                                              (output-operation (recurse-reader recursion (elt (child-iomaps-of projection-iomap) child-index) gesture-queue input-operation)))
+                                                         (append (selection-of output-operation)
+                                                                 `((the ,(form-type child) (elt (the list document) ,child-index))
+                                                                   (the list (children-of (the xml/element document))))))))))
+                 (operation/sequence/replace-element-range
+                  (make-operation/sequence/replace-element-range input
+                                                                 (pattern-case (reverse (target-of operation))
+                                                                   (((the list (children-of (the tree/node document)))
+                                                                     (the tree/leaf (elt (the list document) 0))
+                                                                     (the text/text (content-of (the tree/leaf document)))
+                                                                     (the sequence-position (text/pos (the text/text document) ?character-index)))
+                                                                    `((the sequence-position (pos (the string document) ,?character-index))
+                                                                      (the string (name-of (the xml/element document)))))
+                                                                   (((the list (children-of (the tree/node document)))
+                                                                     (the ?child-type (elt (the list document) ?child-index))
+                                                                     . ?rest)
+                                                                    (bind ((child-index (- ?child-index (if (attribute-iomaps-of projection-iomap) 2 1)))
+                                                                           (child (elt (children-of input) child-index))
+                                                                           (input-operation (make-operation/sequence/replace-element-range child (reverse ?rest) (replacement-of operation)))
+                                                                           (output-operation (recurse-reader recursion (elt (child-iomaps-of projection-iomap) child-index) gesture-queue input-operation)))
+                                                                      (append (target-of output-operation)
+                                                                              `((the ,(form-type child) (elt (the list document) ,child-index))
+                                                                                (the list (children-of (the xml/element document))))))))
+                                                                 (replacement-of operation)))
+                 (operation/compound
+                  (bind ((operations (mapcar #'recurse (elements-of operation))))
+                    (unless (some 'null operations)
+                      (make-operation/compound operations)))))))
+      (recurse operation))))
