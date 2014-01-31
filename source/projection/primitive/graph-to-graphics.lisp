@@ -33,6 +33,6 @@
 ;;;;;;
 ;;; Reader
 
-(def reader graph->graphics (projection recursion projection-iomap gesture-queue operation)
-  (declare (ignore projection recursion projection-iomap gesture-queue document))
-  operation)
+(def reader graph->graphics (projection recursion input printer-iomap)
+  (declare (ignore projection recursion printer-iomap))
+  input)

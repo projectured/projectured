@@ -51,8 +51,8 @@
 ;;;;;;
 ;;; Reference
 
-(def macro start-tag (reference)
-  `(name-of ,reference))
+(def function xml/start-tag (element)
+  (name-of element))
 
-(def macro end-tag (reference)
-  `(name-of ,reference))
+(def function xml/end-tag (element)
+  (name-of element))

@@ -61,7 +61,7 @@
                               (when (or force (not (string= content "")))
                                 #+nil
                                 (push (make-iomap/string input input-reference input-offset content
-                                                         `(content-of (the text/string (elt (the list (elements-of (the text/text ,output-reference))) ,output-index))) 0 (length content))
+                                                         `(content-of (the text/string (elt (the sequence (elements-of (the text/text ,output-reference))) ,output-index))) 0 (length content))
                                       child-iomaps)
                                 (incf output-index)
                                 (list (make-text/string content :font font :font-color font-color :fill-color fill-color :line-color line-color))))))
@@ -103,6 +103,6 @@
 ;;;;;;
 ;;; Reader
 
-(def reader string->text (projection recursion projection-iomap gesture-queue operation)
-  (declare (ignore projection recursion projection-iomap gesture-queue operation))
+(def reader string->text (projection recursion input printer-iomap)
+  (declare (ignore projection recursion input printer-iomap))
   nil)

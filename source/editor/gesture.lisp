@@ -106,9 +106,13 @@
           ((and (typep event0 'event/mouse/move)
                 ;; TODO: need a timer that kicks in every now and them to make this work
                 (> (- (get-internal-real-time) (timestamp-of event0)) 3))
-           (make-instance 'gesture/mouse/hover :location (location-of event0)))
+           (make-instance 'gesture/mouse/hover
+                          :location (location-of event0)
+                          :modifiers (modifiers-of event0)))
           ((and (typep event0 'event/mouse/move))
-           (make-instance 'gesture/mouse/move :location (location-of event0)))
+           (make-instance 'gesture/mouse/move
+                          :location (location-of event0)
+                          :modifiers (modifiers-of event0)))
           (t nil))))
 
 (def method last-gesture ((gesture-queue gesture-queue))
@@ -152,13 +156,31 @@
 (def function gesture/describe-key (gesture)
   (etypecase gesture
     (gesture/keyboard/key-press
-     (if (character-of gesture)
-         (string (character-of gesture))
-         (subseq (symbol-name (key-of gesture)) (length "SDL-KEY-"))))
+     (bind ((character (character-of gesture)))
+       (if (and character
+                (not (whitespace? character))
+                (or (alphanumericp character)
+                    (graphic-char-p character)))
+           (string (character-of gesture))
+           (subseq (symbol-name (key-of gesture)) (length "SDL-KEY-")))))
     (gesture/mouse/button/click
-     (symbol-name (button-of gesture)))
+     (ecase (button-of gesture)
+       (:button-left
+        "LEFT MOUSE BUTTON")
+       (:button-middle
+        "MIDDLE MOUSE BUTTON")
+       (:button-right
+        "RIGHT MOUSE BUTTON")
+       (:wheel-down
+        "MOUSE WHEEL DOWN")
+       (:wheel-up
+        "MOUSE WHEEL UP")))
+    (gesture/mouse/move
+     "MOUSE MOVE")
+    (gesture/mouse/hover
+     "MOUSE HOVER")
     (gesture/window/quit
-     "<close window>")))
+     "CLOSE WINDOW")))
 
 (def function gesture/describe (gesture)
   (string+ (gesture/describe-modifiers gesture) (gesture/describe-key gesture)))

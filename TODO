@@ -1,3 +1,34 @@
+ - avoid setting the whole selection on document objects, set only the relevant part there up to the next selection
+ - avoid putting output-selection everywhere in the output elements, put it where it belongs
+
+what can a reader do? it nees to merge the changes from these activities:
+ - create a new change in the input
+ - create a change by recursing where the selection points and project the result back to its own input
+ - project a change from the output back to the input
+
+what are the naming conventions for a reader such as json/array?
+
+if a primitive projection is asked to read a change based on a gesture
+ - it creates a change on its own
+
+if a primitive projection is asked to project a change from the output to the input
+ - it creates a change on its own
+
+if a compound projection is asked to read a change based on a gesture
+ - it may create a change on its own
+ - it may recurse to read a change based on a gesture and convert the result to be meaningful in its own context
+
+if a compound projection is asked to project a change from the output to the input
+ - it may create a change on its own
+ - it may recurse to project a change from the output to the input and convert the result to be meaningful in its own context
+
+if the sequential projection is asked to read a change based on a gesture
+ - it asks the element projections forward to read a change based on a gesture until one is found
+   and then it projects the change backward using the preceding element projections
+
+if the sequential projection is asked to project a change from the output to the input
+ - it projects the change backward using its element projections
+ 
 erdekes, hogy vegul is milyen egyszeru ez a projekcios editor
  - minden fuggveny funkcionalis, csak adatot transzformal es semmi side-effekt
  - egy printer meg az egyik domainbol egy masikba (vagy ugyanoda) transzformalja az adatokat

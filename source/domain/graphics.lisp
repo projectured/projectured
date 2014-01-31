@@ -175,8 +175,8 @@
 ;;; Graphics API implementation
 
 (def methods make-bounding-rectangle
-    (:method ((instance graphics/point))
-      (make-rectangle (location-of instance) (make-2d 0 0)))
+  (:method ((instance graphics/point))
+    (make-rectangle (location-of instance) (make-2d 0 0)))
 
   (:method ((instance graphics/line))
     (bind ((begin (begin-of instance))
@@ -341,8 +341,8 @@
     (iter (for index :from 0)
           (for element :in (elements-of instance))
           (thereis (make-reference element (- location (location-of instance))
-                                   `((elt (the list document) ,index)
-                                     (the list (elements-of (the graphics/canvas document)))
+                                   `((elt (the sequence document) ,index)
+                                     (the sequence (elements-of (the graphics/canvas document)))
                                      ,@(typed-reference 'graphics/canvas reference)))))))
 
 ;;;;;;
@@ -381,7 +381,7 @@
      :domain "Graphics" :help "Moves the selection to where the mouse is pointing at"
      :operation (make-operation/replace-selection graphics (make-reference graphics (location-of gesture) nil)))
     ((gesture/keyboard/key-press :sdl-key-d :control)
-     :domain "Graphics" :help "Describes what is where the mouse is pointing at"
+     :domain "Graphics" :help "Describes what the mouse is pointing at"
      :operation (make-instance 'operation/describe :target (make-reference graphics (location-of gesture) nil)))))
 
 (def method redo-operation ((operation operation/graphics/translate-location))

@@ -32,12 +32,12 @@
   (iter (with predicate-projection-pairs = (predicate-projection-pairs-of projection))
         (for (predicate projection) :in-sequence predicate-projection-pairs)
         (when (funcall predicate input)
-          (return (funcall (printer-of projection) projection projection input input-reference output-reference)))
+          (return (call-printer projection projection input input-reference)))
         (finally (error "No predicate matched input"))))
 
 ;;;;;;
 ;;; Reader
 
-(def reader predicate-dispatching (projection recursion projection-iomap gesture-queue operation)
-  (declare (ignore projection recursion projection-iomap gesture-queue operation))
+(def reader predicate-dispatching (projection recursion input printer-iomap)
+  (declare (ignore projection recursion input printer-iomap))
   nil)

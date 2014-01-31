@@ -17,6 +17,7 @@
 ;;;;;;
 ;;; Reference applier
 
+#+nil
 (def reference-applier iomap/table/table->text (iomap reference function)
   (declare (ignore iomap reference function))
   (not-yet-implemented))
@@ -33,12 +34,13 @@
          ((:values cell-line-index cell-line-character-index) (floor cell-character-index (1+ cell-width))))
     (+ (* cell-line-index table-width) cell-first-character-index cell-line-character-index)))
 
+#+nil
 (def forward-mapper iomap/table/table->text (iomap input-reference function)
   (pattern-case (reverse input-reference)
-    (((the list (rows-of (the table/table document)))
-      (the table/row (elt (the list document) ?row-index))
-      (the list (cells-of (the table/row document)))
-      (the table/cell (elt (the list document) ?column-index))
+    (((the sequence (rows-of (the table/table document)))
+      (the table/row (elt (the sequence document) ?row-index))
+      (the sequence (cells-of (the table/row document)))
+      (the table/cell (elt (the sequence document) ?column-index))
       (the ?type (content-of (the table/cell document)))
       . ?rest)
      (map-forward (elt (elt (cell-iomaps-of iomap) ?row-index) ?column-index)
@@ -52,10 +54,10 @@
                        (funcall function iomap `((the sequence-box (text/subbox (the text/text document)
                                                                                 ,(table-character-index (row-heights-of iomap) (column-widths-of iomap) ?row-index ?column-index ?start-character-index)
                                                                                 ,(table-character-index (row-heights-of iomap) (column-widths-of iomap) ?row-index ?column-index ?end-character-index))))))))))
-    (((the list (rows-of (the table/table document)))
-      (the table/row (elt (the list document) ?row-index))
-      (the list (cells-of (the table/row document)))
-      (the table/cell (elt (the list document) ?column-index)))
+    (((the sequence (rows-of (the table/table document)))
+      (the table/row (elt (the sequence document) ?row-index))
+      (the sequence (cells-of (the table/row document)))
+      (the table/cell (elt (the sequence document) ?column-index)))
      (bind ((cell-character-length (1- (* (elt (row-heights-of iomap) ?row-index)
                                           (1+ (elt (column-widths-of iomap) ?column-index))))))
        (funcall function iomap `((the sequence-box (text/subbox (the text/text document)
@@ -85,6 +87,7 @@
          ((:values cell-line-index cell-line-character-index) (floor (- table-character-index cell-first-character-index) table-width)))
     (values row-index column-index (+ (* cell-line-index (1+ cell-width)) cell-line-character-index))))
 
+#+nil
 (def backward-mapper iomap/table/table->text (iomap output-reference function)
   (pattern-case output-reference
     (((the sequence-position (text/pos (the text/text ?a) ?table-character-index)) . ?rest)
@@ -96,10 +99,10 @@
                        (funcall function iomap
                                 `(,@input-reference
                                   (the ,(form-type (input-of cell-iomap)) (content-of (the table/cell document)))
-                                  (the table/cell (elt (the list document) ,column-index))
-                                  (the list (cells-of (the table/row document)))
-                                  (the table/row (elt (the list document) ,row-index))
-                                  (the list (rows-of (the table/table document)))))))))))
+                                  (the table/cell (elt (the sequence document) ,column-index))
+                                  (the sequence (cells-of (the table/row document)))
+                                  (the table/row (elt (the sequence document) ,row-index))
+                                  (the sequence (rows-of (the table/table document)))))))))))
 
 ;;;;;;
 ;;; Projection
@@ -131,10 +134,10 @@
                                            (for cell-content = (content-of cell))
                                            (collect (recurse-printer recursion cell-content
                                                                      `((content-of (the table/cell document))
-                                                                       (the table/cell (elt (the list document) ,column-index))
-                                                                       (the list (cells-of (the table/row document)))
-                                                                       (the table/row (elt (the list document) ,row-index))
-                                                                       (the list (rows-of (the table/table document)))
+                                                                       (the table/cell (elt (the sequence document) ,column-index))
+                                                                       (the sequence (cells-of (the table/row document)))
+                                                                       (the table/row (elt (the sequence document) ,row-index))
+                                                                       (the sequence (rows-of (the table/table document)))
                                                                        ,@(typed-reference (form-type input) input-reference))))))))
          (row-heights (when rows
                         (iter (for row-index :from 0)
@@ -220,10 +223,10 @@
                                  (write-character #\U2518))))))))
          (input-selection (selection-of input))
          (output-selection (pattern-case (reverse input-selection)
-                             (((the list (rows-of (the table/table document)))
-                               (the table/row (elt (the list document) ?row-index))
-                               (the list (cells-of (the table/row document)))
-                               (the table/cell (elt (the list document) ?column-index))
+                             (((the sequence (rows-of (the table/table document)))
+                               (the table/row (elt (the sequence document) ?row-index))
+                               (the sequence (cells-of (the table/row document)))
+                               (the table/cell (elt (the sequence document) ?column-index))
                                (the ?type (content-of (the table/cell document)))
                                . ?rest)
                               (bind ((cell-iomap (elt (elt cell-iomaps ?row-index) ?column-index)))
@@ -234,10 +237,10 @@
                                    `((the sequence-box (text/subbox (the text/text document)
                                                                     ,(table-character-index row-heights column-widths ?row-index ?column-index ?start-character-index)
                                                                     ,(table-character-index row-heights column-widths ?row-index ?column-index ?end-character-index))))))))
-                             (((the list (rows-of (the table/table document)))
-                               (the table/row (elt (the list document) ?row-index))
-                               (the list (cells-of (the table/row document)))
-                               (the table/cell (elt (the list document) ?column-index)))
+                             (((the sequence (rows-of (the table/table document)))
+                               (the table/row (elt (the sequence document) ?row-index))
+                               (the sequence (cells-of (the table/row document)))
+                               (the table/cell (elt (the sequence document) ?column-index)))
                               (bind ((cell-character-length (1- (* (elt row-heights ?row-index)
                                                                    (1+ (elt column-widths ?column-index))))))
                                 `((the sequence-box (text/subbox (the text/text document)
@@ -269,117 +272,117 @@
 
 (def function make-operation/replace-selection/move-cell (table reference row-delta column-delta)
   (pattern-case reference
-    (((the table/cell (elt (the list document) ?column-index))
-      (the list (cells-of (the table/row document)))
-      (the table/row (elt (the list document) ?row-index))
-      (the list (rows-of (the table/table document)))
+    (((the table/cell (elt (the sequence document) ?column-index))
+      (the sequence (cells-of (the table/row document)))
+      (the table/row (elt (the sequence document) ?row-index))
+      (the sequence (rows-of (the table/table document)))
       . ?rest)
      (bind ((new-row-index (+ ?row-index row-delta))
             (new-column-index (+ ?column-index column-delta)))
        (when (and (<= 0 new-row-index (1- (length (rows-of table))))
                   (<= 0 new-column-index (1- (length (cells-of (first-elt (rows-of table)))))))
          (make-operation/replace-selection table
-                                           `((the table/cell (elt (the list document) ,new-column-index))
-                                             (the list (cells-of (the table/row document)))
-                                             (the table/row (elt (the list document) ,new-row-index))
-                                             (the list (rows-of (the table/table document)))
+                                           `((the table/cell (elt (the sequence document) ,new-column-index))
+                                             (the sequence (cells-of (the table/row document)))
+                                             (the table/row (elt (the sequence document) ,new-row-index))
+                                             (the sequence (rows-of (the table/table document)))
                                              ,@?rest)))))))
 
-(def reader table/table->text (projection recursion projection-iomap gesture-queue operation)
+(def reader table/table->text (projection recursion input printer-iomap)
   (declare (ignore projection))
-  (bind ((latest-gesture (first (gestures-of gesture-queue)))
-         (input (input-of projection-iomap))
-         (selection (selection-of input))
+  (bind ((printer-input (input-of printer-iomap))
+         (selection (selection-of printer-input))
          (text-selection? (text-reference? selection))
          (cell-selection? (cell-reference? selection)))
-    (labels ((recurse (operation)
-               (typecase operation
-                 (operation/quit operation)
-                 (operation/replace-selection
-                  (make-operation/replace-selection input (pattern-case (selection-of operation)
-                                                            (((the sequence-position (text/pos (the text/text ?a) ?table-character-index)) . ?rest)
-                                                             (bind (((:values row-index column-index cell-character-index) (cell-character-index (row-heights-of projection-iomap) (column-widths-of projection-iomap) ?table-character-index))
-                                                                    (cell-iomap (elt (elt (cell-iomaps-of projection-iomap) row-index) column-index))
-                                                                    (input-cell-operation (make-operation/replace-selection (output-of cell-iomap)
-                                                                                                                            `((the sequence-position (text/pos (the text/text document) ,cell-character-index)))))
-                                                                    (output-cell-operation (recurse-reader recursion cell-iomap gesture-queue input-cell-operation)))
-                                                               (append (selection-of output-cell-operation)
-                                                                       `((the ,(form-type (input-of cell-iomap)) (content-of (the table/cell document)))
-                                                                         (the table/cell (elt (the list document) ,column-index))
-                                                                         (the list (cells-of (the table/row document)))
-                                                                         (the table/row (elt (the list document) ,row-index))
-                                                                         (the list (rows-of (the table/table document))))))))))
-                 (operation/sequence/replace-element-range
-                  (make-operation/sequence/replace-element-range input
-                                                                 (pattern-case (target-of operation)
-                                                                   (((the sequence-position (text/pos (the text/text ?a) ?table-character-index)) . ?rest)
-                                                                    (bind (((:values row-index column-index cell-character-index) (cell-character-index (row-heights-of projection-iomap) (column-widths-of projection-iomap) ?table-character-index))
-                                                                           (cell-iomap (elt (elt (cell-iomaps-of projection-iomap) row-index) column-index))
-                                                                           (input-cell-operation (make-operation/sequence/replace-element-range (output-of cell-iomap)
-                                                                                                                                                `((the sequence-position (text/pos (the text/text document) ,cell-character-index)))
-                                                                                                                                                (replacement-of operation)))
-                                                                           (output-cell-operation (recurse-reader recursion cell-iomap gesture-queue input-cell-operation)))
-                                                                      (append (target-of output-cell-operation)
-                                                                              `((the ,(form-type (input-of cell-iomap)) (content-of (the table/cell document)))
-                                                                                (the table/cell (elt (the list document) ,column-index))
-                                                                                (the list (cells-of (the table/row document)))
-                                                                                (the table/row (elt (the list document) ,row-index))
-                                                                                (the list (rows-of (the table/table document))))))))
-                                                                 (replacement-of operation)))
-                 (operation/describe
-                  (pattern-case (target-of operation)
-                    (((the character (text/elt (the text/text ?a) ?table-character-index)) . ?rest)
-                     (bind (((:values row-index column-index cell-character-index) (cell-character-index (row-heights-of projection-iomap) (column-widths-of projection-iomap) ?table-character-index))
-                            (cell-iomap (elt (elt (cell-iomaps-of projection-iomap) row-index) column-index))
-                            (input-cell-operation (make-instance 'operation/describe :target `((the character (text/elt (the text/text document) ,cell-character-index)))))
-                            (output-cell-operation (recurse-reader recursion cell-iomap gesture-queue input-cell-operation)))
-                       (make-instance 'operation/describe
-                                      :target (append (target-of output-cell-operation)
-                                                      `((the ,(form-type (input-of cell-iomap)) (content-of (the table/cell document)))
-                                                        (the table/cell (elt (the list document) ,column-index))
-                                                        (the list (cells-of (the table/row document)))
-                                                        (the table/row (elt (the list document) ,row-index))
-                                                        (the list (rows-of (the table/table document))))))))))
-                 (operation/compound
-                  (bind ((child-operations (mapcar #'recurse (elements-of operation))))
-                    (unless (some 'null child-operations)
-                      (make-operation/compound child-operations)))))))
-      (recurse operation))
+    (make-command (gesture-of input)
+                  (labels ((recurse (operation)
+                             (typecase operation
+                               (operation/quit operation)
+                               (operation/replace-selection
+                                (make-operation/replace-selection printer-input (pattern-case (selection-of operation)
+                                                                                  (((the sequence-position (text/pos (the text/text ?a) ?table-character-index)) . ?rest)
+                                                                                   (bind (((:values row-index column-index cell-character-index) (cell-character-index (row-heights-of printer-iomap) (column-widths-of printer-iomap) ?table-character-index))
+                                                                                          (cell-iomap (elt (elt (cell-iomaps-of printer-iomap) row-index) column-index))
+                                                                                          (input-cell-operation (make-operation/replace-selection (output-of cell-iomap)
+                                                                                                                                                  `((the sequence-position (text/pos (the text/text document) ,cell-character-index)))))
+                                                                                          (output-cell-operation (operation-of (recurse-reader recursion (make-command (gesture-of input) input-cell-operation) cell-iomap))))
+                                                                                     (append (selection-of output-cell-operation)
+                                                                                             `((the ,(form-type (input-of cell-iomap)) (content-of (the table/cell document)))
+                                                                                               (the table/cell (elt (the sequence document) ,column-index))
+                                                                                               (the sequence (cells-of (the table/row document)))
+                                                                                               (the table/row (elt (the sequence document) ,row-index))
+                                                                                               (the sequence (rows-of (the table/table document))))))))))
+                               (operation/sequence/replace-element-range
+                                (make-operation/sequence/replace-element-range printer-input
+                                                                               (pattern-case (target-of operation)
+                                                                                 (((the sequence-position (text/pos (the text/text ?a) ?table-character-index)) . ?rest)
+                                                                                  (bind (((:values row-index column-index cell-character-index) (cell-character-index (row-heights-of printer-iomap) (column-widths-of printer-iomap) ?table-character-index))
+                                                                                         (cell-iomap (elt (elt (cell-iomaps-of printer-iomap) row-index) column-index))
+                                                                                         (input-cell-operation (make-operation/sequence/replace-element-range (output-of cell-iomap)
+                                                                                                                                                              `((the sequence-position (text/pos (the text/text document) ,cell-character-index)))
+                                                                                                                                                              (replacement-of operation)))
+                                                                                         (output-cell-operation (operation-of (recurse-reader recursion (make-command (gesture-of input) input-cell-operation) cell-iomap))))
+                                                                                    (append (target-of output-cell-operation)
+                                                                                            `((the ,(form-type (input-of cell-iomap)) (content-of (the table/cell document)))
+                                                                                              (the table/cell (elt (the sequence document) ,column-index))
+                                                                                              (the sequence (cells-of (the table/row document)))
+                                                                                              (the table/row (elt (the sequence document) ,row-index))
+                                                                                              (the sequence (rows-of (the table/table document))))))))
+                                                                               (replacement-of operation)))
+                               (operation/describe
+                                (pattern-case (target-of operation)
+                                  (((the character (text/elt (the text/text ?a) ?table-character-index)) . ?rest)
+                                   (bind (((:values row-index column-index cell-character-index) (cell-character-index (row-heights-of printer-iomap) (column-widths-of printer-iomap) ?table-character-index))
+                                          (cell-iomap (elt (elt (cell-iomaps-of printer-iomap) row-index) column-index))
+                                          (input-cell-operation (make-instance 'operation/describe :target `((the character (text/elt (the text/text document) ,cell-character-index)))))
+                                          (output-cell-operation (operation-of (recurse-reader recursion (make-command (gesture-of input) input-cell-operation) cell-iomap))))
+                                     (make-instance 'operation/describe
+                                                    :target (append (target-of output-cell-operation)
+                                                                    `((the ,(form-type (input-of cell-iomap)) (content-of (the table/cell document)))
+                                                                      (the table/cell (elt (the sequence document) ,column-index))
+                                                                      (the sequence (cells-of (the table/row document)))
+                                                                      (the table/row (elt (the sequence document) ,row-index))
+                                                                      (the sequence (rows-of (the table/table document))))))))))
+                               (operation/compound
+                                (bind ((child-operations (mapcar #'recurse (elements-of operation))))
+                                  (unless (some 'null child-operations)
+                                    (make-operation/compound child-operations)))))))
+                    (recurse (operation-of input))))
     ;; TODO: dispatch on selection
     #+nil
-    (merge-operations (gesture-case latest-gesture
-                        ((gesture/keyboard/key-press :sdl-key-space :control)
-                         :domain "Table" :help "Turn the selection into a text selection"
-                         :operation (when cell-selection?
-                                      (make-operation/replace-selection input `((the sequence-position (text/pos (the text/text document) 0))
-                                                                                (the text/text (content-of (the table/cell document)))
-                                                                                ,@selection))))
-                        ((gesture/keyboard/key-press :sdl-key-space :control)
-                         :domain "Table" :help "Turn the selection into a table cell selection"
-                         :operation (when text-selection?
-                                      (make-operation/replace-selection input (find-table-cell-reference selection))))
-                        ((gesture/keyboard/key-press :sdl-key-home :alt)
-                         :domain "Table" :help "Moves the selection to the first cell of the first row"
-                         :operation (bind ((new-selection '((the table/cell (elt (the list document) 0))
-                                                            (the list (cells-of (the table/row document)))
-                                                            (the table/row (elt (the list document) 0))
-                                                            (the list (rows-of (the table/table document))))))
-                                      (unless (equal new-selection selection)
-                                        (make-operation/replace-selection input new-selection))))
-                        ((gesture/keyboard/key-press :sdl-key-up)
-                         :domain "Table" :help "Moves the selection one cell up"
-                         :operation (when cell-selection?
-                                      (make-operation/replace-selection/move-cell input selection -1 0)))
-                        ((gesture/keyboard/key-press :sdl-key-down)
-                         :domain "Table" :help "Moves the selection one cell down"
-                         :operation (when cell-selection?
-                                      (make-operation/replace-selection/move-cell input selection 1 0)))
-                        ((gesture/keyboard/key-press :sdl-key-left)
-                         :domain "Table" :help "Moves the selection one cell left"
-                         :operation (when cell-selection?
-                                      (make-operation/replace-selection/move-cell input selection 0 -1)))
-                        ((gesture/keyboard/key-press :sdl-key-right)
-                         :domain "Table" :help "Moves the selection one cell right"
-                         :operation (when cell-selection?
-                                      (make-operation/replace-selection/move-cell input selection 0 1))))
-                      (operation/read-backward operation projection-iomap))))
+    (merge-commands (gesture-case latest-gesture
+                      ((gesture/keyboard/key-press :sdl-key-space :control)
+                       :domain "Table" :help "Turn the selection into a text selection"
+                       :operation (when cell-selection?
+                                    (make-operation/replace-selection input `((the sequence-position (text/pos (the text/text document) 0))
+                                                                              (the text/text (content-of (the table/cell document)))
+                                                                              ,@selection))))
+                      ((gesture/keyboard/key-press :sdl-key-space :control)
+                       :domain "Table" :help "Turn the selection into a table cell selection"
+                       :operation (when text-selection?
+                                    (make-operation/replace-selection input (find-table-cell-reference selection))))
+                      ((gesture/keyboard/key-press :sdl-key-home :alt)
+                       :domain "Table" :help "Moves the selection to the first cell of the first row"
+                       :operation (bind ((new-selection '((the table/cell (elt (the sequence document) 0))
+                                                          (the sequence (cells-of (the table/row document)))
+                                                          (the table/row (elt (the sequence document) 0))
+                                                          (the sequence (rows-of (the table/table document))))))
+                                    (unless (equal new-selection selection)
+                                      (make-operation/replace-selection input new-selection))))
+                      ((gesture/keyboard/key-press :sdl-key-up)
+                       :domain "Table" :help "Moves the selection one cell up"
+                       :operation (when cell-selection?
+                                    (make-operation/replace-selection/move-cell input selection -1 0)))
+                      ((gesture/keyboard/key-press :sdl-key-down)
+                       :domain "Table" :help "Moves the selection one cell down"
+                       :operation (when cell-selection?
+                                    (make-operation/replace-selection/move-cell input selection 1 0)))
+                      ((gesture/keyboard/key-press :sdl-key-left)
+                       :domain "Table" :help "Moves the selection one cell left"
+                       :operation (when cell-selection?
+                                    (make-operation/replace-selection/move-cell input selection 0 -1)))
+                      ((gesture/keyboard/key-press :sdl-key-right)
+                       :domain "Table" :help "Moves the selection one cell right"
+                       :operation (when cell-selection?
+                                    (make-operation/replace-selection/move-cell input selection 0 1))))
+                    (operation/read-backward operation printer-iomap))))

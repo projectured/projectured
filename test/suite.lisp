@@ -10,6 +10,7 @@
 
 (def suite* (test :in root-suite))
 
+#+nil
 (def function walk-object (object)
   (bind ((seen-set (make-hash-table)))
     (labels ((recurse (input)
@@ -28,6 +29,7 @@
       (recurse object))))
 
 ;; TODO: split and move to where iomaps are defined
+#+nil
 (def function map-input-references (iomap function)
   (etypecase iomap
     (iomap/object
@@ -54,6 +56,7 @@
            (map-input-references child-iomap function)))))
 
 ;; TODO: split and move to where iomaps are defined
+#+nil
 (def function map-output-references (iomap function)
   (etypecase iomap
     (iomap/object
@@ -79,16 +82,19 @@
      (iter (for child-iomap :in (child-iomaps-of iomap))
            (map-output-references child-iomap function)))))
 
+#+nil
 (def function print-input-references (iomap)
   (map-input-references iomap (lambda (iomap reference)
                                 (declare (ignore iomap))
                                 (print reference))))
 
+#+nil
 (def function print-output-references (iomap)
   (map-output-references iomap (lambda (iomap reference)
                                  (declare (ignore iomap))
                                  (print reference))))
 
+#+nil
 (def function print-references-backward (iomap &key (reference #t) evaluate apply)
   (map-output-references iomap (lambda (reference-iomap output-reference)
                                  (declare (ignore reference-iomap))
@@ -108,6 +114,7 @@
                                                  (when apply
                                                    (format t "~%Apply: ~S" (apply-reference iomap input-reference nil))))))))
 
+#+nil
 (def function print-references-forward (iomap &key (reference #t) evaluate apply)
   (map-input-references iomap (lambda (reference-iomap input-reference)
                                 (declare (ignore reference-iomap))

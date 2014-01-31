@@ -9,24 +9,28 @@
 ;;;;;;
 ;;; Projection
 
+#+nil
 (def projection document->graphics ()
   ())
 
 ;;;;;;
 ;;; Construction
 
+#+nil
 (def (function e) make-projection/document->graphics ()
   (make-projection 'document->graphics))
 
 ;;;;;;
 ;;; Construction
 
+#+nil
 (def (macro e) document->graphics ()
   '(make-projection/document->graphics))
 
 ;;;;;;
 ;;; Printer
 
+#+nil
 (def printer document->graphics (projection recursion input input-reference)
   (bind ((input-content (content-of input))
          (content-iomap-cs (as (recurse-printer recursion input-content
@@ -47,7 +51,7 @@
                                     (declare (ignore content-iomap))
                                     (setf graphics-reference reference)))
                      (pattern-case graphics-reference
-                       (((the character (elt (the string (text-of (the graphics/text (elt (the list (elements-of (the graphics/canvas ?a))) ?b)))) ?c)))
+                       (((the character (elt (the string (text-of (the graphics/text (elt (the sequence (elements-of (the graphics/canvas ?a))) ?b)))) ?c)))
                         (bind ((text-graphics (elt (elements-of output-content) ?b))
                                (offset-text (subseq (text-of text-graphics) 0 ?c))
                                (text (subseq (text-of text-graphics) ?c (1+ ?c)))
@@ -57,8 +61,8 @@
                           (make-graphics/rectangle (+ location (make-2d offset 0)) (measure-text text font) :fill-color *color/solarized/background/light*)))
                        (((the sequence-position (pos (the string document) ?c))
                          (the string (text-of (the graphics/text document)))
-                         (the graphics/text (elt (the list document) ?b))
-                         (the list (elements-of (the graphics/canvas document)))
+                         (the graphics/text (elt (the sequence document) ?b))
+                         (the sequence (elements-of (the graphics/canvas document)))
                          . ?rest)
                         (bind ((text-graphics (elt (elements-of output-content) ?b))
                                (text (subseq (text-of text-graphics) 0 ?c))
@@ -87,8 +91,8 @@
                                                                    (pattern-case graphics-reference
                                                                      (((the sequence-position (pos (the string document) ?c))
                                                                        (the string (text-of (the graphics/text document)))
-                                                                       (the graphics/text (elt (the list document) ?b))
-                                                                       (the list (elements-of (the graphics/canvas document))))
+                                                                       (the graphics/text (elt (the sequence document) ?b))
+                                                                       (the sequence (elements-of (the graphics/canvas document))))
                                                                       (bind ((text-graphics (elt (elements-of output-content) ?b))
                                                                              (text (subseq (text-of text-graphics) 0 ?c))
                                                                              (location (location-of text-graphics))
@@ -119,12 +123,6 @@
 
 (def function document/read-operation (document gesture)
   (gesture-case gesture
-    ((make-instance 'gesture/window/quit :modifiers nil)
-     :domain "Operating System" :help "Quits from the editor"
-     :operation (make-operation/quit))
-    ((gesture/keyboard/key-press :sdl-key-escape)
-     :domain "Document" :help "Quits from the editor"
-     :operation (make-operation/quit))
     ((gesture/keyboard/key-press :sdl-key-s :control)
      :domain "Document" :help "Saves the currently edited document to '/tmp/document.pred'"
      :operation (make-operation/save-document document))
@@ -133,14 +131,21 @@
      :operation (make-operation/load-document document))
     ((gesture/keyboard/key-press :sdl-key-e :control)
      :domain "Document" :help "Exports the currently edited document to '/tmp/document.txt'"
-     :operation (make-operation/export-document document))))
+     :operation (make-operation/export-document document))
+    ((gesture/keyboard/key-press :sdl-key-escape)
+     :domain "Document" :help "Quits from the editor"
+     :operation (make-operation/quit))
+    ((make-instance 'gesture/window/quit :modifiers nil)
+     :domain "Document" :help "Quits from the editor"
+     :operation (make-operation/quit))))
 
-(def reader document->graphics (projection recursion projection-iomap gesture-queue operation)
+#+nil
+(def reader document->graphics (projection recursion input printer-iomap)
   (declare (ignore projection document-iomap))
   (bind ((latest-gesture (first (gestures-of gesture-queue)))
-         (document (input-of projection-iomap))
-         (child-operation (recurse-reader recursion (elt (child-iomaps-of projection-iomap) 1) gesture-queue operation projection-iomap)))
-    (or (merge-operations (gesture-case latest-gesture
+         (document (input-of printer-iomap))
+         (child-operation (recurse-reader recursion (elt (child-iomaps-of printer-iomap) 1) gesture-queue operation printer-iomap)))
+    (or (merge-commands (gesture-case latest-gesture
                             ((gesture/keyboard/key-press :sdl-key-escape)
                              :domain "Document" :help "Quits from the editor"
                              :operation (make-operation/quit))

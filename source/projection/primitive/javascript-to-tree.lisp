@@ -85,7 +85,7 @@
                                  ;; KLUDGE:
                                  :closing-delimiter (make-text/string "}" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))))
     (make-iomap/compound projection recursion input input-reference output
-                          (list* (make-iomap/object projection recursion input input-reference output output-reference) (nreverse child-iomaps)))))
+                         (list* (make-iomap/object projection recursion input input-reference output) (nreverse child-iomaps)))))
 
 (def printer javascript/statement/top-level->tree/node (projection recursion input input-reference)
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
@@ -100,17 +100,17 @@
                                        (collect (output-of iomap)))
                                  :indentation 2)))
     (make-iomap/compound projection recursion input input-reference output
-                          (list* (make-iomap/object projection recursion input input-reference output output-reference) (nreverse child-iomaps)))))
+                         (list* (make-iomap/object projection recursion input input-reference output) (nreverse child-iomaps)))))
 
 (def printer javascript/expression/variable-reference->tree/leaf (projection recursion input input-reference)
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
          (output-content (name-of input))
          (output (make-tree/leaf (make-text/string output-content :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/orange*))))
     (make-iomap/compound projection recursion input input-reference output
-                          (list (make-iomap/object projection recursion input input-reference output output-reference)
-                                (make-iomap/string* input `(the string (name-of ,typed-input-reference)) 0
-                                                    output-content `(the string (content-of (the tree/leaf ,output-reference))) 0
-                                                    (length output-content))))))
+                         (list (make-iomap/object projection recursion input input-reference output)
+                               (make-iomap/string input `(the string (name-of ,typed-input-reference)) 0
+                                                  output-content `(the string (content-of (the tree/leaf ,output-reference))) 0
+                                                  (length output-content))))))
 
 (def printer javascript/expression/property-access->tree/node (projection recursion input input-reference)
   (bind ((child-iomaps nil)
@@ -120,11 +120,11 @@
                                        (make-tree/node (list (make-tree/leaf (make-text/string (property-of input) :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/violet*)))))
                                  :separator (make-text/string "." :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))))
     (make-iomap/compound projection recursion input input-reference output
-                          (list* (make-iomap/object projection recursion input input-reference output output-reference)
-                                 (make-iomap/string* input `(the string (property-of ,typed-input-reference)) 0
-                                                     output `(the string (content-of (the tree/leaf (elt (the list (children-of (the tree/node ,output-reference))) 0)))) 0
-                                                     (length (property-of input)))
-                                 (nreverse child-iomaps)))))
+                         (list* (make-iomap/object projection recursion input input-reference output)
+                                (make-iomap/string input `(the string (property-of ,typed-input-reference)) 0
+                                                   output `(the string (content-of (the tree/leaf (elt (the sequence (children-of (the tree/node ,output-reference))) 0)))) 0
+                                                   (length (property-of input)))
+                                (nreverse child-iomaps)))))
 
 (def printer javascript/expression/constructor-invocation->tree/node (projection recursion input input-reference)
   (bind ((child-iomaps nil)
@@ -135,7 +135,7 @@
                                        (make-tree/node (list (make-tree/node (iter (for index :from 0)
                                                                                    (for argument :in-sequence (arguments-of input))
                                                                                    (for child-iomap = (recurse-printer recursion argument
-                                                                                                                       `(elt (the list (arguments-of ,typed-input-reference)) ,index)))
+                                                                                                                       `(elt (the sequence (arguments-of ,typed-input-reference)) ,index)))
                                                                                    (push child-iomap child-iomaps)
                                                                                    (collect (output-of child-iomap)))
                                                                              :opening-delimiter (make-text/string "(" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)
@@ -143,10 +143,10 @@
                                                                              :separator (make-text/string ", " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))))
                                  :separator (make-text/string " " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))))
     (make-iomap/compound projection recursion input input-reference output
-                          (list* (make-iomap/object projection recursion input input-reference output output-reference)
-                                 (make-iomap/object projection recursion (arguments-of input) `(arguments-of ,typed-input-reference)
-                                                    output `(elt (the list (children-of (the tree/node ,output-reference))) 1))
-                                 (nreverse child-iomaps)))))
+                         (list* (make-iomap/object projection recursion input input-reference output)
+                                (make-iomap/object projection recursion (arguments-of input) `(arguments-of ,typed-input-reference)
+                                                   output `(elt (the sequence (children-of (the tree/node ,output-reference))) 1))
+                                (nreverse child-iomaps)))))
 
 (def printer javascript/expression/method-invocation->tree/node (projection recursion input input-reference)
   (bind ((child-iomaps nil)
@@ -157,7 +157,7 @@
                                                              (make-tree/node (iter (for index :from 0)
                                                                                    (for argument :in-sequence (arguments-of input))
                                                                                    (for child-iomap = (recurse-printer recursion argument
-                                                                                                                       `(elt (the list (arguments-of ,typed-input-reference)) ,index)))
+                                                                                                                       `(elt (the sequence (arguments-of ,typed-input-reference)) ,index)))
                                                                                    (push child-iomap child-iomaps)
                                                                                    (collect (output-of child-iomap)))
                                                                              :opening-delimiter (make-text/string "(" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)
@@ -165,19 +165,19 @@
                                                                              :separator (make-text/string ", " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))))
                                  :separator (make-text/string "." :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))))
     (make-iomap/compound projection recursion input input-reference output
-                          (list* (make-iomap/object projection recursion input input-reference output output-reference)
-                                 (make-iomap/string* input `(the string (method-of ,typed-input-reference)) 0
-                                                     output `(the string (content-of (the tree/leaf (elt (the list (children-of (the tree/node ,output-reference))) 0)))) 0
-                                                     (length (method-of input)))
-                                 (make-iomap/object projection recursion (arguments-of input) `(arguments-of ,typed-input-reference)
-                                                    output `(elt (the list (children-of (the tree/node ,output-reference))) 1))
-                                 (nreverse child-iomaps)))))
+                         (list* (make-iomap/object projection recursion input input-reference output)
+                                (make-iomap/string input `(the string (method-of ,typed-input-reference)) 0
+                                                   output `(the string (content-of (the tree/leaf (elt (the sequence (children-of (the tree/node ,output-reference))) 0)))) 0
+                                                   (length (method-of input)))
+                                (make-iomap/object projection recursion (arguments-of input) `(arguments-of ,typed-input-reference)
+                                                   output `(elt (the sequence (children-of (the tree/node ,output-reference))) 1))
+                                (nreverse child-iomaps)))))
 
 (def printer javascript/literal/string->tree/leaf (projection recursion input input-reference)
   (bind ((output (make-tree/leaf (make-text/string (value-of input) :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/green*)
                                  :opening-delimiter (make-text/string "\"" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)
                                  :closing-delimiter (make-text/string "\"" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))))
-    (make-iomap/object projection recursion input input-reference output output-reference)))
+    (make-iomap/object projection recursion input input-reference output)))
 
 (def printer javascript/declaration/variable->tree/node (projection recursion input input-reference)
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
@@ -189,12 +189,12 @@
                                        (output-of body-iomap))
                                  :separator (make-text/string " " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))))
     (make-iomap/compound projection recursion input input-reference output
-                          (list* (make-iomap/object projection recursion input input-reference output output-reference)
-                                 body-iomap
-                                 (make-iomap/string* input `(the string (name-of ,typed-input-reference)) 0
-                                                     output `(the string (content-of (the tree/leaf (elt (the list (children-of (the tree/node ,output-reference))) 2)))) 0
-                                                     (length (name-of input)))
-                                 (nreverse child-iomaps)))))
+                         (list* (make-iomap/object projection recursion input input-reference output)
+                                body-iomap
+                                (make-iomap/string input `(the string (name-of ,typed-input-reference)) 0
+                                                   output `(the string (content-of (the tree/leaf (elt (the sequence (children-of (the tree/node ,output-reference))) 2)))) 0
+                                                   (length (name-of input)))
+                                (nreverse child-iomaps)))))
 
 (def printer javascript/declaration/function->tree/node (projection recursion input input-reference)
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
@@ -215,50 +215,50 @@
     ;; KLUDGE:
     (setf (indentation-of (output-of body-iomap)) 0)
     (make-iomap/compound projection recursion input input-reference output
-                          (list* (make-iomap/object projection recursion input input-reference output output-reference)
-                                 body-iomap
-                                 (make-iomap/string* input `(the string (name-of ,typed-input-reference)) 0
-                                                     output `(the string (content-of (the tree/leaf (elt (the list (children-of (the tree/node ,output-reference))) 2)))) 0
-                                                     (length (name-of input)))
-                                 (make-iomap/object projection recursion (arguments-of input) `(arguments-of ,typed-input-reference)
-                                                    output `(elt (the list (children-of (the tree/node ,output-reference))) 3))
-                                 (nreverse child-iomaps)))))
+                         (list* (make-iomap/object projection recursion input input-reference output)
+                                body-iomap
+                                (make-iomap/string input `(the string (name-of ,typed-input-reference)) 0
+                                                   output `(the string (content-of (the tree/leaf (elt (the sequence (children-of (the tree/node ,output-reference))) 2)))) 0
+                                                   (length (name-of input)))
+                                (make-iomap/object projection recursion (arguments-of input) `(arguments-of ,typed-input-reference)
+                                                   output `(elt (the sequence (children-of (the tree/node ,output-reference))) 3))
+                                (nreverse child-iomaps)))))
 
 ;;;;;;
 ;;; Reader
 
-(def reader javascript/statement/block->tree/node (projection recursion projection-iomap gesture-queue operation)
-  (declare (ignore projection recursion projection-iomap gesture-queue operation))
+(def reader javascript/statement/block->tree/node (projection recursion input printer-iomap)
+  (declare (ignore projection recursion input printer-iomap))
   nil)
 
-(def reader javascript/statement/top-level->tree/node (projection recursion projection-iomap gesture-queue operation)
-  (declare (ignore projection recursion projection-iomap gesture-queue operation))
+(def reader javascript/statement/top-level->tree/node (projection recursion input printer-iomap)
+  (declare (ignore projection recursion input printer-iomap))
   nil)
 
-(def reader javascript/expression/variable-reference->tree/leaf (projection recursion projection-iomap gesture-queue operation)
-  (declare (ignore projection recursion projection-iomap gesture-queue operation))
+(def reader javascript/expression/variable-reference->tree/leaf (projection recursion input printer-iomap)
+  (declare (ignore projection recursion input printer-iomap))
   nil)
 
-(def reader javascript/expression/property-access->tree/node (projection recursion projection-iomap gesture-queue operation)
-  (declare (ignore projection recursion projection-iomap gesture-queue operation))
+(def reader javascript/expression/property-access->tree/node (projection recursion input printer-iomap)
+  (declare (ignore projection recursion input printer-iomap))
   nil)
 
-(def reader javascript/expression/constructor-invocation->tree/node (projection recursion projection-iomap gesture-queue operation)
-  (declare (ignore projection recursion projection-iomap gesture-queue operation))
+(def reader javascript/expression/constructor-invocation->tree/node (projection recursion input printer-iomap)
+  (declare (ignore projection recursion input printer-iomap))
   nil)
 
-(def reader javascript/expression/method-invocation->tree/node (projection recursion projection-iomap gesture-queue operation)
-  (declare (ignore projection recursion projection-iomap gesture-queue operation))
+(def reader javascript/expression/method-invocation->tree/node (projection recursion input printer-iomap)
+  (declare (ignore projection recursion input printer-iomap))
   nil)
 
-(def reader javascript/literal/string->tree/leaf (projection recursion projection-iomap gesture-queue operation)
-  (declare (ignore projection recursion projection-iomap gesture-queue operation))
+(def reader javascript/literal/string->tree/leaf (projection recursion input printer-iomap)
+  (declare (ignore projection recursion input printer-iomap))
   nil)
 
-(def reader javascript/declaration/variable->tree/node (projection recursion projection-iomap gesture-queue operation)
-  (declare (ignore projection recursion projection-iomap gesture-queue operation))
+(def reader javascript/declaration/variable->tree/node (projection recursion input printer-iomap)
+  (declare (ignore projection recursion input printer-iomap))
   nil)
 
-(def reader javascript/declaration/function->tree/node (projection recursion projection-iomap gesture-queue operation)
-  (declare (ignore projection recursion projection-iomap gesture-queue operation))
+(def reader javascript/declaration/function->tree/node (projection recursion input printer-iomap)
+  (declare (ignore projection recursion input printer-iomap))
   nil)

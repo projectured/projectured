@@ -20,15 +20,18 @@
        (def function ,function-name ,arguments ,@forms)
        (setf (find-printer ',name) ',function-name))))
 
-(def (function e) apply-printer (input projection &optional (recursion (make-projection/preserving)))
-  (funcall (printer-of projection) projection recursion input nil))
+(def (function e) call-printer (projection recursion input input-reference #+nil reader-iomap)
+  (funcall (printer-of projection) projection recursion input input-reference #+nil reader-iomap))
 
-(def (function e) recurse-printer (recursion input input-reference)
+(def (function e) recurse-printer (recursion input input-reference #+nil reader-iomap)
   (assert (not (eq 'the (first (first input-reference)))))
-  (funcall (printer-of recursion) recursion recursion input input-reference))
+  (call-printer recursion recursion input input-reference #+nil reader-iomap))
 
-(def (function e) printer-output (input projection &optional (recursion (make-projection/preserving)))
-  (output-of (apply-printer input projection recursion)))
+(def (function e) apply-printer (input projection #+nil reader-iomap &optional (recursion (make-projection/preserving)))
+  (call-printer projection recursion input nil #+nil reader-iomap))
+
+(def (function e) printer-output (input projection #+nil reader-iomap &optional (recursion (make-projection/preserving)))
+  (output-of (call-printer projection recursion input nil #+nil reader-iomap)))
 
 ;;;;;;
 ;;; Printer API implementation

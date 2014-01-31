@@ -36,11 +36,14 @@
 ;;;;;;
 ;;; Reference applier
 
+#+nil
 (def (namespace e) reference-applier)
 
+#+nil
 (def (definer e) reference-applier (name arguments &body forms)
   `(setf (find-reference-applier ',name) (lambda ,arguments ,@forms)))
 
+#+nil
 (def (function e) apply-reference (iomap reference function)
   (cond ((equal `(the ,(form-type (input-of iomap)) ,(input-reference-of iomap)) reference)
          (input-of iomap))

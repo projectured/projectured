@@ -118,26 +118,29 @@
 (def iomap iomap/sequence->table/table (iomap)
   ((element-iomaps :type sequence)))
 
+#+nil
 (def reference-applier iomap/sequence->table/table (iomap reference function)
   (declare (ignore iomap reference function))
   (not-yet-implemented))
 
+#+nil
 (def forward-mapper iomap/sequence->table/table (iomap input-reference function)
   (pattern-case input-reference
-    (((the ?type (elt (the list document) ?index)) . ?rest)
+    (((the ?type (elt (the sequence document) ?index)) . ?rest)
      (map-forward (elt (element-iomaps-of iomap) ?index)
                   ?rest
                   (lambda (element-iomap output-reference)
-                    (funcall function element-iomap `((the text/text (content-of (the table/cell (elt (the list (cells-of (the table/row (elt (the list (rows-of (the table/table document))) ,(1+ ?index))))) 1))))
+                    (funcall function element-iomap `((the text/text (content-of (the table/cell (elt (the sequence (cells-of (the table/row (elt (the sequence (rows-of (the table/table document))) ,(1+ ?index))))) 1))))
                                                       ,@output-reference)))))))
 
+#+nil
 (def backward-mapper iomap/sequence->table/table (iomap output-reference function)
   (pattern-case output-reference
-    (((the ?type (content-of (the table/cell (elt (the list (cells-of (the table/row (elt (the list (rows-of (the table/table document))) ?row-index)))) ?column-index)))) . ?rest)
+    (((the ?type (content-of (the table/cell (elt (the sequence (cells-of (the table/row (elt (the sequence (rows-of (the table/table document))) ?row-index)))) ?column-index)))) . ?rest)
      (map-backward (elt (element-iomaps-of iomap) (1- ?row-index))
                    ?rest
                    (lambda (element-iomap input-reference)
-                     (funcall function element-iomap `((the ,(form-type (elt (input-of iomap) (1- ?row-index))) (elt (the list document) ,(1- ?row-index))) ,@input-reference)))))))
+                     (funcall function element-iomap `((the ,(form-type (elt (input-of iomap) (1- ?row-index))) (elt (the sequence document) ,(1- ?row-index))) ,@input-reference)))))))
 
 (def printer t/sequence->table/table (projection recursion input input-reference)
   (bind ((element-iomaps nil)
@@ -152,18 +155,18 @@
                                (the string (object-class-label (the sequence document))))
                               `((the sequence-position (text/pos (the text/text document) ,?character-index))
                                 (the text/text (content-of (the table/cell document)))
-                                (the table/cell (elt (the list document) 0))
-                                (the list (cells-of (the table/row document)))
-                                (the table/row (elt (the list document) 0))
-                                (the list (rows-of (the table/table document)))))
+                                (the table/cell (elt (the sequence document) 0))
+                                (the sequence (cells-of (the table/row document)))
+                                (the table/row (elt (the sequence document) 0))
+                                (the sequence (rows-of (the table/table document)))))
                              (((the sequence-position (pos (the string document) ?character-index))
                                (the string (object-class-symbol-name (the sequence document))))
                               `((the sequence-position (text/pos (the text/text document) ,?character-index))
                                 (the text/text (content-of (the table/cell document)))
-                                (the table/cell (elt (the list document) 1))
-                                (the list (cells-of (the table/row document)))
-                                (the table/row (elt (the list document) 0))
-                                (the list (rows-of (the table/table document)))))))
+                                (the table/cell (elt (the sequence document) 1))
+                                (the sequence (cells-of (the table/row document)))
+                                (the table/row (elt (the sequence document) 0))
+                                (the sequence (rows-of (the table/table document)))))))
          (output (make-table/table (list* (make-table/row (list (make-table/cell type-label-text) (make-table/cell type-text)))
                                           (iter (for index :from 0)
                                                 (for element :in-sequence input)
@@ -176,10 +179,10 @@
                                                 (push (make-iomap/text projection recursion
                                                                        index-string `((write-to-string (the integer ,index)) ,@(typed-reference (form-type input) input-reference)) 0
                                                                        index-text `((content-of (the table/cell document))
-                                                                                    (the table/cell (elt (the list document) 0))
-                                                                                    (the list (cells-of (the table/row document)))
-                                                                                    (the table/row (elt (the list document) ,(1+ index)))
-                                                                                    (the list (rows-of (the table/table document)))
+                                                                                    (the table/cell (elt (the sequence document) 0))
+                                                                                    (the sequence (cells-of (the table/row document)))
+                                                                                    (the table/row (elt (the sequence document) ,(1+ index)))
+                                                                                    (the sequence (rows-of (the table/table document)))
                                                                                     ,@(typed-reference 'table/table output-reference)) 0
                                                                                     (length index-string))
                                                       child-iomaps)
@@ -190,10 +193,10 @@
     (push (make-iomap/text projection recursion
                            type-label `(,type-label ,@(typed-reference (form-type input) input-reference)) 0
                            type-label-text `((content-of (the table/cell document))
-                                             (the table/cell (elt (the list document) 0))
-                                             (the list (cells-of (the table/row document)))
-                                             (the table/row (elt (the list document) 0))
-                                             (the list (rows-of (the table/table document)))
+                                             (the table/cell (elt (the sequence document) 0))
+                                             (the sequence (cells-of (the table/row document)))
+                                             (the table/row (elt (the sequence document) 0))
+                                             (the sequence (rows-of (the table/table document)))
                                              ,@(typed-reference 'table/table output-reference)) 0
                                              (length type-label))
           child-iomaps)
@@ -201,10 +204,10 @@
     (push (make-iomap/text projection recursion
                            class-name `((class-name (the ,(form-type input) document)) ,@(typed-reference (form-type input) input-reference)) 0
                            type-text `((content-of (the table/cell document))
-                                       (the table/cell (elt (the list document) 1))
-                                       (the list (cells-of (the table/row document)))
-                                       (the table/row (elt (the list document) 0))
-                                       (the list (rows-of (the table/table document)))
+                                       (the table/cell (elt (the sequence document) 1))
+                                       (the sequence (cells-of (the table/row document)))
+                                       (the table/row (elt (the sequence document) 0))
+                                       (the sequence (rows-of (the table/table document)))
                                        ,@(typed-reference 'table/table output-reference)) 0
                                        (length class-name))
           child-iomaps)
@@ -216,19 +219,21 @@
 (def printer t/hash-table->table/table (projection recursion input input-reference)
   ;; TODO:
   (bind ((output (make-text/text (list (make-text/string "hash table" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))))
-    (make-iomap/object projection recursion input input-reference output output-reference)))
+    (make-iomap/object projection recursion input input-reference output)))
 
 (def printer t/function->table/table (projection recursion input input-reference)
   (bind ((output (make-text/text (list (make-text/string "function" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))))
-    (make-iomap/object projection recursion input input-reference output output-reference)))
+    (make-iomap/object projection recursion input input-reference output)))
 
 (def iomap iomap/object->table/table (iomap)
   ((slot-iomaps :type sequence)))
 
+#+nil
 (def reference-applier iomap/object->table/table (iomap reference function)
   (declare (ignore iomap reference function))
   (not-yet-implemented))
 
+#+nil
 (def forward-mapper iomap/object->table/table (iomap input-reference function)
   (pattern-case input-reference
     (((the ?type (slot-value (the ?a document) '?slot-name)) . ?rest)
@@ -236,12 +241,13 @@
        (map-forward (elt (slot-iomaps-of iomap) slot-index)
                     ?rest
                     (lambda (element-iomap output-reference)
-                      (funcall function element-iomap `((the text/text (content-of (the table/cell (elt (the list (cells-of (the table/row (elt (the list (rows-of (the table/table document))) ,(1+ slot-index))))) 1))))
+                      (funcall function element-iomap `((the text/text (content-of (the table/cell (elt (the sequence (cells-of (the table/row (elt (the sequence (rows-of (the table/table document))) ,(1+ slot-index))))) 1))))
                                                         ,@output-reference))))))))
 
+#+nil
 (def backward-mapper iomap/object->table/table (iomap output-reference function)
   (pattern-case output-reference
-    (((the ?type (content-of (the table/cell (elt (the list (cells-of (the table/row (elt (the list (rows-of (the table/table document))) ?row-index)))) ?column-index)))) . ?rest)
+    (((the ?type (content-of (the table/cell (elt (the sequence (cells-of (the table/row (elt (the sequence (rows-of (the table/table document))) ?row-index)))) ?column-index)))) . ?rest)
      (bind ((input (input-of iomap))
             (slot-name (slot-definition-name (elt (class-slots (class-of input)) (1- ?row-index)))))
        (map-backward (elt (slot-iomaps-of iomap) (1- ?row-index))
@@ -281,10 +287,10 @@
                                                                            (symbol-name slot-name) `((slot-name (the ,(form-type input) document) ',slot-name)
                                                                                                      ,@(typed-reference (form-type input) input-reference)) 0
                                                                                                      slot-name-text `((content-of (the table/cell document))
-                                                                                                                      (the table/cell (elt (the list document) 0))
-                                                                                                                      (the list (cells-of (the table/row document)))
-                                                                                                                      (the table/row (elt (the list document) ,(1+ index)))
-                                                                                                                      (the list (rows-of (the table/table document)))
+                                                                                                                      (the table/cell (elt (the sequence document) 0))
+                                                                                                                      (the sequence (cells-of (the table/row document)))
+                                                                                                                      (the table/row (elt (the sequence document) ,(1+ index)))
+                                                                                                                      (the sequence (rows-of (the table/table document)))
                                                                                                                       ,@(typed-reference 'table/table output-reference)) 0
                                                                                                                       (length (symbol-name slot-name)))
                                                           child-iomaps)
@@ -297,10 +303,10 @@
     (push (make-iomap/text projection recursion
                            type-label `(,type-label ,@(typed-reference (form-type input) input-reference)) 0
                            type-label-text `((content-of (the table/cell document))
-                                             (the table/cell (elt (the list document) 0))
-                                             (the list (cells-of (the table/row document)))
-                                             (the table/row (elt (the list document) 0))
-                                             (the list (rows-of (the table/table document)))
+                                             (the table/cell (elt (the sequence document) 0))
+                                             (the sequence (cells-of (the table/row document)))
+                                             (the table/row (elt (the sequence document) 0))
+                                             (the sequence (rows-of (the table/table document)))
                                              ,@(typed-reference 'table/table output-reference)) 0
                                              (length type-label))
           child-iomaps)
@@ -308,10 +314,10 @@
     (push (make-iomap/text projection recursion
                            (symbol-name class-name) `((class-name (the ,(form-type input) document)) ,@(typed-reference (form-type input) input-reference)) 0
                            type-text `((content-of (the table/cell document))
-                                       (the table/cell (elt (the list document) 1))
-                                       (the list (cells-of (the table/row document)))
-                                       (the table/row (elt (the list document) 0))
-                                       (the list (rows-of (the table/table document)))
+                                       (the table/cell (elt (the sequence document) 1))
+                                       (the sequence (cells-of (the table/row document)))
+                                       (the table/row (elt (the sequence document) 0))
+                                       (the sequence (rows-of (the table/table document)))
                                        ,@(typed-reference 'table/table output-reference)) 0
                                        (length (symbol-name class-name)))
           child-iomaps)
@@ -323,25 +329,25 @@
 ;;;;;;
 ;;; Reader
 
-(def reader t/null->text/text (projection recursion projection-iomap gesture-queue operation)
-  (declare (ignore projection recursion gesture-queue))
-  (operation/read-backward operation projection-iomap))
+(def reader t/null->text/text (projection recursion input printer-iomap)
+  (declare (ignore projection recursion))
+  (operation/read-backward operation printer-iomap))
 
-(def reader t/number->text/text (projection recursion projection-iomap gesture-queue operation)
-  (declare (ignore projection recursion gesture-queue))
-  (operation/read-backward operation projection-iomap))
+(def reader t/number->text/text (projection recursion input printer-iomap)
+  (declare (ignore projection recursion))
+  (operation/read-backward operation printer-iomap))
 
-(def reader t/string->text/text (projection recursion projection-iomap gesture-queue operation)
-  (declare (ignore projection recursion gesture-queue))
-  (operation/read-backward operation projection-iomap))
+(def reader t/string->text/text (projection recursion input printer-iomap)
+  (declare (ignore projection recursion))
+  (operation/read-backward operation printer-iomap))
 
-(def reader t/symbol->text/text (projection recursion projection-iomap gesture-queue operation)
-  (declare (ignore projection recursion gesture-queue))
-  (operation/read-backward operation projection-iomap))
+(def reader t/symbol->text/text (projection recursion input printer-iomap)
+  (declare (ignore projection recursion))
+  (operation/read-backward operation printer-iomap))
 
-(def reader t/sequence->table/table (projection recursion projection-iomap gesture-queue operation)
-  (declare (ignore projection recursion gesture-queue))
-  (bind ((input (input-of projection-iomap)))
+(def reader t/sequence->table/table (projection recursion input printer-iomap)
+  (declare (ignore projection recursion))
+  (bind ((input (input-of printer-iomap)))
     (labels ((recurse (operation)
                (typecase operation
                  (operation/quit
@@ -351,10 +357,10 @@
                                                     (pattern-case (selection-of operation)
                                                       (((the sequence-position (text/pos (the text/text document) ?character-index))
                                                         (the text/text (content-of (the table/cell document)))
-                                                        (the table/cell (elt (the list document) ?cell-index))
-                                                        (the list (cells-of (the table/row document)))
-                                                        (the table/row (elt (the list document) ?row-index))
-                                                        (the list (rows-of (the table/table document))))
+                                                        (the table/cell (elt (the sequence document) ?cell-index))
+                                                        (the sequence (cells-of (the table/row document)))
+                                                        (the table/row (elt (the sequence document) ?row-index))
+                                                        (the sequence (rows-of (the table/table document))))
                                                        (if (zerop ?row-index)
                                                            (ecase ?cell-index
                                                              (0 `((the sequence-position (pos (the string document) ,?character-index))
@@ -369,14 +375,14 @@
                       (make-operation/compound child-operations)))))))
       (recurse operation))))
 
-(def reader t/hash-table->table/table (projection recursion projection-iomap gesture-queue operation)
-  (declare (ignore projection recursion gesture-queue))
-  (operation/read-backward operation projection-iomap))
+(def reader t/hash-table->table/table (projection recursion input printer-iomap)
+  (declare (ignore projection recursion))
+  (operation/read-backward operation printer-iomap))
 
-(def reader t/function->table/table (projection recursion projection-iomap gesture-queue operation)
-  (declare (ignore projection recursion gesture-queue))
-  (operation/read-backward operation projection-iomap))
+(def reader t/function->table/table (projection recursion input printer-iomap)
+  (declare (ignore projection recursion))
+  (operation/read-backward operation printer-iomap))
 
-(def reader t/object->table/table (projection recursion projection-iomap gesture-queue operation)
-  (declare (ignore projection recursion gesture-queue))
-  (operation/read-backward operation projection-iomap))
+(def reader t/object->table/table (projection recursion input printer-iomap)
+  (declare (ignore projection recursion))
+  (operation/read-backward operation printer-iomap))

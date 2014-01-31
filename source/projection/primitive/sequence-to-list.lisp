@@ -32,7 +32,7 @@
          (output (make-list/list (iter (for index :from 0)
                                        (for element :in-sequence input)
                                        (for iomap = (recurse-printer recursion element
-                                                                     `((elt (the list document) ,index)
+                                                                     `((elt (the sequence document) ,index)
                                                                        ,@(typed-reference (form-type input) input-reference))))
                                        (collect (make-list/element (output-of iomap)))))))
     (make-iomap/object projection recursion input input-reference output nil)))
@@ -40,6 +40,6 @@
 ;;;;;;
 ;;; Reader
 
-(def reader sequence->list (projection recursion projection-iomap gesture-queue operation)
-  (declare (ignore projection recursion operation))
-  (document/read-operation (input-of projection-iomap) (first (gestures-of gesture-queue))))
+(def reader sequence->list (projection recursion input printer-iomap)
+  (declare (ignore projection recursion))
+  (document/read-operation (input-of printer-iomap) (gesture-of input)))

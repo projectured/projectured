@@ -31,13 +31,13 @@
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
          (output (string-downcase (class-name (class-of input)))))
     (make-iomap/compound projection recursion input input-reference output
-                          (list (make-iomap/object projection recursion input input-reference output output-reference)
-                                (make-iomap/string* input `(the string (string-downcase (the symbol (class-name (the class (class-of ,typed-input-reference)))))) 0
-                                                    output `(the string ,output-reference) 0 (length output))))))
+                         (list (make-iomap/object projection recursion input input-reference output)
+                               (make-iomap/string input `(the string (string-downcase (the symbol (class-name (the class (class-of ,typed-input-reference)))))) 0
+                                                  output `(the string ,output-reference) 0 (length output))))))
 
 ;;;;;;
 ;;; Reader
 
-(def reader t->class-name (projection recursion projection-iomap gesture-queue operation)
-  (declare (ignore projection recursion projection-iomap gesture-queue operation))
+(def reader t->class-name (projection recursion input printer-iomap)
+  (declare (ignore projection recursion input printer-iomap))
   nil)

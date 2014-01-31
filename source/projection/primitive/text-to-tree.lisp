@@ -38,32 +38,32 @@
          (output (make-tree/node (iter (for index :from 0)
                                        (for element :in-sequence (elements-of input))
                                        (for element-iomap = (recurse-printer recursion element
-                                                                             `(elt (the list (elements-of ,typed-input-reference)) ,index)))
+                                                                             `(elt (the sequence (elements-of ,typed-input-reference)) ,index)))
                                        (collect (output-of element-iomap))))))
     (make-iomap/compound projection recursion input input-reference output
-                          (list (make-iomap/object projection recursion input input-reference output output-reference)))))
+                          (list (make-iomap/object projection recursion input input-reference output)))))
 
 (def printer text/string->tree/leaf (projection recursion input input-reference)
   (bind ((output (make-tree/leaf input)))
     (make-iomap/compound projection recursion input input-reference output
-                          (list (make-iomap/object projection recursion input input-reference output output-reference)))))
+                          (list (make-iomap/object projection recursion input input-reference output)))))
 
 (def printer image/image->tree/leaf (projection recursion input input-reference)
   (bind ((output (make-tree/leaf input)))
     (make-iomap/compound projection recursion input input-reference output
-                          (list (make-iomap/object projection recursion input input-reference output output-reference)))))
+                          (list (make-iomap/object projection recursion input input-reference output)))))
 
 ;;;;;;
 ;;; Reader
 
-(def reader text/text->tree/node (projection recursion projection-iomap gesture-queue operation)
-  (declare (ignore projection recursion projection-iomap gesture-queue document))
-  operation)
+(def reader text/text->tree/node (projection recursion input printer-iomap)
+  (declare (ignore projection recursion printer-iomap))
+  input)
 
-(def reader text/string->tree/leaf (projection recursion projection-iomap gesture-queue operation)
-  (declare (ignore projection recursion projection-iomap gesture-queue document))
-  operation)
+(def reader text/string->tree/leaf (projection recursion input printer-iomap)
+  (declare (ignore projection recursion printer-iomap))
+  input)
 
-(def reader image/image->tree/leaf (projection recursion projection-iomap gesture-queue operation)
-  (declare (ignore projection recursion projection-iomap gesture-queue document))
-  operation)
+(def reader image/image->tree/leaf (projection recursion input printer-iomap)
+  (declare (ignore projection recursion printer-iomap))
+  input)

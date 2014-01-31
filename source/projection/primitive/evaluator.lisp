@@ -43,11 +43,11 @@
                                                        (collect (evaluate environment argument)))))
                                  (apply operator arguments))))))
                    (evaluate (make-environment nil) input))))
-    (make-iomap/object projection recursion input input-reference output output-reference)))
+    (make-iomap/object projection recursion input input-reference output)))
 
 ;;;;;;
 ;;; Reader
 
-(def reader evaluator (projection recursion projection-iomap gesture-queue operation)
-  (declare (ignore projection recursion projection-iomap gesture-queue))
-  operation)
+(def reader evaluator (projection recursion input printer-iomap)
+  (declare (ignore projection recursion printer-iomap))
+  input)

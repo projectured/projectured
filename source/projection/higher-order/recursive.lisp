@@ -34,10 +34,12 @@
 ;;;;;;
 ;;; Reference applier
 
+#+nil
 (def reference-applier iomap/recursive (iomap reference function)
   (declare (ignore iomap reference function))
   (not-yet-implemented))
 
+#+nil
 (def reference-applier iomap/compound (iomap reference function)
   (iter (for child-iomap :in (child-iomaps-of iomap))
         (apply-reference child-iomap reference function)))
@@ -45,10 +47,12 @@
 ;;;;;;
 ;;; Forwar mapper
 
+#+nil
 (def forward-mapper iomap/recursive (iomap input-reference function)
   (when (tree-search input-reference (input-reference-of iomap))
     (funcall function iomap (tree-replace input-reference (input-reference-of iomap) (output-reference-of iomap)))))
 
+#+nil
 (def forward-mapper iomap/compound (iomap input-reference function)
   (iter (for child-iomap :in (child-iomaps-of iomap))
         (map-forward child-iomap input-reference function)))
@@ -56,10 +60,12 @@
 ;;;;;;
 ;;; Backward mapper
 
+#+nil
 (def backward-mapper iomap/recursive (iomap output-reference function)
   (when (tree-search output-reference (output-reference-of iomap))
     (funcall function iomap (tree-replace output-reference (output-reference-of iomap) (input-reference-of iomap)))))
 
+#+nil
 (def backward-mapper iomap/compound (iomap output-reference function)
   (iter (for child-iomap :in (child-iomaps-of iomap))
         (map-backward child-iomap output-reference function)))
@@ -88,12 +94,12 @@
 (def printer recursive (projection recursion input input-reference)
   (declare (ignore recursion))
   (bind ((child (child-of projection)))
-    (funcall (printer-of child) child projection input input-reference)))
+    (call-printer child projection input input-reference)))
 
 ;;;;;;
 ;;; Reader
 
-(def reader recursive (projection recursion projection-iomap gesture-queue operation)
+(def reader recursive (projection recursion input printer-iomap)
   (declare (ignore recursion))
   (bind ((child (child-of projection)))
-    (funcall (reader-of child) child projection projection-iomap gesture-queue operation)))
+    (call-reader child projection input printer-iomap)))

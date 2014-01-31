@@ -35,6 +35,6 @@
 ;;;;;;
 ;;; Reader
 
-(def reader text->string (projection recursion projection-iomap gesture-queue operation)
-  (declare (ignore projection recursion projection-iomap gesture-queue document))
-  operation)
+(def reader text->string (projection recursion input printer-iomap)
+  (declare (ignore projection recursion printer-iomap))
+  input)

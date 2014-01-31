@@ -43,19 +43,18 @@
     (style/color (make-iomap/object projection recursion input input-reference input))
     (style/font (make-iomap/object projection recursion input input-reference input))
     (cons
-     (bind ((car-iomap (recurse-printer recursion (car input) `((car (the list document))
+     (bind ((car-iomap (recurse-printer recursion (car input) `((car (the sequence document))
                                                                 ,@(typed-reference (form-type input) input-reference))))
-            (cdr-iomap (recurse-printer recursion (cdr input) `((cdr (the list document))
+            (cdr-iomap (recurse-printer recursion (cdr input) `((cdr (the sequence document))
                                                                 ,@(typed-reference (form-type input) input-reference))))
             (output (cons (output-of car-iomap) (output-of cdr-iomap))))
-       (make-iomap/compound projection recursion input output
+       (make-iomap/compound projection recursion input input-reference output
                             (list (make-iomap/object projection recursion input input-reference output) car-iomap cdr-iomap))))
     (standard-object
      (bind ((class (class-of input))
             (slot-value-iomaps (iter (for slot :in (class-slots class))
                                      (when (slot-boundp-using-class class input slot)
-                                       (bind ((direct-slot (some (lambda (super) (find-direct-slot super (slot-definition-name slot) :otherwise nil)) (class-precedence-list class)))
-                                              (slot-reader (first (slot-definition-readers direct-slot)))
+                                       (bind ((slot-reader (find-slot-reader class slot))
                                               (slot-value (slot-value-using-class class input slot)))
                                          (collect (recurse-printer recursion slot-value
                                                                    (if slot-reader
@@ -75,33 +74,46 @@
 ;;;;;;
 ;;; Reader
 
-(def reader copying (projection recursion projection-iomap gesture-queue operation)
+(def reader copying (projection recursion input printer-iomap)
   (declare (ignore projection))
-  (labels ((recurse (operation)
-             (typecase operation
-               (operation/quit operation)
-               (operation/replace-selection
-                (etypecase (input-of projection-iomap)
-                  (standard-object
-                   (bind ((slot-index 1) ;; TODO:
-                          (slot-value-iomap (elt (slot-value-iomaps-of projection-iomap) slot-index))
-                          (input-slot-value-operation (make-operation/replace-selection (input-of slot-value-iomap) (butlast (selection-of operation)))))
-                     (make-operation/replace-selection (input-of projection-iomap)
-                                                       (append (selection-of (recurse-reader recursion slot-value-iomap gesture-queue input-slot-value-operation))
-                                                               (last (selection-of operation))))))))
-               (operation/sequence/replace-element-range)
-               (operation/compound
-                (bind ((operations (mapcar #'recurse (elements-of operation))))
-                  (unless (some 'null operations)
-                    (make-operation/compound operations)))))))
-    (recurse operation))
-  #+nil
-  (bind ((selection (tree-replace (selection-of (input-of document-iomap)) '(the document document) `(the document ,(input-reference-of document-iomap)))))
-    (or (iter (for index :from 0 :below (length (class-slots (class-of (input-of projection-iomap)))))
-              (for child-iomap = (elt (child-iomaps-of projection-iomap) (1+ index)))
-              (for child-operation =
-                   (when (tree-search selection (input-reference-of child-iomap))
-                     (recurse-reader recursion child-iomap gesture-queue operation)))
-              (when child-operation
-                (return child-operation)))
-        (operation/read-backward operation projection-iomap document-iomap))))
+  (bind ((printer-input (input-of printer-iomap))
+         (class (class-of printer-input)))
+    (make-command (gesture-of input)
+                  (labels ((recurse (operation)
+                             (typecase operation
+                               (operation/quit operation)
+                               (operation/replace-selection
+                                (etypecase printer-input
+                                  (standard-object
+                                   (awhen (pattern-case (reverse (selection-of operation))
+                                            (((the ?type (?reader (the ?input-type document))) . ?rest)
+                                             (bind ((slot-index (position ?reader (class-slots class) :key (curry 'find-slot-reader class)))
+                                                    (slot-value-iomap (elt (slot-value-iomaps-of printer-iomap) slot-index))
+                                                    (input-slot-value-operation (make-operation/replace-selection (input-of slot-value-iomap) (butlast (selection-of operation)))))
+                                               (append (selection-of (operation-of (recurse-reader recursion (make-command (gesture-of input) input-slot-value-operation) slot-value-iomap)))
+                                                       (last (selection-of operation)))))
+                                            (?a
+                                             (selection-of operation)))
+                                     (make-operation/replace-selection printer-input it)))
+                                  (t
+                                   (not-yet-implemented))))
+                               (operation/sequence/replace-element-range
+                                (etypecase printer-input
+                                  (standard-object
+                                   (awhen (pattern-case (reverse (target-of operation))
+                                            (((the ?type (?reader (the ?input-type document))) . ?rest)
+                                             (bind ((slot-index (position ?reader (class-slots class) :key (curry 'find-slot-reader class)))
+                                                    (slot-value-iomap (elt (slot-value-iomaps-of printer-iomap) slot-index))
+                                                    (input-slot-value-operation (make-operation/sequence/replace-element-range (input-of slot-value-iomap) (butlast (target-of operation)) (replacement-of operation)))
+                                                    (output-slot-value-operation (operation-of (recurse-reader recursion (make-command (gesture-of input) input-slot-value-operation) slot-value-iomap))))
+                                               (when (typep output-slot-value-operation 'operation/sequence/replace-element-range)
+                                                 (append (target-of output-slot-value-operation)
+                                                         (last (target-of operation)))))))
+                                     (make-operation/sequence/replace-element-range printer-input it (replacement-of operation))))
+                                  (t
+                                   (not-yet-implemented))))
+                               (operation/compound
+                                (bind ((operations (mapcar #'recurse (elements-of operation))))
+                                  (unless (some 'null operations)
+                                    (make-operation/compound operations)))))))
+                    (recurse (operation-of input))))))

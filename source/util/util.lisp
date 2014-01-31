@@ -48,18 +48,12 @@
 
 (def (function e) form-type (form)
   (typecase form
-    (null 'list)
-    (cons 'list)
+    (null 'sequence)
+    (cons 'sequence)
     (number 'number)
     (string 'string)
     (vector 'vector)
     (t (type-of form))))
-
-;; TODO: rename
-(def (function e) provider-combinator (&rest functions)
-  (lambda (&rest args)
-    (iter (for function :in functions)
-          (thereis (apply function args)))))
 
 (def (function e) boolean-to-string (value)
   (if value "true" "false"))
@@ -71,6 +65,10 @@
 
 (def (function e) object-class-symbol-name (object)
   (symbol-name (object-class-name object)))
+
+(def (function e) find-slot-reader (class slot)
+  (bind ((direct-slot (some (lambda (super) (find-direct-slot super (slot-definition-name slot) :otherwise nil)) (class-precedence-list class))))
+    (first (slot-definition-readers direct-slot))))
 
 (def (function e) tree-search (tree element)
   (or (equal tree element)

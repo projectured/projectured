@@ -32,15 +32,15 @@
          (child-iomaps nil)
          (output (iter (for child :in-sequence (children-of input))
                        (for index :from 0)
-                       (for iomap = (recurse-printer recursion child `(elt (the list (children-of ,typed-input-reference)) ,index)))
+                       (for iomap = (recurse-printer recursion child `(elt (the sequence (children-of ,typed-input-reference)) ,index)))
                        (push iomap child-iomaps)
                        (collect (output-of iomap)))))
     (make-iomap/compound projection recursion input input-reference output
-                          (list* (make-iomap/object projection recursion input input-reference output output-reference) (nreverse child-iomaps)))))
+                          (list* (make-iomap/object projection recursion input input-reference output) (nreverse child-iomaps)))))
 
 ;;;;;;
 ;;; Reader
 
-(def reader tree/node->list (projection recursion projection-iomap gesture-queue operation)
-  (declare (ignore projection recursion projection-iomap gesture-queue operation))
+(def reader tree/node->list (projection recursion input printer-iomap)
+  (declare (ignore projection recursion input printer-iomap))
   nil)

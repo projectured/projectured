@@ -55,7 +55,7 @@
                                         (iter (for index :from 0)
                                               (for element :in-sequence (elements-of input))
                                               (for element-iomap = (recurse-printer recursion element
-                                                                                    `((elt (the list (elements-of document)) ,index)
+                                                                                    `((elt (the sequence (elements-of document)) ,index)
                                                                                       ,@(typed-reference (form-type input) input-reference))))
                                               (setf (indentation-of (output-of element-iomap)) 1)
                                               ;; TODO: iomap
@@ -65,10 +65,10 @@
 ;;;;;;
 ;;; Reader
 
-(def reader file-system/file->tree/leaf (projection recursion projection-iomap gesture-queue operation)
+(def reader file-system/file->tree/leaf (projection recursion input printer-iomap)
   (declare (ignore projection recursion operation))
-  (document/read-operation (input-of projection-iomap) (first (gestures-of gesture-queue))))
+  (document/read-operation (input-of printer-iomap) (gesture-of input)))
 
-(def reader file-system/directory->tree/node (projection recursion projection-iomap gesture-queue operation)
+(def reader file-system/directory->tree/node (projection recursion input printer-iomap)
   (declare (ignore projection recursion operation))
-  (document/read-operation (input-of projection-iomap) (first (gestures-of gesture-queue))))
+  (document/read-operation (input-of printer-iomap) (gesture-of input)))

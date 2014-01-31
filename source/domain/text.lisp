@@ -31,6 +31,7 @@
 ;;;;;;
 ;;; Reference applier
 
+#+nil
 (def reference-applier iomap/text (iomap reference function)
   (declare (ignore function))
   (pattern-case reference
@@ -43,6 +44,7 @@
 ;;;;;;
 ;;; Forward mapper
 
+#+nil
 (def forward-mapper iomap/text (iomap input-reference function)
   (bind ((string-input? (stringp (input-of iomap)))
          (string-output? (stringp (output-of iomap))))
@@ -79,6 +81,7 @@
 ;;;;;;
 ;;; Backward mapper
 
+#+nil
 (def backward-mapper iomap/text (iomap output-reference function)
   (bind ((string-input? (stringp (input-of iomap)))
          (string-output? (stringp (output-of iomap))))
@@ -306,7 +309,10 @@
              (return (values element-index character-index))))
           (t
            (setf character-index -1)
-           (incf element-index)))))
+           (incf element-index)
+           (if (= element-index (length elements))
+               (return (values element-index 0))
+               (next-iteration))))))
 
 (def (function e) text/count (text character)
   (iter (for element :in-sequence (elements-of text))
@@ -334,14 +340,15 @@
         (while (< start-element-index (length elements)))))
 
 (def (function e) text/map-split (text split-character function)
-  (iter (with elements = (elements-of text))
-        (with start-element-index = 0)
-        (with start-character-index = 0)
-        (for (values end-element-index end-character-index) = (text/find text start-element-index start-character-index (lambda (character) (char= character split-character))))
-        (funcall function start-element-index start-character-index end-element-index end-character-index)
-        (while (< end-element-index (length elements)))
-        (setf (values start-element-index start-character-index) (text/next-index text end-element-index end-character-index))
-        (while (< start-element-index (length elements)))))
+  (bind ((elements (elements-of text)))
+    (unless (zerop (length elements))
+      (iter (with start-element-index = 0)
+            (with start-character-index = 0)
+            (for (values end-element-index end-character-index) = (text/find text start-element-index start-character-index (lambda (character) (char= character split-character))))
+            (funcall function start-element-index start-character-index end-element-index end-character-index)
+            (while (< end-element-index (length elements)))
+            (setf (values start-element-index start-character-index) (text/next-index text end-element-index end-character-index))
+            (while (< start-element-index (length elements)))))))
 
 (def (function e) text/next-index (text element-index character-index)
   (bind ((element (elt (elements-of text) element-index)))
@@ -393,11 +400,11 @@
          (modifier-text (gesture/describe-modifiers gesture))
          (gesture-text (gesture/describe-key gesture)))
     (list
-     (text/string (domain-of command) :font *font/default* :font-color *color/solarized/red*)
+     (text/string (or (domain-of command) "Unspecified") :font *font/default* :font-color *color/solarized/red*)
      (text/string " " :font *font/default* :font-color *color/black*)
      (text/string (string+ modifier-text gesture-text) :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/blue*)
      (text/string " " :font *font/default* :font-color *color/black*)
-     (text/string (description-of command) :font *font/default* :font-color *color/black*)
+     (text/string (or (description-of command) "No description") :font *font/default* :font-color *color/black*)
      (text/newline))))
 
 (def (function e) text/read-operation/replace-selection (text key &optional modifier)
@@ -524,7 +531,7 @@
          :domain "Text" :help "Moves the selection one page up"
          :operation (text/read-operation/replace-selection text :sdl-key-pageup))
         ((gesture/keyboard/key-press :sdl-key-pagedown)
-         :domain "Text" :help "Moves the selection pne page down"
+         :domain "Text" :help "Moves the selection one page down"
          :operation (text/read-operation/replace-selection text :sdl-key-pagedown))
         ((gesture/keyboard/key-press :sdl-key-home)
          :domain "Text" :help "Moves the selection to the beginning of the line"
@@ -541,26 +548,27 @@
         ((gesture/keyboard/key-press :sdl-key-delete)
          :domain "Text" :help "Deletes the character following the selection"
          :operation (pattern-case (selection-of text)
-                      ((the sequence-position (pos (the string ?a) ?b))
+                      (((the sequence-position (pos (the string document) ?b)))
                        (when (< ?b (text/length text))
-                         (make-operation/sequence/replace-element-range text `(the sequence (subseq (the string ,?a) ,?b ,(1+ ?b))) "")))
-                      ((the sequence-position (text/pos (the text/text ?a) ?b))
+                         (make-operation/sequence/replace-element-range text `((the sequence (subseq (the string document) ,?b ,(1+ ?b)))) "")))
+                      (((the sequence-position (text/pos (the text/text document) ?b)))
                        (when (< ?b (text/length text))
-                         (make-operation/sequence/replace-element-range text `(the sequence (text/subseq (the text/text ,?a) ,?b ,(1+ ?b))) "")))))
+                         (make-operation/sequence/replace-element-range text `((the sequence (text/subseq (the text/text document) ,?b ,(1+ ?b)))) "")))))
         ((gesture/keyboard/key-press :sdl-key-backspace)
          :domain "Text" :help "Deletes the character preceding the selection"
          :operation (pattern-case (selection-of text)
-                      ((the sequence-position (pos (the string ?a) ?b))
+                      (((the sequence-position (pos (the string document) ?b)))
                        (when (> ?b 0)
-                         (make-operation/compound (list (make-operation/sequence/replace-element-range text `(the sequence (subseq (the string ,?a) ,(1- ?b) ,?b)) "")
-                                                        (make-operation/replace-selection text `(the sequence-position (pos (the string ,?a) ,(1- ?b))))))))
-                      ((the sequence-position (text/pos (the text/text ?a) ?b))
+                         (make-operation/compound (list (make-operation/sequence/replace-element-range text `((the sequence (subseq (the string document) ,(1- ?b) ,?b))) "")
+                                                        (make-operation/replace-selection text `((the sequence-position (pos (the string document) ,(1- ?b)))))))))
+                      (((the sequence-position (text/pos (the text/text document) ?b)))
                        (when (> ?b 0)
-                         (make-operation/compound (list (make-operation/sequence/replace-element-range text `(the sequence (text/subseq (the text/text ,?a) ,(1- ?b) ,?b)) "")
-                                                        (make-operation/replace-selection text `(the sequence-position (text/pos (the text/text ,?a) ,(1- ?b)))))))))))
+                         (make-operation/compound (list (make-operation/sequence/replace-element-range text `((the sequence (text/subseq (the text/text document) ,(1- ?b) ,?b))) "")
+                                                        (make-operation/replace-selection text `((the sequence-position (text/pos (the text/text document) ,(1- ?b))))))))))))
       ;; TODO: move into gesture-case
       (cond ((and (typep gesture 'gesture/keyboard/key-press)
                   (null (set-difference (modifiers-of gesture) '(:shift)))
+                  (character-of gesture)
                   (or (graphic-char-p (character-of gesture))
                       (whitespace? (character-of gesture))))
              (bind ((character (character-of gesture))
@@ -569,10 +577,19 @@
                                        (t (string character)))))
                (pattern-case (selection-of text)
                  (((the sequence-position (pos (the string (write-to-string (the number ?a))) ?b)))
-                  (make-operation/number/replace-range text (selection-of text) replacement))
+                  (make-command gesture
+                                (make-operation/number/replace-range text (selection-of text) replacement)
+                                :domain "Text"
+                                :description "Inserts a new character at the selection"))
                  (((the sequence-position (pos (the string ?a) ?b)))
-                  (make-operation/compound (list (make-operation/sequence/replace-element-range text (selection-of text) replacement)
-                                                 (make-operation/replace-selection text `(the sequence-position (pos (the string ,?a) ,(1+ ?b)))))))
+                  (make-command gesture
+                                (make-operation/compound (list (make-operation/sequence/replace-element-range text (selection-of text) replacement)
+                                                               (make-operation/replace-selection text `(the sequence-position (pos (the string ,?a) ,(1+ ?b))))))
+                                :domain "Text"
+                                :description "Inserts a new character at the selection"))
                  (((the sequence-position (text/pos (the text/text document) ?b)) . ?rest)
-                  (make-operation/compound (list (make-operation/sequence/replace-element-range text (selection-of text) replacement)
-                                                 (make-operation/replace-selection text `((the sequence-position (text/pos (the text/text document) ,(1+ ?b))) ,@?rest)))))))))))
+                  (make-command gesture
+                                (make-operation/compound (list (make-operation/sequence/replace-element-range text (selection-of text) replacement)
+                                                               (make-operation/replace-selection text `((the sequence-position (text/pos (the text/text document) ,(1+ ?b))) ,@?rest))))
+                                :domain "Text"
+                                :description "Inserts a new character at the selection"))))))))

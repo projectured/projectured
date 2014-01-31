@@ -28,6 +28,7 @@
 ;;;;;;
 ;;; Reference applier
 
+#+nil
 (def reference-applier iomap/string (iomap reference function)
   (declare (ignore function))
   (pattern-case reference
@@ -40,6 +41,7 @@
 ;;;;;;
 ;;; Forward mapper
 
+#+nil
 (def forward-mapper iomap/string (iomap input-reference function)
   (pattern-case input-reference
     ((the character (elt (the string ?a) ?b))
@@ -63,6 +65,7 @@
 ;;;;;;
 ;;; Backward mapper
 
+#+nil
 (def backward-mapper iomap/string (iomap output-reference function)
   (pattern-case output-reference
     ((the character (elt (the string ?a) ?b))

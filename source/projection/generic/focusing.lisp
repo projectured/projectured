@@ -52,37 +52,51 @@
 ;;;;;;
 ;;; Reader
 
-(def reader focusing (projection recursion projection-iomap gesture-queue operation)
+(def function focusing/read-command (projection input printer-iomap)
+  (gesture-case (gesture-of input)
+    ((gesture/keyboard/key-press #\, :control)
+     :domain "Focusing" :help "Moves the focus one level up"
+     :operation (when (part-of projection)
+                  (make-instance 'operation/focusing/replace-part
+                                 :projection projection
+                                 :part (iter (for selection :on (rest (part-of projection)))
+                                             (when (subtypep (second (first selection)) (part-type-of projection))
+                                               (return selection))))))
+    ((gesture/keyboard/key-press #\. :control)
+     :domain "Focusing" :help "Moves the focus to the selection"
+     :operation (make-instance 'operation/focusing/replace-part
+                               :projection projection
+                               :part (iter (for selection :on (selection-of (input-of printer-iomap)))
+                                           (when (subtypep (second (first selection)) (part-type-of projection))
+                                             (return selection)))))))
+(def reader focusing (projection recursion input printer-iomap)
   (declare (ignore recursion))
-  (labels ((recurse (operation)
-             (typecase operation
-               (operation/quit operation)
-               (operation/replace-selection
-                (make-operation/replace-selection (input-of projection-iomap)
-                                                  (append (selection-of operation) (part-of projection))))
-               (operation/sequence/replace-element-range
-                (make-operation/sequence/replace-element-range (input-of projection-iomap)
-                                                               (append (target-of operation) (part-of projection))
-                                                               (replacement-of operation)))
-               (operation/compound
-                (bind ((operations (mapcar #'recurse (elements-of operation))))
-                  (unless (some 'null operations)
-                    (make-operation/compound operations)))))))
-    (bind ((latest-gesture (first-elt (gestures-of gesture-queue))))
-      (merge-operations (gesture-case latest-gesture
-                          ((gesture/keyboard/key-press #\, :control)
-                           :domain "Focusing" :help "Moves the focus one level up"
-                           :operation (when (part-of projection)
-                                        (make-instance 'operation/focusing/replace-part
-                                                       :projection projection
-                                                       :part (iter (for selection :on (rest (part-of projection)))
-                                                                   (when (subtypep (second (first selection)) (part-type-of projection))
-                                                                     (return selection))))))
-                          ((gesture/keyboard/key-press #\. :control)
-                           :domain "Focusing" :help "Moves the focus to the selection"
-                           :operation (make-instance 'operation/focusing/replace-part
-                                                     :projection projection
-                                                     :part (iter (for selection :on (selection-of (input-of projection-iomap)))
-                                                                 (when (subtypep (second (first selection)) (part-type-of projection))
-                                                                   (return selection))))))
-                        (recurse operation)))))
+  (merge-commands (focusing/read-command projection input printer-iomap)
+                  (awhen (labels ((recurse (operation)
+                                    (typecase operation
+                                      (operation/quit operation)
+                                      (operation/replace-selection
+                                       (make-operation/replace-selection (input-of printer-iomap)
+                                                                         (append (selection-of operation) (part-of projection))))
+                                      (operation/sequence/replace-element-range
+                                       (make-operation/sequence/replace-element-range (input-of printer-iomap)
+                                                                                      (append (target-of operation) (part-of projection))
+                                                                                      (replacement-of operation)))
+                                      (operation/show-context-sensitive-help
+                                       (make-instance 'operation/show-context-sensitive-help
+                                                      :commands (iter (for command :in (commands-of operation))
+                                                                      (awhen (recurse (operation-of command))
+                                                                        (collect (make-instance 'command
+                                                                                                :gesture (gesture-of command)
+                                                                                                :domain (domain-of command)
+                                                                                                :description (description-of command)
+                                                                                                :operation it))))))
+                                      (operation/compound
+                                       (bind ((operations (mapcar #'recurse (elements-of operation))))
+                                         (unless (some 'null operations)
+                                           (make-operation/compound operations)))))))
+                           (recurse (operation-of input)))
+                    (make-command (gesture-of input) it
+                                  :domain (domain-of input)
+                                  :description (description-of input)))
+                  (make-command/nothing (gesture-of input))))

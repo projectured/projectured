@@ -31,9 +31,11 @@
   ((value :type string)))
 
 (def document json/array (json/base)
+  ;; TODO: json/array-elements?
   ((elements :type sequence)))
 
 (def document json/object-entry (json/base)
+  ;; TODO: json/object-entry-key?
   ((key :type string)
    (value :type json/base)))
 
@@ -59,13 +61,13 @@
   (make-instance 'json/string :value value))
 
 (def (function e) make-document/json/array (elements)
-  (make-instance 'json/array :elements elements))
+  (make-instance 'json/array :elements (make-sequence/sequence elements)))
 
 (def (function e) make-document/json/object-entry (key value)
   (make-instance 'json/object-entry :key key :value value))
 
 (def (function e) make-document/json/object (entries)
-  (make-instance 'json/object :entries entries))
+  (make-instance 'json/object :entries (make-sequence/sequence entries)))
 
 ;;;;;;
 ;;; Construction

@@ -15,6 +15,7 @@
 ;;;;;;
 ;;; Reference applier
 
+#+nil
 (def reference-applier iomap/preserving (iomap reference function)
   (declare (ignore iomap reference function))
   (not-yet-implemented))
@@ -22,12 +23,14 @@
 ;;;;;;
 ;;; Forward mapper
 
+#+nil
 (def forward-mapper iomap/preserving (iomap input-reference function)
   (funcall function iomap input-reference))
 
 ;;;;;;
 ;;; Backward mapper
 
+#+nil
 (def backward-mapper iomap/preserving (iomap output-reference function)
   (funcall function iomap output-reference))
 
@@ -59,6 +62,6 @@
 ;;;;;;
 ;;; Reader
 
-(def reader preserving (projection recursion projection-iomap gesture-queue operation)
-  (declare (ignore projection recursion projection-iomap gesture-queue document))
-  operation)
+(def reader preserving (projection recursion input printer-iomap)
+  (declare (ignore projection recursion printer-iomap))
+  input)

@@ -20,14 +20,18 @@
        (def function ,function-name ,arguments ,@forms)
        (setf (find-reader ',name) ',function-name))))
 
-(def (function e) apply-reader (projection printer-iomap gesture-queue &optional (recursion (make-projection/preserving)))
-  (funcall (reader-of projection) projection recursion printer-iomap gesture-queue nil))
+(def (function e) call-reader (projection recursion input #+nil input-reference printer-iomap)
+  (funcall (reader-of projection) projection recursion input #+nil input-reference printer-iomap))
 
-(def (function e) recurse-reader (recursion projection-iomap gesture-queue operation)
-  (funcall (reader-of recursion) recursion recursion projection-iomap gesture-queue operation))
+(def (function e) recurse-reader (recursion input #+nil input-reference printer-iomap)
+  #+nil(assert (not (eq 'the (first (first input-reference)))))
+  (call-reader recursion recursion input #+nil input-reference printer-iomap))
 
-(def (function e) reader-output (projection printer-iomap gesture-queue &optional (recursion (make-projection/preserving)))
-  (output-of (apply-reader projection printer-iomap gesture-queue recursion)))
+(def (function e) apply-reader (input projection printer-iomap &optional (recursion (make-projection/preserving)))
+  (call-reader projection recursion input #+nil nil printer-iomap))
+
+(def (function e) reader-output (input projection printer-iomap &optional (recursion (make-projection/preserving)))
+  (output-of (call-reader projection recursion input #+nil nil printer-iomap)))
 
 ;;;;;;
 ;;; Reader API implementation

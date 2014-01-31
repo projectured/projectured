@@ -6,6 +6,46 @@
 
 (in-package :projectured)
 
+;;;;;;
+;;; Document
+
+;; TODO: rename?
+(def document sequence/sequence (document/base sequence)
+  ((elements :type list)))
+
+;;;;;;
+;;; Construction
+
+(def (function e) make-sequence/sequence (elements &key selection)
+  (make-instance 'sequence/sequence :elements elements :selection selection))
+
+;;;;;;
+;;; Construction
+
+(def (macro e) sequence/sequence ((&key selection) &body elements)
+  `(make-sequence/sequence (list ,@elements) :selection ,selection))
+
+(def method sb-sequence:elt ((instance sequence/sequence) index)
+  (elt (elements-of instance) index))
+
+(def method (setf sb-sequence:elt) (new-value (instance sequence/sequence) index)
+  (setf (elt (elements-of instance) index) new-value))
+
+(def method sb-sequence:length ((instance sequence/sequence))
+  (length (elements-of instance)))
+
+(def method sb-sequence:adjust-sequence ((instance sequence/sequence) length &key initial-element (initial-contents nil initial-contents?))
+  (setf (elements-of instance) (if initial-contents?
+                                   initial-contents
+                                   (make-list length :initial-element initial-element))))
+
+(def method sb-sequence:make-sequence-like ((instance sequence/sequence) length &key initial-element (initial-contents nil initial-contents?))
+  (make-instance 'sequence/sequence
+                 :elements (if initial-contents?
+                               initial-contents
+                               (make-list length :initial-element initial-element))
+                 :selection (selection-of instance)))
+
 ;;;;;;;;
 ;;;; Sequence domain provides:
 ;;;;  - sequence
@@ -54,10 +94,10 @@
             (((the sequence-position (text/pos (the text/text ?a) ?b)) . ?rest)
              (values `(,@(reverse ?rest) (the text/text ,?a)) ?b ?b))
             (((the sequence (subseq (the ?type (?if (subtypep ?type 'sequence)) ?a) ?b ?c)) . ?rest)
-             (values ?a ?b ?c))
+             (values `(,@(reverse ?rest) (the string ,?a)) ?b ?c))
             (((the sequence (text/subseq (the text/text ?a) ?b ?c)) . ?rest)
-             (values ?a ?b ?c))
-            (((elt (the list ?a) ?b) . ?rest)
+             (values `(,@(reverse ?rest) (the text/text ,?a)) ?b ?c))
+            (((elt (the sequence ?a) ?b) . ?rest)
              (values ?a ?b (1+ ?b)))
             (?a
              (not-yet-implemented))))

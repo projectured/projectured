@@ -55,7 +55,7 @@
             (push event (events-of event-queue))
             (when-bind gesture (read-gesture event-queue)
               (push gesture (gestures-of gesture-queue))
-              (when-bind operation (apply-reader projection (printer-iomap-of editor) gesture-queue)
+              (when-bind operation (operation-of (apply-reader (make-command gesture nil :domain "Default" :description "Does nothing") projection (printer-iomap-of editor)))
                 (return (lambda ()
                           (editor.debug "Redoing ~A" operation)
                           (redo-operation operation)))))))))

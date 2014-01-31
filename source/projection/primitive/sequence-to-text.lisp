@@ -87,9 +87,10 @@
                                   #+nil
                                   (push (make-iomap/object projection recursion element element-reference output nil) child-iomaps/object)
                                   (write-string element stream))
-                                (bind ((iomap (recurse-printer recursion element `((elt (the list document) ,index)
+                                (bind ((iomap (recurse-printer recursion element `((elt (the sequence document) ,index)
                                                                                    ,@(typed-reference (form-type input) input-reference)))))
-                                  (labels ((push-iomaps (iomap)
+                                  (labels (#+nil
+                                           (push-iomaps (iomap)
                                              (etypecase iomap
                                                (iomap/string
                                                 (incf (output-offset-of iomap)
@@ -132,6 +133,6 @@
 ;;;;;;
 ;;; Reader
 
-(def reader sequence->text (projection recursion projection-iomap gesture-queue operation)
-  (declare (ignore projection recursion operation))
-  (document/read-operation (input-of projection-iomap) (first (gestures-of gesture-queue))))
+(def reader sequence->text (projection recursion input printer-iomap)
+  (declare (ignore projection recursion))
+  (document/read-operation (input-of printer-iomap) (gesture-of input)))

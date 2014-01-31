@@ -79,6 +79,7 @@
                                                          (:file "focusing")
                                                          (:file "preserving")
                                                          (:file "removing")
+                                                         (:file "reversing")
                                                          (:file "sorting")))
                                            (:module "higher-order"
                                             :components ((:file "alternative")
@@ -93,6 +94,7 @@
                                            (:module "primitive"
                                             :depends-on ("generic")
                                             :components ((:file "book-to-tree")
+                                                         (:file "command-to-text")
                                                          (:file "common-lisp-to-lisp-form")
                                                          (:file "document-to-document")
                                                          (:file "document-to-graphics")
@@ -120,7 +122,7 @@
                                                          (:file "t-to-table")
                                                          (:file "table-to-text")
                                                          (:file "text-to-graphics")
-                                                         (:file "text-to-line-numbered-text")
+                                                         (:file "line-numbering")
                                                          (:file "text-to-string")
                                                          (:file "text-to-tree")
                                                          (:file "tree-to-graphics")

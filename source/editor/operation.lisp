@@ -149,7 +149,7 @@
     (editor.debug "Selection of ~A is set to ~A" document selection)))
 
 (def method redo-operation ((operation operation/replace-target))
-  (setf (eval-reference (document-of operation) (target-of operation)) (replacement-of operation)))
+  (setf (eval-reference (document-of operation) (reference/flatten (reverse (target-of operation)))) (replacement-of operation)))
 
 (def method redo-operation ((operation operation/save-document))
   (with-output-to-file (output (filename-of operation) :if-does-not-exist :create :if-exists :overwrite :element-type '(unsigned-byte 8))
@@ -173,6 +173,9 @@
   (bind ((alternatives (alternatives-of operation)))
     (setf (selection-of alternatives) (mod (1+ (selection-of alternatives))
                                            (length (alternatives-of alternatives))))))
+
+(def method redo-operation ((operation operation/describe))
+  (values))
 
 (def method redo-operation ((operation operation/show-context-sensitive-help))
   (values))

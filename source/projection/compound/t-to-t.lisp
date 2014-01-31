@@ -40,7 +40,7 @@
 
 (def (function e) make-projection/text->tree ()
   (type-dispatching
-    (string (make-projection/string->tree/leaf))
+    (string (make-projection/text/string->tree/leaf))
     (text/string (make-projection/text/string->tree/leaf))
     (text/text (make-projection/text/text->tree/node))))
 

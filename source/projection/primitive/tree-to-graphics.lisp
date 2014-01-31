@@ -53,11 +53,11 @@
                     (make-graphics/canvas (list rectangle text) location))))))
       (bind ((output (recurse input (make-2d 0 0) 0)))
         (make-iomap/compound projection recursion input input-reference output
-                              (list* (make-iomap/object projection recursion input input-reference output output-reference) (nreverse child-iomaps)))))))
+                              (list* (make-iomap/object projection recursion input input-reference output) (nreverse child-iomaps)))))))
 
 ;;;;;;
 ;;; Reader
 
-(def reader tree->graphics (projection recursion projection-iomap gesture-queue operation)
-  (declare (ignore projection recursion projection-iomap gesture-queue document))
-  operation)
+(def reader tree->graphics (projection recursion input printer-iomap)
+  (declare (ignore projection recursion printer-iomap))
+  input)

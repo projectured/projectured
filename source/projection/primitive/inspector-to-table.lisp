@@ -48,12 +48,12 @@
                                               (iter (for index :from 0)
                                                     (for slot-value :in-sequence (slot-values-of input))
                                                     (for slot-value-iomap = (recurse-printer recursion slot-value
-                                                                                             `((elt (the list document) ,index)
-                                                                                               (the list (slot-values-of (the inspector/object document)))
+                                                                                             `((elt (the sequence document) ,index)
+                                                                                               (the sequence (slot-values-of (the inspector/object document)))
                                                                                                ,@(typed-reference (form-type input) input-reference))))
                                                     (collect (output-of slot-value-iomap)))))
                      (text/text () (text/string (write-to-string instance))))))
-    (make-iomap/compound projection recursion input input-reference output output-reference)))
+    (make-iomap/compound projection recursion input input-reference output nil)))
 
 (def printer inspector/object-slot->table/row (projection recursion input input-reference)
   (bind ((slot (slot-of input))
@@ -71,10 +71,10 @@
 ;;;;;;
 ;;; Reader
 
-(def reader inspector/object->table/table (projection recursion projection-iomap gesture-queue operation)
-  (declare (ignore projection recursion gesture-queue))
-  (operation/read-backward operation projection-iomap))
+(def reader inspector/object->table/table (projection recursion input printer-iomap)
+  (declare (ignore projection recursion))
+  (operation/read-backward (operation-of input) printer-iomap))
 
-(def reader inspector/object-slot->table/row (projection recursion projection-iomap gesture-queue operation)
-  (declare (ignore projection recursion gesture-queue))
-  (operation/read-backward operation projection-iomap))
+(def reader inspector/object-slot->table/row (projection recursion input printer-iomap)
+  (declare (ignore projection recursion))
+  (operation/read-backward (operation-of input) printer-iomap))

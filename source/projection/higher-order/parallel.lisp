@@ -41,13 +41,13 @@
 
 (def printer parallel (projection recursion input input-reference)
   (iter (for element :in (elements-of projection))
-        (for iomap = (funcall (printer-of element) element recursion input input-reference output-reference))
+        (for iomap = (call-printer element recursion input input-reference))
         (collect iomap :into element-iomaps)
         (finally (return (make-iomap/parallel input (mapcar 'output-of element-iomaps) element-iomaps)))))
 
 ;;;;;;
 ;;; Reader
 
-(def reader parallel (projection recursion projection-iomap gesture-queue operation)
-  (declare (ignore projection recursion projection-iomap gesture-queue operation))
+(def reader parallel (projection recursion input printer-iomap)
+  (declare (ignore projection recursion input printer-iomap))
   nil)

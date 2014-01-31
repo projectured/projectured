@@ -26,6 +26,7 @@
 ;;;;;;
 ;;; Reference applier
 
+#+nil
 (def reference-applier iomap/object (iomap reference function)
   (declare (ignore function))
   (when (tree-search reference (input-reference-of iomap))
@@ -36,6 +37,7 @@
 ;;;;;;
 ;;; Forward mapper
 
+#+nil
 (def forward-mapper iomap/object (iomap input-reference function)
   (if (equal input-reference (input-reference-of iomap))
       (funcall function iomap (output-reference-of iomap))
@@ -51,6 +53,7 @@
 ;;;;;;
 ;;; Backward mapper
 
+#+nil
 (def backward-mapper iomap/object (iomap output-reference function)
   (if (equal output-reference (output-reference-of iomap))
       (funcall function iomap (input-reference-of iomap))

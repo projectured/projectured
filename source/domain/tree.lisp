@@ -33,14 +33,14 @@
                  :indentation indentation
                  :selection selection))
 
-(def (function e) make-tree/node (children &key opening-delimiter closing-delimiter separator indentation selection)
+(def (function e) make-tree/node (children &key opening-delimiter closing-delimiter separator indentation (expanded #t) selection)
   (make-instance 'tree/node
                  :children children
                  :opening-delimiter opening-delimiter
                  :closing-delimiter closing-delimiter
                  :separator separator
                  :indentation indentation
-                 :expanded #t
+                 :expanded expanded
                  :selection selection))
 
 ;;;;;;
@@ -81,4 +81,4 @@
 ;;; Redo
 
 (def method redo-operation ((operation operation/tree/toggle-expanded))
-  (notf (expanded-p (eval-reference (document-of operation) (target-of operation)))))
+  (notf (expanded-p (eval-reference (document-of operation) (reference/flatten (reverse (target-of operation)))))))

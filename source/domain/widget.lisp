@@ -106,6 +106,13 @@
                  :content content
                  :margin (or margin (make-inset :all 5))))
 
+(def (function e) make-widget/shell (content &key margin padding)
+  (make-instance 'widget/shell
+                 :content content
+                 :margin margin
+                 :padding padding
+                 :tooltip (make-widget/tooltip (make-2d 0 0) nil :margin (make-inset :all 5))))
+
 (def (function e) make-widget/composite (elements)
   (make-instance 'widget/composite
                  :elements elements))
@@ -146,6 +153,9 @@
 
 (def (macro e) widget/menu ((&key) &body elements)
   `(make-widget/menu (list ,@elements)))
+
+(def (macro e) widget/shell ((&key margin padding) &body content)
+  `(make-widget/shell ,(first content) :margin ,margin :padding ,padding))
 
 (def (macro e) widget/composite ((&key) &body elements)
   `(make-widget/composite (list ,@elements)))

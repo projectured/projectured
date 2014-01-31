@@ -15,14 +15,14 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/word-wrapping (&key wrap-width)
+(def (function e) make-projection/word-wrapping (wrap-width)
   (make-projection 'word-wrapping :wrap-width wrap-width))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) word-wrapping (&key wrap-width)
-  `(make-projection/word-wrapping :wrap-width ,wrap-width))
+(def (macro e) word-wrapping (wrap-width)
+  `(make-projection/word-wrapping ,wrap-width))
 
 ;;;;;;
 ;;; IO map
@@ -84,7 +84,13 @@
          (output-selection (pattern-case (selection-of input)
                              (((the sequence-position (text/pos (the text/text document) ?character-index)))
                               (bind ((newline-count (count-if (lambda (index) (< index ?character-index)) newline-insertion-indices)))
-                                `((the sequence-position (text/pos (the text/text document) ,(+ ?character-index newline-count))))))))
+                                `((the sequence-position (text/pos (the text/text document) ,(+ ?character-index newline-count))))))
+                             (((the sequence-box (text/subbox (the text/text document) ?start-character-index ?end-character-index)))
+                              (bind ((start-newline-count (count-if (lambda (index) (< index ?start-character-index)) newline-insertion-indices))
+                                     (end-newline-count (count-if (lambda (index) (< index ?end-character-index)) newline-insertion-indices)))
+                                `((the sequence-box (text/subbox (the text/text document)
+                                                                 ,(+ ?start-character-index start-newline-count)
+                                                                 ,(+ ?end-character-index end-newline-count))))))))
          (output (make-text/text elements :selection output-selection)))
     (make-iomap 'iomap/word-wrapping
                 :projection projection :recursion recursion
@@ -94,26 +100,39 @@
 ;;;;;;
 ;;; Reader
 
-(def reader word-wrapping (projection recursion projection-iomap gesture-queue operation)
-  (declare (ignore projection recursion gesture-queue))
-  (labels ((recurse (operation)
-             (typecase operation
-               (operation/quit operation)
-               (operation/replace-selection
-                (make-operation/replace-selection (input-of projection-iomap)
-                                                  (pattern-case (selection-of operation)
-                                                    (((the sequence-position (text/pos (the text/text document) ?character-index)))
-                                                     (bind ((newline-count (count-if (lambda (index) (< index ?character-index)) (newline-insertion-indices-of projection-iomap))))
-                                                       `((the sequence-position (text/pos (the text/text document) ,(- ?character-index newline-count)))))))))
-               (operation/sequence/replace-element-range
-                (make-operation/sequence/replace-element-range (input-of projection-iomap)
-                                                               (pattern-case (target-of operation)
-                                                                 (((the sequence-position (text/pos (the text/text document) ?character-index)))
-                                                                  (bind ((newline-count (count-if (lambda (index) (< index ?character-index)) (newline-insertion-indices-of projection-iomap))))
-                                                                    `((the sequence-position (text/pos (the text/text document) ,(- ?character-index newline-count)))))))
-                                                               (replacement-of operation)))
-               (operation/compound
-                (bind ((operations (mapcar #'recurse (elements-of operation))))
-                  (unless (some 'null operations)
-                    (make-operation/compound operations)))))))
-    (recurse operation)))
+(def reader word-wrapping (projection recursion input printer-iomap)
+  (declare (ignore projection recursion))
+  (make-command (gesture-of input)
+                (labels ((recurse (operation)
+                           (typecase operation
+                             (operation/quit operation)
+                             (operation/replace-selection
+                              (make-operation/replace-selection (input-of printer-iomap)
+                                                                (pattern-case (selection-of operation)
+                                                                  (((the sequence-position (text/pos (the text/text document) ?character-index)))
+                                                                   (bind ((newline-count (count-if (lambda (index) (< index ?character-index)) (newline-insertion-indices-of printer-iomap))))
+                                                                     `((the sequence-position (text/pos (the text/text document) ,(- ?character-index newline-count)))))))))
+                             (operation/sequence/replace-element-range
+                              (awhen (pattern-case (target-of operation)
+                                       (((the sequence-position (text/pos (the text/text document) ?character-index)))
+                                        (bind ((newline-count (count-if (lambda (index) (< index ?character-index)) (newline-insertion-indices-of printer-iomap))))
+                                          `((the sequence-position (text/pos (the text/text document) ,(- ?character-index newline-count))))))
+                                       (((the sequence (text/subseq (the text/text document) ?start-character-index ?end-character-index)))
+                                        (bind ((start-newline-count (count-if (lambda (index) (< index ?start-character-index)) (newline-insertion-indices-of printer-iomap)))
+                                               (end-newline-count (count-if (lambda (index) (< index ?end-character-index)) (newline-insertion-indices-of printer-iomap))))
+                                          `((the sequence (text/subseq (the text/text document) ,(- ?start-character-index start-newline-count) ,(- ?end-character-index end-newline-count)))))))
+                                (make-operation/sequence/replace-element-range (input-of printer-iomap) it (replacement-of operation))))
+                             (operation/show-context-sensitive-help
+                              (make-instance 'operation/show-context-sensitive-help
+                                             :commands (iter (for command :in (commands-of operation))
+                                                             (awhen (recurse (operation-of command))
+                                                               (collect (make-instance 'command
+                                                                                       :gesture (gesture-of command)
+                                                                                       :domain (domain-of command)
+                                                                                       :description (description-of command)
+                                                                                       :operation it))))))
+                             (operation/compound
+                              (bind ((operations (mapcar #'recurse (elements-of operation))))
+                                (unless (some 'null operations)
+                                  (make-operation/compound operations)))))))
+                  (recurse (operation-of input)))))

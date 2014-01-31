@@ -39,6 +39,6 @@
 ;;;;;;
 ;;; Reader
 
-(def reader test->test-result (projection recursion projection-iomap gesture-queue operation)
-  (declare (ignore projection recursion projection-iomap gesture-queue document))
-  operation)
+(def reader test->test-result (projection recursion input printer-iomap)
+  (declare (ignore projection recursion printer-iomap))
+  input)

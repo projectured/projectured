@@ -22,12 +22,15 @@
    (recursion :type projection)
    (input :type t)
    (output :type t)
+   #+nil
    (reference-applier :type function)
+   #+nil
    (forward-mapper :type function)
+   #+nil
    (backward-mapper :type function))
   (:documentation "An IOMAP provides a bidirectional mapping between INPUT and OUTPUT."))
 
-(def (function e) make-iomap (type &rest args &key reference-applier forward-mapper backward-mapper &allow-other-keys)
+(def (function e) make-iomap (type &rest args &key #+nil reference-applier #+nil forward-mapper #+nil backward-mapper &allow-other-keys)
   (apply #'make-instance type
 ;;         :reference-applier (or reference-applier (find-reference-applier type))
 ;;         :forward-mapper (or forward-mapper (find-forward-mapper type))
@@ -37,20 +40,24 @@
 ;;;;;;
 ;;; Forward mapper
 
+#+nil
 (def (namespace e) forward-mapper)
 
+#+nil
 (def (definer e) forward-mapper (name arguments &body forms)
   (bind ((function-name (format-symbol (symbol-package name) "FORWARD-MAPPER/~A" name)))
     `(progn
        (def function ,function-name ,arguments ,@forms)
        (setf (find-forward-mapper ',name) ',function-name))))
 
+#+nil
 (def (function e) map-forward (iomap input-reference function)
   (assert (every (lambda (element) (eq 'the (first element))) input-reference))
   (error "Obsolete")
   (funcall (forward-mapper-of iomap) iomap input-reference function))
 
 ;; TODO: delme
+#+nil
 (def (function e) project-forward (iomap input-reference)
   (error "Obsolete")
   (bind ((result-output-reference nil))
@@ -63,19 +70,22 @@
 ;;;;;;
 ;;; Backward mapper
 
+#+nil
 (def (namespace e) backward-mapper)
 
+#+nil
 (def (definer e) backward-mapper (name arguments &body forms)
   (bind ((function-name (format-symbol (symbol-package name) "BACKWARD-MAPPER/~A" name)))
     `(progn
        (def function ,function-name ,arguments ,@forms)
        (setf (find-backward-mapper ',name) ',function-name))))
-
+#+nil
 (def (function e) map-backward (iomap output-reference function)
   (error "Obsolete")
   (funcall (backward-mapper-of iomap) iomap output-reference function))
 
 ;; TODO: delme
+#+nil
 (def (function e) project-backward (iomap output-reference)
   (error "Obsolete")
   (bind ((result-input-reference nil))

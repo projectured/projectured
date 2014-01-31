@@ -90,6 +90,10 @@
 (def (font e) *font/liberation/serif/italic/24* ("etc/LiberationSerif-Italic.ttf" 24))
 (def (font e) *font/liberation/serif/bold/24* ("etc/LiberationSerif-Bold.ttf" 24))
 
+(def (font e) *font/liberation/serif/regular/30* ("etc/LiberationSerif-Regular.ttf" 30))
+(def (font e) *font/liberation/serif/italic/30* ("etc/LiberationSerif-Italic.ttf" 30))
+(def (font e) *font/liberation/serif/bold/30* ("etc/LiberationSerif-Bold.ttf" 30))
+
 (def (font e) *font/liberation/serif/regular/36* ("etc/LiberationSerif-Regular.ttf" 36))
 (def (font e) *font/liberation/serif/italic/36* ("etc/LiberationSerif-Italic.ttf" 36))
 (def (font e) *font/liberation/serif/bold/36* ("etc/LiberationSerif-Bold.ttf" 36))
