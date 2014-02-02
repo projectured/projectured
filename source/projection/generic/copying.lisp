@@ -35,6 +35,7 @@
 
 (def printer copying (projection recursion input input-reference)
   (etypecase input
+    #+nil
     (null (make-iomap/object projection recursion input input-reference input))
     (symbol (make-iomap/object projection recursion input input-reference input))
     (number (make-iomap/object projection recursion input input-reference input))
@@ -42,6 +43,18 @@
     (pathname (make-iomap/object projection recursion input input-reference input))
     (style/color (make-iomap/object projection recursion input input-reference input))
     (style/font (make-iomap/object projection recursion input input-reference input))
+    (sequence
+     (bind ((element-iomaps (iter (for index :from 0)
+                                  (for element :in-sequence input)
+                                  (collect (recurse-printer recursion element `((elt (the sequence document) ,index)
+                                                                                ,@(typed-reference (form-type input) input-reference))))))
+            (output (etypecase input
+                      (list (mapcar 'output-of element-iomaps))
+                      (t ;; KLUDGE: typechecking fails in SBCL sequence/
+                         (make-sequence/sequence (mapcar 'output-of element-iomaps) :selection (selection-of input)))
+                      (sequence (mapcar 'output-of element-iomaps)))))
+       (make-iomap/compound projection recursion input input-reference output element-iomaps)))
+    #+nil
     (cons
      (bind ((car-iomap (recurse-printer recursion (car input) `((car (the sequence document))
                                                                 ,@(typed-reference (form-type input) input-reference))))
@@ -84,6 +97,17 @@
                                (operation/quit operation)
                                (operation/replace-selection
                                 (etypecase printer-input
+                                  (sequence
+                                   (awhen (pattern-case (reverse (selection-of operation))
+                                            (((the ?type (elt (the sequence document) ?index)) . ?rest)
+                                             (bind ((element-iomap (elt (child-iomaps-of printer-iomap) ?index))
+                                                    (input-element-operation (make-operation/replace-selection (input-of element-iomap) (butlast (selection-of operation))))
+                                                    (output-element-operation (operation-of (recurse-reader recursion (make-command (gesture-of input) input-element-operation) element-iomap))))
+                                               (when (typep output-element-operation 'operation/replace-selection)
+                                                 (append (selection-of output-element-operation) (last (selection-of operation))))))
+                                            (?a
+                                             (selection-of operation)))
+                                     (make-operation/replace-selection printer-input it)))
                                   (standard-object
                                    (awhen (pattern-case (reverse (selection-of operation))
                                             (((the ?type (?reader (the ?input-type document))) . ?rest)
@@ -99,6 +123,16 @@
                                    (not-yet-implemented))))
                                (operation/sequence/replace-element-range
                                 (etypecase printer-input
+                                  (sequence
+                                   (awhen (pattern-case (reverse (target-of operation))
+                                            (((the ?type (elt (the sequence document) ?index)) . ?rest)
+                                             (bind ((element-iomap (elt (child-iomaps-of printer-iomap) ?index))
+                                                    (input-element-operation (make-operation/sequence/replace-element-range (input-of element-iomap) (butlast (target-of operation)) (replacement-of operation)))
+                                                    (output-element-operation (operation-of (recurse-reader recursion (make-command (gesture-of input) input-element-operation) element-iomap))))
+                                               (when (typep output-element-operation 'operation/sequence/replace-element-range)
+                                                 (append (target-of output-element-operation)
+                                                         (last (target-of operation)))))))
+                                     (make-operation/sequence/replace-element-range printer-input it (replacement-of operation))))
                                   (standard-object
                                    (awhen (pattern-case (reverse (target-of operation))
                                             (((the ?type (?reader (the ?input-type document))) . ?rest)

@@ -49,11 +49,11 @@
                                 (collect (output-of (elt element-iomaps input-index)))))
          (output (etypecase input
                    (t ;; KLUDGE: typechecking fails in SBCL sequence/sequence
-                       (bind ((output-selection (pattern-case (reverse (selection-of input))
-                                                  (((the ?element-type (elt (the sequence document) ?element-index))
-                                                    . ?rest)
-                                                   (append (reverse ?rest) `((the ,?element-type (elt (the sequence document) ,(position ?element-index input-indices)))))))))
-                         (make-sequence/sequence output-elements :selection output-selection)))
+                    (bind ((output-selection (pattern-case (reverse (selection-of input))
+                                               (((the ?element-type (elt (the sequence document) ?element-index))
+                                                 . ?rest)
+                                                (append (reverse ?rest) `((the ,?element-type (elt (the sequence document) ,(position ?element-index input-indices)))))))))
+                      (make-sequence/sequence output-elements :selection output-selection)))
                    (sequence output-elements))))
     (make-iomap 'iomap/sorting
                 :projection projection :recursion recursion

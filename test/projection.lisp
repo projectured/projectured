@@ -533,14 +533,17 @@
 
 (def function make-test-projection/json->graphics/sorting ()
   (sequential
+    #+nil
+    (recursive
+      (type-dispatching
+        (json/object
+          (nesting
+            (copying)
+            (type-dispatching
+              (sequence/sequence (sorting 'key-of 'string<))
+              (t (preserving)))))
+        (t (copying))))
     (nesting
-      ;; TODO: make list copying non-recursive
-      (copying)
-      (copying)
-      (copying)
-      (copying)
-      (copying)
-      (copying)
       (copying)
       (copying)
       (copying)
@@ -552,11 +555,11 @@
     (recursive
       (type-dispatching
         (list (sorting 'object-class-symbol-name 'string>))
-        (t (copying))))
-    (recursive (json->tree))
-    (make-test-projection/tree->text)
-    (line-numbering)
-    (make-test-projection/text->output)))
+      (t (copying))))
+  (recursive (json->tree))
+  (make-test-projection/tree->text)
+  (line-numbering)
+  (make-test-projection/text->output)))
 
 ;;;;;;
 ;;; File system

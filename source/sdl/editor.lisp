@@ -144,4 +144,5 @@
   (ecase key
     ((:sdl-key-mod-lctrl :sdl-key-mod-rctrl) :control)
     ((:sdl-key-mod-lshift :sdl-key-mod-rshift) :shift)
-    ((:sdl-key-mod-lalt :sdl-key-mod-ralt) :alt)))
+    ((:sdl-key-mod-lalt :sdl-key-mod-ralt) :alt)
+    ((:sdl-key-mod-num) nil)))
