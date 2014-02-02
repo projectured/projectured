@@ -25,6 +25,11 @@ Screenshots
 
 If you would like to take a look at the editor in action, then look at this [**page**](https://github.com/projectured/projectured/wiki/Screenshots). It contains a couple of screenshots showing various problem domains using different projections.
 
+Videos
+------
+
+There are also [**videos**](http://www.youtube.com/user/projectured) on youtube.
+
 Performance
 -----------
 
