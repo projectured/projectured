@@ -10,8 +10,8 @@
 ;;; Document
 
 ;; TODO: rename?
-(def document sequence/sequence (document/base sequence)
-  ((elements :type list)))
+(def document sequence/sequence (selection/base sequence)
+  ((elements :type sequence)))
 
 ;;;;;;
 ;;; Construction
@@ -89,22 +89,21 @@
 (def method redo-operation ((operation operation/sequence/replace-element-range))
   (bind (((:values reference start end)
           (pattern-case (target-of operation)
-            (((the sequence-position (pos (the ?type (?if (subtypep ?type 'sequence)) ?a) ?b)) . ?rest)
-             (values `(,@(reverse ?rest) (the string ,?a)) ?b ?b))
-            (((the sequence-position (text/pos (the text/text ?a) ?b)) . ?rest)
-             (values `(,@(reverse ?rest) (the text/text ,?a)) ?b ?b))
-            (((the sequence (subseq (the ?type (?if (subtypep ?type 'sequence)) ?a) ?b ?c)) . ?rest)
+            (((the string (subseq (the ?type (?if (subtypep ?type 'string)) ?a) ?b ?c)) . ?rest)
              (values `(,@(reverse ?rest) (the string ,?a)) ?b ?c))
-            (((the sequence (text/subseq (the text/text ?a) ?b ?c)) . ?rest)
+            (((the text/text (text/subseq (the text/text ?a) ?b ?c)) . ?rest)
              (values `(,@(reverse ?rest) (the text/text ,?a)) ?b ?c))
-            (((elt (the sequence ?a) ?b) . ?rest)
-             (values ?a ?b (1+ ?b)))
+            (((the sequence (subseq (the ?type (?if (subtypep ?type 'sequence)) ?a) ?b ?c)) . ?rest)
+             (values `(,@(reverse ?rest) (the sequence ,?a)) ?b ?c))
             (?a
              (not-yet-implemented))))
          (document (document-of operation))
-         (reference (reference/flatten reference))
-         (old-sequence (eval-reference document reference))
+         (flat-reference (reference/flatten reference))
+         (old-sequence (eval-reference document flat-reference))
          (new-sequence (etypecase old-sequence
+                         (sequence/sequence (make-sequence/sequence (concatenate (form-type (elements-of old-sequence))
+                                                                                 (subseq (elements-of old-sequence) 0 start) (replacement-of operation) (subseq (elements-of old-sequence) end))
+                                                                    :selection (selection-of old-sequence)))
                          (sequence (concatenate (form-type old-sequence)
                                                 (subseq old-sequence 0 start) (replacement-of operation) (subseq old-sequence end)))
                          (text/text (text/concatenate (text/substring* old-sequence 0 start)
@@ -118,7 +117,11 @@
           ((typep old-sequence 'text/text)
            (setf (elements-of old-sequence) (elements-of new-sequence)))
           (t
-           (setf (eval-reference document reference) new-sequence)))
+           (setf (eval-reference document flat-reference) new-sequence)))
     (when *use-computed-class*
       ;; KLUDGE: forece recomputation
-      (invalidate-computed-slot (document-of operation) 'content))))
+      (invalidate-computed-slot (document-of operation) 'content))
+    ;; KLUDGE: can't do this in a separate operation
+    (bind ((character-index (+ start (length (replacement-of operation)))))
+      (redo-operation (make-operation/replace-selection document `((the ,(form-type new-sequence) (,(if (typep old-sequence 'text/text) 'text/subseq 'subseq) (the ,(form-type old-sequence) document) ,character-index ,character-index))
+                                                                   ,@(rest (reverse reference))))))))

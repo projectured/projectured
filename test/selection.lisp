@@ -10,7 +10,7 @@
 ;;; Text
 
 (def function make-test-selection/text/character ()
-  '((the sequence-position (text/pos (the text/text document) 2))))
+  '((the text/text (text/subseq (the text/text document) 2 2))))
 
 ;;;;;;
 ;;; Table
@@ -25,7 +25,7 @@
         (is (= table-character-index (table-character-index row-heights column-widths row-index column-index cell-character-index)))))
 
 (def function make-test-selection/table/character ()
-  '((the sequence-position (text/pos (the text/text document) 1))
+  '((the text/text (text/subseq (the text/text document) 1 1))
     (the text/text (content-of (the table/cell document)))
     (the table/cell (elt (the sequence document) 1))
     (the sequence (cells-of (the table/row document)))
@@ -33,7 +33,7 @@
     (the sequence (rows-of (the table/table document)))))
 
 (def function make-test-selection/table/character/nested ()
-  '((the sequence-position (text/pos (the text/text document) 1))
+  '((the text/text (text/subseq (the text/text document) 1 1))
     (the text/text (content-of (the table/cell document)))
     (the table/cell (elt (the sequence document) 0))
     (the sequence (cells-of (the table/row document)))
@@ -52,7 +52,7 @@
 ;;; Tree
 
 (def function make-test-selection/tree/character ()
-  '((the sequence-position (text/pos (the text/text document) 1))
+  '((the text/text (text/subseq (the text/text document) 1 1))
     (the text/text (content-of (the tree/leaf document)))
     (the tree/leaf (elt (the sequence document) 1))
     (the sequence (children-of (the tree/node document)))
@@ -69,7 +69,7 @@
   '(the json/object (elt (the sequence (elements-of (the json/array document))) 5)))
 
 (def function make-test-selection/json/character ()
-  '(the character (elt (the string (value-of (the json/string (elt (the sequence (elements-of (the json/array document))) 4)))) 8)))
+  '(the string (subseq (the string (value-of (the json/string (elt (the sequence (elements-of (the json/array document))) 4)))) 8 9)))
 
 (def function make-test-selection/json/character-position ()
   '((the sequence-position (pos (the string document) 8))
@@ -107,7 +107,7 @@
         (while remaining-selections)
         (for selected-selection = (pop remaining-selections))
         (test.debug "Testing selection: ~A" selected-selection)
-        (for document = (document (:selection selected-selection) content))
+        (for document = (document/document (:selection selected-selection) content))
         (for printer-iomap = (finishes (apply-printer document projection)))
         (for gesture-queue = (make-instance 'gesture-queue :gestures (list (gesture/keyboard/key-press :sdl-key-h :control))))
         (for command-map = (finishes (apply-reader projection printer-iomap gesture-queue)))

@@ -59,10 +59,6 @@
          (elements (flet ((next-text (force)
                             (bind ((content (get-output-stream-string stream)))
                               (when (or force (not (string= content "")))
-                                #+nil
-                                (push (make-iomap/string input input-reference input-offset content
-                                                         `(content-of (the text/string (elt (the sequence (elements-of (the text/text ,output-reference))) ,output-index))) 0 (length content))
-                                      child-iomaps)
                                 (incf output-index)
                                 (list (make-text/string content :font font :font-color font-color :fill-color fill-color :line-color line-color))))))
                      (iter (with font-provider = (font-provider-of projection))
@@ -98,7 +94,7 @@
                                         (next-text #t)))))))
          (output (make-text/text elements)))
     (make-iomap/compound projection recursion input input-reference output
-                          (list* (make-iomap/object projection recursion input input-reference output nil) (nreverse child-iomaps)))))
+                          (list* (make-iomap/object projection recursion input input-reference output) (nreverse child-iomaps)))))
 
 ;;;;;;
 ;;; Reader

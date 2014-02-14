@@ -43,7 +43,7 @@
                      ;; TODO: icon
                      (image/image (asdf:system-relative-pathname :projectured "etc/file.png"))
                      (text/string (string+ (pathname-name pathname) "." (pathname-type (pathname-of input))) :font *font/ubuntu/regular/18* :font-color *color/solarized/blue*)))))
-    (make-iomap/compound projection recursion input input-reference output nil)))
+    (make-iomap/compound projection recursion input input-reference output)))
 
 (def printer file-system/directory->tree/node (projection recursion input input-reference)
   (bind ((pathname (pathname-of input))
@@ -60,7 +60,7 @@
                                               (setf (indentation-of (output-of element-iomap)) 1)
                                               ;; TODO: iomap
                                               (collect (output-of element-iomap)))))))
-    (make-iomap/compound projection recursion input input-reference output nil)))
+    (make-iomap/compound projection recursion input input-reference output)))
 
 ;;;;;;
 ;;; Reader

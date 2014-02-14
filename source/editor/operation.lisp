@@ -11,9 +11,6 @@
 ;;;
 ;;; An operation represents a change in domain data, selections or any other editor state.
 
-(def (generic e) operation? (object)
-  (:documentation "Returns TRUE if OBJECT is an operation, otherwise returns FALSE. Purely functional."))
-
 (def (generic e) redo-operation (operation)
   (:documentation "Redoes all side effects of OPERATION. Has side effects."))
 
@@ -118,11 +115,27 @@
 (def (function e) make-operation/select-next-alternative (alternatives)
   (make-instance 'operation/select-next-alternative :alternatives alternatives))
 
+;; TODO: move?
+(def function document/read-operation (document gesture)
+  (gesture-case gesture
+    ((gesture/keyboard/key-press :sdl-key-s :control)
+     :domain "Document" :help "Saves the currently edited document to '/tmp/document.pred'"
+     :operation (make-operation/save-document document))
+    ((gesture/keyboard/key-press :sdl-key-l :control)
+     :domain "Document" :help "Loads a previously saved document from '/tmp/document.pred'"
+     :operation (make-operation/load-document document))
+    ((gesture/keyboard/key-press :sdl-key-e :control)
+     :domain "Document" :help "Exports the currently edited document to '/tmp/document.txt'"
+     :operation (make-operation/export-document document))
+    ((gesture/keyboard/key-press :sdl-key-escape)
+     :domain "Document" :help "Quits from the editor"
+     :operation (make-operation/quit))
+    ((make-instance 'gesture/window/quit :modifiers nil)
+     :domain "Document" :help "Quits from the editor"
+     :operation (make-operation/quit))))
+
 ;;;;;;
 ;;; Operation API implementation
-
-(def method operation? (object)
-  (typep object 'operation))
 
 (def method redo-operation ((operation operation/compound))
   (iter (for element :in-sequence (elements-of operation))
@@ -141,7 +154,7 @@
   (bind ((document (document-of operation))
          (selection (selection-of operation)))
     (labels ((recurse (document selection)
-               (when (typep document 'document/base)
+               (when (typep document 'selection/base)
                  (setf (selection-of document) (reverse selection)))
                (when (rest selection)
                  (recurse (eval-reference document (first selection)) (rest selection)))))

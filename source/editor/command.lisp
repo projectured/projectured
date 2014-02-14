@@ -20,6 +20,7 @@
 ;;; Construction
 
 (def (function e) make-command (gesture operation &key domain icon description)
+  (assert domain)
   (make-instance 'command
                  :gesture gesture :operation operation
                  :domain domain :icon icon :description description))
@@ -50,8 +51,8 @@
                               :description "Shows context sensitive help"))
            ,@(iter (for case :in cases)
                    (collect `(and (gesture= ,gesture-variable ,(first case))
-                                  (bind ((operation ,(getf (rest case) :operation)))
-                                    (when operation
+                                  (bind (((:values operation processed?) ,(getf (rest case) :operation)))
+                                    (when (or operation processed?)
                                       (make-instance 'command
                                                      :gesture ,(first case)
                                                      :domain ,(getf (rest case) :domain)

@@ -53,7 +53,7 @@
                                                                                                ,@(typed-reference (form-type input) input-reference))))
                                                     (collect (output-of slot-value-iomap)))))
                      (text/text () (text/string (write-to-string instance))))))
-    (make-iomap/compound projection recursion input input-reference output nil)))
+    (make-iomap/compound projection recursion input input-reference output)))
 
 (def printer inspector/object-slot->table/row (projection recursion input input-reference)
   (bind ((slot (slot-of input))
@@ -72,9 +72,9 @@
 ;;; Reader
 
 (def reader inspector/object->table/table (projection recursion input printer-iomap)
-  (declare (ignore projection recursion))
-  (operation/read-backward (operation-of input) printer-iomap))
+  (declare (ignore projection recursion printer-iomap))
+  input)
 
 (def reader inspector/object-slot->table/row (projection recursion input printer-iomap)
-  (declare (ignore projection recursion))
-  (operation/read-backward (operation-of input) printer-iomap))
+  (declare (ignore projection recursion printer-iomap))
+  input)

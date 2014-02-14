@@ -9,6 +9,18 @@
 ;;;;;;
 ;;; Widget
 
+(def (function e) make-projection/document->text (factory)
+  (type-dispatching
+    (document/document (document/document->text/text))
+    (document/nothing (document/nothing->text/text))
+    (document/insertion (document/insertion->text/text factory))))
+
+(def (macro e) document->text (factory)
+  `(make-projection/document->text ,factory))
+
+;;;;;;
+;;; Widget
+
 (def (function e) make-projection/widget->graphics ()
   (type-dispatching
     (widget/label (make-projection/widget/label->graphics/canvas))
@@ -30,22 +42,11 @@
 (def (function e) make-projection/book->tree ()
   (type-dispatching
     (book/book (make-projection/book/book->tree/node))
-    (book/chapter (make-projection/book/chapter->tree/node))))
+    (book/chapter (make-projection/book/chapter->tree/node))
+    (book/paragraph (make-projection/book/paragraph->tree/leaf))))
 
 (def (macro e) book->tree ()
   '(make-projection/book->tree))
-
-;;;;;;
-;;; Text
-
-(def (function e) make-projection/text->tree ()
-  (type-dispatching
-    (string (make-projection/text/string->tree/leaf))
-    (text/string (make-projection/text/string->tree/leaf))
-    (text/text (make-projection/text/text->tree/node))))
-
-(def (macro e) text->tree ()
-  '(make-projection/text->tree))
 
 ;;;;;;
 ;;; Tree
@@ -112,19 +113,33 @@
 ;;;;;;
 ;;; T
 
-(def (function e) make-projection/t->table ()
+(def (function e) make-projection/t->tree (&key slot-provider)
   (type-dispatching
     (null (make-projection/t/null->text/text))
     (number (make-projection/t/number->text/text))
     (string (make-projection/t/string->text/text))
     (symbol (make-projection/t/symbol->text/text))
+    (pathname (make-projection/t/pathname->text/text))
+    (sequence (make-projection/t/sequence->tree/node))
+    ((or structure-object standard-object) (make-projection/t/object->tree/node :slot-provider slot-provider))))
+
+(def (macro e) t->tree (&key slot-provider)
+  `(make-projection/t->tree :slot-provider ,slot-provider))
+
+(def (function e) make-projection/t->table (&key slot-provider)
+  (type-dispatching
+    (null (make-projection/t/null->text/text))
+    (number (make-projection/t/number->text/text))
+    (string (make-projection/t/string->text/text))
+    (symbol (make-projection/t/symbol->text/text))
+    (pathname (make-projection/t/pathname->text/text))
     (sequence (make-projection/t/sequence->table/table))
     (hash-table (make-projection/t/hash-table->table/table))
     (function (make-projection/t/function->table/table))
-    ((or structure-object standard-object) (make-projection/t/object->table/table))))
+    ((or structure-object standard-object) (make-projection/t/object->table/table :slot-provider slot-provider))))
 
-(def (macro e) t->table ()
-  '(make-projection/t->table))
+(def (macro e) t->table (&key slot-provider)
+  `(make-projection/t->table :slot-provider ,slot-provider))
 
 ;;;;;;
 ;;; XML
@@ -212,12 +227,12 @@
 
 (def (function e) make-projection/lisp-form->tree ()
   (type-dispatching
-    (lisp-form/comment (make-projection/lisp-form/comment->string))
-    (lisp-form/number (make-projection/lisp-form/number->string))
-    (lisp-form/symbol (make-projection/lisp-form/symbol->string))
-    (lisp-form/string (make-projection/lisp-form/string->string))
+    (lisp-form/comment (make-projection/lisp-form/comment->tree/node))
+    (lisp-form/number (make-projection/lisp-form/number->tree/leaf))
+    (lisp-form/symbol (make-projection/lisp-form/symbol->tree/leaf))
+    (lisp-form/string (make-projection/lisp-form/string->tree/leaf))
     (lisp-form/list (make-projection/lisp-form/list->tree/node))
-    (lisp-form/object (make-projection/lisp-form/object->string))
+    (lisp-form/object (make-projection/lisp-form/object->tree/leaf))
     (lisp-form/top-level (make-projection/lisp-form/top-level->tree/node))))
 
 (def (macro e) lisp-form->tree ()

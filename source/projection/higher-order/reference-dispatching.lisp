@@ -38,7 +38,7 @@
         (with default-projection = (default-projection-of projection))
         (with reference-projection-pairs = (reference-projection-pairs-of projection))
         (for (reference projection) :in-sequence reference-projection-pairs)
-        (when (equal reference (subseq typed-input-reference 0 (length reference)))
+        (when (or (eq reference #t) (equal reference (subseq typed-input-reference 0 (length reference))))
           (return (call-printer projection projection input input-reference)))
         (finally (return (call-printer default-projection projection input input-reference)))))
 
@@ -50,6 +50,6 @@
   (iter (with default-projection = (default-projection-of projection))
         (with reference-projection-pairs = (reference-projection-pairs-of projection))
         (for (reference projection) :in-sequence reference-projection-pairs)
-        (when (equal reference (subseq (input-reference-of printer-iomap) 0 (length reference)))
+        (when (or (eq reference #t) (equal reference (subseq (input-reference-of printer-iomap) 0 (length reference))))
           (return (call-reader projection projection input printer-iomap)))
         (finally (return (call-reader default-projection projection input printer-iomap)))))

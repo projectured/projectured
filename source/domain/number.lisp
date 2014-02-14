@@ -43,8 +43,6 @@
 (def method redo-operation ((operation operation/number/replace-range))
   (bind (((:values reference start end)
           (pattern-case (target-of operation)
-            ((the sequence-position (pos (the string (write-to-string (the number ?a))) ?b))
-             (values ?a ?b ?b))
             ((the sequence (subseq (the ?type (?if (subtypep ?type 'sequence)) (write-to-string (the number ?a))) ?b ?c))
              (values ?a ?b ?c)))))
     (bind ((old-sequence (write-to-string (eval-reference (document-of operation) reference)))

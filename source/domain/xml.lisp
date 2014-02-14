@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; Document
 
-(def document xml/base (document/base)
+(def document xml/base (selection/base)
   ())
 
 (def document xml/element (xml/base)
@@ -27,26 +27,26 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-xml/element (name attributes children)
-  (make-instance 'xml/element :name name :attributes attributes :children children))
+(def (function e) make-xml/element (name attributes children &key selection)
+  (make-instance 'xml/element :name name :attributes attributes :children children :selection selection))
 
-(def (function e) make-xml/attribute (name value)
-  (make-instance 'xml/attribute :name name :value value))
+(def (function e) make-xml/attribute (name value &key selection)
+  (make-instance 'xml/attribute :name name :value value :selection selection))
 
-(def (function e) make-xml/text (text)
-  (make-instance 'xml/text :text text))
+(def (function e) make-xml/text (text &key selection)
+  (make-instance 'xml/text :text text :selection selection))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) xml/element (name attributes &body children)
-  `(make-xml/element ,name (list ,@attributes) (list ,@children)))
+(def (macro e) xml/element ((name attributes &key selection) &body children)
+  `(make-xml/element ,name (list ,@attributes) (list ,@children) :selection ,selection))
 
-(def (macro e) xml/attribute (name value)
-  `(make-xml/attribute ,name ,value))
+(def (macro e) xml/attribute ((&key selection) name value)
+  `(make-xml/attribute ,name ,value :selection ,selection))
 
-(def (macro e) xml/text (text)
-  `(make-xml/text ,text))
+(def (macro e) xml/text ((&key selection) text)
+  `(make-xml/text ,text :selection ,selection))
 
 ;;;;;;
 ;;; Reference
@@ -56,3 +56,9 @@
 
 (def function xml/end-tag (element)
   (name-of element))
+
+(def function (setf xml/start-tag) (new-value element)
+  (setf (name-of element) new-value))
+
+(def function (setf xml/end-tag) (new-value element)
+  (setf (name-of element) new-value))

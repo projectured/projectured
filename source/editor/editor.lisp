@@ -11,9 +11,6 @@
 ;;;
 ;;; An editor is a way of changing the state of a document.
 
-(def (generic e) editor? (object)
-  (:documentation "Returns TRUE if OBJECT is an editor, otherwise returns FALSE. Purely functional."))
-
 (def (generic e) make-editor (&key width height)
   (:documentation "Returns a new editor object. Purely functional."))
 
@@ -39,9 +36,6 @@
 
 ;;;;;;
 ;;; Editor API implementation
-
-(def method editor? (object)
-  (typep object 'editor))
 
 (def method run-read-evaluate-print-loop ((editor editor) document projection)
   (catch :quit-editor

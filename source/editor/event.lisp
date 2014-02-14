@@ -11,9 +11,6 @@
 ;;;
 ;;; An event is a low level hardware signal provided by an input hardware device.
 
-(def (generic e) event? (object)
-  (:documentation "Returns TRUE if OBJECT is an event, otherwise returns FALSE. Purely functional."))
-
 (def (generic e) read-event (devices)
   (:documentation "Reads a single event from the sequence of DEVICES at once. Does not return until is has successfully read an event. Has side effects on the state of devices."))
 
@@ -83,7 +80,8 @@
   (:documentation "A sequence of hardware events."))
 
 ;;;;;;
-;;; Event API implementation
+;;; API
 
-(def method event? (object)
-  (typep object 'event))
+(def method print-object ((instance event/keyboard) stream)
+  (print-unreadable-object (instance stream :type #t :identity #f)
+    (princ (key-of instance) stream)))

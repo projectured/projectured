@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; Document
 
-(def document tree/base (document/base)
+(def document tree/base (selection/base)
   ((opening-delimiter :type string)
    (closing-delimiter :type string)
    (indentation :type integer)))

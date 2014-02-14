@@ -115,7 +115,7 @@
                                              content-output)
                                        (location-of input))))
     (make-iomap/compound projection recursion input input-reference output
-                         (list (make-iomap/object projection recursion input input-reference output nil)
+                         (list (make-iomap/object projection recursion input input-reference output)
                                content-iomap))))
 
 (def printer widget/tooltip->graphics/canvas (projection recursion input input-reference)
@@ -135,9 +135,9 @@
                                                  content-output)
                                            (location-of input))))
         (make-iomap/compound projection recursion input input-reference output
-                             (list (make-iomap/object projection recursion input input-reference output nil)
+                             (list (make-iomap/object projection recursion input input-reference output)
                                    content-iomap)))
-      (make-iomap/object projection recursion input input-reference (make-graphics/canvas nil (make-2d 0 0)) nil)))
+      (make-iomap/object projection recursion input input-reference (make-graphics/canvas nil (make-2d 0 0)))))
 
 (def printer widget/menu->graphics/canvas (projection recursion input input-reference)
   (bind ((element-iomaps (iter (for index :from 0)
@@ -159,7 +159,7 @@
                                                                      result))))
                                        (make-2d 0 0))))
     (make-iomap/compound projection recursion input input-reference output
-                         (list (make-iomap/object projection recursion input input-reference output nil)))))
+                         (list (make-iomap/object projection recursion input input-reference output)))))
 
 (def printer widget/menu-item->graphics/canvas (projection recursion input input-reference)
   (if (visible-p input)
@@ -176,7 +176,7 @@
                                                  content-output)
                                            (make-2d (left-of margin) (top-of margin)))))
         (make-iomap/compound projection recursion input input-reference output
-                             (list (make-iomap/object projection recursion input input-reference output nil)
+                             (list (make-iomap/object projection recursion input input-reference output)
                                    content-iomap)))))
 
 (def printer widget/shell->graphics/canvas (projection recursion input input-reference)
@@ -201,7 +201,7 @@
          (output (make-graphics/canvas (mapcar 'output-of element-iomaps)
                                        (make-2d 0 0))))
     (make-iomap/compound projection recursion input input-reference output
-                         (list* (make-iomap/object projection recursion input input-reference output nil)
+                         (list* (make-iomap/object projection recursion input input-reference output)
                                 element-iomaps))))
 
 (def printer widget/split-pane->graphics/canvas (projection recursion input input-reference)
@@ -224,7 +224,7 @@
                                              (incf x (2d-x (size-of (make-bounding-rectangle (output-of element-iomap))))))
                                        (make-2d 0 0))))
     (make-iomap/compound projection recursion input input-reference output
-                         (list* (make-iomap/object projection recursion input input-reference output nil) element-iomaps))))
+                         (list* (make-iomap/object projection recursion input input-reference output) element-iomaps))))
 
 (def printer widget/tabbed-pane->graphics/canvas (projection recursion input input-reference)
   (bind ((selector-iomaps (iter (for index :from 0)
@@ -258,7 +258,7 @@
                                                                                           (make-2d 0 height)))))))
                                        (make-2d 0 0))))
     (make-iomap/compound projection recursion input input-reference output
-                         (list (make-iomap/object projection recursion input input-reference output nil)
+                         (list (make-iomap/object projection recursion input input-reference output)
                                content-iomap))))
 
 (def printer widget/scroll-pane->graphics/canvas (projection recursion input input-reference)
@@ -276,7 +276,7 @@
                                              (make-graphics/rectangle location size :stroke-color *color/black*))
                                        (make-2d 0 0))))
     (make-iomap/compound projection recursion input input-reference output
-                         (list (make-iomap/object projection recursion input input-reference output nil)
+                         (list (make-iomap/object projection recursion input input-reference output)
                                content-iomap))))
 
 ;;;;;;
@@ -305,14 +305,18 @@
 (def reader widget/shell->graphics/canvas (projection recursion input printer-iomap)
   (declare (ignore projection))
   (bind ((printer-input (input-of printer-iomap))
-         (content-operation (operation-of (recurse-reader recursion input (elt (child-iomaps-of printer-iomap) 0))))
+         (content-command (recurse-reader recursion input (elt (child-iomaps-of printer-iomap) 0)))
          (tooltip (tooltip-of printer-input)))
     (make-command (gesture-of input)
                   (labels ((recurse (operation)
                              (typecase operation
                                (operation/show-context-sensitive-help
                                 (make-operation/compound (list (make-instance 'operation/widget/tooltip/move :tooltip tooltip :location (mouse-position))
-                                                               (make-instance 'operation/widget/tooltip/replace-content :tooltip tooltip :content (make-text/text (mapcan 'make-command-help-text (commands-of operation))))
+                                                               (make-instance 'operation/widget/tooltip/replace-content :tooltip tooltip
+                                                                              :content (make-text/text (iter (for command :in (commands-of operation))
+                                                                                                             (unless (first-iteration-p)
+                                                                                                               (collect (text/newline)))
+                                                                                                             (appending (make-command-help-text command)))))
                                                                (make-instance 'operation/widget/show :widget tooltip))))
                                (operation/describe
                                 (make-operation/compound (list (make-instance 'operation/widget/tooltip/move :tooltip tooltip :location (mouse-position))
@@ -326,7 +330,9 @@
                                 (if (visible-p tooltip)
                                     (make-operation/compound (optional-list operation (make-instance 'operation/widget/hide :widget tooltip)))
                                     operation)))))
-                    (recurse content-operation)))))
+                    (recurse (operation-of content-command)))
+                  :domain (domain-of content-command)
+                  :description (description-of content-command))))
 
 (def reader widget/composite->graphics/canvas (projection recursion input printer-iomap)
   (declare (ignore projection))

@@ -48,11 +48,6 @@
                             (for element-iomap :in element-iomaps)
                             (for content = (output-of element-iomap))
                             (for element-reference = `(elt (the sequence (elements-of (the list/list ,input-reference))) ,element-index))
-                            #+nil
-                            (push (make-iomap/string input `(the string (border-of ,typed-input-reference)) 0
-                                                     output `(the string ,output-reference) (file-position stream)
-                                                     (+ 2 width))
-                                  child-iomaps)
                             (when (output-border-p projection)
                               (if (first-iteration-p)
                                   (progn
@@ -66,40 +61,20 @@
                                           (write-char #\U2500 stream))
                                     (write-char #\U2524 stream))))
                             (terpri stream)
-                            #+nil
-                            (push (make-iomap/string input `(the string (border-of ,typed-input-reference)) 0
-                                                     output `(the string ,output-reference) (file-position stream)
-                                                     1)
-                                  child-iomaps)
                             (when (output-border-p projection)
                               (write-char #\U2502 stream))
-                            #+nil
-                            (push (make-iomap/string content `(content-of (the ,(form-type element) ,element-reference)) 0
-                                                     output output-reference (file-position stream)
-                                                     (length content))
-                                  child-iomaps)
                             (write-string (text/as-string content) stream)
                             (write-string (make-string-of-spaces (- width (text/length content))) stream)
-                            #+nil
-                            (push (make-iomap/string input `(the string (border-of ,typed-input-reference)) 0
-                                                     output `(the string ,output-reference) (file-position stream)
-                                                     1)
-                                  child-iomaps)
                             (when (output-border-p projection)
                               (write-char #\U2502 stream))
                             (terpri stream))
-                      #+nil
-                      (push (make-iomap/string input `(the string (border-of ,typed-input-reference)) 0
-                                               output `(the string ,output-reference) (file-position stream)
-                                               (+ 2 width))
-                            child-iomaps)
                       (when (output-border-p projection)
                         (write-char #\U2514 stream)
                         (iter (repeat width)
                               (write-char #\U2500 stream))
                         (write-char #\U2518 stream)))))))
     (make-iomap/compound projection recursion input input-reference output
-                         (list* (make-iomap/object projection recursion input input-reference output nil) (nreverse child-iomaps)))))
+                         (list* (make-iomap/object projection recursion input input-reference output) (nreverse child-iomaps)))))
 
 ;;;;;;
 ;;; Reader

@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; Document
 
-(def document json/base (document/base)
+(def document json/base (selection/base)
   ())
 
 ;; TODO: rename and generalize?
@@ -60,8 +60,8 @@
 (def (function e) make-document/json/string (value)
   (make-instance 'json/string :value value))
 
-(def (function e) make-document/json/array (elements)
-  (make-instance 'json/array :elements (make-sequence/sequence elements)))
+(def (function e) make-document/json/array (elements &key selection)
+  (make-instance 'json/array :elements (make-sequence/sequence elements) :selection selection))
 
 (def (function e) make-document/json/object-entry (key value)
   (make-instance 'json/object-entry :key key :value value))
@@ -87,8 +87,8 @@
 (def (macro e) json/string (value)
   `(make-document/json/string ,value))
 
-(def (macro e) json/array (&body elements)
-  `(make-document/json/array (list ,@elements)))
+(def (macro e) json/array ((&key selection) &body elements)
+  `(make-document/json/array (list ,@elements) :selection ,selection))
 
 (def (macro e) json/object-entry (key value)
   `(make-document/json/object-entry ,key ,value))

@@ -13,28 +13,6 @@
   ())
 
 ;;;;;;
-;;; Reference applier
-
-#+nil
-(def reference-applier iomap/preserving (iomap reference function)
-  (declare (ignore iomap reference function))
-  (not-yet-implemented))
-
-;;;;;;
-;;; Forward mapper
-
-#+nil
-(def forward-mapper iomap/preserving (iomap input-reference function)
-  (funcall function iomap input-reference))
-
-;;;;;;
-;;; Backward mapper
-
-#+nil
-(def backward-mapper iomap/preserving (iomap output-reference function)
-  (funcall function iomap output-reference))
-
-;;;;;;
 ;;; Projection
 
 (def projection preserving ()

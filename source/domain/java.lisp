@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; Java document classes
 
-(def document java/base ()
+(def document java/base (selection/base)
   ())
 
 ;;;;;;

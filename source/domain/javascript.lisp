@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; Javascript document classes
 
-(def document javascript/base ()
+(def document javascript/base (selection/base)
   ())
 
 ;;;;;;

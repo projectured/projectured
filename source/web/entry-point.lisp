@@ -66,8 +66,6 @@
         (make-example "Javascript" "TODO")
         (make-example "lisp-form" "TODO")
         (make-example "common-lisp" "TODO")
-        #+nil (make-example "nested" "TODO")
-        #+nil (make-example "complex" "TODO")
         #+nil (make-example "t" "TODO")))
 
 (def function render-examples ()

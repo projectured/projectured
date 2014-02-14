@@ -31,9 +31,7 @@
   (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
          (output (string-downcase (class-name (class-of input)))))
     (make-iomap/compound projection recursion input input-reference output
-                         (list (make-iomap/object projection recursion input input-reference output)
-                               (make-iomap/string input `(the string (string-downcase (the symbol (class-name (the class (class-of ,typed-input-reference)))))) 0
-                                                  output `(the string ,output-reference) 0 (length output))))))
+                         (list (make-iomap/object projection recursion input input-reference output)))))
 
 ;;;;;;
 ;;; Reader

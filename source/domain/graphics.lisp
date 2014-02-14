@@ -325,7 +325,7 @@
           (for size = (measure-text (subseq text 0 index) font))
           (when (rectangle-contains-point? (make-rectangle (location-of instance) size) location)
             (return
-              `((the character (elt (the string document) ,(1- index)))
+              `((the string (subseq (the string document) ,(1- index) ,(1- index)))
                 (the string (text-of (the graphics/text document)))
                 ,@(typed-reference 'graphics/text reference))))))
 
@@ -378,6 +378,10 @@
 (def (function e) graphics/read-operation (graphics gesture)
   (gesture-case gesture
     ((make-instance 'gesture/mouse/button/click :button :button-left :modifiers nil)
+     :domain "Graphics" :help "Moves the selection to where the mouse is pointing at"
+     :operation (make-operation/replace-selection graphics (make-reference graphics (location-of gesture) nil)))
+    ;; KLUDGE: for tree selection
+    ((make-instance 'gesture/mouse/button/click :button :button-left :modifiers (list :control))
      :domain "Graphics" :help "Moves the selection to where the mouse is pointing at"
      :operation (make-operation/replace-selection graphics (make-reference graphics (location-of gesture) nil)))
     ((gesture/keyboard/key-press :sdl-key-d :control)

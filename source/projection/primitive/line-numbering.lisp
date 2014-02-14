@@ -16,36 +16,6 @@
    (line-start-indices :type sequence)))
 
 ;;;;;;
-;;; Reference applier
-
-#+nil
-(def reference-applier iomap/line-numbering (iomap reference function)
-  (declare (ignore iomap reference function))
-  (not-yet-implemented))
-
-;;;;;;
-;;; Forward mapper
-
-#+nil
-(def forward-mapper iomap/line-numbering (iomap input-reference function)
-  ;; TODO: properly map forward character indices that refer into the line-number
-  (labels ((map-character-index (character-index)
-             (+ character-index
-                (* (1+ (line-number-length-of iomap))
-                   (1+ (count #\NewLine (text/as-string (input-of iomap)) :end character-index)))))
-           (map-line-number-index (line-index character-index)
-             (not-yet-implemented)))
-    (pattern-case input-reference
-      (((the sequence-position (text/pos (the text/text (line-number ?a ?b)) ?c)) . ?rest)
-       (funcall function iomap `((the sequence-position (text/pos ,(output-reference-of iomap) ,(map-line-number-index ?b ?c))))))
-      (((the sequence-position (text/pos (the text/text document) ?b)))
-       (funcall function iomap `((the sequence-position (text/pos (the text/text document) ,(map-character-index ?b))))))
-      (((the sequence (text/subseq (the text/text ?a) ?b ?c)))
-       (funcall function iomap `((the text/text (text/subseq ,(output-reference-of iomap),(map-character-index ?b) ,(map-character-index ?c))))))
-      (((the sequence-box (text/subbox (the text/text document) ?start-character-index ?end-character-index)))
-       (funcall function iomap `((the sequence-box (text/subbox (the text/text document) ,(map-character-index ?start-character-index) ,(map-character-index ?end-character-index)))))))))
-
-;;;;;;
 ;;; Backward mapper
 
 (def function map-backward/line-numbering (iomap output-reference)
@@ -59,50 +29,17 @@
                                                        (- character-index line-start-character-index)
                                                        (- character-index (* (1+ line-number-length) (1+ new-line-count))))))))
     (pattern-case output-reference
-      (((the sequence-position (text/pos (the text/text ?a) ?b)))
+      (((the text/text (text/subseq (the text/text ?a) ?b ?b)))
        (bind (((:values line-number? line-index input-character-index) (map-character-index ?b)))
          (declare (ignore line-index))
          (unless line-number?
-           `((the sequence-position (text/pos (the text/text document) ,input-character-index))))))
-      (((the character (text/elt (the text/text ?a) ?b)))
-       (bind (((:values line-number? line-index input-character-index) (map-character-index ?b)))
-         (declare (ignore line-index))
-         (unless line-number?
-           `((the character (text/elt (the text/text document) ,input-character-index))))))
-      (((the sequence (text/subseq (the text/text ?a) ?b ?c)))
+           `((the text/text (text/subseq (the text/text document) ,input-character-index ,input-character-index))))))
+      (((the text/text (text/subseq (the text/text ?a) ?b ?c)))
        ;; TODO:
        `((the text/text (text/subseq (the text/text document) ,(map-character-index ?b) ,(map-character-index ?c)))))
       (((the sequence-box (text/subbox (the text/text ?a) ?b ?c)))
        ;; TODO:
        `((the sequence-box (text/subbox (the text/text document) ,(map-character-index ?b) ,(map-character-index ?c))))))))
-
-#+nil
-(def backward-mapper iomap/line-numbering (iomap output-reference function)
-  ;; TODO: properly map back character indices that refer into the line-number
-  (labels ((map-character-index (character-index)
-             (bind ((output-string (text/as-string (output-of iomap)))
-                    (line-number-length (line-number-length-of iomap))
-                    (line-start-character-index (or (position #\NewLine output-string :from-end #t :end character-index) 0))
-                    (line-number-reference? (<= (- character-index line-start-character-index) line-number-length))
-                    (new-line-count (count #\NewLine output-string :end character-index)))
-               (if line-number-reference?
-                   (values #t new-line-count (- character-index line-start-character-index))
-                   (values #f new-line-count (- character-index (* (1+ line-number-length) (1+ new-line-count))))))))
-    (pattern-case output-reference
-      (((the sequence-position (text/pos (the text/text ?a) ?b)))
-       (bind (((:values line-number? line-index input-character-index) (map-character-index ?b)))
-         (funcall function iomap `((the sequence-position (text/pos (the text/text document) ,input-character-index))
-                                   ,@(if line-number?
-                                         `((the text/text (line-number (the text/text document) ,line-index))
-                                           ,@(input-reference-of iomap))
-                                         (input-reference-of iomap))))))
-      (((the sequence (text/subseq (the text/text ?a) ?b ?c)))
-       ;; TODO:
-       (funcall function iomap `((the text/text (text/subseq ,(input-reference-of iomap) ,(map-character-index ?b) ,(map-character-index ?c))))))
-      (((the sequence-box (text/subbox (the text/text ?a) ?b ?c)))
-       ;; TODO:
-       (funcall function iomap `((the sequence-box (text/subbox ,(input-reference-of iomap) ,(map-character-index ?b) ,(map-character-index ?c)))))))))
-
 
 ;;;;;;
 ;;; Projection
@@ -160,10 +97,8 @@
                                                             (* (1+ line-number-length)
                                                                (1+ (count #\NewLine (text/as-string input) :end character-index))))))
                                                 (pattern-case (selection-of input)
-                                                  (((the sequence-position (text/pos (the text/text document) ?b)))
-                                                   `((the sequence-position (text/pos (the text/text document) ,(map-character-index ?b)))))
-                                                  (((the sequence (text/subseq (the text/text ?a) ?b ?c)))
-                                                   `((the text/text (text/subseq document ,(map-character-index ?b) ,(map-character-index ?c)))))
+                                                  (((the text/text (text/subseq (the text/text ?a) ?b ?c)))
+                                                   `((the text/text (text/subseq (the text/text document) ,(map-character-index ?b) ,(map-character-index ?c)))))
                                                   (((the sequence-box (text/subbox (the text/text document) ?start-character-index ?end-character-index)))
                                                    `((the sequence-box (text/subbox (the text/text document) ,(map-character-index ?start-character-index) ,(map-character-index ?end-character-index)))))))))))
     (make-iomap 'iomap/line-numbering
@@ -177,7 +112,7 @@
 
 (def function line-number-reference? (reference)
   (pattern-case reference
-    (((the sequence-position (text/pos (the text/text (line-number ?a ?b)) ?c)))
+    (((the text/text (text/subseq (the text/text (line-number ?a ?b)) ?c ?c)))
      #t)))
 
 (def function line-numbering/read-backward (command printer-iomap)

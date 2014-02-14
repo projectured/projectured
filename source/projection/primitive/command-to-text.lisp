@@ -29,7 +29,7 @@
 
 (def printer command->text (projection recursion input input-reference)
   (bind ((output (make-text/text (make-command-help-text input))))
-    (make-iomap/object projection recursion input input-reference output nil)))
+    (make-iomap/object projection recursion input input-reference output)))
 
 ;;;;;;
 ;;; Reader

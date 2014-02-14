@@ -11,9 +11,6 @@
 ;;;
 ;;; A gesture is a pattern of low level events satisfying certain constraints.
 
-(def (generic e) gesture? (object)
-  (:documentation "Returns TRUE if OBJECT is a gesture, otherwise returns FALSE. Purely functional."))
-
 (def (generic e) read-gesture (event-queue)
   (:documentation "Reads a single gesture from EVENT-QUEUE. Does not return until it has successfully read a gesture. Purely functional."))
 
@@ -82,23 +79,28 @@
 ;;;;;;
 ;;; Gesture API implementation
 
+(def method print-object ((instance gesture/keyboard) stream)
+  (print-unreadable-object (instance stream :type #t :identity #f)
+    (princ (key-of instance) stream)))
+
 (def method read-gesture ((event-queue event-queue))
   (bind ((events (events-of event-queue))
          (length (length events))
-         (event0 (when (> length 0) (elt events 0)))
-         (event1 (when (> length 1) (elt events 1))))
+         (event0 (when (> length 0) (elt events 0))))
     (cond ((typep event0 'event/window/quit)
-           (make-instance 'gesture/window/quit :modifiers nil))
-          ((and (typep event0 'event/keyboard/key-up)
-                (typep event1 'event/keyboard/key-down)
-                (eq (key-of event0) (key-of event1)))
+           (make-instance 'gesture/window/quit
+                          :modifiers nil
+                          :location (location-of event0)))
+          ((typep event0 'event/keyboard/key-up)
            (make-instance 'gesture/keyboard/key-press
                           :modifiers (modifiers-of event0)
                           :location (location-of event0)
-                          :key (key-of event1)
-                          :character (character-of event1)))
-          ((and (typep event0 'event/mouse/button/release)
-                (typep event1 'event/mouse/button/press))
+                          :key (key-of event0)
+                          :character (iter (for event :in-sequence events)
+                                           (when (and (typep event 'event/keyboard/key-down)
+                                                      (eq (key-of event0) (key-of event)))
+                                             (return (character-of event))))))
+          ((typep event0 'event/mouse/button/release)
            (make-instance 'gesture/mouse/button/click
                           :modifiers (modifiers-of event0)
                           :location (location-of event0)

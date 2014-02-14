@@ -9,11 +9,16 @@
 ;;;;;;
 ;;; Widget
 
+(def function make-test-document/document (content)
+  (document/document ()
+    (document/clipboard ()
+      content)))
+
 (def function make-test-document/shell (content)
   (widget/shell ()
     content))
 
-(def function make-test-document/plain (content &key selection)
+(def function make-test-document/plain (content)
   (widget/shell ()
     (widget/scroll-pane (:location (make-2d 0 0) :size (make-2d 1024 768) :margin (make-inset :all 5))
       content)))
@@ -25,7 +30,7 @@
     (widget/scroll-pane (:location (make-2d 0 0) :size (make-2d 512 768) :margin (make-inset :all 5))
       content)))
 
-(def function make-test-document/generic (content &key selection)
+(def function make-test-document/generic (content)
   (widget/shell ()
     (widget/split-pane ()
       (widget/scroll-pane (:location (make-2d 0 0) :size (make-2d 512 768) :margin (make-inset :all 5))
@@ -33,7 +38,7 @@
       (widget/scroll-pane (:location (make-2d 0 0) :size (make-2d 512 768) :margin (make-inset :all 5))
         content))))
 
-(def function make-test-document/reflection (content &key selection projection)
+(def function make-test-document/reflection (content projection)
   (widget/shell ()
     (widget/tabbed-pane ()
       ((widget/label (:location (make-2d 5 5) :margin (make-inset :all 5))
@@ -67,7 +72,7 @@
                             content)))))
         0)))))
 
-(def function make-test-document/ide (content &key selection)
+(def function make-test-document/ide (content)
   (widget/shell ()
     (widget/split-pane ()
       (make-file-system/pathname (asdf:system-relative-pathname :projectured "test/"))
@@ -83,10 +88,10 @@
 
 (def document test/debug ()
   ((content :type t)
-   (last-command :type command)))
+   (last-commands :type sequence)))
 
 (def macro test/debug (() &body content)
-  `(make-instance 'test/debug :content ,(first content) :last-command nil))
+  `(make-instance 'test/debug :content ,(first content) :last-commands nil))
 
 (def function make-test-document/debug (content)
   (test/debug ()
@@ -361,11 +366,13 @@
 (def function make-test-document/book ()
   (book/book (:title "Lorem ipsum" :authors (list "me"))
     (book/chapter (:title "Chapter 1")
-      (text/text ()
-        (text/string "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras eu nunc nibh. Cras imperdiet faucibus tortor ac dictum. Aliquam sit amet justo nec ligula lobortis ornare. Aenean a odio id dolor adipiscing interdum. Maecenas nec nisl neque. Suspendisse interdum rutrum neque, in volutpat orci varius in. Praesent a ipsum ac erat pulvinar adipiscing quis sit amet magna. Etiam semper vulputate mi ac interdum. Nunc a tortor non purus fringilla aliquam.")))
+      (book/paragraph ()
+        (text/text ()
+          (text/string "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras eu nunc nibh. Cras imperdiet faucibus tortor ac dictum. Aliquam sit amet justo nec ligula lobortis ornare. Aenean a odio id dolor adipiscing interdum. Maecenas nec nisl neque. Suspendisse interdum rutrum neque, in volutpat orci varius in. Praesent a ipsum ac erat pulvinar adipiscing quis sit amet magna. Etiam semper vulputate mi ac interdum. Nunc a tortor non purus fringilla aliquam."))))
     (book/chapter (:title "Chapter 2")
-      (text/text ()
-        (text/string "Morbi scelerisque, felis a viverra pharetra, arcu enim aliquet urna, mollis suscipit felis elit in neque. Aenean vel tempus nulla. Vestibulum magna nisi, cursus vel auctor eu, suscipit sit amet purus. Donec ligula purus, pulvinar id tristique ut, suscipit ornare diam. Maecenas sed justo turpis. Vivamus eu scelerisque dui. Pellentesque mollis rutrum est ac tempus. Sed venenatis, erat id elementum semper, nisl tortor malesuada orci, ac venenatis elit ipsum non augue. Praesent blandit purus est, id venenatis eros. Phasellus non dui dolor. Duis magna erat, pulvinar sed aliquam vitae, porta vel quam.")))))
+      (book/paragraph ()
+        (text/text ()
+          (text/string "Morbi scelerisque, felis a viverra pharetra, arcu enim aliquet urna, mollis suscipit felis elit in neque. Aenean vel tempus nulla. Vestibulum magna nisi, cursus vel auctor eu, suscipit sit amet purus. Donec ligula purus, pulvinar id tristique ut, suscipit ornare diam. Maecenas sed justo turpis. Vivamus eu scelerisque dui. Pellentesque mollis rutrum est ac tempus. Sed venenatis, erat id elementum semper, nisl tortor malesuada orci, ac venenatis elit ipsum non augue. Praesent blandit purus est, id venenatis eros. Phasellus non dui dolor. Duis magna erat, pulvinar sed aliquam vitae, porta vel quam."))))))
 
 ;;;;;;
 ;;; XML
@@ -374,22 +381,22 @@
   nil)
 
 (def function make-test-document/xml/text ()
-  (xml/text "The beginning"))
+  (xml/text () "The beginning"))
 
 (def function make-test-document/xml/attribute ()
-  (xml/attribute "name" "levy"))
+  (xml/attribute () "name" "levy"))
 
 (def function make-test-document/xml ()
-  (xml/element "person" ((xml/attribute "name" "levy")
-                         (xml/attribute "sex" "male"))
-    (xml/text "The beginning")
-    (xml/element "children" ()
-      (xml/element "person" ((xml/attribute "name" "John")
-                             (xml/attribute "sex" "female")))
-      (xml/element "person" ((xml/attribute "name" "Mary")
-                             (xml/attribute "sex" "male"))))
-    (xml/element "pets" ())
-    (xml/text "The end")))
+  (xml/element ("person" ((xml/attribute () "name" "levy")
+                          (xml/attribute () "sex" "male")))
+    (xml/text () "The beginning")
+    (xml/element ("children" ())
+      (xml/element ("person" ((xml/attribute () "name" "John")
+                              (xml/attribute () "sex" "female"))))
+      (xml/element ("person" ((xml/attribute () "name" "Mary")
+                              (xml/attribute () "sex" "male")))))
+    (xml/element ("pets" ()))
+    (xml/text () "The end")))
 
 ;;;;;;
 ;;; JSON
@@ -410,7 +417,7 @@
   (json/string "Hello World"))
 
 (def function make-test-document/json/array ()
-  (json/array
+  (json/array ()
     (json/null)
     (json/boolean #f)
     (json/boolean #t)
@@ -426,7 +433,7 @@
     ("string" (json/string "Hello World"))))
 
 (def function make-test-document/json ()
-  (json/array
+  (json/array ()
     (json/null)
     (json/boolean #f)
     (json/boolean #t)
@@ -438,7 +445,7 @@
       ("true" (json/boolean #t))
       ("number" (json/number 42))
       ("string" (json/string "Hello World"))
-      ("array" (json/array
+      ("array" (json/array ()
                  (json/null)
                  (json/boolean #f)
                  (json/boolean #t)
@@ -474,7 +481,52 @@
 ;;; Javascript
 
 (def function make-test-document/javascript ()
-  (make-javascript/statement/block nil))
+  (make-javascript/statement/top-level
+   (list (make-javascript/expression/method-invocation
+          (make-javascript/expression/variable-reference "google")
+          "load"
+          (list (make-javascript/literal/string "visualization")
+                (make-javascript/literal/string "1")))
+         (make-javascript/expression/method-invocation
+          (make-javascript/expression/variable-reference "google")
+          "setOnLoadCallback"
+          (list (make-javascript/expression/variable-reference "drawPieChart")))
+         (make-javascript/declaration/function
+          "drawPieChart"
+          nil
+          (make-javascript/statement/block
+           (list (make-javascript/declaration/variable
+                  "json"
+                  (make-javascript/expression/property-access
+                   (make-javascript/expression/method-invocation
+                    (make-javascript/expression/variable-reference "$")
+                    "ajax" nil)
+                   "responseText"))
+                 (make-javascript/declaration/variable
+                  "data"
+                  (make-javascript/expression/constuctor-invocation
+                   (make-javascript/expression/property-access
+                    (make-javascript/expression/property-access
+                     (make-javascript/expression/variable-reference "google")
+                     "visualization")
+                    "DataTable")
+                   (list (make-javascript/expression/variable-reference "json"))))
+                 (make-javascript/declaration/variable
+                  "chart"
+                  (make-javascript/expression/constuctor-invocation
+                   (make-javascript/expression/property-access
+                    (make-javascript/expression/property-access
+                     (make-javascript/expression/variable-reference "google")
+                     "visualization")
+                    "PieChart")
+                   (list (make-javascript/expression/method-invocation
+                          (make-javascript/expression/variable-reference "document")
+                          "getElementById"
+                          (list (make-javascript/literal/string "pie"))))))
+                 (make-javascript/expression/method-invocation
+                  (make-javascript/expression/variable-reference "chart")
+                  "draw"
+                  (list (make-javascript/expression/variable-reference "data")))))))))
 
 ;;;;;;
 ;;; Lisp form
@@ -519,7 +571,21 @@
                  :bindings (list (make-instance 'common-lisp/required-function-argument :name 'n))
                  :allow-other-keys #f
                  :documentation "Computes the factorial of N"
-                 :body nil))
+                 :body (list (make-instance 'common-lisp/if
+                                            :condition (make-instance 'common-lisp/application
+                                                                      :operator '=
+                                                                      :arguments (list (make-instance 'common-lisp/variable-reference :name 'n)
+                                                                                       (make-instance 'common-lisp/constant :value 0)))
+                                            :then (make-instance 'common-lisp/constant :value 1)
+                                            :else (make-instance 'common-lisp/application
+                                                                 :operator '*
+                                                                 :arguments (list (make-instance 'common-lisp/variable-reference :name 'n)
+                                                                                  (make-instance 'common-lisp/application
+                                                                                                 :operator 'factorial
+                                                                                                 :arguments (list (make-instance 'common-lisp/application
+                                                                                                                                 :operator '-
+                                                                                                                                 :arguments (list (make-instance 'common-lisp/variable-reference :name 'n)
+                                                                                                                                                  (make-instance 'common-lisp/constant :value 1)))))))))))
 
 ;;;;;;
 ;;; Evaluator
@@ -611,7 +677,7 @@
                                (list (make-javascript/literal/string "visualization")
                                      (make-javascript/literal/string "1")
                                      (json/object
-                                       ("packages" (json/array (json/string "corechart"))))))
+                                       ("packages" (json/array () (json/string "corechart"))))))
                               (make-javascript/expression/method-invocation
                                (make-javascript/expression/variable-reference "google")
                                "setOnLoadCallback"
@@ -687,19 +753,19 @@
                              (table/cell ()
                                (text/text ()
                                  (text/string "HTML error page" :font *font/default* :font-color *color/solarized/gray*))))))
-         (chart-page (xml/element "html" ()
-                       (xml/element "head" ()
-                         (xml/element "script" ((xml/attribute "type" "text/javascript") (xml/attribute "src" "https://www.google.com/jsapi"))
-                           (xml/text ""))
-                         (xml/element "script" ((xml/attribute "type" "text/javascript"))
+         (chart-page (xml/element ("html" ())
+                       (xml/element ("head" ())
+                         (xml/element ("script" ((xml/attribute () "type" "text/javascript") (xml/attribute () "src" "https://www.google.com/jsapi")))
+                           (xml/text () ""))
+                         (xml/element ("script" ((xml/attribute () "type" "text/javascript")))
                            chart-script))
-                       (xml/element "body" ()
-                         (xml/element "h1" ()
-                           (xml/text "Pie Chart Example"))
-                         (xml/element "div" ((xml/attribute "id" "pie") (xml/attribute "style" "width: 800px; height: 600px;"))
-                           (xml/text ""))
-                         (xml/element "p" ()
-                           (xml/text "Last refresh: ")
+                       (xml/element ("body" ())
+                         (xml/element ("h1" ())
+                           (xml/text () "Pie Chart Example"))
+                         (xml/element ("div" ((xml/attribute () "id" "pie") (xml/attribute () "style" "width: 800px; height: 600px;")))
+                           (xml/text () ""))
+                         (xml/element ("p" ())
+                           (xml/text () "Last refresh: ")
                            (make-common-lisp/top-level
                             (list trace-amounts
                                   (make-instance 'common-lisp/application :operator 'local-time:format-timestring
@@ -707,13 +773,13 @@
                                                                   (make-instance 'common-lisp/application :operator 'local-time:now :arguments nil)
                                                                   (make-instance 'common-lisp/constant :value :format)
                                                                   (make-instance 'common-lisp/constant :value 'local-time:+asctime-format+)))))))))
-         (chart-data (json/array
-                       (json/array (json/string "Task") (json/string "Hours per Day"))
-                       (json/array (json/string "Work") (json/number 11))
-                       (json/array (json/string "Eat") (json/number 2))
-                       (json/array (json/string "Commute") (json/number 2))
-                       (json/array (json/string "Watch TV") (json/number 2))
-                       (json/array (json/string "Sleep")
+         (chart-data (json/array ()
+                       (json/array () (json/string "Task") (json/string "Hours per Day"))
+                       (json/array () (json/string "Work") (json/number 11))
+                       (json/array () (json/string "Eat") (json/number 2))
+                       (json/array () (json/string "Commute") (json/number 2))
+                       (json/array () (json/string "Watch TV") (json/number 2))
+                       (json/array () (json/string "Sleep")
                                    (make-common-lisp/top-level
                                     (list trace-amounts
                                           (make-instance 'common-lisp/application :operator '-
@@ -723,68 +789,71 @@
                                                                                                           (make-instance 'common-lisp/constant :value 2)
                                                                                                           (make-instance 'common-lisp/constant :value 2)
                                                                                                           (make-instance 'common-lisp/constant :value 2))))))))))
-         (error-page (xml/element "html" ()
-                       (xml/element "head" ()
-                         (xml/element "title" ()
-                           (xml/text "Error 404 (Not Found): ")))
-                       (xml/element "body" ()
-                         (xml/element "p" ()
-                           (xml/text "We are sorry, page ")
+         (error-page (xml/element ("html" ())
+                       (xml/element ("head" ())
+                         (xml/element ("title" ())
+                           (xml/text () "Error 404 (Not Found): ")))
+                       (xml/element ("body" ())
+                         (xml/element ("p" ())
+                           (xml/text () "We are sorry, page ")
                            (make-common-lisp/top-level
                             (list trace-amounts
                                   (make-instance 'common-lisp/variable-reference :name 'path)))
-                           (xml/text " cannot be found.")))))
-         (lisp-function (make-instance 'common-lisp/function-definition
-                                       :name 'process-http-request
-                                       :bindings (list (make-instance 'common-lisp/required-function-argument :name 'request))
-                                       :allow-other-keys #f
-                                       :documentation nil
-                                       :body (list (make-common-lisp/comment
-                                                    (text/text ()
-                                                      (text/string "dispatch on the path of the incoming HTTP request according to the following table" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)
-                                                      (text/newline)
-                                                      dispatch-table))
-                                                   (make-instance 'common-lisp/let
-                                                                  :bindings (list (make-instance 'common-lisp/lexical-variable-binding :name 'path
-                                                                                                 :initial-value (make-instance 'common-lisp/application :operator 'path-of
-                                                                                                                               :arguments (list (make-instance 'common-lisp/variable-reference :name 'request)))))
-                                                                  :body (list (make-instance 'common-lisp/application :operator 'make-http-response
-                                                                                             :arguments (list (make-instance 'common-lisp/if
-                                                                                                                             :condition (make-instance 'common-lisp/application :operator 'string=
-                                                                                                                                                       :arguments (list (make-instance 'common-lisp/constant :value page-path)
-                                                                                                                                                                        (make-instance 'common-lisp/variable-reference :name 'path)))
-                                                                                                                             :then chart-page
-                                                                                                                             :else (make-instance 'common-lisp/if
-                                                                                                                                                  :condition (make-instance 'common-lisp/application :operator 'string=
-                                                                                                                                                                            :arguments (list (make-instance 'common-lisp/constant :value data-path)
-                                                                                                                                                                                             (make-instance 'common-lisp/variable-reference :name 'path)))
-                                                                                                                                                  :then chart-data
-                                                                                                                                                  :else error-page))))))))))
+                           (xml/text () " cannot be found.")))))
+         (common-lisp-function (make-instance 'common-lisp/function-definition
+                                              :name 'process-http-request
+                                              :bindings (list (make-instance 'common-lisp/required-function-argument :name 'request))
+                                              :allow-other-keys #f
+                                              :documentation nil
+                                              :body (list (make-common-lisp/comment
+                                                           (text/text ()
+                                                             (text/string "dispatch on the path of the incoming HTTP request according to the following table" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)
+                                                             (text/newline)
+                                                             #+nil ;; TODO: move out
+                                                             dispatch-table))
+                                                          (make-instance 'common-lisp/let
+                                                                         :bindings (list (make-instance 'common-lisp/lexical-variable-binding :name 'path
+                                                                                                        :initial-value (make-instance 'common-lisp/application :operator 'path-of
+                                                                                                                                      :arguments (list (make-instance 'common-lisp/variable-reference :name 'request)))))
+                                                                         :body (list (make-instance 'common-lisp/application :operator 'make-http-response
+                                                                                                    :arguments (list (make-instance 'common-lisp/if
+                                                                                                                                    :condition (make-instance 'common-lisp/application :operator 'string=
+                                                                                                                                                              :arguments (list (make-instance 'common-lisp/constant :value page-path)
+                                                                                                                                                                               (make-instance 'common-lisp/variable-reference :name 'path)))
+                                                                                                                                    :then chart-page
+                                                                                                                                    :else (make-instance 'common-lisp/if
+                                                                                                                                                         :condition (make-instance 'common-lisp/application :operator 'string=
+                                                                                                                                                                                   :arguments (list (make-instance 'common-lisp/constant :value data-path)
+                                                                                                                                                                                                    (make-instance 'common-lisp/variable-reference :name 'path)))
+                                                                                                                                                         :then chart-data
+                                                                                                                                                         :else error-page))))))))))
     (book/book (:title "ProjecturEd" :authors (list "Levente Mészáros"))
       (book/chapter (:title "Introduction")
         (make-test-document/introduction))
       (book/chapter (:title "Literate Programming")
-        (text/text ()
-          (text/string "This example demonstrates mixing multiple different problem domains in the same document. The document contains" :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)
-          (text/string " Common Lisp, HTML, JavaScript, JSON, table, image and styled text" :font projectured::*font/ubuntu/italic/18* :font-color *color/solarized/violet*)
-          (text/string " nested into each other. It describes a web service implemented with a single Common Lisp function that processes HTTP requests. When the function receives a request to the '" :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)
-          (text/string page-path :font *font/ubuntu/italic/18* :font-color *color/solarized/violet*)
-          (text/string "' path it sends an HTML page in response. This page contains a pie chart that utilizes the Google Charts JavaScript API. When the pie chart is shown in the browser it sends another request to the '" :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)
-          (text/string data-path :font *font/ubuntu/italic/18* :font-color *color/solarized/violet*)
-          (text/string "' path using JavaScript. For this request the web service returns another document in JSON format that provides the data for the pie chart. For all other unknown requests the web service sends an HTML error page. The following screenshot shows how the page looks like." :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)
-          (text/newline)
-          (image/image (asdf:system-relative-pathname :projectured "etc/pie.png"))
-          (text/newline)
-          (text/string "This example uses a compound projection that displays all used domains in their natural notation. Proper indentation and syntax highlight are automatically provided without inserting escape sequences that would make reading harder. Note that the edited document" :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)
-          (text/string " is not text" :font projectured::*font/ubuntu/italic/18* :font-color *color/solarized/violet*)
-          (text/string " even though it looks like. It's a complex domain specific data structure that precisely captures the intentions. The projections keep track of what is what to make navigation and editing possible." :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*))
-        lisp-function)
+        (book/paragraph ()
+          (text/text ()
+            (text/string "This example demonstrates mixing multiple different problem domains in the same document. The document contains" :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)
+            (text/string " Common Lisp, HTML, JavaScript, JSON, table, image and styled text" :font projectured::*font/ubuntu/italic/18* :font-color *color/solarized/violet*)
+            (text/string " nested into each other. It describes a web service implemented with a single Common Lisp function that processes HTTP requests. When the function receives a request to the '" :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)
+            (text/string page-path :font *font/ubuntu/italic/18* :font-color *color/solarized/violet*)
+            (text/string "' path it sends an HTML page in response. This page contains a pie chart that utilizes the Google Charts JavaScript API. When the pie chart is shown in the browser it sends another request to the '" :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)
+            (text/string data-path :font *font/ubuntu/italic/18* :font-color *color/solarized/violet*)
+            (text/string "' path using JavaScript. For this request the web service returns another document in JSON format that provides the data for the pie chart. For all other unknown requests the web service sends an HTML error page. The following screenshot shows how the page looks like." :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)
+            (text/newline)
+            (image/image (asdf:system-relative-pathname :projectured "etc/pie.png"))
+            (text/newline)
+            (text/string "This example uses a compound projection that displays all used domains in their natural notation. Proper indentation and syntax highlight are automatically provided without inserting escape sequences that would make reading harder. Note that the edited document" :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)
+            (text/string " is not text" :font projectured::*font/ubuntu/italic/18* :font-color *color/solarized/violet*)
+            (text/string " even though it looks like. It's a complex domain specific data structure that precisely captures the intentions. The projections keep track of what is what to make navigation and editing possible." :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)))
+        common-lisp-function)
       (book/chapter (:title "Resources")
-        (text/text ()
-          (text/string "You can read more about" :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)
-          (text/string " ProjecturEd" :font *font/ubuntu/italic/18* :font-color *color/solarized/violet*)
-          (text/string " at" :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)
-          (text/string " http://projectured.org" :font *font/ubuntu/regular/18* :font-color *color/solarized/violet*))))))
+        (book/paragraph ()
+          (text/text ()
+            (text/string "You can read more about" :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)
+            (text/string " ProjecturEd" :font *font/ubuntu/italic/18* :font-color *color/solarized/violet*)
+            (text/string " at" :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)
+            (text/string " http://projectured.org" :font *font/ubuntu/regular/18* :font-color *color/solarized/violet*)))))))
 
 ;;;;;;
 ;;; Documentation
@@ -794,86 +863,103 @@
          (xml-document (make-test-document/xml)))
     (book/book (:title "ProjecturEd, the Projectional Editor" :authors (list "Levente Mészáros"))
       (book/chapter (:title "Introduction")
-        (make-test-document/introduction))
+        (book/paragraph ()
+          (make-test-document/introduction)))
       (book/chapter (:title "Domains")
         #+nil
         (book/chapter (:title "Graphics" :expanded #f)
-          (text/text ()
-            (text/string "Some graphics"))
+          (book/paragraph ()
+            (text/text ()
+              (text/string "Some graphics")))
           (make-test-document/graphics))
         (book/chapter (:title "Text")
-          (text/text ()
-            (text/string "This domain provides styled text with " :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)
-            (text/string "fonts" :font *font/liberation/serif/italic/24* :font-color *color/solarized/content/darker*)
-            (text/string " and colors." :font *font/ubuntu/regular/18* :font-color *color/solarized/blue*)))
+          (book/paragraph ()
+            (text/text ()
+              (text/string "This domain provides styled text with " :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)
+              (text/string "fonts" :font *font/liberation/serif/italic/24* :font-color *color/solarized/content/darker*)
+              (text/string " and colors." :font *font/ubuntu/regular/18* :font-color *color/solarized/blue*))))
         #+nil
         (book/chapter (:title "List" :expanded #f)
-          (text/text ()
-            (text/string "Some list"))
+          (book/paragraph ()
+            (text/text ()
+              (text/string "Some list")))
           (make-test-document/list))
         #+nil
         (book/chapter (:title "Tree" :expanded #f)
-          (text/text ()
-            (text/string "Some tree"))
+          (book/paragraph ()
+            (text/text ()
+              (text/string "Some tree")))
           (make-test-document/tree))
         #+nil
         (book/chapter (:title "Table")
-          (text/text ()
-            (text/string "This domain provides tables with aligned columns and rows." :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*))
+          (book/paragraph ()
+            (text/text ()
+              (text/string "This domain provides tables with aligned columns and rows." :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)))
           (make-test-document/table/nested))
         (book/chapter (:title "JSON")
-          (text/text ()
-            (text/string "This domain provides the elements of the well known JSON data format." :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*))
+          (book/paragraph ()
+            (text/text ()
+              (text/string "This domain provides the elements of the well known JSON data format." :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)))
           json-document)
         (book/chapter (:title "XML")
-          (text/text ()
-            (text/string "This domain provides the elements of well known XML data format." :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*))
+          (book/paragraph ()
+            (text/text ()
+              (text/string "This domain provides the elements of well known XML data format." :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)))
           xml-document)
         #+nil
         (book/chapter (:title "Java" :expanded #f)
-          (text/text ()
-            (text/string "Some Java code"))
+          (book/paragraph ()
+            (text/text ()
+              (text/string "Some Java code")))
           (make-test-document/java))
         #+nil
         (book/chapter (:title "Javascript" :expanded #f)
-          (text/text ()
-            (text/string "Some Javascript code"))
+          (book/paragraph ()
+            (text/text ()
+              (text/string "Some Javascript code")))
           (make-test-document/javascript))
         #+nil
         (book/chapter (:title "S-expression" :expanded #f)
-          (text/text ()
-            (text/string "Some Lisp S-expression"))
+          (book/paragraph ()
+            (text/text ()
+              (text/string "Some Lisp S-expression")))
           (make-test-document/lisp-form))
         #+nil
         (book/chapter (:title "Common Lisp" :expanded #f)
-          (text/text ()
-            (text/string "Some Common Lisp code"))
+          (book/paragraph ()
+            (text/text ()
+              (text/string "Some Common Lisp code")))
           (make-test-document/common-lisp))
         #+nil
         (book/chapter (:title "Object" :expanded #f)
-          (text/text ()
-            (text/string "Some object"))
+          (book/paragraph ()
+            (text/text ()
+              (text/string "Some object")))
           (make-test-document/t/object))
         (book/chapter (:title "Mixed")
-          (text/text ()
-            (text/string "This feature allowes mixing documents in arbitrary ways." :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*))
-          (xml/element "mixed" ()
-            (xml/element "something" ((xml/attribute "extra" "true")))
+          (book/paragraph ()
+            (text/text ()
+              (text/string "This feature allowes mixing documents in arbitrary ways." :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)))
+          (xml/element ("mixed" ())
+            (xml/element ("something" ((xml/attribute () "extra" "true"))))
             json-document
             xml-document)))
       (book/chapter (:title "Projections")
         (book/chapter (:title "Sorting" :expanded #f)
-          (text/text ()
-            (text/string "This projection allows sorting arbitrary document parts based on arbitrary criteria and editing the result." :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)
-            json-document))
+          (book/paragraph ()
+            (text/text ()
+              (text/string "This projection allows sorting arbitrary document parts based on arbitrary criteria and editing the result." :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)))
+          json-document)
         (book/chapter (:title "Filtering" :expanded #f)
-          (text/text ()
-            (text/string "This projection allows filtering out arbitrary document parts based on arbitrary criteria and editing the result." :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)
-            json-document))
+          (book/paragraph ()
+            (text/text ()
+              (text/string "This projection allows filtering out arbitrary document parts based on arbitrary criteria and editing the result." :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)))
+          json-document)
         (book/chapter (:title "Selecting" :expanded #f)
-          (text/text ()
-            (text/string "This projection allows selecting arbitrary document parts based on arbitrary criteria and editing the result." :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)
-            json-document))))))
+          (book/paragraph ()
+            (text/text ()
+              (text/string "This projection allows selecting arbitrary document parts based on arbitrary criteria and editing the result." :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)))
+          json-document)))))
 
 ;;;;;;
 ;;; Test

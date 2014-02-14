@@ -81,7 +81,8 @@
           (:idle
            (values))
           (:quit-event
-           (make-instance 'event/window/quit))
+           (make-instance 'event/window/quit
+                          :location (make-2d (sdl:mouse-x) (sdl:mouse-y))))
           (:key-down-event
            (sdl:with-key-down-event ((mod-key :mod-key) (key :key) (character :unicode)) sdl:*sdl-event*
              (make-instance 'event/keyboard/key-down
@@ -91,7 +92,7 @@
                             :key key
                             :character (unless (zerop character) (code-char character)))))
           (:key-up-event
-           (sdl:with-key-down-event ((mod-key :mod-key) (key :key) (character :unicode)) sdl:*sdl-event*
+           (sdl:with-key-up-event ((mod-key :mod-key) (key :key) (character :unicode)) sdl:*sdl-event*
              (make-instance 'event/keyboard/key-up
                             :timestamp (get-internal-real-time)
                             :modifiers (mapcar 'modifier-key mod-key)
@@ -102,23 +103,20 @@
            (sdl:with-mouse-motion-event ((x :x) (y :y)) sdl:*sdl-event*
              (make-instance 'event/mouse/move
                             :timestamp (get-internal-real-time)
-                            ;; TODO:
-                            :modifiers nil
+                            :modifiers (mapcar 'modifier-key (sdl:get-mods-state))
                             :location (make-2d x y))))
           (:mouse-button-down-event
            (sdl:with-mouse-button-down-event ((x :x) (y :y) (button :button)) sdl:*sdl-event*
              (make-instance 'event/mouse/button/press
                             :timestamp (get-internal-real-time)
-                            ;; TODO:
-                            :modifiers nil
+                            :modifiers (mapcar 'modifier-key (sdl:get-mods-state))
                             :button (mouse-button button)
                             :location (make-2d x y))))
           (:mouse-button-up-event
            (sdl:with-mouse-button-up-event ((x :x) (y :y) (button :button)) sdl:*sdl-event*
              (make-instance 'event/mouse/button/release
                             :timestamp (get-internal-real-time)
-                            ;; TODO:
-                            :modifiers nil
+                            :modifiers (mapcar 'modifier-key (sdl:get-mods-state))
                             :button (mouse-button button)
                             :location (make-2d x y))))
           (:video-resize-event

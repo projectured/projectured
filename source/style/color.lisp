@@ -28,20 +28,6 @@
                  :raw nil))
 
 ;;;;;;
-;;; API
-
-(def (function e) color= (color-1 color-2)
-  (and (= (alpha-of color-1) (alpha-of color-2))
-       (= (red-of color-1) (red-of color-2))
-       (= (green-of color-1) (green-of color-2))
-       (= (blue-of color-1) (blue-of color-2))))
-
-(def (function e) color=* (color-1 color-2)
-  (if (and color-1 color-2)
-      (color= color-1 color-2)
-      (eq color-1 color-2)))
-
-;;;;;;
 ;;; Definer
 
 (def (definer e :available-flags "e") color (name (red green blue))
@@ -1124,3 +1110,33 @@
 (def color *color/zaffre* (0 20 168))
 (def color *color/zinnwaldite-brown* (44 22 8))
 (def color *color/zomp* (57 167 142))
+
+;;;;;;
+;;; API
+
+(def (function e) color= (color-1 color-2)
+  (and (= (alpha-of color-1) (alpha-of color-2))
+       (= (red-of color-1) (red-of color-2))
+       (= (green-of color-1) (green-of color-2))
+       (= (blue-of color-1) (blue-of color-2))))
+
+(def (function e) color=* (color-1 color-2)
+  (if (and color-1 color-2)
+      (color= color-1 color-2)
+      (eq color-1 color-2)))
+
+(def (function e) color/iterpolate (color-1 color-2 ratio)
+  (make-style/color (+ (* (- 1 ratio) (alpha-of color-1))
+                       (* ratio (alpha-of color-2)))
+                    (+ (* (- 1 ratio) (red-of color-1))
+                       (* ratio (red-of color-2)))
+                    (+ (* (- 1 ratio) (green-of color-1))
+                       (* ratio (green-of color-2)))
+                    (+ (* (- 1 ratio) (blue-of color-1))
+                       (* ratio (blue-of color-2)))))
+
+(def (function e) color/lighten (color ratio)
+  (color/iterpolate color *color/white* ratio))
+
+(def (function e) color/darken (color ratio)
+  (color/iterpolate color *color/black* ratio))

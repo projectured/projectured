@@ -10,22 +10,22 @@
 ;;; Projection
 
 ;; TODO: rename these to ->tree/leaf
-(def projection lisp-form/comment->string ()
+(def projection lisp-form/comment->tree/node ()
   ())
 
-(def projection lisp-form/number->string ()
+(def projection lisp-form/number->tree/leaf ()
   ())
 
-(def projection lisp-form/symbol->string ()
+(def projection lisp-form/symbol->tree/leaf ()
   ())
 
-(def projection lisp-form/string->string ()
+(def projection lisp-form/string->tree/leaf ()
   ())
 
 (def projection lisp-form/list->tree/node ()
   ())
 
-(def projection lisp-form/object->string ()
+(def projection lisp-form/object->tree/leaf ()
   ())
 
 (def projection lisp-form/top-level->tree/node ()
@@ -34,23 +34,23 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/lisp-form/comment->string ()
-  (make-projection 'lisp-form/comment->string))
+(def (function e) make-projection/lisp-form/comment->tree/node ()
+  (make-projection 'lisp-form/comment->tree/node))
 
-(def (function e) make-projection/lisp-form/number->string ()
-  (make-projection 'lisp-form/number->string))
+(def (function e) make-projection/lisp-form/number->tree/leaf ()
+  (make-projection 'lisp-form/number->tree/leaf))
 
-(def (function e) make-projection/lisp-form/symbol->string ()
-  (make-projection 'lisp-form/symbol->string))
+(def (function e) make-projection/lisp-form/symbol->tree/leaf ()
+  (make-projection 'lisp-form/symbol->tree/leaf))
 
-(def (function e) make-projection/lisp-form/string->string ()
-  (make-projection 'lisp-form/string->string))
+(def (function e) make-projection/lisp-form/string->tree/leaf ()
+  (make-projection 'lisp-form/string->tree/leaf))
 
 (def (function e) make-projection/lisp-form/list->tree/node ()
   (make-projection 'lisp-form/list->tree/node))
 
-(def (function e) make-projection/lisp-form/object->string ()
-  (make-projection 'lisp-form/object->string))
+(def (function e) make-projection/lisp-form/object->tree/leaf ()
+  (make-projection 'lisp-form/object->tree/leaf))
 
 (def (function e) make-projection/lisp-form/top-level->tree/node ()
   (make-projection 'lisp-form/top-level->tree/node))
@@ -58,23 +58,23 @@
 ;;;;;;
 ;;; Construction
 
-(def (macro e) lisp-form/comment->string ()
-  '(make-projection/lisp-form/comment->string))
+(def (macro e) lisp-form/comment->tree/node ()
+  '(make-projection/lisp-form/comment->tree/node))
 
-(def (macro e) lisp-form/number->string ()
-  '(make-projection/lisp-form/number->string))
+(def (macro e) lisp-form/number->tree/leaf ()
+  '(make-projection/lisp-form/number->tree/leaf))
 
-(def (macro e) lisp-form/symbol->string ()
-  '(make-projection/lisp-form/symbol->string))
+(def (macro e) lisp-form/symbol->tree/leaf ()
+  '(make-projection/lisp-form/symbol->tree/leaf))
 
-(def (macro e) lisp-form/string->string ()
-  '(make-projection/lisp-form/string->string))
+(def (macro e) lisp-form/string->tree/leaf ()
+  '(make-projection/lisp-form/string->tree/leaf))
 
 (def (macro e) lisp-form/list->tree/node ()
   '(make-projection/lisp-form/list->tree/node))
 
 (def (macro e) lisp-form/object->tree/node ()
-  '(make-projection/lisp-form/object->string))
+  '(make-projection/lisp-form/object->tree/leaf))
 
 (def (macro e) lisp-form/top-level->tree/node ()
   '(make-projection/lisp-form/top-level->tree/node))
@@ -82,55 +82,44 @@
 ;;;;;;
 ;;; Printer
 
-(def printer lisp-form/comment->string (projection recursion input input-reference)
+(def printer lisp-form/comment->tree/node (projection recursion input input-reference)
   (bind ((content (content-of input))
          ;; TODO:
          (output (make-tree/node (list (output-of (recurse-printer recursion content input-reference)))
                                  #+nil(make-text/string content :font *font/ubuntu/regular/18* :font-color *color/solarized/gray*)
-                                 :opening-delimiter (make-text/string ";; " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))))
+                                 :opening-delimiter (text/text () (text/string ";; " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))))
     (make-iomap/compound projection recursion input input-reference output
                          nil
                          #+nil
-                         (list (make-iomap/string content `(the string (value-of ,typed-input-reference)) 0
-                                                  content `(the string (content-of (the tree/leaf ,output-reference))) 0
-                                                  (length content))
-                               (make-iomap/object projection recursion input `(the string (value-of ,typed-input-reference))
+                         (list (make-iomap/object projection recursion input `(the string (value-of ,typed-input-reference))
                                                   output `(the string ,output-reference))))))
 
-(def printer lisp-form/number->string (projection recursion input input-reference)
-  (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
-         (output-content (write-to-string (value-of input)))
-         (output (make-tree/leaf (make-text/string output-content :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/magenta*))))
+(def printer lisp-form/number->tree/leaf (projection recursion input input-reference)
+  (bind ((output-content (write-to-string (value-of input)))
+         (output (tree/leaf () (text/text () (text/string output-content :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/magenta*)))))
     (make-iomap/compound projection recursion input input-reference output
-                         (list (make-iomap/object projection recursion input input-reference output)
-                               (make-iomap/string input `(the string (write-to-string (the number (value-of ,typed-input-reference)))) 0
-                                                  output-content `(the string (content-of (the tree/leaf ,output-reference))) 0
-                                                  (length output-content))))))
+                         (list #+nil
+                               (make-iomap/object projection recursion input input-reference output)))))
 
-(def printer lisp-form/symbol->string (projection recursion input input-reference)
-  (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
-         (output-content (string-downcase (value-of input)))
+(def printer lisp-form/symbol->tree/leaf (projection recursion input input-reference)
+  (bind ((output-content (string-downcase (value-of input)))
          (font-color (or (font-color-of input) *color/solarized/violet*))
-         (output (make-tree/leaf (make-text/string output-content :font (or (font-of input) *font/ubuntu/monospace/regular/18*) :font-color font-color)
-                                 :opening-delimiter (when (keywordp (value-of input))
-                                                      (make-text/string ":" :font *font/ubuntu/monospace/regular/18* :font-color font-color)))))
+         (output (tree/leaf (:opening-delimiter (when (keywordp (value-of input))
+                                                  (text/text () (text/string ":" :font *font/ubuntu/monospace/regular/18* :font-color font-color))))
+                   (text/text ()
+                     (text/string output-content :font (or (font-of input) *font/ubuntu/monospace/regular/18*) :font-color font-color)))))
     (make-iomap/compound projection recursion input input-reference output
-                         (list (make-iomap/object projection recursion input input-reference output)
-                               (make-iomap/string input `(the string (string-downcase (the symbol (value-of ,typed-input-reference)))) 0
-                                                  output-content `(the string (content-of (the tree/leaf ,output-reference))) 0
-                                                  (length output-content))))))
+                         (list #+nil
+                               (make-iomap/object projection recursion input input-reference output)))))
 
-(def printer lisp-form/string->string (projection recursion input input-reference)
-  (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
-         (value (value-of input))
+(def printer lisp-form/string->tree/leaf (projection recursion input input-reference)
+  (bind ((value (value-of input))
          (output-content value)
-         (output (make-tree/leaf (make-text/string output-content :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/green*)
-                                 :opening-delimiter (make-text/string "\"" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)
-                                 :closing-delimiter (make-text/string "\"" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))))
+         (output (tree/leaf (:opening-delimiter (text/text () (text/string "\"" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))
+                             :closing-delimiter (text/text () (text/string "\"" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))
+                   (text/text () (text/string output-content :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/green*)))))
     (make-iomap/compound projection recursion input input-reference output
-                         (list (make-iomap/string value `(the string (value-of ,typed-input-reference)) 0
-                                                  output-content `(the string (content-of (the tree/leaf ,output-reference))) 0
-                                                  (length value))
+                         (list #+nil
                                (make-iomap/object projection recursion input `(the string (value-of ,typed-input-reference))
                                                   output `(the string ,output-reference))))))
 
@@ -141,7 +130,9 @@
          (output (make-tree/node (iter (for index :from 0)
                                        (for element :in (elements-of input))
                                        (for iomap = (recurse-printer recursion element
-                                                                     `(elt (the sequence (elements-of ,typed-input-reference)) ,index)))
+                                                                     `((elt (the sequence document) ,index)
+                                                                       (the sequence (elements-of (the document list-form/list)))
+                                                                       ,@(typed-reference (form-type input) input-reference))))
                                        (for element-output = (output-of iomap))
                                        (push iomap child-iomaps)
                                        (setf (indentation-of element-output)
@@ -150,29 +141,27 @@
                                                (t (when (and deep-list (not (first-iteration-p)))
                                                     2))))
                                        (collect element-output))
-                                 :opening-delimiter (make-text/string "(" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)
-                                 :closing-delimiter (make-text/string ")" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)
-                                 :separator (make-text/string " " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))))
+                                 :opening-delimiter (text/text () (text/string "(" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))
+                                 :closing-delimiter (text/text () (text/string ")" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))
+                                 :separator (text/text () (text/string " " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))))
     (make-iomap/compound projection recursion input input-reference output
-                         (list* (make-iomap/object projection recursion input input-reference output nil) (nreverse child-iomaps)))))
+                         (list* (make-iomap/object projection recursion input input-reference output) (nreverse child-iomaps)))))
 
-(def printer lisp-form/object->string (projection recursion input input-reference)
-  (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
-         (output-content (write-to-string input))
-         (output (make-tree/leaf (make-text/string output-content :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/red*))))
+(def printer lisp-form/object->tree/leaf (projection recursion input input-reference)
+  (bind ((output-content (write-to-string input))
+         (output (tree/leaf () (text/text () (text/string output-content :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/red*)))))
     (make-iomap/compound projection recursion input input-reference output
-                         (list (make-iomap/object projection recursion input input-reference output)
-                               (make-iomap/string input `(the string (write-to-string (value-of ,typed-input-reference))) 0
-                                                  output-content `(the string (content-of (the tree/leaf ,output-reference))) 0
-                                                  (length output-content))))))
+                         (list #+nil
+                               (make-iomap/object projection recursion input input-reference output)))))
 
 (def printer lisp-form/top-level->tree/node (projection recursion input input-reference)
   (bind ((child-iomaps nil)
-         (typed-input-reference `(the ,(form-type input) ,input-reference))
          (output (make-tree/node (iter (for index :from 0)
                                        (for element :in (elements-of input))
-                                       (for iomap = (recurse-printer recursion iomap element
-                                                                     `(elt (the sequence (elements-of ,typed-input-reference)) ,index)))
+                                       (for iomap = (recurse-printer recursion element
+                                                                     `((elt (the sequence document) ,index)
+                                                                       (the sequence (elements-of (the lisp-form/top-level document)))
+                                                                       ,@(typed-reference (form-type input) input-reference))))
                                        (for element-output = (output-of iomap))
                                        (push iomap child-iomaps)
                                        (setf (indentation-of element-output)
@@ -180,27 +169,27 @@
                                                (lisp-form/base (indentation-of element))
                                                (t 0)))
                                        (collect element-output))
-                                 :separator (make-text/string " " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)
+                                 :separator (text/text () (text/string " " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))
                                  :indentation 2)))
     (make-iomap/compound projection recursion input input-reference output
-                          (list* (make-iomap/object projection recursion input input-reference output) (nreverse child-iomaps)))))
+                         (list* (make-iomap/object projection recursion input input-reference output) (nreverse child-iomaps)))))
 
 ;;;;;;
 ;;; Reader
 
-(def reader lisp-form/comment->string (projection recursion input printer-iomap)
+(def reader lisp-form/comment->tree/node (projection recursion input printer-iomap)
   (declare (ignore projection recursion printer-iomap))
   input)
 
-(def reader lisp-form/number->string (projection recursion input printer-iomap)
+(def reader lisp-form/number->tree/leaf (projection recursion input printer-iomap)
   (declare (ignore projection recursion printer-iomap))
   input)
 
-(def reader lisp-form/symbol->string (projection recursion input printer-iomap)
+(def reader lisp-form/symbol->tree/leaf (projection recursion input printer-iomap)
   (declare (ignore projection recursion printer-iomap))
   input)
 
-(def reader lisp-form/string->string (projection recursion input printer-iomap)
+(def reader lisp-form/string->tree/leaf (projection recursion input printer-iomap)
   (declare (ignore projection recursion printer-iomap))
   input)
 
@@ -208,7 +197,7 @@
   (declare (ignore projection recursion printer-iomap))
   input)
 
-(def reader lisp-form/object->string (projection recursion input printer-iomap)
+(def reader lisp-form/object->tree/leaf (projection recursion input printer-iomap)
   (declare (ignore projection recursion printer-iomap))
   input)
 

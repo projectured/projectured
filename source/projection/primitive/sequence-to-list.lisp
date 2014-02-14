@@ -35,7 +35,7 @@
                                                                      `((elt (the sequence document) ,index)
                                                                        ,@(typed-reference (form-type input) input-reference))))
                                        (collect (make-list/element (output-of iomap)))))))
-    (make-iomap/object projection recursion input input-reference output nil)))
+    (make-iomap/object projection recursion input input-reference output)))
 
 ;;;;;;
 ;;; Reader

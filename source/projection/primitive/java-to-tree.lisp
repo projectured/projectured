@@ -145,38 +145,39 @@
 ;;; Printer
 
 (def printer java/statement/block->tree/node (projection recursion input input-reference)
-  (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
-         (child-iomaps nil)
+  (bind ((child-iomaps nil)
          (output (make-tree/node (iter (for index :from 0)
                                        (for element :in-sequence (elements-of input))
-                                       (for iomap = (recurse-printer recursion element
-                                                                     `(elt (elements-of ,typed-input-reference) ,index)))
+                                       (for iomap = (recurse-printer recursion element `((elt (elements-of (the sequence document)) ,index)
+                                                                                         ,@(typed-reference (form-type input) input-reference))))
                                        (push iomap child-iomaps)
                                        ;; KLUDGE:
                                        (setf (indentation-of (output-of iomap)) 2)
                                        (collect (output-of iomap)))
-                                 :opening-delimiter (make-text/string "{" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)
+                                 :opening-delimiter (text/text () (text/string "{" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))
                                  ;; KLUDGE:
-                                 :closing-delimiter (make-text/string "
-}" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))))
+                                 :closing-delimiter (text/text () (text/string "
+}" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))))
     (make-iomap/compound projection recursion input input-reference output
                          (list* (make-iomap/object projection recursion input input-reference output) (nreverse child-iomaps)))))
 
 (def printer java/statement/if->tree/node (projection recursion input input-reference)
-  (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
-         (condition-iomap (recurse-printer recursion (condition-of input) `(condition-of ,typed-input-reference)))
-         (then-branch-iomap (recurse-printer recursion (then-of input) `(then-of ,typed-input-reference)))
-         (else-branch-iomap (recurse-printer recursion (else-of input) `(else-of ,typed-input-reference)))
-         (output (make-tree/node (list* (make-tree/leaf (make-text/string "if" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/blue*))
+  (bind ((condition-iomap (recurse-printer recursion (condition-of input) `((condition-of (the java/statement/if document))
+                                                                            ,@(typed-reference (form-type input) input-reference))))
+         (then-branch-iomap (recurse-printer recursion (then-of input) `((then-of (the java/statement/if document))
+                                                                         ,@(typed-reference (form-type input) input-reference))))
+         (else-branch-iomap (recurse-printer recursion (else-of input) `((else-of (the java/statement/if document))
+                                                                         ,@(typed-reference (form-type input) input-reference))))
+         (output (make-tree/node (list* (make-tree/leaf (text/text () (text/string "if" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/blue*)))
                                         (make-tree/node (children-of (output-of condition-iomap))
-                                                        :opening-delimiter (make-text/string "(" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)
-                                                        :closing-delimiter (make-text/string ")" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)
-                                                        :separator (make-text/string " " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))
+                                                        :opening-delimiter (text/text () (text/string "(" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))
+                                                        :closing-delimiter (text/text () (text/string ")" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))
+                                                        :separator (text/text () (text/string " " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))
                                         (output-of then-branch-iomap)
-                                        (make-tree/leaf (make-text/string "else" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/blue*) :indentation 0)
+                                        (make-tree/leaf (text/text () (text/string "else" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/blue*)) :indentation 0)
                                         (when (else-of input)
                                           (list (output-of else-branch-iomap))))
-                                 :separator (make-text/string " " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))))
+                                 :separator (text/text () (text/string " " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))))
     ;; KLUDGE:
     (setf (indentation-of (output-of then-branch-iomap)) 4)
     (setf (indentation-of (output-of else-branch-iomap)) 4)
@@ -184,221 +185,186 @@
                          (list (make-iomap/object projection recursion input input-reference output)
                                condition-iomap
                                then-branch-iomap
-                               else-branch-iomap
-                               (make-iomap/string input `(the string (form-name ,typed-input-reference)) 0
-                                                  output `(the string (content-of (the tree/leaf (elt (the sequence (children-of (the tree/node ,output-reference))) 0)))) 0
-                                                  2)
-                               (make-iomap/string input `(the string (form-name ,typed-input-reference)) 0
-                                                  output `(the string (content-of (the tree/leaf (elt (the sequence (children-of (the tree/node ,output-reference))) 3)))) 0
-                                                  4)))))
+                               else-branch-iomap))))
 
 (def printer java/statement/return->tree/node (projection recursion input input-reference)
-  (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
-         (iomap (recurse-printer recursion (value-of input) `(value-of  ,typed-input-reference)))
-         (output (make-tree/node (list (make-tree/leaf (make-text/string "return" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/blue*)) (output-of iomap))
-                                 :closing-delimiter (make-text/string ";" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)
-                                 :separator (make-text/string " " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))))
+  (bind ((iomap (recurse-printer recursion (value-of input) `((value-of (the java/statement/return document))
+                                                              ,@(typed-reference (form-type input) input-reference))))
+         (output (make-tree/node (list (make-tree/leaf (text/text () (text/string "return" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/blue*))) (output-of iomap))
+                                 :closing-delimiter (text/text () (text/string ";" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))
+                                 :separator (text/text () (text/string " " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))))
     (make-iomap/compound projection recursion input input-reference output
-                         (list (make-iomap/object projection recursion input input-reference output output-reference)
-                               (make-iomap/string input `(the string (form-name ,typed-input-reference)) 0
-                                                  output `(the string (content-of (the tree/leaf (elt (the sequence (children-of (the tree/node ,output-reference))) 0)))) 0
-                                                  6)
+                         (list (make-iomap/object projection recursion input input-reference output)
                                iomap))))
 
 (def printer java/expression/variable-reference->string (projection recursion input input-reference)
-  (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
-         (output-content (name-of input))
-         (output (make-tree/leaf (make-text/string output-content :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/orange*))))
+  (bind ((output-content (name-of input))
+         (output (make-tree/leaf (text/text () (text/string output-content :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/orange*)))))
     (make-iomap/compound projection recursion input input-reference output
-                         (list (make-iomap/object projection recursion input input-reference output output-reference)
-                               (make-iomap/string input `(the string (name-of ,typed-input-reference)) 0
-                                                  output-content `(the string (content-of (the tree/leaf ,output-reference))) 0
-                                                  (length output-content))))))
+                         (list (make-iomap/object projection recursion input input-reference output)))))
 
 (def printer java/expression/method-invocation->tree/node (projection recursion input input-reference)
   (bind ((child-iomaps nil)
-         (typed-input-reference `(the ,(form-type input) ,input-reference))
-         (output (make-tree/node (list (make-tree/leaf (make-text/string (method-of input) :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/violet*))
+         (output (make-tree/node (list (make-tree/leaf (text/text () (text/string (method-of input) :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/violet*)))
                                        (make-tree/node (iter (for index :from 0)
                                                              (for argument :in-sequence (arguments-of input))
-                                                             (for iomap = (recurse-printer recursion argument
-                                                                                           `(elt (the sequence (arguments-of ,typed-input-reference)) ,index)))
+                                                             (for iomap = (recurse-printer recursion argument `((elt (the sequence (the sequence document)) ,index)
+                                                                                                                (the sequence (arguments-of (the java/expression/method-invocation document)))
+                                                                                                                ,@(typed-reference (form-type input) input-reference))))
                                                              (push iomap child-iomaps)
                                                              (collect (output-of iomap)))
-                                                       :opening-delimiter (make-text/string "(" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)
-                                                       :closing-delimiter (make-text/string ")" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))))))
+                                                       :opening-delimiter (text/text () (text/string "(" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))
+                                                       :closing-delimiter (text/text () (text/string ")" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))))))
     (make-iomap/compound projection recursion input input-reference output
-                         (list* (make-iomap/object projection recursion input input-reference output output-reference)
-                                (make-iomap/string input `(the string (method-of ,typed-input-reference)) 0
-                                                   output `(the string (content-of (the tree/leaf (elt (the sequence (children-of (the tree/node ,output-reference))) 0)))) 0
-                                                   (length (method-of input)))
-                                (make-iomap/object projection recursion (arguments-of input) `(arguments-of ,typed-input-reference)
-                                                   output `(elt (the sequence (children-of (the tree/node ,output-reference))) 1))
+                         (list* (make-iomap/object projection recursion input input-reference output)
+                                #+nil
+                                (make-iomap/object projection recursion (arguments-of input) `(arguments-of ,typed-input-reference) output)
                                 (nreverse child-iomaps)))))
 
 (def printer java/expression/infix-operator->tree/node (projection recursion input input-reference)
   (bind ((child-iomaps nil)
-         (typed-input-reference `(the ,(form-type input) ,input-reference))
          (output (make-tree/node (iter (for index :from 0)
                                        (for argument :in-sequence (arguments-of input))
-                                       (for iomap = (recurse-printer recursion argument
-                                                                     `(elt (the sequence (arguments-of ,typed-input-reference)) ,index)))
+                                       (for iomap = (recurse-printer recursion argument `((elt (the sequence (the sequence document)) ,index)
+                                                                                          (the sequence (arguments-of (the java/expression/infix-operator document)))
+                                                                                          ,@(typed-reference (form-type input) input-reference))))
                                        (unless (first-iteration-p)
-                                         (push (make-iomap/string input `(the string (operator-of ,typed-input-reference)) 0
-                                                                  nil `(the string (content-of (the tree/leaf (elt (the sequence (children-of (the tree/node ,output-reference))) ,(1- (* 2 index)))))) 0
-                                                                  (length (operator-of input)))
-                                               child-iomaps)
-                                         (collect (make-tree/leaf (make-text/string (operator-of input) :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/violet*))))
+                                         (collect (make-tree/leaf (text/text () (text/string (operator-of input) :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/violet*)))))
                                        (push iomap child-iomaps)
                                        (collect (output-of iomap)))
-                                 :separator (make-text/string " " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))))
+                                 :separator (text/text () (text/string " " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))))
     (make-iomap/compound projection recursion input input-reference output
-                         (list* (make-iomap/object projection recursion input input-reference output output-reference)
+                         (list* (make-iomap/object projection recursion input input-reference output)
                                 (nreverse child-iomaps)))))
 
 (def printer java/literal/null->string (projection recursion input input-reference)
   (bind ((output "null"))
-    (make-iomap/object projection recursion input input-reference output output-reference)))
+    (make-iomap/object projection recursion input input-reference output)))
 
 (def printer java/literal/number->string (projection recursion input input-reference)
-  (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
-         (output-content (write-to-string (value-of input)))
-         (output (make-tree/leaf (make-text/string output-content :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/magenta*))))
+  (bind ((output-content (write-to-string (value-of input)))
+         (output (make-tree/leaf (text/text () (text/string output-content :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/magenta*)))))
     (make-iomap/compound projection recursion input input-reference output
-                         (list (make-iomap/object projection recursion input input-reference output output-reference)
-                               (make-iomap/string input `(the string (write-to-string (the number (value-of ,typed-input-reference)))) 0
-                                                  output-content `(the string (content-of (the tree/leaf ,output-reference))) 0
-                                                  (length output-content))))))
+                         (list (make-iomap/object projection recursion input input-reference output)))))
 
 (def printer java/literal/character->string (projection recursion input input-reference)
   (bind ((output (format nil "'~A'" (value-of input))))
-    (make-iomap/object projection recursion input input-reference output output-reference)))
+    (make-iomap/object projection recursion input input-reference output)))
 
 (def printer java/literal/string->string (projection recursion input input-reference)
   (bind ((output (value-of input)))
-    (make-iomap/object projection recursion input input-reference output output-reference)))
+    (make-iomap/object projection recursion input input-reference output)))
 
 (def printer java/declaration/method->tree/node (projection recursion input input-reference)
-  (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
-         (child-iomaps nil)
-         (qualifier-iomap (recurse-printer recursion (qualifier-of input) `(qualifier-of ,typed-input-reference)))
-         (return-type-iomap (recurse-printer recursion (return-type-of input) `(return-type-of ,typed-input-reference)))
-         (body-iomap (recurse-printer recursion (body-of input) `(body-of ,typed-input-reference)))
+  (bind ((child-iomaps nil)
+         (qualifier-iomap (recurse-printer recursion (qualifier-of input) `((qualifier-of (the java/declaration/method document))
+                                                                            ,@(typed-reference (form-type input) input-reference))))
+         (return-type-iomap (recurse-printer recursion (return-type-of input) `((return-type-of (the java/declaration/method document))
+                                                                                ,@(typed-reference (form-type input) input-reference))))
+         (body-iomap (recurse-printer recursion (body-of input) `((body-of (the java/declaration/method document))
+                                                                  ,@(typed-reference (form-type input) input-reference))))
          (output (make-tree/node (list (output-of qualifier-iomap)
                                        (output-of return-type-iomap)
-                                       (make-tree/leaf (make-text/string (name-of input) :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/red*))
+                                       (make-tree/leaf (text/text () (text/string (name-of input) :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/red*)))
                                        (make-tree/node (iter (for index :from 0)
                                                              (for argument :in-sequence (arguments-of input))
-                                                             (for iomap = (recurse-printer recursion argument
-                                                                                           `(elt (arguments-of ,typed-input-reference) ,index)))
+                                                             (for iomap = (recurse-printer recursion argument `((elt (the sequence document) ,index)
+                                                                                                                (the sequence (arguments-of (the java/declaration/method document)))
+                                                                                                                ,@(typed-reference (form-type input) input-reference))))
                                                              (push iomap child-iomaps)
                                                              (collect (output-of iomap)))
-                                                       :opening-delimiter (make-text/string "(" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)
-                                                       :closing-delimiter (make-text/string ")" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))
+                                                       :opening-delimiter (text/text () (text/string "(" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))
+                                                       :closing-delimiter (text/text () (text/string ")" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))
                                        (output-of body-iomap))
-                                 :separator (make-text/string " " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))))
+                                 :separator (text/text () (text/string " " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))))
     ;; KLUDGE:
     (setf (indentation-of (output-of body-iomap)) 0)
     (make-iomap/compound projection recursion input input-reference output
-                         (list* (make-iomap/object projection recursion input input-reference output output-reference)
+                         (list* (make-iomap/object projection recursion input input-reference output)
                                 qualifier-iomap
                                 return-type-iomap
                                 body-iomap
-                                (make-iomap/string input `(the string (name-of ,typed-input-reference)) 0
-                                                   output `(the string (content-of (the tree/leaf (elt (the sequence (children-of (the tree/node ,output-reference))) 2)))) 0
-                                                   (length (name-of input)))
-                                (make-iomap/object projection recursion (arguments-of input) `(arguments-of ,typed-input-reference)
-                                                   output `(elt (the sequence (children-of (the tree/node ,output-reference))) 3))
+                                #+nil
+                                (make-iomap/object projection recursion (arguments-of input) `(arguments-of ,typed-input-reference) output)
                                 (nreverse child-iomaps)))))
 
 (def printer java/declaration/argument->tree/node (projection recursion input input-reference)
-  (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
-         (type-iomap (recurse-printer recursion (slot-value input 'type) `(slot-value ,typed-input-reference 'type)))
+  (bind ((type-iomap (recurse-printer recursion (slot-value input 'type) `((slot-value (the java/declaration/argument document) 'type)
+                                                                           ,@(typed-reference (form-type input) input-reference))))
          (output (make-tree/node (list (output-of type-iomap)
-                                       (make-tree/leaf (make-text/string (name-of input) :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/red*)))
-                                 :separator (make-text/string " " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))))
+                                       (make-tree/leaf (text/text () (text/string (name-of input) :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/red*))))
+                                 :separator (text/text () (text/string " " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))))
     (make-iomap/compound projection recursion input input-reference output
-                         (list (make-iomap/object projection recursion input input-reference output output-reference)
-                               type-iomap
-                               (make-iomap/string input `(the string (name-of ,typed-input-reference)) 0
-                                                  output `(the string (content-of (the tree/node (elt (the sequence (children-of (the tree/node ,output-reference))) 1)))) 0
-                                                  (length (name-of input)))))))
+                         (list (make-iomap/object projection recursion input input-reference output)
+                               type-iomap))))
 
 (def printer java/declaration/qualifier->string (projection recursion input input-reference)
-  (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
-         (output-content (name-of input))
-         (output (make-tree/leaf (make-text/string output-content :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/blue*))))
+  (bind ((output-content (name-of input))
+         (output (make-tree/leaf (text/text () (text/string output-content :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/blue*)))))
     (make-iomap/compound projection recursion input input-reference output
-                         (list (make-iomap/object projection recursion input input-reference output output-reference)
-                               (make-iomap/string input `(the string (name-of ,typed-input-reference)) 0
-                                                  output-content `(the string (content-of (the tree/leaf ,output-reference))) 0
-                                                  (length output-content))))))
+                         (list (make-iomap/object projection recursion input input-reference output)))))
 
 (def printer java/declaration/type->string (projection recursion input input-reference)
-  (bind ((typed-input-reference `(the ,(form-type input) ,input-reference))
-         (output-content (name-of input))
-         (output (make-tree/leaf (make-text/string output-content :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/violet*))))
+  (bind ((output-content (name-of input))
+         (output (make-tree/leaf (text/text () (text/string output-content :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/violet*)))))
     (make-iomap/compound projection recursion input input-reference output
-                         (list (make-iomap/object projection recursion input input-reference output output-reference)
-                               (make-iomap/string input `(the string (name-of ,typed-input-reference)) 0
-                                                  output-content `(the string (content-of (the tree/leaf ,output-reference))) 0
-                                                  (length output-content))))))
+                         (list (make-iomap/object projection recursion input input-reference output)))))
 
 ;;;;;;
 ;;; Reader
 
 (def reader java/statement/block->tree/node (projection recursion input printer-iomap)
   (declare (ignore projection recursion input printer-iomap))
-  nil)
+  input)
 
 (def reader java/statement/if->tree/node (projection recursion input printer-iomap)
   (declare (ignore projection recursion input printer-iomap))
-  nil)
+  input)
 
 (def reader java/statement/return->tree/node (projection recursion input printer-iomap)
   (declare (ignore projection recursion input printer-iomap))
-  nil)
+  input)
 
 (def reader java/expression/variable-reference->string (projection recursion input printer-iomap)
   (declare (ignore projection recursion input printer-iomap))
-  nil)
+  input)
 
 (def reader java/expression/method-invocation->tree/node (projection recursion input printer-iomap)
   (declare (ignore projection recursion input printer-iomap))
-  nil)
+  input)
 
 (def reader java/expression/infix-operator->tree/node (projection recursion input printer-iomap)
   (declare (ignore projection recursion input printer-iomap))
-  nil)
+  input)
 
 (def reader java/literal/null->string (projection recursion input printer-iomap)
   (declare (ignore projection recursion input printer-iomap))
-  nil)
+  input)
 
 (def reader java/literal/number->string (projection recursion input printer-iomap)
   (declare (ignore projection recursion input printer-iomap))
-  nil)
+  input)
 
 (def reader java/literal/character->string (projection recursion input printer-iomap)
   (declare (ignore projection recursion input printer-iomap))
-  nil)
+  input)
 
 (def reader java/literal/string->string (projection recursion input printer-iomap)
   (declare (ignore projection recursion input printer-iomap))
-  nil)
+  input)
 
 (def reader java/declaration/method->tree/node (projection recursion input printer-iomap)
   (declare (ignore projection recursion input printer-iomap))
-  nil)
+  input)
 
 (def reader java/declaration/argument->tree/node (projection recursion input printer-iomap)
   (declare (ignore projection recursion input printer-iomap))
-  nil)
+  input)
 
 (def reader java/declaration/qualifier->string (projection recursion input printer-iomap)
   (declare (ignore projection recursion input printer-iomap))
-  nil)
+  input)
 
 (def reader java/declaration/type->string (projection recursion input printer-iomap)
   (declare (ignore projection recursion input printer-iomap))
-  nil)
+  input)

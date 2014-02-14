@@ -15,7 +15,7 @@
 ;;;;;;
 ;;; Document
 
-(def document table/base (document/base)
+(def document table/base (selection/base)
   ())
 
 (def document table/table (table/base)

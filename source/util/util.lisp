@@ -84,12 +84,13 @@
                (collect (tree-replace tree-element element replacement))))
         (t tree)))
 
-(def (function e) rempend (l1 l2)
-  (bind ((end (- (length l1) (length l2))))
-    (if (equal (subseq l1 end) l2)
-        (subseq l1 0 end)
-        #+nil
-        (error "Not found"))))
+(def (function e) longest-common-prefix (string-1 string-2)
+  (iter (for index :from 0)
+        (while (and (< index (length string-1))
+                    (< index (length string-2))
+                    (string= (subseq string-1 0 (1+ index))
+                             (subseq string-2 0 (1+ index)))))
+        (finally (return (subseq string-1 0 index)))))
 
 (def (class* ea) alternative-function ()
   ((alternatives :type sequence)
@@ -101,3 +102,26 @@
     (set-funcallable-instance-function instance (lambda (&rest args)
                                                   (apply (elt (alternatives-of instance) (selection-of instance)) args)))
     instance))
+
+(def (function e) deep-copy (instance)
+  (labels ((recurse (instance)
+             (etypecase instance
+               ((or number string symbol pathname function sb-sys:system-area-pointer)
+                instance)
+               (sequence/sequence
+                (make-sequence/sequence (iter (for element :in-sequence instance)
+                                              (collect (recurse element)))
+                                        :selection (recurse (selection-of instance))))
+               (sequence
+                (coerce (iter (for element :in-sequence instance)
+                              (collect (recurse element)))
+                        (type-of instance)))
+               (standard-object
+                (bind ((class (class-of instance))
+                       (copy (allocate-instance class))
+                       (slots (class-slots class)))
+                  (iter (for slot :in slots)
+                        (when (slot-boundp-using-class class instance slot)
+                          (setf (slot-value-using-class class copy slot) (recurse (slot-value-using-class class instance slot)))))
+                  copy)))))
+    (recurse instance)))

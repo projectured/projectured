@@ -82,6 +82,10 @@
                                        (make-operation/sequence/replace-element-range (input-of printer-iomap)
                                                                                       (append (target-of operation) (part-of projection))
                                                                                       (replacement-of operation)))
+                                      (operation/replace-target
+                                       (make-operation/replace-target (input-of printer-iomap)
+                                                                      (append (target-of operation) (part-of projection))
+                                                                      (replacement-of operation)))
                                       (operation/show-context-sensitive-help
                                        (make-instance 'operation/show-context-sensitive-help
                                                       :commands (iter (for command :in (commands-of operation))

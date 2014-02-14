@@ -9,9 +9,6 @@
 ;;;;;;
 ;;; Reference API
 
-(def (generic e) reference? (object)
-  (:documentation "Returns TRUE if OBJECT is a reference, otherwise returns FALSE. Purely functional."))
-
 (def (function e) eval-reference (document reference)
   "Returns the value of REFERENCE within DOCUMENT. Purely functional."
   (bind ((sb-ext::*evaluator-mode* :interpret))
@@ -29,34 +26,8 @@
 (def type reference ()
   '(or number symbol string cons))
 
-(def (macro e) value (reference value)
-  (declare (ignore reference))
-  value)
-
-;;;;;;
-;;; Reference applier
-
-#+nil
-(def (namespace e) reference-applier)
-
-#+nil
-(def (definer e) reference-applier (name arguments &body forms)
-  `(setf (find-reference-applier ',name) (lambda ,arguments ,@forms)))
-
-#+nil
-(def (function e) apply-reference (iomap reference function)
-  (cond ((equal `(the ,(form-type (input-of iomap)) ,(input-reference-of iomap)) reference)
-         (input-of iomap))
-        ((equal `(the ,(form-type (output-of iomap)) ,(output-reference-of iomap)) reference)
-         (output-of iomap))
-        (t
-         (funcall (reference-applier-of iomap) iomap reference function))))
-
 ;;;;;;
 ;;; Reference API implementation
-
-(def method reference? (object)
-  (typep object 'reference))
 
 (def function typed-reference (type reference)
   (assert (symbolp type))

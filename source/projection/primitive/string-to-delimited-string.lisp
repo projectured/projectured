@@ -36,16 +36,7 @@
          (closing-delimiter (closing-delimiter-of projection))
          (output (string+ opening-delimiter input closing-delimiter)))
     (make-iomap/compound projection recursion input input-reference output
-                         (list (make-iomap/object projection recursion input input-reference output)
-                               (make-iomap/string opening-delimiter `(the string (opening-delimiter ,typed-input-reference (opening-delimiter-of ,projection))) 0
-                                                  output `(the string ,output-reference) 0
-                                                  (length opening-delimiter))
-                               (make-iomap/string input input-reference 0
-                                                  output output-reference (length opening-delimiter)
-                                                  (length input))
-                               (make-iomap/string closing-delimiter `(the string (closing-delimiter ,typed-input-reference (closing-delimiter-of ,projection))) 0
-                                                  output `(the string ,output-reference) (+ (length opening-delimiter) (length input))
-                                                  (length closing-delimiter))))))
+                         (list (make-iomap/object projection recursion input input-reference output)))))
 
 ;;;;;;
 ;;; Reader

@@ -14,6 +14,12 @@
 (def test test/projection/apply-printer (document projection)
   (finishes (apply-printer document projection)))
 
+(def function make-test-projection/document (projection)
+  (nesting
+    (document->text nil)
+    (document/clipboard->t)
+    projection))
+
 (def function make-test-projection/shell (projection)
   (nesting
     (widget->graphics)
@@ -82,13 +88,8 @@
                              (((the widget/scroll-pane (elt (the sequence document) 1)))
                               (nesting
                                 (widget->graphics)
-                                (sequential
-                                  (recursive (t->table))
-                                  (recursive
-                                    (type-dispatching
-                                      (table/base (table->text))
-                                      (t (preserving))))
-                                  (make-test-projection/text->output))))))))))
+                                (make-test-projection/t->graphics/tree)
+                                #+nil(make-test-projection/t->graphics/table)))))))))
 
 (def function make-test-projection/reflection (projection)
   (nesting
@@ -241,6 +242,31 @@
       (preserving)
       (text->graphics)))
 
+(def function test-factory (name)
+  (completion-prefix-switch name
+    ("book" (book/book (:selection '((the string (subseq (the string document) 0 0))
+                                     (the string (title-of (the book/book document)))))))
+    ("chapter" (book/chapter (:selection '((the string (subseq (the string document) 0 0))
+                                           (the string (title-of (the book/chapter document)))))))
+    ("paragraph" (book/paragraph (:selection '((the text/text (text/subseq (the text/text document) 0 0))
+                                               (the text/text (content-of (the book/paragraph document)))))
+                   (text/text () (text/string ""))))
+    ("text" (text/text () (text/string "")))
+    ("xml element" (xml/element ("" nil :selection '((the string (subseq (the string document) 0 0))
+                                                     (the string (xml/start-tag (the xml/element document)))))))
+    ("xml attribute" (xml/attribute (:selection '((the string (subseq (the string document) 0 0))
+                                                  (the string (name-of (the xml/attribute document))))) "" ""))
+    ("xml text" (xml/text (:selection '((the string (subseq (the string document) 0 0))
+                                        (the string (text-of (the xml/text document))))) ""))
+    ("json null" (json/null))
+    ("json false" (json/boolean #f))
+    ("json true" (json/boolean #t))
+    ("json number" (json/number 0))
+    ("json string" (json/string ""))
+    ("json array" (json/array ()))
+    ("json object entry" (json/object-entry "" (document/insertion)))
+    ("json object" (json/object))))
+
 ;;;;;;
 ;;; Debug
 
@@ -253,36 +279,47 @@
 (def printer test/debug->graphics/canvas (projection recursion input input-reference)
   (bind ((content-iomap (recurse-printer recursion (content-of input) `((content-of (the test/debug document))
                                                                         ,@(typed-reference (form-type input) input-reference))))
-         (last-command-iomap (awhen (last-command-of input)
-                               (recurse-printer recursion (last-command-of input) `((last-command-of (the test/debug document))
-                                                                                    ,@(typed-reference (form-type input) input-reference)))))
+         (last-commands-iomap (awhen (last-commands-of input)
+                                (recurse-printer recursion (last-commands-of input) `((last-commands-of (the test/debug document))
+                                                                                      ,@(typed-reference (form-type input) input-reference)))))
          (output (make-graphics/canvas (list* (output-of content-iomap)
-                                              (when last-command-iomap
-                                                (list (make-graphics/rectangle (make-2d 0 700) (make-2d 1024 30)
+                                              (when last-commands-iomap
+                                                (list (make-graphics/rectangle (make-2d 0 650) (make-2d 1024 68)
                                                                                :stroke-color *color/black*
                                                                                :fill-color *color/pastel-yellow*)
-                                                      (make-graphics/canvas (list (output-of last-command-iomap)) (make-2d 5 705)))))
+                                                      (make-graphics/canvas (list (output-of last-commands-iomap)) (make-2d 5 655)))))
                                        (make-2d 0 0))))
     (make-iomap/compound projection recursion input input-reference output (list content-iomap))))
 
 (def reader test/debug->graphics/canvas (projection recursion input printer-iomap)
   (declare (ignore projection))
-  (bind ((last-command (recurse-reader recursion input (elt (child-iomaps-of printer-iomap) 0))))
+  (bind ((printer-input (input-of printer-iomap))
+         (last-command (recurse-reader recursion input (elt (child-iomaps-of printer-iomap) 0)))
+         (last-commands (last-commands-of printer-input))
+         (new-last-commands (subseq (list* last-command last-commands) 0 (min 3 (1+ (length last-commands))))))
     ;; TODO: this breaks context-sensitive-help
     (if (typep (operation-of last-command) 'operation/show-context-sensitive-help)
         last-command
         (make-command (gesture-of input)
                       (make-operation/compound (optional-list (operation-of last-command)
-                                                              (make-operation/replace-target (input-of printer-iomap) '((the command (last-command-of (the test/debug document)))) last-command)))))))
+                                                              (make-operation/replace-target (input-of printer-iomap)
+                                                                                             '((the sequence (last-commands-of (the test/debug document))))
+                                                                                             new-last-commands)))
+                      :domain (domain-of last-command)
+                      :description (description-of last-command)))))
 
 (def function make-test-projection/debug (projection)
   (nesting
     (test/debug->graphics/canvas)
-    (type-dispatching
-      (command (sequential
-                 (command->text)
-                 (text->graphics)))
-      (t projection))))
+    (reference-dispatching ()
+      (((the sequence (last-commands-of (the test/debug document))))
+       (sequential
+         (nesting
+           (sequence->text :opening-delimiter nil :closing-delimiter nil :indentation nil :separator (text/newline))
+           (command->text))
+         (text->graphics)))
+      (t
+       projection))))
 
 ;;;;;;
 ;;; Graphics
@@ -375,7 +412,7 @@
   (recursive
     (type-dispatching
       (tree/base (tree->text))
-      (t (preserving)))))
+      (text/text (preserving)))))
 
 (def function make-test-projection/tree->graphics ()
   (sequential
@@ -417,9 +454,8 @@
 
 (def function make-test-projection/state-machine->text ()
   (sequential
-    (recursive
-      (state-machine->tree))
-    (recursive (tree->text))))
+    (recursive (state-machine->tree))
+    (make-test-projection/tree->text)))
 
 (def function make-test-projection/state-machine->graphics ()
   (sequential
@@ -435,7 +471,8 @@
     (recursive
       (type-dispatching
         (book/base (book->tree))
-        (text/text (text/text->tree/leaf))))
+        (document/base (document->text 'test-factory))
+        (text/text (preserving))))
     (make-test-projection/tree->text)))
 
 (def function make-test-projection/book->graphics ()
@@ -580,7 +617,7 @@
 (def function make-test-projection/java->text ()
   (sequential
     (recursive (make-test-projection/java->tree))
-    (recursive (tree->text))))
+    (make-test-projection/tree->text)))
 
 (def function make-test-projection/java->graphics ()
   (sequential
@@ -597,7 +634,7 @@
 (def function make-test-projection/javascript->text ()
   (sequential
     (recursive (make-test-projection/javascript->tree))
-    (recursive (tree->text))))
+    (make-test-projection/tree->text)))
 
 (def function make-test-projection/javascript->graphics ()
   (sequential
@@ -614,7 +651,7 @@
 (def function make-test-projection/lisp-form->text ()
   (sequential
     (make-test-projection/lisp-form->tree)
-    (recursive (tree->text))))
+    (make-test-projection/tree->text)))
 
 (def function make-test-projection/lisp-form->graphics ()
   (sequential
@@ -632,7 +669,7 @@
   (sequential
     (make-test-projection/common-lisp->lisp-form)
     (make-test-projection/lisp-form->tree)
-    (recursive (tree->text))))
+    (make-test-projection/tree->text)))
 
 (def function make-test-projection/common-lisp->graphics ()
   (sequential
@@ -671,17 +708,32 @@
 ;;;;;;
 ;;; T
 
-(def function make-test-projection/t->text ()
+(def function test-class-slots (instance)
+  (remove-if (lambda (slot) (member (slot-definition-name slot) '(raw selection))) (class-slots (class-of instance))))
+
+(def function make-test-projection/t->text/tree ()
   (sequential
-    (recursive (t->table))
+    (recursive (t->tree :slot-provider 'test-class-slots))
+    (make-test-projection/tree->text)))
+
+(def function make-test-projection/t->graphics/tree ()
+  (sequential
+    (recursive (t->tree :slot-provider 'test-class-slots ))
+    (make-test-projection/tree->text)
+    (line-numbering)
+    (make-test-projection/text->output)))
+
+(def function make-test-projection/t->text/table ()
+  (sequential
+    (recursive (t->table :slot-provider 'test-class-slots))
     (recursive
       (type-dispatching
         (table/base (table->text))
         (t (preserving))))))
 
-(def function make-test-projection/t->graphics ()
+(def function make-test-projection/t->graphics/table ()
   (sequential
-    (recursive (t->table))
+    (recursive (t->table :slot-provider 'test-class-slots))
     (recursive
       (type-dispatching
         (table/base (table->text))
@@ -718,31 +770,31 @@
     (recursive
       (type-dispatching
         (book/base (book->tree))
-        (text/base (text->tree))
+        (text/text (text/text->tree/leaf))
         (image/image (make-projection/image/image->tree/leaf))
         (t
          (sequential
            (recursive
              (type-dispatching
-               (text/base (text->tree))
+               (text/base (text/text->tree/leaf))
                (book/base (book->tree))
                (xml/base (xml->tree))
                (json/base (json->tree))
                (javascript/base (javascript->tree))
                (table/base (sequential
                              (recursive (table->text))
-                             (text->tree)))
+                             (text/text->tree/leaf)))
                (common-lisp/base (sequential
                                    (common-lisp->lisp-form)
                                    (lisp-form->tree)))
                (lisp-form/base (lisp-form->tree))
                (image/image (make-projection/image/image->tree/leaf))
                (t (preserving))))
-           (recursive (tree->text))
+           (make-test-projection/tree->text)
            ;; TODO: slow due to text/split
            (line-numbering)
-           (text->tree)))))
-    (recursive (tree->text))
+           (text/text->tree/leaf)))))
+    (make-test-projection/tree->text)
     ;; TODO: this is slow due to text/find
     (word-wrapping 1024)
     (make-test-projection/text->output)))
@@ -778,8 +830,7 @@
            (make-test-projection/table->text)
            (text/text->tree/leaf)))
         (list/base (make-test-projection/list->text))
-        (text/text (sequential
-                     (word-wrapping 1024)
-                     (text/text->tree/leaf)))))
+        (text/text (word-wrapping 1024))
+        (document/base (document->text 'test-factory))))
     (make-test-projection/tree->text)
     (make-test-projection/text->output)))
