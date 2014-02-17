@@ -12,7 +12,10 @@
 ;;; An editor is a way of changing the state of a document.
 
 (def (generic e) make-editor (&key width height)
-  (:documentation "Returns a new editor object. Purely functional."))
+  (:documentation "Returns a new editor object. Purely functional.")
+  (:method (&key &allow-other-keys)
+    (error "The default ~S method was called. Did you forget to load a backend? Try e.g. (asdf:load-system :projectured.sdl)."
+           'make-editor)))
 
 (def (generic e) read-from-devices (editor document projection)
   (:documentation "Reads an operation from the input devices of EDITOR in the context of DOCUMENT using PROJECTION. Does not return until it has successfully read an operation. Has side effects on the state of the input devices, the list of events, gestures and operations that has been read so far by EDITOR."))
