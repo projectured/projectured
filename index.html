@@ -30,39 +30,119 @@
       <section>
         <p><img src="http://s9.postimage.org/mxnmsv4en/projectured.png" alt="My image"></p>
 
-<h2>Description</h2>
+<h1>
+<a name="description" class="anchor" href="#description"><span class="octicon octicon-link"></span></a>Description</h1>
 
-<p>ProjecturEd is a generic purpose projectional editor written in Common Lisp. It supports editing multiple domains represented in arbitrary data structures. It also supports multiple bidirectional projections providing different notations varying from textual to graphics.</p>
+<p>ProjecturEd is a general purpose projectional editor written in Common Lisp.</p>
 
-<h2>Join Us</h2>
+<p>It supports the integrated presentation and editing of arbitrary domains. The edited data is represented in their natural, domain specific data structures (as opposed to a flat string of characters), which accommodates for the implementation of many interesting, but yet to be explored features of structured editing.</p>
 
-<p>Unfortunately due to lack of time it's under quite <em>slow</em> construction. Send us a mail at <a href="mailto:projectured@gmail.com">projectured@gmail.com</a> if you would like to participate.</p>
+<p>It also supports multiple projections of the same object, and thus it can simultaneously provide different notations, potentially all of them editable. These views can be textual or fully graphical, are easy to add to the framework, and due to the architecture they combine well.</p>
 
-<h2>Wiki</h2>
+<h1>
+<a name="running-the-demos" class="anchor" href="#running-the-demos"><span class="octicon octicon-link"></span></a>Running the demos</h1>
 
-<p>There's a separate <a href="https://github.com/projectured/projectured/wiki">wiki</a> with an increasing number of pages. It gives an overview of the whole idea, and it also describes how to <a href="https://github.com/projectured/projectured/wiki/Installation">install</a>, <a href="https://github.com/projectured/projectured/wiki/Running">run and test</a> the projectional editor.</p>
+<p>The easiest way to run the ProjecturEd demos is to install it using <a href="http://quicklisp.org">Quicklisp</a>.</p>
 
-<h2>Internals</h2>
+<h3>
+<a name="1-get-an-sbcl-with-a-fairly-new-asdf" class="anchor" href="#1-get-an-sbcl-with-a-fairly-new-asdf"><span class="octicon octicon-link"></span></a>1. Get an SBCL with a fairly new ASDF</h3>
 
-<p>Currently the best thing to do is to look at the code. Surprisingly the code isn't that long, in fact it's less than 10,000 lines as of february, 2013. You may also read the source files in the documentation folder, although it's far from being well structured. </p>
+<p>At the time of writing (2014-02-17) the <a href="http://common-lisp.net/project/asdf/">ASDF</a> version in most packaged lisp implementations is not recent enough for PrEd. If you don't want to compile SBCL yourself, then you can follow these instructions to have an SBCL with a fairly new ASDF:</p>
 
-<h2>Screenshots</h2>
+<pre><code>sudo apt-get install sbcl rlwrap
+mkdir -p ~/quicklisp/local-projects/
+cd ~/quicklisp/local-projects/
+git clone git://common-lisp.net/projects/asdf/asdf.git
+cd asdf
+git checkout 3.1.0.65
+make
+</code></pre>
 
-<p>If you would like to take a look at the editor in action, then look at this <a href="https://github.com/projectured/projectured/wiki/Screenshots">page</a>. It contains a couple of screenshots showing various problem domains using different projections.</p>
+<p>Then fire up your favorite editor and make sure the following is part of your <code>~/.sbclrc</code> file:</p>
 
-<h2>Videos</h2>
+<pre><code>;;; -*- mode: common-lisp -*-
 
-<p>There are also <a href="http://www.youtube.com/user/projectured">videos</a> on youtube.</p>
+(require :asdf)
 
-<h2>Performance</h2>
+(funcall (read-from-string "asdf:initialize-source-registry")
+        `(:source-registry
+          (:directory ,(merge-pathnames "quicklisp/local-projects/asdf/" (user-homedir-pathname)))
+          :inherit-configuration))
 
-<p>Unfortunately performance is just not that good right now, although there are a few low hanging fruits in the code. The design also helps future improvements, because the printer and the reader are purely functional algorithms, so it wouldn't be that hard to utilize multiple cores for them. Finally, both the printer and the reader are written using a constraint based change propagation <a href="http://dwim.hu/darcsweb/darcsweb.cgi?r=HEAD%20hu.dwim.computed-class;a=summary">library</a> that allows lazy and incremental computation of results. One day it might even be fast enough to be useful...</p>
+;; initiate asdf upgrade
+(asdf:load-system :asdf)
+</code></pre>
 
-<h2>Limitations</h2>
+<h3>
+<a name="2-install-quicklisp" class="anchor" href="#2-install-quicklisp"><span class="octicon octicon-link"></span></a>2. Install Quicklisp</h3>
 
-<p>The editor is far from being usable in the real world at the moment, so don't expect too much right now. You have been warned!</p>
+<p>Once you have an SBCL and a fairly fresh ASDF, let's <a href="http://www.quicklisp.org/beta/#installation">install Quicklisp</a>:</p>
 
-<h2>License</h2>
+<pre><code>cd ~
+wget http://beta.quicklisp.org/quicklisp.lisp
+
+rlwrap sbcl --load quicklisp.lisp
+</code></pre>
+
+<p>When SBCL started up properly, copy these into its REPL (one by one):</p>
+
+<pre><code>(quicklisp-quickstart:install)
+(ql:add-to-init-file)
+</code></pre>
+
+<h3>
+<a name="3-run-some-of-the-tests" class="anchor" href="#3-run-some-of-the-tests"><span class="octicon octicon-link"></span></a>3. Run some of the tests</h3>
+
+<p>Start SBCL with <code>rlwrap sbcl</code>, and copy these into its REPL:</p>
+
+<pre><code>(ql:quickload :projectured.sdl.test)
+(projectured.test::test/editor/json/sorting)
+</code></pre>
+
+<p>If everything went fine, then you should see a window presenting a json test document.</p>
+
+<h1>
+<a name="collaboration" class="anchor" href="#collaboration"><span class="octicon octicon-link"></span></a>Collaboration</h1>
+
+<p>It's an unfunded opensource project, under much slower development than we would like it to be. If you want to help us, either financially or with your patches, then feel free to get in touch at <a href="mailto:projectured@gmail.com">projectured@gmail.com</a>.</p>
+
+<h3>
+<a name="wiki" class="anchor" href="#wiki"><span class="octicon octicon-link"></span></a>Wiki</h3>
+
+<p>There's a separate <a href="https://github.com/projectured/projectured/wiki"><strong>wiki</strong></a> with an increasing number of pages. It gives an overview of the whole idea, and it also describes how to install, run and test the projectional editor.</p>
+
+<h3>
+<a name="internals" class="anchor" href="#internals"><span class="octicon octicon-link"></span></a>Internals</h3>
+
+<p>Currently the best thing to do is to look at the source code. Luckily the codebase is relatively small (around 10-15k LoC). You may also read the source files in the documentation folder, although it's far from being well structured.</p>
+
+<h3>
+<a name="check-out-the-latest-version" class="anchor" href="#check-out-the-latest-version"><span class="octicon octicon-link"></span></a>Check out the latest version</h3>
+
+<p>If you want to use with the latest version, then you should git clone the repository into <code>~/quicklisp/local-projects/</code> and Quicklisp will automatically use that version instead of the snapshot from its archives.</p>
+
+<h1>
+<a name="status" class="anchor" href="#status"><span class="octicon octicon-link"></span></a>Status</h1>
+
+<p>ProjecturEd is work in progress, and at this stage it's interesting primarily for programmers who are ready to experiment with it.</p>
+
+<h3>
+<a name="screenshots" class="anchor" href="#screenshots"><span class="octicon octicon-link"></span></a>Screenshots</h3>
+
+<p>If you would like to take a look at the editor in action, then look at this <a href="https://github.com/projectured/projectured/wiki/Screenshots"><strong>page</strong></a>. It contains a couple of screenshots showing various problem domains using different projections.</p>
+
+<h3>
+<a name="videos" class="anchor" href="#videos"><span class="octicon octicon-link"></span></a>Videos</h3>
+
+<p>There are some <a href="http://www.youtube.com/user/projectured">screencasts on youtube</a>.</p>
+
+<h3>
+<a name="performance" class="anchor" href="#performance"><span class="octicon octicon-link"></span></a>Performance</h3>
+
+<p>It would be too early to extensively optimize the codebase at this point, but the design accommodates for future improvements. The printer and the reader are purely functional algorithms, so it wouldn't be that hard to utilize multiple cores for them. And both of them are written using a constraint based change propagation <a href="http://dwim.hu/darcsweb/darcsweb.cgi?r=HEAD%20hu.dwim.computed-class;a=summary">library</a> that allows lazy and incremental computation of results. So, the infrastructure is in place to be fast enough to be useful one day...</p>
+
+<h1>
+<a name="license" class="anchor" href="#license"><span class="octicon octicon-link"></span></a>License</h1>
 
 <p><a href="https://github.com/projectured/projectured/wiki/License">BSD License</a></p>
 
