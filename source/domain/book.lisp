@@ -6,8 +6,8 @@
 
 (in-package :projectured)
 
-;;;;;;;;
-;;;; Document
+;;;;;;
+;;; Document
 
 (def document book/base (selection/base)
   ())

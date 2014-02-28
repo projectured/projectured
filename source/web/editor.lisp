@@ -15,7 +15,7 @@
 ;;;;;;
 ;;; Construction
 
-(def method make-editor (&key (width 1024) (height 768))
+(def method make-editor (&key (width 1280) (height 720))
   (make-instance 'editor/web
                  :devices (list (make-instance 'device/mouse)
                                 (make-instance 'device/keyboard)

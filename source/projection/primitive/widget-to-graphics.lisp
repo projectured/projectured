@@ -223,8 +223,7 @@
                                              (collect (make-graphics/canvas (list (output-of element-iomap)) (make-2d x 0)))
                                              (incf x (2d-x (size-of (make-bounding-rectangle (output-of element-iomap))))))
                                        (make-2d 0 0))))
-    (make-iomap/compound projection recursion input input-reference output
-                         (list* (make-iomap/object projection recursion input input-reference output) element-iomaps))))
+    (make-iomap/compound projection recursion input input-reference output element-iomaps)))
 
 (def printer widget/tabbed-pane->graphics/canvas (projection recursion input input-reference)
   (bind ((selector-iomaps (iter (for index :from 0)
@@ -342,6 +341,23 @@
 
 (def reader widget/split-pane->graphics/canvas (projection recursion input printer-iomap)
   (declare (ignore projection))
+  (pattern-case (reverse (make-reference (output-of printer-iomap) (mouse-position) nil))
+    (((the sequence (elements-of (the graphics/canvas document)))
+      (the graphics/canvas (elt (the sequence document) ?index))
+      . ?rest)
+     (bind ((index (floor (/ ?index 2)))
+            (child-iomap (elt (child-iomaps-of printer-iomap) index))
+            (gesture (gesture-of input))
+            (child-gesture (progn
+                             ;; KLUDGE: copy gesture
+                             (setf (location-of gesture) (- (location-of gesture) (location-of (elt (elements-of (output-of printer-iomap)) ?index))))
+                             gesture))
+            (child-input (make-command child-gesture
+                                       (operation-of input)
+                                       :domain (domain-of input)
+                                       :description (description-of input))))
+       (recurse-reader recursion child-input child-iomap))))
+  #+nil
   (iter (for index :from 0)
         (for element :in-sequence (elements-of (input-of printer-iomap)))
         (thereis (recurse-reader recursion input (elt (child-iomaps-of printer-iomap) (1+ index))))))
@@ -353,17 +369,17 @@
     (merge-commands (gesture-case (gesture-of input)
                       #+nil
                       ((make-instance 'gesture/mouse/button/click :button :button-left :modifiers nil)
-                       :domain "Widget" :help "Selects the page in the tabbed pane where the mouse is pointing at"
+                       :domain "Widget" :description "Selects the page in the tabbed pane where the mouse is pointing at"
                        :operation (make-instance 'operation/widget/tabbed-pane/select-page
                                                  :tabbed-pane printer-input
                                                  :selected-index 1))
                       ((gesture/keyboard/key-press :sdl-key-tab :control)
-                       :domain "Widget" :help "Selects the next page in the tabbed pane"
+                       :domain "Widget" :description "Selects the next page in the tabbed pane"
                        :operation (make-instance 'operation/widget/tabbed-pane/select-page
                                                  :tabbed-pane printer-input
                                                  :selected-index (mod (1+ (selected-index-of printer-input)) (length (selector-element-pairs-of printer-input)))))
                       ((gesture/keyboard/key-press :sdl-key-tab '(:shift :control))
-                       :domain "Widget" :help "Selects the previous page in the tabbed pane"
+                       :domain "Widget" :description "Selects the previous page in the tabbed pane"
                        :operation (make-instance 'operation/widget/tabbed-pane/select-page
                                                  :tabbed-pane printer-input
                                                  :selected-index (mod (1- (selected-index-of printer-input)) (length (selector-element-pairs-of printer-input))))))
@@ -383,22 +399,22 @@
          (child-operation (recurse-reader recursion child-input (elt (child-iomaps-of printer-iomap) 1))))
     (merge-commands (gesture-case (gesture-of input)
                       ((make-instance 'gesture/mouse/button/click :button :wheel-up :modifiers nil)
-                       :domain "Widget" :help "Scrolls the content of the pane down"
+                       :domain "Widget" :description "Scrolls the content of the pane down"
                        :operation (make-instance 'operation/widget/scroll-pane/scroll
                                                  :scroll-pane (input-of printer-iomap)
                                                  :scroll-delta (make-2d 0 100)))
                       ((make-instance 'gesture/mouse/button/click :button :wheel-down :modifiers nil)
-                       :domain "Widget" :help "Scrolls the content of the pane up"
+                       :domain "Widget" :description "Scrolls the content of the pane up"
                        :operation (make-instance 'operation/widget/scroll-pane/scroll
                                                  :scroll-pane (input-of printer-iomap)
                                                  :scroll-delta (make-2d 0 -100)))
                       ((make-instance 'gesture/mouse/button/click :button :wheel-up :modifiers '(:shift))
-                       :domain "Widget" :help "Scrolls the content of the pane right"
+                       :domain "Widget" :description "Scrolls the content of the pane right"
                        :operation (make-instance 'operation/widget/scroll-pane/scroll
                                                  :scroll-pane (input-of printer-iomap)
                                                  :scroll-delta (make-2d 100 0)))
                       ((make-instance 'gesture/mouse/button/click :button :wheel-down :modifiers '(:shift))
-                       :domain "Widget" :help "Scrolls the content of the pane left"
+                       :domain "Widget" :description "Scrolls the content of the pane left"
                        :operation (make-instance 'operation/widget/scroll-pane/scroll
                                                  :scroll-pane (input-of printer-iomap)
                                                  :scroll-delta (make-2d -100 0))))

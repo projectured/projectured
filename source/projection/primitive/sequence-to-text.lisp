@@ -18,8 +18,7 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/sequence->text (&key (opening-delimiter "(") (closing-delimiter ")") (separator "
-") (indentation ""))
+(def (function e) make-projection/sequence->text (&key opening-delimiter closing-delimiter separator indentation)
   (make-projection 'sequence->text
                    :opening-delimiter opening-delimiter
                    :closing-delimiter closing-delimiter
@@ -29,8 +28,7 @@
 ;;;;;;
 ;;; Construction
 
-(def (macro e) sequence->text (&key (opening-delimiter "(") (closing-delimiter ")") (separator "
-") (indentation " "))
+(def (macro e) sequence->text (&key opening-delimiter closing-delimiter separator indentation)
   `(make-projection/sequence->text :opening-delimiter ,opening-delimiter
                                    :closing-delimiter ,closing-delimiter
                                    :separator ,separator
@@ -49,12 +47,15 @@
          (child-iomaps/object nil)
          (child-iomaps/string nil)
          (elements (prog1-bind elements nil
-                     (flet ((write-character (character &optional (count 1))
-                              (push (make-text/string (make-string count :element-type 'character :initial-element character) :font *font/default* :font-color *color/solarized/gray*) elements))
-                            (write-element (element)
-                              (push element elements)))
+                     (labels ((write-character (character &optional (count 1))
+                                (push (make-text/string (make-string count :element-type 'character :initial-element character) :font *font/default* :font-color *color/solarized/gray*) elements))
+                              (write-element (element)
+                                (push element elements))
+                              (write-elements (text)
+                                (iter (for element :in-sequence (elements-of text))
+                                      (write-element element))))
                        (when opening-delimiter
-                         (write-element opening-delimiter))
+                         (write-elements opening-delimiter))
                        (iter (for element :in-sequence input)
                              (for index :from 0)
                              (for element-reference = `(elt ,typed-input-reference ,index))
@@ -62,20 +63,21 @@
                              (for previous-typed-element-reference :previous typed-element-reference)
                              (unless (first-iteration-p)
                                (when separator
-                                 (write-element separator))
+                                 (write-elements separator))
                                (when (and indentation
                                           (string= separator "
 "))
-                                 (write-element indentation)))
+                                 (write-elements indentation)))
                              (bind ((iomap (recurse-printer recursion element `((elt (the sequence document) ,index)
                                                                                 ,@(typed-reference (form-type input) input-reference)))))
                                (iter (for line :in (text/split (output-of iomap) #\NewLine))
                                      (unless (first-iteration-p)
                                        (write-element (text/newline))
-                                       (write-element indentation))
+                                       (when indentation
+                                         (write-elements indentation)))
                                      (foreach #'write-element (elements-of line)))))
                        (when closing-delimiter
-                         (write-element closing-delimiter)))))
+                         (write-elements closing-delimiter)))))
          (output (make-text/text (nreverse elements))))
     (make-iomap/compound projection recursion input input-reference output
                          (append (list (make-iomap/object projection recursion input input-reference output))

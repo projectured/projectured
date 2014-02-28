@@ -250,7 +250,7 @@
                                            (the string (title-of (the book/chapter document)))))))
     ("paragraph" (book/paragraph (:selection '((the text/text (text/subseq (the text/text document) 0 0))
                                                (the text/text (content-of (the book/paragraph document)))))
-                   (text/text () (text/string ""))))
+                   (text/text () (text/string "Hello" :font *font/liberation/serif/regular/24*))))
     ("text" (text/text () (text/string "")))
     ("xml element" (xml/element ("" nil :selection '((the string (subseq (the string document) 0 0))
                                                      (the string (xml/start-tag (the xml/element document)))))))
@@ -265,7 +265,33 @@
     ("json string" (json/string ""))
     ("json array" (json/array ()))
     ("json object entry" (json/object-entry "" (document/insertion)))
-    ("json object" (json/object))))
+    ("json object" (json/object))
+    ("common lisp string" (make-instance 'common-lisp/constant
+                                         :value ""
+                                         :selection '((the string (subseq (the string document) 0 0))
+                                                      (the string (value-of (the common-lisp/constant document))))))
+    ("common lisp number" (make-instance 'common-lisp/constant
+                                         :value 0
+                                         :selection '((the string (subseq (the string document) 0 0))
+                                                      (the string (write-to-string (the number document)))
+                                                      (the number (value-of (the common-lisp/constant document))))))
+    ("common lisp if" (make-instance 'common-lisp/if
+                                     :condition (document/nothing)
+                                     :then (document/nothing)
+                                     :else (document/nothing)))
+    ("common lisp progn" (make-instance 'common-lisp/progn :body nil))
+    ("common lisp application" (make-instance 'common-lisp/application
+                                              :operator (make-lisp-form/symbol "" "PROJECTURED.TEST")
+                                              :selection '((the string (subseq (the string document) 0 0))
+                                                           (the string (name-of (the lisp-form/symbol document)))
+                                                           (the lisp-form/symbol (operator-of (the common-lisp/application document))))
+                                              :arguments nil))
+    ("common lisp function definition" (make-instance 'common-lisp/function-definition
+                                                      :name (make-lisp-form/symbol "" "PROJECTURED.TEST") :documentation "" :bindings nil :allow-other-keys #f :body nil
+                                                      :selection '((the string (subseq (the string document) 0 0))
+                                                                   (the string (name-of (the lisp-form/symbol document)))
+                                                                   (the lisp-form/symbol (name-of (the common-lisp/function-definition document))))))
+    ("evaluator" (make-evaluator/evaluator (make-instance 'common-lisp/progn :body nil)))))
 
 ;;;;;;
 ;;; Debug
@@ -284,7 +310,7 @@
                                                                                       ,@(typed-reference (form-type input) input-reference)))))
          (output (make-graphics/canvas (list* (output-of content-iomap)
                                               (when last-commands-iomap
-                                                (list (make-graphics/rectangle (make-2d 0 650) (make-2d 1024 68)
+                                                (list (make-graphics/rectangle (make-2d 0 650) (make-2d 1280 68)
                                                                                :stroke-color *color/black*
                                                                                :fill-color *color/pastel-yellow*)
                                                       (make-graphics/canvas (list (output-of last-commands-iomap)) (make-2d 5 655)))))
@@ -315,7 +341,7 @@
       (((the sequence (last-commands-of (the test/debug document))))
        (sequential
          (nesting
-           (sequence->text :opening-delimiter nil :closing-delimiter nil :indentation nil :separator (text/newline))
+           (sequence->text :opening-delimiter nil :closing-delimiter nil :indentation nil :separator (text/text () (text/newline)))
            (command->text))
          (text->graphics)))
       (t
@@ -478,7 +504,7 @@
 (def function make-test-projection/book->graphics ()
   (sequential
     (make-test-projection/book->text)
-    (word-wrapping 1024)
+    (word-wrapping 1280)
     (make-test-projection/text->output)))
 
 (def function make-test-projection/book->graphics/sorting ()
@@ -490,7 +516,7 @@
         (t (preserving)))
       (preserving))
     (make-test-projection/book->text)
-    (word-wrapping 1024)
+    (word-wrapping 1280)
     (make-test-projection/text->output)))
 
 ;;;;;;
@@ -677,6 +703,49 @@
     (line-numbering)
     (make-test-projection/text->output)))
 
+(def function make-test-projection/common-lisp/inliner->graphics ()
+  (sequential
+    (recursive
+      (type-dispatching
+        (common-lisp/application (inliner))
+        (t (copying))))
+    (make-test-projection/common-lisp->text)
+    (line-numbering)
+    (make-test-projection/text->output)))
+
+(def function make-test-projection/common-lisp->graphics/test ()
+  (sequential
+    (focusing '(or common-lisp/base book/base) nil)
+    (recursive
+      (type-dispatching
+        (book/base (book->tree))
+        (test/result (test/result->tree/leaf))
+        (evaluator/evaluator (evaluator/evaluator->tree/node))
+        (common-lisp/base (sequential
+                            (recursive
+                              (type-dispatching
+                                (test/check (test/check->tree/node))
+                                (common-lisp/variable-reference (preserving))
+                                (common-lisp/function-reference (preserving))
+                                (t (copying))))
+                            (recursive (type-dispatching
+                                         (common-lisp/base (common-lisp->lisp-form))
+                                         (document/base (document->text 'test-factory))
+                                         (t (copying))))
+                            (recursive (type-dispatching
+                                         (lisp-form/base (lisp-form->tree))
+                                         (t (copying))))
+                            (make-test-projection/tree->text)
+                            (line-numbering)
+                            (text/text->tree/leaf)))
+        (document/base (document->text 'test-factory))
+        (text/text (preserving))
+        (t (sequential
+             (t->tree)
+             (text/text->tree/leaf)))))
+    (make-test-projection/tree->text)
+    (make-test-projection/text->output)))
+
 ;;;;;;
 ;;; Evaluator
 
@@ -687,22 +756,6 @@
       (copying)
       (make-test-projection/common-lisp->text))
     (list->text)
-    (make-test-projection/text->output)))
-
-;;;;;;
-;;; Test
-
-(def function make-test-projection/test->text ()
-  (sequential
-    (test->test-result)
-    (test-result->table)
-    (recursive
-      (table->text))))
-
-(def function make-test-projection/test->graphics ()
-  (sequential
-    (make-test-projection/test->text)
-    (line-numbering)
     (make-test-projection/text->output)))
 
 ;;;;;;
@@ -796,7 +849,7 @@
            (text/text->tree/leaf)))))
     (make-test-projection/tree->text)
     ;; TODO: this is slow due to text/find
-    (word-wrapping 1024)
+    (word-wrapping 1280)
     (make-test-projection/text->output)))
 
 ;;;;;;
@@ -830,7 +883,7 @@
            (make-test-projection/table->text)
            (text/text->tree/leaf)))
         (list/base (make-test-projection/list->text))
-        (text/text (word-wrapping 1024))
+        (text/text (word-wrapping 1280))
         (document/base (document->text 'test-factory))))
     (make-test-projection/tree->text)
     (make-test-projection/text->output)))

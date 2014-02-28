@@ -55,7 +55,7 @@
 (def function focusing/read-command (projection input printer-iomap)
   (gesture-case (gesture-of input)
     ((gesture/keyboard/key-press #\, :control)
-     :domain "Focusing" :help "Moves the focus one level up"
+     :domain "Focusing" :description "Moves the focus one level up"
      :operation (when (part-of projection)
                   (make-instance 'operation/focusing/replace-part
                                  :projection projection
@@ -63,7 +63,7 @@
                                              (when (subtypep (second (first selection)) (part-type-of projection))
                                                (return selection))))))
     ((gesture/keyboard/key-press #\. :control)
-     :domain "Focusing" :help "Moves the focus to the selection"
+     :domain "Focusing" :description "Moves the focus to the selection"
      :operation (make-instance 'operation/focusing/replace-part
                                :projection projection
                                :part (iter (for selection :on (selection-of (input-of printer-iomap)))
@@ -82,6 +82,10 @@
                                        (make-operation/sequence/replace-element-range (input-of printer-iomap)
                                                                                       (append (target-of operation) (part-of projection))
                                                                                       (replacement-of operation)))
+                                      (operation/number/replace-range
+                                       (make-operation/number/replace-range (input-of printer-iomap)
+                                                                            (append (target-of operation) (part-of projection))
+                                                                            (replacement-of operation)))
                                       (operation/replace-target
                                        (make-operation/replace-target (input-of printer-iomap)
                                                                       (append (target-of operation) (part-of projection))

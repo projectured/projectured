@@ -238,24 +238,46 @@
 (def (macro e) lisp-form->tree ()
   '(make-projection/lisp-form->tree))
 
+(def (function e) make-projection/lisp-form->form ()
+  (type-dispatching
+    (lisp-form/number (make-projection/lisp-form/number->number))
+    (lisp-form/string (make-projection/lisp-form/string->string))
+    (lisp-form/symbol (make-projection/lisp-form/symbol->symbol))
+    (lisp-form/list (make-projection/lisp-form/list->list))))
+
+(def (macro e) lisp-form->form ()
+  '(make-projection/lisp-form->form))
+
 ;;;;;;
 ;;; Common lisp
 
 (def (function e) make-projection/common-lisp->lisp-form ()
   (type-dispatching
-    (common-lisp/constant (make-projection/common-lisp/constant-form->lisp-form/string))
-    (common-lisp/variable-reference (make-projection/common-lisp/variable-reference-form->lisp-form/string))
-    (common-lisp/if (make-projection/common-lisp/if-form->lisp-form/list))
-    (common-lisp/the (make-projection/common-lisp/the-form->lisp-form/list))
-    (common-lisp/progn (make-projection/common-lisp/progn-form->lisp-form/list))
-    (common-lisp/lexical-variable-binding (make-projection/common-lisp/lexical-variable-binding-form->lisp-form/list))
-    (common-lisp/let (make-projection/common-lisp/let-form->lisp-form/list))
-    (common-lisp/application (make-projection/common-lisp/application-form->lisp-form/list))
-    (common-lisp/function-definition (make-projection/common-lisp/function-definition-form->lisp-form/list))
-    (common-lisp/lambda-function (make-projection/common-lisp/lambda-function-form->lisp-form/list))
-    (common-lisp/function-argument (make-projection/common-lisp/function-argument-form->lisp-form/string))
+    (common-lisp/constant (make-projection/common-lisp/constant->lisp-form/string))
+    (common-lisp/variable-reference (make-projection/common-lisp/variable-reference->lisp-form/symbol))
+    (common-lisp/function-reference (make-projection/common-lisp/function-reference->lisp-form/symbol))
+    (common-lisp/if (make-projection/common-lisp/if->lisp-form/list))
+    (common-lisp/the (make-projection/common-lisp/the->lisp-form/list))
+    (common-lisp/progn (make-projection/common-lisp/progn->lisp-form/list))
+    (common-lisp/lexical-variable-binding (make-projection/common-lisp/lexical-variable-binding->lisp-form/list))
+    (common-lisp/let (make-projection/common-lisp/let->lisp-form/list))
+    (common-lisp/application (make-projection/common-lisp/application->lisp-form/list))
+    (common-lisp/function-definition (make-projection/common-lisp/function-definition->lisp-form/list))
+    (common-lisp/lambda-function (make-projection/common-lisp/lambda-function->lisp-form/list))
+    (common-lisp/function-argument (make-projection/common-lisp/function-argument->lisp-form/string))
     (common-lisp/comment (make-projection/common-lisp/comment->lisp-form/comment))
     (common-lisp/top-level (make-projection/common-lisp/top-level->lisp-form/top-level))))
 
 (def (macro e) common-lisp->lisp-form ()
   '(make-projection/common-lisp->lisp-form))
+
+;;;;;;
+;;; Test
+
+(def (function e) make-projection/test->tree ()
+  (type-dispatching
+    (test/check (test/check->tree/node))
+    (test/result (test/result->tree/leaf))))
+
+(def (macro e) test->tree ()
+  '(make-projection/test->tree))

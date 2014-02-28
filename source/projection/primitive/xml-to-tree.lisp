@@ -268,7 +268,7 @@
          (last-child-index (+ first-child-index (1- (length (children-of printer-input))))))
     (merge-commands (gesture-case (gesture-of input)
                       ((gesture/keyboard/key-press :sdl-key-insert)
-                       :domain "XML" :help "Starts an object insertion into the children of the XML element"
+                       :domain "XML" :description "Starts an object insertion into the children of the XML element"
                        :operation (make-operation/compound (list (make-operation/sequence/replace-element-range printer-input `((the sequence (subseq (the sequence document) 0 0))
                                                                                                                                 (the sequence (children-of (the xml/element document)))) (list (document/insertion)))
                                                                  (make-operation/replace-selection printer-input `((the string (subseq (the string document) 0 0))

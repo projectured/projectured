@@ -378,14 +378,14 @@
 (def (function e) graphics/read-operation (graphics gesture)
   (gesture-case gesture
     ((make-instance 'gesture/mouse/button/click :button :button-left :modifiers nil)
-     :domain "Graphics" :help "Moves the selection to where the mouse is pointing at"
+     :domain "Graphics" :description "Moves the selection to where the mouse is pointing at"
      :operation (make-operation/replace-selection graphics (make-reference graphics (location-of gesture) nil)))
     ;; KLUDGE: for tree selection
     ((make-instance 'gesture/mouse/button/click :button :button-left :modifiers (list :control))
-     :domain "Graphics" :help "Moves the selection to where the mouse is pointing at"
+     :domain "Graphics" :description "Moves the selection to where the mouse is pointing at"
      :operation (make-operation/replace-selection graphics (make-reference graphics (location-of gesture) nil)))
     ((gesture/keyboard/key-press :sdl-key-d :control)
-     :domain "Graphics" :help "Describes what the mouse is pointing at"
+     :domain "Graphics" :description "Describes what the mouse is pointing at"
      :operation (make-instance 'operation/describe :target (make-reference graphics (location-of gesture) nil)))))
 
 (def method redo-operation ((operation operation/graphics/translate-location))

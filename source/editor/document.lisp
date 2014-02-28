@@ -79,9 +79,7 @@
 ;;; API implementation
 
 (def method print-document (document stream)
-  (princ (output-of (apply-printer document (make-projection/t->string))) stream)
-  (values))
-
+  (princ (output-of (apply-printer document (make-projection/t->string))) stream))
 
 (def (macro e) completion-prefix-switch (prefix &body cases)
   `(switch (,prefix :test 'string=)

@@ -273,65 +273,30 @@
     (?a
      (make-operation/replace-target document reference replacement))))
 
-;; TODO: rename and move
-(def function make-operation/replace-foo (document replacement-reference selection-reference replacement &optional (list-replacement (list replacement)))
-  (make-operation/compound (list (make-operation/replace document replacement-reference replacement list-replacement)
-                                 (make-operation/replace-selection document selection-reference))))
-
 (def function json/read-opeartion (printer-iomap gesture)
   (bind ((printer-input (input-of printer-iomap)))
     (gesture-case gesture
       ((gesture/keyboard/key-press #\n)
-       :domain "JSON" :help "Replaces the selected element with null"
-       :operation
-       (make-operation/replace-target printer-input nil (json/null))
-       #+nil
-       (make-operation/replace-foo document
-                                   (tree-replace (input-reference-of printer-iomap) (input-reference-of document-iomap) 'document)
-                                   `(the sequence-position (pos (the string (value (the json/null ,(tree-replace (input-reference-of printer-iomap) (input-reference-of document-iomap) 'document)))) 0))
-                                   (json/null)))
+       :domain "JSON" :description "Replaces the selected element with null"
+       :operation (make-operation/replace-target printer-input nil (json/null)))
       ((gesture/keyboard/key-press #\f)
-       :domain "JSON" :help "Replaces the selected element with false"
-       :operation
-       (make-operation/replace-target printer-input nil (json/boolean #f))
-       #+nil
-       (make-operation/replace-foo document
-                                   (tree-replace (input-reference-of printer-iomap) (input-reference-of document-iomap) 'document)
-                                   `(the sequence-position (pos (the string (boolean-to-string (the boolean (value-p (the json/boolean ,(tree-replace (input-reference-of printer-iomap) (input-reference-of document-iomap) 'document)))))) 0))
-                                   (json/boolean #f)))
+       :domain "JSON" :description "Replaces the selected element with false"
+       :operation (make-operation/replace-target printer-input nil (json/boolean #f)))
       ((gesture/keyboard/key-press #\t)
-       :domain "JSON" :help "Replaces the selected element with true"
-       :operation
-       (make-operation/replace-target printer-input nil (json/boolean #t))
-       #+nil
-       (make-operation/replace-foo document
-                                   (tree-replace (input-reference-of printer-iomap) (input-reference-of document-iomap) 'document)
-                                   `(the sequence-position (pos (the string (boolean-to-string (the boolean (value-p (the json/boolean ,(tree-replace (input-reference-of printer-iomap) (input-reference-of document-iomap) 'document)))))) 0))
-                                   (json/boolean #t)))
-      #+nil
-      ((gesture/keyboard/key-press #\")
-       :domain "JSON" :help "Replaces the selected element with an empty string"
-       :operation (make-operation/replace-foo document
-                                              (tree-replace (input-reference-of printer-iomap) (input-reference-of document-iomap) 'document)
-                                              `(the sequence-position (pos (the string (value-of (the json/string ,(tree-replace (input-reference-of printer-iomap) (input-reference-of document-iomap) 'document)))) 0))
-                                              (json/string "")))
-      #+nil
+       :domain "JSON" :description "Replaces the selected element with true"
+       :operation (make-operation/replace-target printer-input nil (json/boolean #t)))
+      ((gesture/keyboard/key-press #\" :shift) ;; TODO: modifier
+       :domain "JSON" :description "Replaces the selected element with an empty string"
+       :operation (make-operation/replace-target printer-input nil (json/string "")))
       ((gesture/keyboard/key-press #\[)
-       :domain "JSON" :help "Replaces the selected element with an empty array"
-       :operation (make-operation/replace-foo document
-                                              (tree-replace (input-reference-of printer-iomap) (input-reference-of document-iomap) 'document)
-                                              nil
-                                              (json/array)))
-      #+nil
-      ((gesture/keyboard/key-press #\{)
-       :domain "JSON" :help "Replaces the selected element with an empty object"
-       :operation (make-operation/replace-foo document
-                                              (tree-replace (input-reference-of printer-iomap) (input-reference-of document-iomap) 'document)
-                                              nil
-                                              (json/object)))
+       :domain "JSON" :description "Replaces the selected element with an empty array"
+       :operation (make-operation/replace-target printer-input nil (json/array ())))
+      ((gesture/keyboard/key-press #\{ :shift) ;; TODO: modifier
+       :domain "JSON" :description "Replaces the selected element with an empty object"
+       :operation (make-operation/replace-target printer-input nil (json/object)))
       #+nil
       ((gesture/keyboard/key-press #\,)
-       :domain "JSON" :help "Inserts a new element into an array or object"
+       :domain "JSON" :description "Inserts a new element into an array or object"
        :operation (bind ((target (tree-replace (input-reference-of printer-iomap) (input-reference-of document-iomap) 'document))
                          (before? #f))
                     (pattern-case (selection-of document)
@@ -349,7 +314,7 @@
                        (make-operation/compound (list (make-operation/sequence/replace-element-range document `(the sequence (subseq (the sequence ,?a) ,?b ,?b)) (list (json/object-entry "" (json/nothing))))))))))
       #+nil
       ((gesture/keyboard/key-press :sdl-key-delete)
-       :domain "JSON" :help "Deletes the selected element"
+       :domain "JSON" :description "Deletes the selected element"
        :operation (make-operation/replace-foo document
                                               (tree-replace (input-reference-of printer-iomap) (input-reference-of document-iomap) 'document)
                                               `((the sequence-position (pos (the string document) 0))
@@ -459,7 +424,15 @@
                                                                                             `((the string (subseq (the string document) ,?index ,?index))
                                                                                               (the string (write-to-string (the number document)))
                                                                                               (the number (value-of (the json/number document))))))))
-                                        (operation/sequence/replace-element-range)
+                                        (operation/sequence/replace-element-range
+                                         (awhen (and (every 'digit-char-p (replacement-of operation))
+                                                     (pattern-case (reverse (target-of operation))
+                                                       (((the text/text (content-of (the tree/leaf document)))
+                                                         (the text/text (text/subseq (the text/text document) ?start-index ?end-index)))
+                                                        `((the string (subseq (the string document) ,?start-index ,?end-index))
+                                                          (the string (write-to-string (the number document)))
+                                                          (the number (value-of (the json/number document)))))))
+                                           (make-operation/number/replace-range printer-input it (replacement-of operation))))
                                         (operation/describe
                                          (make-instance 'operation/describe
                                                         :target (pattern-case (target-of operation)
@@ -536,7 +509,7 @@
   (bind ((printer-input (input-of printer-iomap)))
     (merge-commands (gesture-case (gesture-of input)
                       ((gesture/keyboard/key-press :sdl-key-insert)
-                       :domain "JSON" :help "Starts an object insertion into the elements of the JSON array"
+                       :domain "JSON" :description "Starts an object insertion into the elements of the JSON array"
                        :operation (bind ((elements-length (length (elements-of printer-input))))
                                     (make-operation/compound (list (make-operation/sequence/replace-element-range printer-input `((the sequence (subseq (the sequence document) ,elements-length ,elements-length))
                                                                                                                                   (the sequence (elements-of (the json/array document)))) (list (document/insertion)))
@@ -568,6 +541,12 @@
                                                                                                  `((the ,?element-type (elt (the sequence document) ,?element-index))
                                                                                                    (the sequence (elements-of (the json/array document)))))
                                                                                          (replacement-of operation)))
+                                         (operation/number/replace-range
+                                          (make-operation/number/replace-range printer-input
+                                                                               (append (target-of operation)
+                                                                                       `((the ,?element-type (elt (the sequence document) ,?element-index))
+                                                                                         (the sequence (elements-of (the json/array document)))))
+                                                                               (replacement-of operation)))
                                          (operation/compound
                                           (bind ((operations (mapcar #'recurse (elements-of operation))))
                                             (unless (some 'null operations)
@@ -596,20 +575,26 @@
                                                                              (?a
                                                                               (append (selection-of operation) `((the tree/node (printer-output (the json/array document) ,projection ,recursion))))))))
                                         (operation/sequence/replace-element-range
-                                         (awhen (pattern-case (reverse (target-of operation))
-                                                  (((the sequence (children-of (the tree/node document)))
-                                                    (the ?child-type (elt (the sequence document) ?child-index))
-                                                    . ?rest)
-                                                   (bind ((child (elt (elements-of printer-input) ?child-index))
-                                                          (input-operation (make-operation/sequence/replace-element-range child (reverse ?rest) (replacement-of operation)))
-                                                          (output-operation (operation-of (recurse-reader recursion (make-command (gesture-of input) input-operation :domain (domain-of input) :description (description-of input)) (elt (child-iomaps-of printer-iomap) ?child-index)))))
-                                                     (when (typep output-operation 'operation/sequence/replace-element-range)
-                                                       (append (target-of output-operation)
-                                                               `((the ,(form-type child) (elt (the sequence document) ,?child-index))
-                                                                 (the sequence (elements-of (the json/array document))))))))
-                                                  (?a
-                                                   (append (target-of operation) `((the tree/node (printer-output (the json/array document) ,projection ,recursion))))))
-                                           (make-operation/sequence/replace-element-range printer-input it (replacement-of operation))))
+                                         (pattern-case (reverse (target-of operation))
+                                           (((the sequence (children-of (the tree/node document)))
+                                             (the ?child-type (elt (the sequence document) ?child-index))
+                                             . ?rest)
+                                            (bind ((child (elt (elements-of printer-input) ?child-index))
+                                                   (input-operation (make-operation/sequence/replace-element-range child (reverse ?rest) (replacement-of operation)))
+                                                   (output-operation (operation-of (recurse-reader recursion (make-command (gesture-of input) input-operation :domain (domain-of input) :description (description-of input)) (elt (child-iomaps-of printer-iomap) ?child-index)))))
+                                              (typecase output-operation
+                                                (operation/sequence/replace-element-range
+                                                 (make-operation/sequence/replace-element-range printer-input
+                                                                                                (append (target-of output-operation)
+                                                                                                        `((the ,(form-type child) (elt (the sequence document) ,?child-index))
+                                                                                                          (the sequence (elements-of (the json/array document)))))
+                                                                                                (replacement-of operation)))
+                                                (operation/number/replace-range
+                                                 (make-operation/number/replace-range printer-input
+                                                                                      (append (target-of output-operation)
+                                                                                              `((the ,(form-type child) (elt (the sequence document) ,?child-index))
+                                                                                                (the sequence (elements-of (the json/array document)))))
+                                                                                      (replacement-of operation))))))))
                                         (operation/show-context-sensitive-help
                                          (make-instance 'operation/show-context-sensitive-help
                                                         :commands (iter (for command :in (commands-of operation))
@@ -654,23 +639,30 @@
                                                                              (?a
                                                                               (append (selection-of operation) `((the tree/node (printer-output (the json/object-entry document) ,projection ,recursion))))))))
                                         (operation/sequence/replace-element-range
-                                         (awhen (pattern-case (reverse (target-of operation))
-                                                  (((the sequence (children-of (the tree/node document)))
-                                                    (the tree/leaf (elt (the sequence document) 0))
-                                                    (the text/text (content-of (the tree/leaf document)))
-                                                    (the text/text (text/subseq (the text/text document) ?start-character-index ?end-character-index)))
-                                                   `((the string (subseq (the string document) ,?start-character-index ,?end-character-index))
-                                                     (the string (key-of (the json/object-entry document)))))
-                                                  (((the sequence (children-of (the tree/node document)))
-                                                    (the ?child-type (elt (the sequence document) ?child-index))
-                                                    . ?rest)
-                                                   (bind ((value (value-of printer-input))
-                                                          (input-operation (make-operation/sequence/replace-element-range value (reverse ?rest) (replacement-of operation)))
-                                                          (output-operation (operation-of (recurse-reader recursion (make-command (gesture-of input) input-operation :domain (domain-of input) :description (description-of input)) (elt (child-iomaps-of printer-iomap) 0)))))
-                                                     (when (typep output-operation 'operation/sequence/replace-element-range)
-                                                       (append (target-of output-operation)
-                                                               `((the ,(form-type value) (value-of (the json/object-entry document)))))))))
-                                           (make-operation/sequence/replace-element-range printer-input it (replacement-of operation))))
+                                         (pattern-case (reverse (target-of operation))
+                                           (((the sequence (children-of (the tree/node document)))
+                                             (the tree/leaf (elt (the sequence document) 0))
+                                             (the text/text (content-of (the tree/leaf document)))
+                                             (the text/text (text/subseq (the text/text document) ?start-character-index ?end-character-index)))
+                                            `((the string (subseq (the string document) ,?start-character-index ,?end-character-index))
+                                              (the string (key-of (the json/object-entry document)))))
+                                           (((the sequence (children-of (the tree/node document)))
+                                             (the ?child-type (elt (the sequence document) ?child-index))
+                                             . ?rest)
+                                            (bind ((value (value-of printer-input))
+                                                   (input-operation (make-operation/sequence/replace-element-range value (reverse ?rest) (replacement-of operation)))
+                                                   (output-operation (operation-of (recurse-reader recursion (make-command (gesture-of input) input-operation :domain (domain-of input) :description (description-of input)) (elt (child-iomaps-of printer-iomap) 0)))))
+                                              (typecase output-operation
+                                                (operation/sequence/replace-element-range
+                                                 (make-operation/sequence/replace-element-range printer-input
+                                                                                                (append (target-of output-operation)
+                                                                                                        `((the ,(form-type value) (value-of (the json/object-entry document)))))
+                                                                                                (replacement-of operation)))
+                                                (operation/number/replace-range
+                                                 (make-operation/number/replace-range printer-input
+                                                                                      (append (target-of output-operation)
+                                                                                              `((the ,(form-type value) (value-of (the json/object-entry document)))))
+                                                                                      (replacement-of operation))))))))
                                         (operation/show-context-sensitive-help
                                          (make-instance 'operation/show-context-sensitive-help
                                                         :commands (iter (for command :in (commands-of operation))
@@ -712,20 +704,26 @@
                                                                              (?a
                                                                               (append (selection-of operation) `((the tree/node (printer-output (the json/object document) ,projection ,recursion))))))))
                                         (operation/sequence/replace-element-range
-                                         (awhen (pattern-case (reverse (target-of operation))
-                                                  (((the sequence (children-of (the tree/node document)))
-                                                    (the ?child-type (elt (the sequence document) ?child-index))
-                                                    . ?rest)
-                                                   (bind ((entry (elt (entries-of printer-input) ?child-index))
-                                                          (input-operation (make-operation/sequence/replace-element-range entry (reverse ?rest) (replacement-of operation)))
-                                                          (output-operation (operation-of (recurse-reader recursion (make-command (gesture-of input) input-operation :domain (domain-of input) :description (description-of input)) (elt (child-iomaps-of printer-iomap) ?child-index)))))
-                                                     (when (typep output-operation 'operation/sequence/replace-element-range)
-                                                       (append (target-of output-operation)
-                                                               `((the json/object-entry (elt (the sequence document) ,?child-index))
-                                                                 (the sequence (entries-of (the json/object document))))))))
-                                                  (?a
-                                                   (append (target-of operation) `((the tree/node (printer-output (the json/object document) ,projection ,recursion))))))
-                                           (make-operation/sequence/replace-element-range printer-input it (replacement-of operation))))
+                                         (pattern-case (reverse (target-of operation))
+                                           (((the sequence (children-of (the tree/node document)))
+                                             (the ?child-type (elt (the sequence document) ?child-index))
+                                             . ?rest)
+                                            (bind ((entry (elt (entries-of printer-input) ?child-index))
+                                                   (input-operation (make-operation/sequence/replace-element-range entry (reverse ?rest) (replacement-of operation)))
+                                                   (output-operation (operation-of (recurse-reader recursion (make-command (gesture-of input) input-operation :domain (domain-of input) :description (description-of input)) (elt (child-iomaps-of printer-iomap) ?child-index)))))
+                                              (typecase output-operation
+                                                (operation/sequence/replace-element-range
+                                                 (make-operation/sequence/replace-element-range printer-input
+                                                                                                (append (target-of output-operation)
+                                                                                                        `((the json/object-entry (elt (the sequence document) ,?child-index))
+                                                                                                          (the sequence (entries-of (the json/object document)))))
+                                                                                                (replacement-of operation)))
+                                                (operation/number/replace-range
+                                                 (make-operation/number/replace-range printer-input
+                                                                                      (append (target-of output-operation)
+                                                                                              `((the json/object-entry (elt (the sequence document) ,?child-index))
+                                                                                                (the sequence (entries-of (the json/object document)))))
+                                                                                      (replacement-of operation))))))))
                                         (operation/show-context-sensitive-help
                                          (make-instance 'operation/show-context-sensitive-help
                                                         :commands (iter (for command :in (commands-of operation))

@@ -117,7 +117,7 @@
                           var context = canvas.getContext('2d');
                           context.textBaseline = 'top';
                           context.font = '18px Inconsolata';"
-                      ,(print-to-device (output-of printer-iomap) (make-device/display/web 1024 768))
+                      ,(print-to-device (output-of printer-iomap) (make-device/display/web 1280 720))
                       "}">>
         <body (:onload "onLoad()")
               <form (:id "form" :method "POST")

@@ -17,6 +17,9 @@
         (json/base (json->tree))
         (java/base (java->tree))
         (javascript/base (javascript->tree))
+        (common-lisp/base (sequential
+                            (common-lisp->lisp-form)
+                            (lisp-form->tree)))
         (lisp-form/base (lisp-form->tree))
         (tree/base (preserving))))
     (recursive

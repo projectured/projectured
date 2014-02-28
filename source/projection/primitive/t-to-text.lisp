@@ -94,20 +94,20 @@
 
 (def reader t/null->text/text (projection recursion input printer-iomap)
   (declare (ignore projection recursion printer-iomap))
-  input)
+  (make-command/nothing (gesture-of input)))
 
 (def reader t/number->text/text (projection recursion input printer-iomap)
   (declare (ignore projection recursion printer-iomap))
-  input)
+  (make-command/nothing (gesture-of input)))
 
 (def reader t/string->text/text (projection recursion input printer-iomap)
   (declare (ignore projection recursion printer-iomap))
-  input)
+  (make-command/nothing (gesture-of input)))
 
 (def reader t/symbol->text/text (projection recursion input printer-iomap)
   (declare (ignore projection recursion printer-iomap))
-  input)
+  (make-command/nothing (gesture-of input)))
 
 (def reader t/pathname->text/text (projection recursion input printer-iomap)
   (declare (ignore projection recursion printer-iomap))
-  input)
+  (make-command/nothing (gesture-of input)))

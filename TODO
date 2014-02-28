@@ -1,3 +1,13 @@
+demos
+ - copy/paste/note
+ - focusing
+ - sorting
+ - filtering
+ - laziness/scaling
+ - common lisp continuous testing
+ - common lisp inlining
+ - mixing domains
+
  - avoid setting the whole selection on document objects, set only the relevant part there up to the next selection
  - avoid putting output-selection everywhere in the output elements, put it where it belongs
 

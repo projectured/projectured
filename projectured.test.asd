@@ -10,13 +10,7 @@
   :depends-on (:projectured
                :hu.dwim.computed-class+hu.dwim.logger
                :hu.dwim.stefil+hu.dwim.def+swank)
-  :components ((:module "source"
-                :components ((:module "projection"
-                             :components ((:module "primitive"
-                                           :components ((:file "test-to-test-result")
-                                                        (:file "test-result-to-table")))))))
-               (:module "test"
-                :depends-on ("source")
+  :components ((:module "test"
                 :components ((:file "document" :depends-on ("suite"))
                              (:file "package")
                              (:file "projection" :depends-on ("document"))

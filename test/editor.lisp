@@ -149,17 +149,20 @@
 (def test test/editor/javascript (&key wrap)
   (test/editor/read-eval-print-loop wrap (make-test-document/javascript) nil (make-test-projection/javascript->graphics)))
 
-(def test test/editor/lisp-form (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/lisp-form) nil (make-test-projection/lisp-form->graphics)))
+(def test test/editor/lisp-form (&key wrap (content (make-test-document/lisp-form)))
+  (test/editor/read-eval-print-loop wrap content nil (make-test-projection/lisp-form->graphics)))
 
-(def test test/editor/common-lisp (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/common-lisp) nil (make-test-projection/common-lisp->graphics)))
+(def test test/editor/common-lisp (&key wrap (content (make-test-document/common-lisp)))
+  (test/editor/read-eval-print-loop wrap content nil (make-test-projection/common-lisp->graphics)))
+
+(def test test/editor/common-lisp/inliner (&key wrap (content (make-test-document/common-lisp)))
+  (test/editor/read-eval-print-loop wrap content nil (make-test-projection/common-lisp/inliner->graphics)))
+
+(def test test/editor/common-lisp/test (&key wrap (content (make-test-document/common-lisp/test)))
+  (test/editor/read-eval-print-loop wrap content nil (make-test-projection/common-lisp->graphics/test)))
 
 (def test test/editor/evaluator (&key wrap)
   (test/editor/read-eval-print-loop wrap (make-test-document/evaluator) nil (make-test-projection/evaluator)))
-
-(def test test/editor/test (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/test) nil (make-test-projection/test->graphics)))
 
 (def test test/editor/t (content &key wrap selection)
   (test/editor/read-eval-print-loop wrap content selection (make-test-projection/t->graphics/table)))
@@ -179,14 +182,14 @@
 (def test test/editor/t/text (&key wrap)
   (test/editor/read-eval-print-loop wrap (make-test-document/text) nil (make-test-projection/t->graphics/table)))
 
-(def test test/editor/t/tree (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/tree) nil (make-test-projection/t->graphics/table)))
+(def test test/editor/t/tree (&key wrap (content (make-test-document/tree)))
+  (test/editor/read-eval-print-loop wrap content nil (make-test-projection/t->graphics/table)))
 
 (def test test/editor/t/xml (&key wrap (content (make-test-document/xml)))
   (test/editor/read-eval-print-loop wrap content nil (make-test-projection/t->graphics/tree)))
 
 (def test test/editor/t/json (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/json) nil (make-test-projection/t->graphics/table)))
+  (test/editor/read-eval-print-loop wrap (make-test-document/json) nil (make-test-projection/t->graphics/tree)))
 
 (def test test/editor/inspector/object (&key wrap)
   (test/editor/read-eval-print-loop wrap (make-test-document/inspector/object) nil (make-test-projection/inspector->graphics)))

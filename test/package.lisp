@@ -16,6 +16,6 @@
         :hu.dwim.util
         :projectured)
   (:readtable-setup (setup-readtable/same-as-package :projectured))
-  (:shadow :test))
+  (:shadow :test :factorial))
 
 (hu.dwim.common:import-all-owned-symbols :projectured :projectured.test)

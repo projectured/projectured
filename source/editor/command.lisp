@@ -31,6 +31,12 @@
 ;;;;;;
 ;;; API
 
+(def method print-object ((instance command) stream)
+  (print-unreadable-object (instance stream :type #t :identity #f)
+    (princ (gesture-of instance) stream)
+    (princ " " stream)
+    (princ (operation-of instance) stream)))
+
 ;; TODO: rename?
 (def macro gesture-case (gesture &body cases)
   (with-unique-names (gesture-variable)
@@ -44,8 +50,7 @@
                                                                                             (make-instance 'command
                                                                                                            :gesture ,(first case)
                                                                                                            :domain ,(getf (rest case) :domain)
-                                                                                                           ;; TODO: make consistent
-                                                                                                           :description ,(getf (rest case) :help)
+                                                                                                           :description ,(getf (rest case) :description)
                                                                                                            :operation operation)))))))
                               :domain "Default"
                               :description "Shows context sensitive help"))
@@ -56,8 +61,7 @@
                                       (make-instance 'command
                                                      :gesture ,(first case)
                                                      :domain ,(getf (rest case) :domain)
-                                                     ;; TODO: make consistent
-                                                     :description ,(getf (rest case) :help)
+                                                     :description ,(getf (rest case) :description)
                                                      :operation operation))))))))))
 
 (def function merge-commands (&rest commands)

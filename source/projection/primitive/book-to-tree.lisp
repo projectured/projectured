@@ -67,8 +67,8 @@
                                (the tree/leaf (elt (the sequence document) 0))
                                (the sequence (children-of (the tree/node document)))))
                             (((the tree/node (printer-output (the book/book document) ?projection ?recursion)) . ?rest)
-                              (when (and (eq projection ?projection) (eq recursion ?recursion))
-                                (reverse ?rest)))))
+                             (when (and (eq projection ?projection) (eq recursion ?recursion))
+                               (reverse ?rest)))))
          (author-selection (pattern-case (reverse (selection-of input))
                              (((the sequence (authors-of (the book/book document)))
                                (the string (elt (the sequence document) ?author-index))
@@ -230,12 +230,12 @@
   (bind ((printer-input (input-of printer-iomap)))
     (merge-commands (gesture-case (gesture-of input)
                       ((gesture/keyboard/key-press :sdl-key-delete)
-                       :domain "Book" :help "Deletes the element from the book"
+                       :domain "Book" :description "Deletes the element from the book"
                        :operation (pattern-case (selection-of printer-input)
                                     (((the ?type document)
                                       (the ?type (elt (the sequence document) ?index))
                                       . ?rest)
-                                     (make-operation/sequence/replace-element-range printer-iomap `((the sequence (subseq (the sequence document) ,?index ,(1+ ?index))) ,@?rest) nil)))))
+                                     (make-operation/sequence/replace-element-range printer-input `((the sequence (subseq (the sequence document) ,?index ,(1+ ?index))) ,@?rest) nil)))))
                     (labels ((recurse (operation)
                                (typecase operation
                                  (operation/quit operation)
@@ -243,6 +243,8 @@
                                   (make-operation/replace-selection printer-input (append (selection-of operation) (last (selection-of printer-input) 2))))
                                  (operation/sequence/replace-element-range
                                   (make-operation/sequence/replace-element-range printer-input (append (target-of operation) (last (selection-of printer-input) 2)) (replacement-of operation)))
+                                 (operation/number/replace-range
+                                  (make-operation/number/replace-range printer-input (append (target-of operation) (last (selection-of printer-input) 2)) (replacement-of operation)))
                                  (operation/replace-target
                                   (make-operation/replace-target printer-input (append (target-of operation) (last (selection-of printer-input) 2)) (replacement-of operation)))
                                  (operation/compound
@@ -262,7 +264,7 @@
                                            :description (description-of content-command)))))))
                     (gesture-case (gesture-of input)
                       ((gesture/keyboard/key-press :sdl-key-insert)
-                       :domain "Book" :help "Starts an object insertion into the elements of the book"
+                       :domain "Book" :description "Starts an object insertion into the elements of the book"
                        :operation (bind ((elements-length (length (elements-of printer-input))))
                                     (make-operation/compound (list (make-operation/sequence/replace-element-range printer-input `((the sequence (subseq (the sequence document) ,elements-length ,elements-length))
                                                                                                                                   (the sequence (elements-of (the book/book document)))) (list (document/insertion)))
@@ -373,24 +375,24 @@
                                     :description (description-of input)))
                     (gesture-case (gesture-of input)
                       ((gesture/keyboard/key-press :sdl-key-delete)
-                       :domain "Book" :help "Deletes the book"
+                       :domain "Book" :description "Deletes the book"
                        :operation (pattern-case (selection-of printer-input)
                                     (((the book/book document) . ?rest)
                                      (make-operation/replace-target printer-iomap nil (document/nothing)))
                                     (((the ?type (elt (the sequence document)) ?index) . ?rest)
-                                     (make-operation/sequence/replace-element-range printer-iomap `((the sequence (subseq (the sequence document) ,?index ,?index)) ,@?rest) nil)))))
+                                     (make-operation/sequence/replace-element-range printer-input `((the sequence (subseq (the sequence document) ,?index ,?index)) ,@?rest) nil)))))
                     (make-command/nothing (gesture-of input)))))
 
 (def reader book/chapter->tree/node (projection recursion input printer-iomap)
   (bind ((printer-input (input-of printer-iomap)))
     (merge-commands (gesture-case (gesture-of input)
                       ((gesture/keyboard/key-press :sdl-key-delete)
-                       :domain "Book" :help "Deletes the element from the chapter"
+                       :domain "Book" :description "Deletes the element from the chapter"
                        :operation (pattern-case (selection-of printer-input)
                                     (((the ?type document)
                                       (the ?type (elt (the sequence document) ?index))
                                       . ?rest)
-                                     (make-operation/sequence/replace-element-range printer-iomap `((the sequence (subseq (the sequence document) ,?index ,(1+ ?index))) ,@?rest) nil)))))
+                                     (make-operation/sequence/replace-element-range printer-input `((the sequence (subseq (the sequence document) ,?index ,(1+ ?index))) ,@?rest) nil)))))
                     (labels ((recurse (operation)
                                (typecase operation
                                  (operation/quit operation)
@@ -398,6 +400,8 @@
                                   (make-operation/replace-selection printer-input (append (selection-of operation) (last (selection-of printer-input) 2))))
                                  (operation/sequence/replace-element-range
                                   (make-operation/sequence/replace-element-range printer-input (append (target-of operation) (last (selection-of printer-input) 2)) (replacement-of operation)))
+                                 (operation/number/replace-range
+                                  (make-operation/number/replace-range printer-input (append (target-of operation) (last (selection-of printer-input) 2)) (replacement-of operation)))
                                  (operation/replace-target
                                   (make-operation/replace-target printer-input (append (target-of operation) (last (selection-of printer-input) 2)) (replacement-of operation)))
                                  (operation/compound
@@ -417,7 +421,7 @@
                                            :description (description-of content-command)))))))
                     (gesture-case (gesture-of input)
                       ((gesture/keyboard/key-press :sdl-key-insert)
-                       :domain "Book" :help "Starts an object insertion into the elements of the chapter"
+                       :domain "Book" :description "Starts an object insertion into the elements of the chapter"
                        :operation (bind ((elements-length (length (elements-of printer-input))))
                                     (make-operation/compound (list (make-operation/sequence/replace-element-range printer-input `((the sequence (subseq (the sequence document) ,elements-length ,elements-length))
                                                                                                                                   (the sequence (elements-of (the book/chapter document)))) (list (document/insertion)))
@@ -505,7 +509,7 @@
                                     :description (description-of input)))
                     (gesture-case (gesture-of input)
                       ((gesture/keyboard/key-press :sdl-key-delete)
-                       :domain "Book" :help "Deletes the chapter"
+                       :domain "Book" :description "Deletes the chapter"
                        :operation (pattern-case (selection-of printer-input)
                                     (((the book/chapter document) . ?rest)
                                      (make-operation/replace-target printer-iomap nil (document/nothing))))))

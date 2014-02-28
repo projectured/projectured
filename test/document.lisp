@@ -20,22 +20,22 @@
 
 (def function make-test-document/plain (content)
   (widget/shell ()
-    (widget/scroll-pane (:location (make-2d 0 0) :size (make-2d 1024 768) :margin (make-inset :all 5))
+    (widget/scroll-pane (:location (make-2d 0 0) :size (make-2d 1280 720) :margin (make-inset :all 5))
       content)))
 
 (def function make-test-document/selection (content)
   (widget/split-pane ()
-    (widget/scroll-pane (:location (make-2d 0 0) :size (make-2d 512 768) :margin (make-inset :all 5))
+    (widget/scroll-pane (:location (make-2d 0 0) :size (make-2d 640 720) :margin (make-inset :all 5))
       content)
-    (widget/scroll-pane (:location (make-2d 0 0) :size (make-2d 512 768) :margin (make-inset :all 5))
+    (widget/scroll-pane (:location (make-2d 0 0) :size (make-2d 640 720) :margin (make-inset :all 5))
       content)))
 
 (def function make-test-document/generic (content)
   (widget/shell ()
     (widget/split-pane ()
-      (widget/scroll-pane (:location (make-2d 0 0) :size (make-2d 512 768) :margin (make-inset :all 5))
+      (widget/scroll-pane (:location (make-2d 0 0) :size (make-2d 640 720) :margin (make-inset :all 5))
         content)
-      (widget/scroll-pane (:location (make-2d 0 0) :size (make-2d 512 768) :margin (make-inset :all 5))
+      (widget/scroll-pane (:location (make-2d 0 0) :size (make-2d 640 720) :margin (make-inset :all 5))
         content))))
 
 (def function make-test-document/reflection (content projection)
@@ -44,17 +44,17 @@
       ((widget/label (:location (make-2d 5 5) :margin (make-inset :all 5))
          (text/text ()
            (text/string "Document in Domain Specific Notation" :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)))
-       (widget/scroll-pane (:location (make-2d 0 0) :size (make-2d 1024 768) :margin (make-inset :all 5))
+       (widget/scroll-pane (:location (make-2d 0 0) :size (make-2d 1280 720) :margin (make-inset :all 5))
          content))
       ((widget/label (:location (make-2d 5 5) :margin (make-inset :all 5))
          (text/text ()
            (text/string "Document in Generic Notation" :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)))
-       (widget/scroll-pane (:location (make-2d 0 0) :size (make-2d 1024 768) :margin (make-inset :all 5))
+       (widget/scroll-pane (:location (make-2d 0 0) :size (make-2d 1280 720) :margin (make-inset :all 5))
          content))
       ((widget/label (:location (make-2d 5 5) :margin (make-inset :all 5))
          (text/text ()
            (text/string "Projection in Generic Notation" :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)))
-       (widget/scroll-pane (:location (make-2d 0 0) :size (make-2d 1024 768) :margin (make-inset :all 5))
+       (widget/scroll-pane (:location (make-2d 0 0) :size (make-2d 1280 720) :margin (make-inset :all 5))
          projection))
       ((widget/label (:location (make-2d 5 5) :margin (make-inset :all 5))
          (text/text ()
@@ -68,7 +68,7 @@
                           (widget/label (:location (make-2d 5 5) :margin (make-inset :all 5))
                             (text/text ()
                               (text/string (object-class-symbol-name element-projection) :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)))
-                          (widget/scroll-pane (:location (make-2d 0 0) :size (make-2d 1024 768) :margin (make-inset :all 5))
+                          (widget/scroll-pane (:location (make-2d 0 0) :size (make-2d 1280 720) :margin (make-inset :all 5))
                             content)))))
         0)))))
 
@@ -80,7 +80,7 @@
         ((widget/label (:location (make-2d 5 5) :margin (make-inset :all 5))
            (text/text ()
              (text/string "Document" :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)))
-         (widget/scroll-pane (:location (make-2d 0 0) :size (make-2d 1024 768) :margin (make-inset :all 5))
+         (widget/scroll-pane (:location (make-2d 0 0) :size (make-2d 1280 720) :margin (make-inset :all 5))
            content))))))
 
 ;;;;;;
@@ -531,30 +531,14 @@
 ;;;;;;
 ;;; Lisp form
 
-(def function make-test-document/lisp-form/function (&optional (name 'factorial))
-  (ecase name
-    (factorial '(defun factorial (n)
-                 "Computes the factorial of N"
-                 (if (= n 0)
-                     1
-                     (* n (factorial (- n 1))))))
-    (fibonacci '(defun fibonacci (n)
-                 "Compute the Nth Fibonacci number"
-                 (if (< n 1)
-                     1
-                     (+ (fibonacci (- n 1))
-                        (fibonacci (- n 2))))))
-    (quine '(funcall (lambda (lambda) `(,lambda ',lambda))
-             '(lambda (lambda) `(,lambda ',lambda))))))
-
 (def function make-test-document/lisp-form/empty ()
   nil)
 
 (def function make-test-document/lisp-form ()
   (make-lisp-form/list (list (make-lisp-form/string "quoted list")
-                             (make-lisp-form/number 3.1315)
-                             (make-lisp-form/list (list (make-lisp-form/symbol 'sub)
-                                                        (make-lisp-form/list (list (make-lisp-form/symbol 'deep) (make-lisp-form/symbol 'list)))
+                             (make-lisp-form/number 3.1415)
+                             (make-lisp-form/list (list (make-lisp-form/symbol "sub" nil)
+                                                        (make-lisp-form/list (list (make-lisp-form/symbol "deep" nil) (make-lisp-form/symbol "list" nil)))
                                                         (make-lisp-form/number 42)
                                                         (make-lisp-form/number 43)))
                              (make-lisp-form/object (make-string-output-stream)))))
@@ -562,30 +546,84 @@
 ;;;;;;
 ;;; Common lisp
 
+(def function test-dynamic-environment-provider (thunk)
+  (hu.dwim.stefil::with-new-global-context* (:debug-on-assertion-failure-p #f :debug-on-unexpected-error-p #f :print-test-run-progress-p #f :record-success-descriptions-p #t)
+    (bind ((test-result (nth-value 1 (hu.dwim.stefil::run-test-body (make-instance 'hu.dwim.stefil::test :name (gensym) :package *package*) thunk nil t nil))))
+      (make-test/result (map 'list 'hu.dwim.stefil::form-of (remove-if (of-type 'hu.dwim.stefil::unexpected-error) (hu.dwim.stefil::failure-descriptions-of test-result)))
+                        (map 'list 'hu.dwim.stefil::form-of (hu.dwim.stefil::success-descriptions-of test-result))
+                        (awhen (find-if (of-type 'hu.dwim.stefil::unexpected-error) (hu.dwim.stefil::failure-descriptions-of test-result))
+                          (hu.dwim.stefil::condition-of it))))))
+
 (def function make-test-document/common-lisp/empty ()
   nil)
 
-(def function make-test-document/common-lisp ()
-  (make-instance 'common-lisp/function-definition
-                 :name 'factorial
-                 :bindings (list (make-instance 'common-lisp/required-function-argument :name 'n))
-                 :allow-other-keys #f
-                 :documentation "Computes the factorial of N"
-                 :body (list (make-instance 'common-lisp/if
-                                            :condition (make-instance 'common-lisp/application
-                                                                      :operator '=
-                                                                      :arguments (list (make-instance 'common-lisp/variable-reference :name 'n)
-                                                                                       (make-instance 'common-lisp/constant :value 0)))
-                                            :then (make-instance 'common-lisp/constant :value 1)
-                                            :else (make-instance 'common-lisp/application
-                                                                 :operator '*
-                                                                 :arguments (list (make-instance 'common-lisp/variable-reference :name 'n)
-                                                                                  (make-instance 'common-lisp/application
-                                                                                                 :operator 'factorial
-                                                                                                 :arguments (list (make-instance 'common-lisp/application
-                                                                                                                                 :operator '-
-                                                                                                                                 :arguments (list (make-instance 'common-lisp/variable-reference :name 'n)
-                                                                                                                                                  (make-instance 'common-lisp/constant :value 1)))))))))))
+(def function make-test-document/common-lisp (&optional faulty)
+  (bind ((factorial-argument (make-common-lisp/required-function-argument (make-lisp-form/symbol* 'n)))
+         (factorial-function (make-common-lisp/function-definition (make-lisp-form/symbol (if faulty "FACTORAL" "FACTORIAL") "PROJECTURED.TEST")
+                                                                   (list factorial-argument)
+                                                                   nil
+                                                                   :allow-other-keys #f
+                                                                   :documentation "Computes the factorial of N")))
+    (setf (body-of factorial-function)
+          (list (make-common-lisp/if (make-common-lisp/application (make-lisp-form/symbol* '<)
+                                                                   (list (make-common-lisp/variable-reference factorial-argument)
+                                                                         (make-common-lisp/constant (if faulty 3 2))))
+                                     (make-common-lisp/constant 1)
+                                     (make-common-lisp/application (make-lisp-form/symbol* (if faulty '+ '*))
+                                                                   (list (make-common-lisp/variable-reference factorial-argument)
+                                                                         (make-common-lisp/application (make-common-lisp/function-reference factorial-function)
+                                                                                                       (list (make-common-lisp/application
+                                                                                                              (make-lisp-form/symbol* '-)
+                                                                                                              (list (make-common-lisp/variable-reference factorial-argument)
+                                                                                                                    (make-common-lisp/constant 1))))))))))
+    factorial-function))
+
+(def function make-test-document/common-lisp/test ()
+  (bind ((factorial-function (make-test-document/common-lisp #t)))
+    (book/book (:title "Literate programming with continuous testing")
+      (book/chapter (:title "Specification")
+        (book/paragraph ()
+          (text/text ()
+            (text/string "The factorial of a non-negative integer " :font *font/liberation/serif/regular/24*)
+            (text/string "N" :font *font/liberation/serif/italic/24* :font-color *color/solarized/violet*)
+            (text/string " is the product of all positive integers less than or equal to " :font *font/liberation/serif/regular/24*)
+            (text/string "N" :font *font/liberation/serif/italic/24* :font-color *color/solarized/violet*)
+            (text/string "." :font *font/liberation/serif/regular/24*))))
+      (book/chapter (:title "Implementation")
+        (book/paragraph ()
+          (text/text ()
+            (text/string "The " :font *font/liberation/serif/regular/24*)
+            (text/string "Common Lisp" :font *font/liberation/serif/italic/24* :font-color *color/solarized/violet*)
+            (text/string " factorial function computes the result using recursion." :font *font/liberation/serif/regular/24*)))
+        (make-evaluator/evaluator factorial-function))
+      (book/chapter (:title "Test")
+        (book/paragraph ()
+          (text/text ()
+            (text/string "The " :font *font/liberation/serif/regular/24*)
+            (text/string "Common Lisp" :font *font/liberation/serif/italic/24* :font-color *color/solarized/violet*)
+            (text/string " test program checks the result for all integers between " :font *font/liberation/serif/regular/24*)
+            (text/string "0" :font *font/liberation/serif/regular/24* :font-color *color/solarized/magenta*)
+            (text/string " and " :font *font/liberation/serif/regular/24*)
+            (text/string "10" :font *font/liberation/serif/regular/24* :font-color *color/solarized/magenta*)
+            (text/string "." :font *font/liberation/serif/regular/24*)))
+        (bind ((evaluator (make-evaluator/evaluator nil :dynamic-environment-provider 'test-dynamic-environment-provider)))
+          (setf (form-of evaluator) (make-common-lisp/progn (append (iter (for i :from 0 :to 8)
+                                                                          (collect (make-test/check (make-common-lisp/application (make-lisp-form/symbol* '=)
+                                                                                                                                  (list (make-common-lisp/application (make-common-lisp/function-reference factorial-function)
+                                                                                                                                                                      (list (make-common-lisp/constant i)))
+                                                                                                                                        (make-common-lisp/constant (alexandria::factorial i))))
+                                                                                                    evaluator)))
+                                                                    (list (make-test/check (make-common-lisp/application (make-lisp-form/symbol* '=)
+                                                                                                                         (list (make-common-lisp/application (make-common-lisp/function-reference factorial-function)
+                                                                                                                                                             (list (make-common-lisp/constant 9)))
+                                                                                                                               (make-common-lisp/constant 3628800)))
+                                                                                           evaluator)
+                                                                          (make-test/check (make-common-lisp/application (make-lisp-form/symbol* '=)
+                                                                                                                         (list (make-common-lisp/application (make-common-lisp/function-reference factorial-function)
+                                                                                                                                                             (list (make-common-lisp/constant 10)))
+                                                                                                                               (make-common-lisp/constant 3628800)))
+                                                                                           evaluator)))))
+          evaluator)))))
 
 ;;;;;;
 ;;; Evaluator
@@ -597,6 +635,11 @@
 
 ;;;;;;
 ;;; Test
+
+(def function factorial (n)
+  (if (< n 2)
+      1
+      (* n (factorial (- n 1)))))
 
 (def test test/factorial ()
   (is (= 1 (factorial 0)))
@@ -768,11 +811,11 @@
                            (xml/text () "Last refresh: ")
                            (make-common-lisp/top-level
                             (list trace-amounts
-                                  (make-instance 'common-lisp/application :operator 'local-time:format-timestring
-                                                 :arguments (list (make-instance 'common-lisp/constant :value t)
-                                                                  (make-instance 'common-lisp/application :operator 'local-time:now :arguments nil)
-                                                                  (make-instance 'common-lisp/constant :value :format)
-                                                                  (make-instance 'common-lisp/constant :value 'local-time:+asctime-format+)))))))))
+                                  (make-common-lisp/application :operator (make-lisp-form/symbol* 'local-time:format-timestring)
+                                                                :arguments (list (make-common-lisp/constant :value t)
+                                                                                 (make-common-lisp/application :operator (make-lisp-form/symbol* 'local-time:now) :arguments nil)
+                                                                                 (make-common-lisp/constant :value :format)
+                                                                                 (make-common-lisp/constant :value 'local-time:+asctime-format+)))))))))
          (chart-data (json/array ()
                        (json/array () (json/string "Task") (json/string "Hours per Day"))
                        (json/array () (json/string "Work") (json/number 11))
@@ -782,13 +825,13 @@
                        (json/array () (json/string "Sleep")
                                    (make-common-lisp/top-level
                                     (list trace-amounts
-                                          (make-instance 'common-lisp/application :operator '-
-                                                         :arguments (list (make-instance 'common-lisp/constant :value 24)
-                                                                          (make-instance 'common-lisp/application :operator '+
-                                                                                         :arguments (list (make-instance 'common-lisp/constant :value 11)
-                                                                                                          (make-instance 'common-lisp/constant :value 2)
-                                                                                                          (make-instance 'common-lisp/constant :value 2)
-                                                                                                          (make-instance 'common-lisp/constant :value 2))))))))))
+                                          (make-common-lisp/application :operator (make-lisp-form/symbol* '-)
+                                                                        :arguments (list (make-common-lisp/constant :value 24)
+                                                                                         (make-common-lisp/application :operator (make-lisp-form/symbol* '+)
+                                                                                                                       :arguments (list (make-common-lisp/constant :value 11)
+                                                                                                                                        (make-common-lisp/constant :value 2)
+                                                                                                                                        (make-common-lisp/constant :value 2)
+                                                                                                                                        (make-common-lisp/constant :value 2))))))))))
          (error-page (xml/element ("html" ())
                        (xml/element ("head" ())
                          (xml/element ("title" ())
@@ -798,35 +841,34 @@
                            (xml/text () "We are sorry, page ")
                            (make-common-lisp/top-level
                             (list trace-amounts
-                                  (make-instance 'common-lisp/variable-reference :name 'path)))
+                                  (make-common-lisp/variable-reference :name 'path)))
                            (xml/text () " cannot be found.")))))
-         (common-lisp-function (make-instance 'common-lisp/function-definition
-                                              :name 'process-http-request
-                                              :bindings (list (make-instance 'common-lisp/required-function-argument :name 'request))
-                                              :allow-other-keys #f
-                                              :documentation nil
-                                              :body (list (make-common-lisp/comment
-                                                           (text/text ()
-                                                             (text/string "dispatch on the path of the incoming HTTP request according to the following table" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)
-                                                             (text/newline)
-                                                             #+nil ;; TODO: move out
-                                                             dispatch-table))
-                                                          (make-instance 'common-lisp/let
-                                                                         :bindings (list (make-instance 'common-lisp/lexical-variable-binding :name 'path
-                                                                                                        :initial-value (make-instance 'common-lisp/application :operator 'path-of
-                                                                                                                                      :arguments (list (make-instance 'common-lisp/variable-reference :name 'request)))))
-                                                                         :body (list (make-instance 'common-lisp/application :operator 'make-http-response
-                                                                                                    :arguments (list (make-instance 'common-lisp/if
-                                                                                                                                    :condition (make-instance 'common-lisp/application :operator 'string=
-                                                                                                                                                              :arguments (list (make-instance 'common-lisp/constant :value page-path)
-                                                                                                                                                                               (make-instance 'common-lisp/variable-reference :name 'path)))
-                                                                                                                                    :then chart-page
-                                                                                                                                    :else (make-instance 'common-lisp/if
-                                                                                                                                                         :condition (make-instance 'common-lisp/application :operator 'string=
-                                                                                                                                                                                   :arguments (list (make-instance 'common-lisp/constant :value data-path)
-                                                                                                                                                                                                    (make-instance 'common-lisp/variable-reference :name 'path)))
-                                                                                                                                                         :then chart-data
-                                                                                                                                                         :else error-page))))))))))
+         (common-lisp-function (make-common-lisp/function-definition (make-lisp-form/symbol* 'process-http-request)
+                                                                     (list (make-common-lisp/required-function-argument :name 'request))
+                                                                     (list (make-common-lisp/comment
+                                                                            (text/text ()
+                                                                              (text/string "dispatch on the path of the incoming HTTP request according to the following table" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)
+                                                                              (text/newline)
+                                                                              #+nil ;; TODO: move out
+                                                                              dispatch-table))
+                                                                           (make-common-lisp/let
+                                                                            :bindings (list (make-common-lisp/lexical-variable-binding :name 'path
+                                                                                                                                       :initial-value (make-common-lisp/application :operator (make-lisp-form/symbol* 'path-of)
+                                                                                                                                                                                    :arguments (list (make-common-lisp/variable-reference :name 'request)))))
+                                                                            :body (list (make-common-lisp/application :operator (make-lisp-form/symbol* 'make-http-response)
+                                                                                                                      :arguments (list (make-common-lisp/if
+                                                                                                                                        :condition (make-common-lisp/application :operator (make-lisp-form/symbol* 'string=)
+                                                                                                                                                                                 :arguments (list (make-common-lisp/constant :value page-path)
+                                                                                                                                                                                                  (make-common-lisp/variable-reference :name 'path)))
+                                                                                                                                        :then chart-page
+                                                                                                                                        :else (make-common-lisp/if
+                                                                                                                                               :condition (make-common-lisp/application :operator (make-lisp-form/symbol* 'string=)
+                                                                                                                                                                                        :arguments (list (make-common-lisp/constant :value data-path)
+                                                                                                                                                                                                         (make-common-lisp/variable-reference :name 'path)))
+                                                                                                                                               :then chart-data
+                                                                                                                                               :else error-page)))))))
+                                                                     :allow-other-keys #f
+                                                                     :documentation nil)))
     (book/book (:title "ProjecturEd" :authors (list "Levente Mészáros"))
       (book/chapter (:title "Introduction")
         (make-test-document/introduction))
@@ -918,7 +960,6 @@
             (text/text ()
               (text/string "Some Javascript code")))
           (make-test-document/javascript))
-        #+nil
         (book/chapter (:title "S-expression" :expanded #f)
           (book/paragraph ()
             (text/text ()

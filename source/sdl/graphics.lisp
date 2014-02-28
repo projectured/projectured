@@ -19,7 +19,7 @@
 
 (def method raw-of :around ((image image/image))
   (or (call-next-method)
-      (setf (raw-of image) (sdl-image:load-image (filename-of image) :color-key-at #(0 0)))))
+      (setf (raw-of image) (sdl-image:load-image (filename-of image) :alpha 255))))
 
 (def method measure-text (text font)
   (make-2d (sdl:get-font-size text :size :w :font (raw-of font))

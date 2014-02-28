@@ -118,8 +118,12 @@
                                   (make-operation/replace-selection printer-input (append (selection-of operation) `((the ,(form-type (content-of printer-input)) (content-of (the document/document document)))))))
                                  (operation/sequence/replace-element-range
                                   (make-operation/sequence/replace-element-range printer-input (append (target-of operation) `((the ,(form-type (content-of printer-input)) (content-of (the document/document document))))) (replacement-of operation)))
+                                 (operation/number/replace-range
+                                  (make-operation/number/replace-range printer-input (append (target-of operation) `((the ,(form-type (content-of printer-input)) (content-of (the document/document document))))) (replacement-of operation)))
                                  (operation/replace-target
                                   (make-operation/replace-target printer-input (append (target-of operation) `((the ,(form-type (content-of printer-input)) (content-of (the document/document document))))) (replacement-of operation)))
+                                 (operation/focusing/replace-part
+                                  operation)
                                  (operation/show-context-sensitive-help
                                   (make-instance 'operation/show-context-sensitive-help
                                                  :commands (iter (for command :in (commands-of operation))
@@ -145,7 +149,7 @@
   (bind ((printer-input (input-of printer-iomap)))
     (merge-commands (gesture-case (gesture-of input)
                       ((gesture/keyboard/key-press :sdl-key-insert)
-                       :domain "Document" :help "Starts an object insertion"
+                       :domain "Document" :description "Starts an object insertion"
                        :operation (make-operation/compound (list (make-operation/replace-target printer-input nil (document/insertion))
                                                                  (make-operation/replace-selection printer-input `((the string (subseq (the string document) 0 0))
                                                                                                                    (the string (value-of (the document/insertion document)))))))))
@@ -183,7 +187,7 @@
   (bind ((printer-input (input-of printer-iomap)))
     (merge-commands (gesture-case (gesture-of input)
                       ((gesture/keyboard/key-press :sdl-key-tab)
-                       :domain "Document" :help "Inserts the suggested completion at the selection"
+                       :domain "Document" :description "Inserts the suggested completion at the selection"
                        :operation (bind (((:values nil completion) (funcall (factory-of projection) (value-of printer-input)))
                                          (end (length (value-of printer-input))))
                                     (values (when completion
@@ -191,16 +195,17 @@
                                                                                                              (the string (value-of (the document/insertion document)))) completion))
                                             #t)))
                       ((gesture/keyboard/key-press :sdl-key-return)
-                       :domain "Document" :help "Inserts a new object of the provided type"
+                       :domain "Document" :description "Inserts a new object of the provided type"
                        :operation (bind (((:values immediate-new-instance completion) (funcall (factory-of projection) (value-of printer-input)))
                                          (new-instance (or immediate-new-instance
                                                            (funcall (factory-of projection) (string+ (value-of printer-input) completion)))))
                                     (values (when new-instance
                                               (make-operation/compound (list (make-operation/replace-target printer-input nil new-instance)
+                                                                             #+nil ;; TODO: causes the initial selection to fail
                                                                              (make-operation/replace-selection printer-input nil))))
                                             #t)))
                       ((gesture/keyboard/key-press :sdl-key-escape)
-                       :domain "Document" :help "Aborts the object insertion"
+                       :domain "Document" :description "Aborts the object insertion"
                        :operation (make-operation/replace-target printer-input nil (document/nothing))))
                     (make-command (gesture-of input)
                                   (labels ((recurse (operation)
@@ -262,22 +267,26 @@
   (bind ((printer-input (input-of printer-iomap)))
     (merge-commands (gesture-case (gesture-of input)
                       ((gesture/keyboard/key-press :sdl-key-c :control)
-                       :domain "Document" :help "Copies selected object"
+                       :domain "Document" :description "Copies the selected object to the clipboard"
                        :operation (bind ((slice (deep-copy (eval-reference printer-input (reference/flatten (reverse (selection-of printer-input)))))))
                                     (make-operation/replace-target printer-input `((the ,(form-type slice) (slice-of (the document/clipboard document)))) slice)))
                       ((gesture/keyboard/key-press :sdl-key-x :control)
-                       :domain "Document" :help "Cuts selected object"
+                       :domain "Document" :description "Cuts the selected object and moves it to the clipboard"
                        :operation (bind ((slice (eval-reference printer-input (reference/flatten (reverse (selection-of printer-input))))))
                                     (make-operation/compound (list (make-operation/replace-target printer-input `((the ,(form-type slice) (slice-of (the document/clipboard document)))) slice)
                                                                    (make-operation/replace-target printer-input (selection-of printer-input) (document/nothing))))))
                       ((gesture/keyboard/key-press :sdl-key-n :control)
-                       :domain "Document" :help "Notes selected object"
+                       :domain "Document" :description "Notes selected object into the clipboard"
                        :operation (bind ((slice (eval-reference printer-input (reference/flatten (reverse (selection-of printer-input))))))
                                     (make-operation/replace-target printer-input `((the ,(form-type slice) (slice-of (the document/clipboard document)))) slice)))
                       ((gesture/keyboard/key-press :sdl-key-v :control)
-                       :domain "Document" :help "Pastes object from clipboard into selection"
+                       :domain "Document" :description "Pastes the object from the clipboard to the selection"
                        :operation (when (slice-of printer-input)
-                                    (make-operation/replace-target printer-input (selection-of printer-input) (slice-of printer-input)))))
+                                    (make-operation/replace-target printer-input (selection-of printer-input) (slice-of printer-input))))
+                      ((gesture/keyboard/key-press :sdl-key-v '(:shift :control))
+                       :domain "Document" :description "Pastes a new copy of the object from the clipboard to the selection"
+                       :operation (when (slice-of printer-input)
+                                    (make-operation/replace-target printer-input (selection-of printer-input) (deep-copy (slice-of printer-input))))))
                     (labels ((recurse (operation)
                                (typecase operation
                                  (operation/quit operation)
@@ -285,8 +294,12 @@
                                   (make-operation/replace-selection printer-input (append (selection-of operation) `((the ,(form-type (content-of printer-input)) (content-of (the document/document document)))))))
                                  (operation/sequence/replace-element-range
                                   (make-operation/sequence/replace-element-range printer-input (append (target-of operation) `((the ,(form-type (content-of printer-input)) (content-of (the document/document document))))) (replacement-of operation)))
+                                 (operation/number/replace-range
+                                  (make-operation/number/replace-range printer-input (append (target-of operation) `((the ,(form-type (content-of printer-input)) (content-of (the document/document document))))) (replacement-of operation)))
                                  (operation/replace-target
                                   (make-operation/replace-target printer-input (append (target-of operation) `((the ,(form-type (content-of printer-input)) (content-of (the document/document document))))) (replacement-of operation)))
+                                 (operation/focusing/replace-part
+                                  operation)
                                  (operation/show-context-sensitive-help
                                   (make-instance 'operation/show-context-sensitive-help
                                                  :commands (iter (for command :in (commands-of operation))

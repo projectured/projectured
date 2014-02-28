@@ -53,6 +53,7 @@
     (number 'number)
     (string 'string)
     (vector 'vector)
+    (sequence/sequence 'sequence)
     (t (type-of form))))
 
 (def (function e) boolean-to-string (value)

@@ -9,17 +9,11 @@
 ;;;;;;
 ;;; Projection
 
-(def class* environment ()
-  ((bindings)))
-
 (def projection evaluator ()
   ())
 
 ;;;;;;
 ;;; Construction
-
-(def (function e) make-environment (bindings)
-  (make-instance 'environment :bindings bindings))
 
 (def (function e) make-projection/evaluator ()
   (make-projection 'evaluator))
@@ -34,15 +28,12 @@
 ;;; Printer
 
 (def printer evaluator (projection recursion input input-reference)
-  (bind ((output (labels ((evaluate (environment form)
-                            (etypecase form
-                              (common-lisp/constant (value-of form))
-                              (common-lisp/application
-                               (bind ((operator (operator-of form))
-                                      (arguments (iter (for argument :in (arguments-of form))
-                                                       (collect (evaluate environment argument)))))
-                                 (apply operator arguments))))))
-                   (evaluate (make-environment nil) input))))
+  (bind ((form (printer-output input (make-projection/t->form)))
+         (output (block nil
+                   (handler-bind ((condition (lambda (c)
+                                               (unless (typep c 'warning)
+                                                 (return (princ-to-string c))))))
+                     (multiple-value-list (eval form))))))
     (make-iomap/object projection recursion input input-reference output)))
 
 ;;;;;;

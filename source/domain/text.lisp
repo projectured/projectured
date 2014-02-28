@@ -415,56 +415,57 @@
 (def (function e) text/read-operation (text gesture)
   (or (gesture-case gesture
         ((gesture/keyboard/key-press :sdl-key-left)
-         :domain "Text" :help "Moves the selection one character to the left"
+         :domain "Text" :description "Moves the selection one character to the left"
          :operation (text/read-operation/replace-selection text :sdl-key-left))
         ((gesture/keyboard/key-press :sdl-key-right)
-         :domain "Text" :help "Moves the selection one character to the right"
+         :domain "Text" :description "Moves the selection one character to the right"
          :operation (text/read-operation/replace-selection text :sdl-key-right))
         ((gesture/keyboard/key-press :sdl-key-left :control)
-         :domain "Text" :help "Moves the selection one word to the left"
+         :domain "Text" :description "Moves the selection one word to the left"
          :operation (text/read-operation/replace-selection text :sdl-key-left :control))
         ((gesture/keyboard/key-press :sdl-key-right :control)
-         :domain "Text" :help "Moves the selection one word to the right"
+         :domain "Text" :description "Moves the selection one word to the right"
          :operation (text/read-operation/replace-selection text :sdl-key-right :control))
         ((gesture/keyboard/key-press :sdl-key-up)
-         :domain "Text" :help "Moves the selection one line up"
+         :domain "Text" :description "Moves the selection one line up"
          :operation (text/read-operation/replace-selection text :sdl-key-up))
         ((gesture/keyboard/key-press :sdl-key-down)
-         :domain "Text" :help "Moves the selection one line down"
+         :domain "Text" :description "Moves the selection one line down"
          :operation (text/read-operation/replace-selection text :sdl-key-down))
         ((gesture/keyboard/key-press :sdl-key-pageup)
-         :domain "Text" :help "Moves the selection one page up"
+         :domain "Text" :description "Moves the selection one page up"
          :operation (text/read-operation/replace-selection text :sdl-key-pageup))
         ((gesture/keyboard/key-press :sdl-key-pagedown)
-         :domain "Text" :help "Moves the selection one page down"
+         :domain "Text" :description "Moves the selection one page down"
          :operation (text/read-operation/replace-selection text :sdl-key-pagedown))
         ((gesture/keyboard/key-press :sdl-key-home)
-         :domain "Text" :help "Moves the selection to the beginning of the line"
+         :domain "Text" :description "Moves the selection to the beginning of the line"
          :operation (text/read-operation/replace-selection text :sdl-key-home))
         ((gesture/keyboard/key-press :sdl-key-end)
-         :domain "Text" :help "Moves the selection to the end of the line"
+         :domain "Text" :description "Moves the selection to the end of the line"
          :operation (text/read-operation/replace-selection text :sdl-key-end))
         ((gesture/keyboard/key-press :sdl-key-home :control)
-         :domain "Text" :help "Moves the selection to the beginning of the text"
+         :domain "Text" :description "Moves the selection to the beginning of the text"
          :operation (text/read-operation/replace-selection text :sdl-key-home :control))
         ((gesture/keyboard/key-press :sdl-key-end :control)
-         :domain "Text" :help "Moves the selection to the end of the text"
+         :domain "Text" :description "Moves the selection to the end of the text"
          :operation (text/read-operation/replace-selection text :sdl-key-end :control))
         ((gesture/keyboard/key-press :sdl-key-delete)
-         :domain "Text" :help "Deletes the character following the selection"
+         :domain "Text" :description "Deletes the character following the selection"
          :operation (pattern-case (selection-of text)
-                      (((the string (subseq (the string document) ?b ?b)))
-                       (when (< ?b (text/length text))
-                         (make-operation/sequence/replace-element-range text `((the string (subseq (the string document) ,?b ,(1+ ?b)))) "")))
                       (((the text/text (text/subseq (the text/text document) ?b ?b)))
                        (when (< ?b (text/length text))
                          (make-operation/sequence/replace-element-range text `((the text/text (text/subseq (the text/text document) ,?b ,(1+ ?b)))) "")))))
-        ((gesture/keyboard/key-press :sdl-key-backspace)
-         :domain "Text" :help "Deletes the character preceding the selection"
+        ((gesture/keyboard/key-press :sdl-key-delete :control)
+         :domain "Text" :description "Deletes the word following the selection"
          :operation (pattern-case (selection-of text)
-                      (((the string (subseq (the string document) ?b ?b)))
-                       (when (> ?b 0)
-                         (make-operation/sequence/replace-element-range text `((the string (subseq (the string document) ,(1- ?b) ,?b))) "")))
+                      (((the text/text (text/subseq (the text/text document) ?b ?b)))
+                       (bind (((:values element-index character-index) (text/find text (text/element-index text ?b) (text/character-index text ?b) 'whitespace?)))
+                         (when-bind index (text/index text element-index character-index)
+                           (make-operation/sequence/replace-element-range text `((the text/text (text/subseq (the text/text document) ,?b ,index))) ""))))))
+        ((gesture/keyboard/key-press :sdl-key-backspace)
+         :domain "Text" :description "Deletes the character preceding the selection"
+         :operation (pattern-case (selection-of text)
                       (((the text/text (text/subseq (the text/text document) ?b ?b)))
                        (when (> ?b 0)
                          (make-operation/sequence/replace-element-range text `((the text/text (text/subseq (the text/text document) ,(1- ?b) ,?b))) ""))))))
@@ -479,16 +480,6 @@
                                         (string #\NewLine))
                                        (t (string character)))))
                (pattern-case (selection-of text)
-                 (((the sequence (subseq (the string (write-to-string (the number ?a))) ?b ?b)))
-                  (make-command gesture
-                                (make-operation/number/replace-range text (selection-of text) replacement)
-                                :domain "Text"
-                                :description "Inserts a new character at the selection"))
-                 (((the sequence (subseq (the string ?a) ?b ?b)))
-                  (make-command gesture
-                                (make-operation/sequence/replace-element-range text (selection-of text) replacement)
-                                :domain "Text"
-                                :description "Inserts a new character at the selection"))
                  (((the text/text (text/subseq (the text/text document) ?b ?b)) . ?rest)
                   (make-command gesture
                                 (make-operation/sequence/replace-element-range text (selection-of text) replacement)

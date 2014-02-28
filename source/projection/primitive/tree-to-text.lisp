@@ -117,21 +117,12 @@
          (child-indentations nil)
          (child-first-character-indices nil)
          (child-last-character-indices nil)
-         (output (text/text ()))
-         (line-index nil)
-         (string-position 0)
-         (line-position 0))
+         (output (text/text ())))
     (labels ((next-line (indentation)
-               (when line-index
-                 (text/push output (text/text () (text/newline)))
-                 (setf line-position string-position))
                (bind ((indentation-string (make-string-of-spaces indentation))
                       (indentation-text (text/text () (text/string indentation-string :font *font/default* :font-color *color/default*))))
                  (unless (string= indentation-string "")
-                   (text/push output indentation-text)))
-               (if line-index
-                   (incf line-index)
-                   (setf line-index 0))))
+                   (text/push output indentation-text)))))
       (next-line 0)
       (when input
         (awhen (opening-delimiter-of input)
@@ -147,12 +138,14 @@
                 (awhen (separator-of input)
                   (text/push output it)))
               (when indentation
+                (text/push output (text/text () (text/newline)))
                 (next-line indentation))
               (bind ((child-iomap (recurse-printer recursion child
                                                    `((elt (the sequence document) ,index)
                                                      (the sequence (children-of (the tree/node document)))
                                                      ,@(typed-reference (form-type input) input-reference))))
-                     (child-indentation (or (indentation-of child) 0))
+                     ;; KLUDGE: replace with text API to avoid this slowness
+                     (child-indentation (or indentation (position #\NewLine (text/as-string output) :from-end #t) (text/length output)))
                      (content (output-of child-iomap)))
                 (push child-iomap child-iomaps)
                 (push child-indentation child-indentations)
@@ -170,7 +163,6 @@
             (text/push output (text/text () (text/string " ..." :font (font-of last-element) :font-color (font-color-of last-element))))))
         (awhen (closing-delimiter-of input)
           (text/push output it)))
-      (setf line-index nil)
       (next-line 0))
     ;; TODO: move iomap to return value, make more functional style
     (bind ((iomap (make-iomap 'iomap/tree/node->text/text
@@ -361,7 +353,7 @@
     (merge-commands (tree/leaf->text/text/read-backward printer-iomap content-command)
                     (gesture-case (gesture-of input)
                       ((gesture/keyboard/key-press :sdl-key-space :control)
-                       :domain "Tree" :help "Turn the selection into a text selection"
+                       :domain "Tree" :description "Turn the selection into a text selection"
                        :operation (when tree-selection?
                                     (make-operation/replace-selection printer-input (if (opening-delimiter-of printer-input)
                                                                                         `((the text/text (text/subseq (the text/text document) 0 0))
@@ -369,11 +361,11 @@
                                                                                         `((the text/text (text/subseq (the text/text document) 0 0))
                                                                                           (the text/text (content-of (the tree/leaf document))))))))
                       ((gesture/keyboard/key-press :sdl-key-space :control)
-                       :domain "Tree" :help "Turn the selection into a tree selection"
+                       :domain "Tree" :description "Turn the selection into a tree selection"
                        :operation (when text-selection?
                                     (make-operation/replace-selection printer-input '((the tree/leaf document)))))
                       ((gesture/keyboard/key-press :sdl-key-home :alt)
-                       :domain "Tree" :help "Moves the selection to the root node"
+                       :domain "Tree" :description "Moves the selection to the root node"
                        :operation (bind ((new-selection `((the tree/leaf document))))
                                     (unless (equal new-selection selection)
                                       (make-operation/replace-selection printer-input new-selection)))))
@@ -508,7 +500,7 @@
          (tree-selection? (tree-reference? selection)))
     (merge-commands (gesture-case (gesture-of input)
                       ((gesture/keyboard/key-press :sdl-key-space :control)
-                       :domain "Tree" :help "Turn the selection into a text position selection"
+                       :domain "Tree" :description "Turn the selection into a text position selection"
                        :operation (when tree-selection?
                                     (when-bind node-reference (find-tree-node-reference selection)
                                       (bind ((node (eval-reference printer-input (reference/flatten (reverse node-reference)))))
@@ -516,26 +508,26 @@
                                                                                           (the text/text (,(if (opening-delimiter-of node) 'opening-delimiter-of 'content-of) (the ,(form-type node) document)))
                                                                                           ,@(rest selection)))))))
                       ((gesture/keyboard/key-press :sdl-key-space :control)
-                       :domain "Tree" :help "Turn the selection into a tree node selection"
+                       :domain "Tree" :description "Turn the selection into a tree node selection"
                        :operation (when text-selection?
                                     (when-bind node-reference (find-tree-node-reference selection)
                                       (bind ((node (eval-reference printer-input (reference/flatten (reverse node-reference)))))
                                         (make-operation/replace-selection printer-input `((the ,(form-type node) document) ,@node-reference))))))
                       ((gesture/keyboard/key-press :sdl-key-tab :control)
-                       :domain "Tree" :help "Expands or collapses the selected ndoe"
+                       :domain "Tree" :description "Expands or collapses the selected ndoe"
                        :operation (awhen (find-tree-node-parent-reference (find-tree-node-reference selection))
                                     (make-operation/tree/toggle-expanded printer-input it)))
                       ((gesture/keyboard/key-press :sdl-key-home :alt)
-                       :domain "Tree" :help "Moves the selection to the root node"
+                       :domain "Tree" :description "Moves the selection to the root node"
                        :operation (bind ((new-selection '((the tree/node document))))
                                     (unless (equal new-selection (selection-of printer-input))
                                       (make-operation/replace-selection printer-input new-selection))))
                       ((gesture/keyboard/key-press :sdl-key-up)
-                       :domain "Tree" :help "Moves the selection to the parent node"
+                       :domain "Tree" :description "Moves the selection to the parent node"
                        :operation (when tree-selection?
                                     (make-operation/replace-selection printer-input `((the tree/node document) ,@(find-tree-node-parent-reference (find-tree-node-reference selection))))))
                       ((gesture/keyboard/key-press :sdl-key-down)
-                       :domain "Tree" :help "Moves the selection to the first child node"
+                       :domain "Tree" :description "Moves the selection to the first child node"
                        :operation (when tree-selection?
                                     (when-bind node-reference (find-tree-node-reference selection)
                                       (bind ((node (eval-reference printer-input (reference/flatten (reverse node-reference)))))
@@ -547,7 +539,7 @@
                                                                                               (the sequence (children-of (the tree/node document)))
                                                                                               ,@(rest node-reference)))))))))
                       ((gesture/keyboard/key-press :sdl-key-home)
-                       :domain "Tree" :help "Moves the selection to the first sibling node"
+                       :domain "Tree" :description "Moves the selection to the first sibling node"
                        :operation (when tree-selection?
                                     (when-bind node-reference (find-tree-node-reference selection)
                                       (pattern-case node-reference
@@ -562,7 +554,7 @@
                                                                                              (the sequence (children-of (the tree/node document)))
                                                                                              ,@?rest))))))))
                       ((gesture/keyboard/key-press :sdl-key-end)
-                       :domain "Tree" :help "Moves the selection to the last sibling node"
+                       :domain "Tree" :description "Moves the selection to the last sibling node"
                        :operation (when tree-selection?
                                     (when-bind node-reference (find-tree-node-reference selection)
                                       (pattern-case node-reference
@@ -578,7 +570,7 @@
                                                                                                (the sequence (children-of (the tree/node document)))
                                                                                                ,@?rest)))))))))
                       ((gesture/keyboard/key-press :sdl-key-left)
-                       :domain "Tree" :help "Moves the selection to the preceding sibling node"
+                       :domain "Tree" :description "Moves the selection to the preceding sibling node"
                        :operation (when tree-selection?
                                     (when-bind node-reference (find-tree-node-reference selection)
                                       (pattern-case node-reference
@@ -594,7 +586,7 @@
                                                                                                (the sequence (children-of (the tree/node document)))
                                                                                                ,@?rest)))))))))
                       ((gesture/keyboard/key-press :sdl-key-right)
-                       :domain "Tree" :help "Moves the selection to the following sibling node"
+                       :domain "Tree" :description "Moves the selection to the following sibling node"
                        :operation (when tree-selection?
                                     (when-bind node-reference (find-tree-node-reference selection)
                                       (pattern-case node-reference
@@ -610,14 +602,14 @@
                                                                                                  (the sequence (children-of (the tree/node document)))
                                                                                                  ,@?rest))))))))))
                       ((gesture/keyboard/key-press :sdl-key-up :alt)
-                       :domain "Tree" :help "Moves the selection to the first character of the parent node"
+                       :domain "Tree" :description "Moves the selection to the first character of the parent node"
                        :operation (when text-selection?
                                     (when-bind node-reference (find-tree-node-parent-reference (find-tree-node-reference selection))
                                       (make-operation/replace-selection printer-input `((the text/text (text/subseq (the text/text document) 0 0))
                                                                                         (the text/text (opening-delimiter-of (the tree/node document)))
                                                                                         ,@node-reference)))))
                       ((gesture/keyboard/key-press :sdl-key-down :alt)
-                       :domain "Tree" :help "Moves the selection to the first character of the first child node"
+                       :domain "Tree" :description "Moves the selection to the first character of the first child node"
                        :operation (when text-selection?
                                     (when-bind node-reference (find-tree-node-reference selection)
                                       (bind ((node (eval-reference printer-input (reference/flatten (reverse node-reference)))))
@@ -637,7 +629,7 @@
                                                                                              (the sequence (children-of (the tree/node document)))
                                                                                              ,@node-reference))))))))))
                       ((gesture/keyboard/key-press :sdl-key-left :alt)
-                       :domain "Tree" :help "Moves the selection to the first character of the preceding sibling node"
+                       :domain "Tree" :description "Moves the selection to the first character of the preceding sibling node"
                        :operation (when text-selection?
                                     #+nil
                                     (when-bind node-reference (find-tree-node-reference selection)
@@ -651,7 +643,7 @@
                                                                                  (tree/leaf `(the text/text (text/subseq (the text/text (content-of (the ,type (elt (the sequence (children-of (the tree/node ,?a))) ,(1- ?b))))) 0 0)))
                                                                                  (tree/node `(the text/text (text/subseq (the text/text (opening-delimiter-of (the ,type (elt (the sequence (children-of (the tree/node ,?a))) ,(1- ?b))))) 0 0))))))))))))
                       ((gesture/keyboard/key-press :sdl-key-right :alt)
-                       :domain "Tree" :help "Moves the selection to the first character of the following sibling node"
+                       :domain "Tree" :description "Moves the selection to the first character of the following sibling node"
                        :operation (when text-selection?
                                     #+nil
                                     (when-bind node-reference (find-tree-node-reference selection)
@@ -666,7 +658,7 @@
                                                                                    (tree/node `(the text/text (text/subseq (the text/text (opening-delimiter-of (the ,type (elt (the sequence (children-of (the tree/node ,?a))) ,(1+ ?b))))) 0 0)))))))))))))
                       #+nil
                       ((gesture/keyboard/key-press :sdl-key-delete)
-                       :domain "Tree" :help "Deletes the tree node"
+                       :domain "Tree" :description "Deletes the tree node"
                        :operation (when tree-selection?
                                     ;; TODO:
                                     (make-operation/replace input nil (document/nothing)))))

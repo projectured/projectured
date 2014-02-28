@@ -300,17 +300,17 @@
     #+nil
     (merge-commands (gesture-case latest-gesture
                       ((gesture/keyboard/key-press :sdl-key-space :control)
-                       :domain "Table" :help "Turn the selection into a text selection"
+                       :domain "Table" :description "Turn the selection into a text selection"
                        :operation (when cell-selection?
                                     (make-operation/replace-selection input `((the text/text (text/subseq (the text/text document) 0 0))
                                                                               (the text/text (content-of (the table/cell document)))
                                                                               ,@selection))))
                       ((gesture/keyboard/key-press :sdl-key-space :control)
-                       :domain "Table" :help "Turn the selection into a table cell selection"
+                       :domain "Table" :description "Turn the selection into a table cell selection"
                        :operation (when text-selection?
                                     (make-operation/replace-selection input (find-table-cell-reference selection))))
                       ((gesture/keyboard/key-press :sdl-key-home :alt)
-                       :domain "Table" :help "Moves the selection to the first cell of the first row"
+                       :domain "Table" :description "Moves the selection to the first cell of the first row"
                        :operation (bind ((new-selection '((the table/cell (elt (the sequence document) 0))
                                                           (the sequence (cells-of (the table/row document)))
                                                           (the table/row (elt (the sequence document) 0))
@@ -318,18 +318,18 @@
                                     (unless (equal new-selection selection)
                                       (make-operation/replace-selection input new-selection))))
                       ((gesture/keyboard/key-press :sdl-key-up)
-                       :domain "Table" :help "Moves the selection one cell up"
+                       :domain "Table" :description "Moves the selection one cell up"
                        :operation (when cell-selection?
                                     (make-operation/replace-selection/move-cell input selection -1 0)))
                       ((gesture/keyboard/key-press :sdl-key-down)
-                       :domain "Table" :help "Moves the selection one cell down"
+                       :domain "Table" :description "Moves the selection one cell down"
                        :operation (when cell-selection?
                                     (make-operation/replace-selection/move-cell input selection 1 0)))
                       ((gesture/keyboard/key-press :sdl-key-left)
-                       :domain "Table" :help "Moves the selection one cell left"
+                       :domain "Table" :description "Moves the selection one cell left"
                        :operation (when cell-selection?
                                     (make-operation/replace-selection/move-cell input selection 0 -1)))
                       ((gesture/keyboard/key-press :sdl-key-right)
-                       :domain "Table" :help "Moves the selection one cell right"
+                       :domain "Table" :description "Moves the selection one cell right"
                        :operation (when cell-selection?
                                     (make-operation/replace-selection/move-cell input selection 0 1)))))))

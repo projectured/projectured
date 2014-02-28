@@ -119,19 +119,19 @@
 (def function document/read-operation (document gesture)
   (gesture-case gesture
     ((gesture/keyboard/key-press :sdl-key-s :control)
-     :domain "Document" :help "Saves the currently edited document to '/tmp/document.pred'"
+     :domain "Document" :description "Saves the currently edited document to '/tmp/document.pred'"
      :operation (make-operation/save-document document))
     ((gesture/keyboard/key-press :sdl-key-l :control)
-     :domain "Document" :help "Loads a previously saved document from '/tmp/document.pred'"
+     :domain "Document" :description "Loads a previously saved document from '/tmp/document.pred'"
      :operation (make-operation/load-document document))
     ((gesture/keyboard/key-press :sdl-key-e :control)
-     :domain "Document" :help "Exports the currently edited document to '/tmp/document.txt'"
+     :domain "Document" :description "Exports the currently edited document to '/tmp/document.txt'"
      :operation (make-operation/export-document document))
     ((gesture/keyboard/key-press :sdl-key-escape)
-     :domain "Document" :help "Quits from the editor"
+     :domain "Document" :description "Quits from the editor"
      :operation (make-operation/quit))
     ((make-instance 'gesture/window/quit :modifiers nil)
-     :domain "Document" :help "Quits from the editor"
+     :domain "Document" :description "Quits from the editor"
      :operation (make-operation/quit))))
 
 ;;;;;;
@@ -150,16 +150,32 @@
 (def method redo-operation ((operation operation/replace-content))
   (setf (content-of (document-of operation)) (content-of operation)))
 
-(def method redo-operation ((operation operation/replace-selection))
-  (bind ((document (document-of operation))
-         (selection (selection-of operation)))
-    (labels ((recurse (document selection)
+(def function remove-selection (document selection)
+  (labels ((recurse (document selection)
                (when (typep document 'selection/base)
-                 (setf (selection-of document) (reverse selection)))
+                 (setf (selection-of document) nil))
                (when (rest selection)
                  (recurse (eval-reference document (first selection)) (rest selection)))))
-      (recurse document (reverse selection)))
-    (editor.debug "Selection of ~A is set to ~A" document selection)))
+      ;; KLUDGE: this clears the old selection but the document may have changed meanwhile causing errors
+      ;; KLUDGE: this kind of problem would be solved by putting only the relevant parts of the selection to the documents
+      (ignore-errors
+        (recurse document (reverse selection)))))
+
+(def function set-selection (document selection)
+  (labels ((recurse (document selection)
+             (when (typep document 'selection/base)
+               (setf (selection-of document) (reverse selection)))
+             (when (rest selection)
+               (recurse (eval-reference document (first selection)) (rest selection)))))
+    (recurse document (reverse selection))))
+
+(def method redo-operation ((operation operation/replace-selection))
+  (bind ((document (document-of operation))
+         (old-selection (selection-of document))
+         (new-selection (selection-of operation)))
+    (remove-selection document old-selection)
+    (set-selection document new-selection)
+    (editor.debug "Selection of ~A is set to ~A" document new-selection)))
 
 (def method redo-operation ((operation operation/replace-target))
   (setf (eval-reference (document-of operation) (reference/flatten (reverse (target-of operation)))) (replacement-of operation)))

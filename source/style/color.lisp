@@ -1140,3 +1140,13 @@
 
 (def (function e) color/darken (color ratio)
   (color/iterpolate color *color/black* ratio))
+
+(def (function e) color/lighten/selection (color selection &optional (default-color color))
+  (if selection
+      (color/lighten color (/ (max 0 (min 6 (- (length selection) 4))) 6))
+      default-color))
+
+(def (function e) color/darken/selection (color selection &optional (default-color color))
+  (if selection
+      (color/darken color (- 1 (/ (max 0 (min 6 (- (length selection) 4))) 6)))
+      default-color))

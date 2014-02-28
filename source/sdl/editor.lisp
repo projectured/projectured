@@ -27,7 +27,7 @@
 ;;;;;;
 ;;; Construction
 
-(def method make-editor (&key (width 1024) (height 768) (filename #P"/tmp/projectured.bmp"))
+(def method make-editor (&key (width 1280) (height 720) (filename #P"/tmp/projectured.bmp"))
   (declare (ignorable filename))
   (make-instance 'editor/sdl
                  :devices (list (make-instance 'device/mouse)
