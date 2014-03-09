@@ -73,7 +73,11 @@ If everything went fine, then you should see a window presenting a json test doc
 
 # Collaboration #
 
-It's an unfunded opensource project, under much slower development than we would like it to be. If you want to help us, either financially or with your patches, then feel free to get in touch at [projectured@gmail.com](mailto:projectured@gmail.com).
+It's an unfunded opensource project, under much slower development than we would like it to be. If you want to help us, either financially or with your patches, then feel free to get in touch at [projectured@gmail.com](mailto:projectured@gmail.com) or the [google group](http://groups.google.com/d/forum/projectured).
+
+### Donation ###
+
+You may want to donate to help this project by sending bitcoins (BTC) to 15XjRQUnSy8U7j2EFZyGFAi2KFnDnTEwqZ
 
 ### Wiki ###
 
