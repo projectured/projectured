@@ -29,11 +29,11 @@
 
 (def printer inliner (projection recursion input input-reference)
   (bind ((operator (operator-of input))
-         (output (if (typep operator 'common-lisp/function-definition)
+         (output (if (typep operator 'common-lisp/function-reference)
                      (make-common-lisp/let (iter (for argument :in (arguments-of input))
-                                                 (for binding :in (bindings-of operator))
+                                                 (for binding :in (bindings-of (function-of operator)))
                                                  (collect (make-common-lisp/lexical-variable-binding (name-of binding) argument)))
-                                           (body-of operator))
+                                           (body-of (function-of operator)))
                      (make-common-lisp/application operator
                                                    (iter (for index :from 0)
                                                          (for argument :in (arguments-of input))

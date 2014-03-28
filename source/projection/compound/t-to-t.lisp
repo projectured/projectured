@@ -9,14 +9,16 @@
 ;;;;;;
 ;;; Widget
 
-(def (function e) make-projection/document->text (factory)
+(def (function e) make-projection/document->t (factory)
   (type-dispatching
-    (document/document (document/document->text/text))
-    (document/nothing (document/nothing->text/text))
-    (document/insertion (document/insertion->text/text factory))))
+    (document/document (document/document->t))
+    (document/nothing (document/nothing->tree/leaf))
+    (document/insertion (document/insertion->tree/leaf factory))
+    (document/search (document/search->tree/node nil))
+    (document/clipboard (document/clipboard->t))))
 
-(def (macro e) document->text (factory)
-  `(make-projection/document->text ,factory))
+(def (macro e) document->t (factory)
+  `(make-projection/document->t ,factory))
 
 ;;;;;;
 ;;; Widget
@@ -196,10 +198,10 @@
     (java/literal/number (make-projection/java/literal/number->string))
     (java/literal/character (make-projection/java/literal/character->string))
     (java/literal/string (make-projection/java/literal/string->string))
-    (java/declaration/method (make-projection/java/declaration/method->tree/node))
-    (java/declaration/argument (make-projection/java/declaration/argument->tree/node))
-    (java/declaration/qualifier (make-projection/java/declaration/qualifier->string))
-    (java/declaration/type (make-projection/java/declaration/type->string))))
+    (java/definition/method (make-projection/java/definition/method->tree/node))
+    (java/definition/argument (make-projection/java/definition/argument->tree/node))
+    (java/definition/qualifier (make-projection/java/definition/qualifier->string))
+    (java/definition/type (make-projection/java/definition/type->string))))
 
 (def (macro e) java->tree ()
   '(make-projection/java->tree))
@@ -216,8 +218,8 @@
     (javascript/expression/constructor-invocation (make-projection/javascript/expression/constructor-invocation->tree/node))
     (javascript/expression/method-invocation (make-projection/javascript/expression/method-invocation->tree/node))
     (javascript/literal/string (make-projection/javascript/literal/string->tree/leaf))
-    (javascript/declaration/variable (make-projection/javascript/declaration/variable->tree/node))
-    (javascript/declaration/function (make-projection/javascript/declaration/function->tree/node))))
+    (javascript/definition/variable (make-projection/javascript/definition/variable->tree/node))
+    (javascript/definition/function (make-projection/javascript/definition/function->tree/node))))
 
 (def (macro e) javascript->tree ()
   '(make-projection/javascript->tree))

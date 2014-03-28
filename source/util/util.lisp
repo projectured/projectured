@@ -85,6 +85,36 @@
                (collect (tree-replace tree-element element replacement))))
         (t tree)))
 
+(def (function e) char=ignorecase (c1 c2)
+  (char= (char-downcase c1) (char-downcase c2)))
+
+(def (function e) search-ignorecase (sequence1 sequence2)
+  (search sequence1 sequence2 :test 'char=ignorecase))
+
+(def (function e) search-parts (root test &key (slot-provider (compose 'class-slots 'class-of)))
+  (bind ((seen-set (make-hash-table))
+         (result nil))
+    (labels ((recurse (instance reference)
+               (unless (gethash instance seen-set)
+                 (setf (gethash instance seen-set) #t)
+                 (when (funcall test instance)
+                   (push (typed-reference (form-type instance) reference) result))
+                 (typecase instance
+                   (sequence
+                    (iter (for index :from 0)
+                          (for element :in-sequence instance)
+                          (recurse element `((elt (the sequence document) ,index)
+                                             ,@(typed-reference (form-type instance) reference)))))
+                   (standard-object
+                    (iter (with class = (class-of instance))
+                          (for slot :in (funcall slot-provider instance))
+                          (for slot-value = (slot-value-using-class class instance slot))
+                          (for slot-reader = (find-slot-reader class slot))
+                          (recurse slot-value `((,slot-reader (the ,(form-type instance) document))
+                                                ,@(typed-reference (form-type instance) reference)))))))))
+      (recurse root nil))
+    (nreverse result)))
+
 (def (function e) longest-common-prefix (string-1 string-2)
   (iter (for index :from 0)
         (while (and (< index (length string-1))

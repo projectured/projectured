@@ -31,6 +31,9 @@
   ((elements :type sequence))
   (:documentation "A sequence of operations carried out in the order they appear in elements."))
 
+(def operation operation/functional (operation)
+  ((thunk :type function)))
+
 (def operation operation/quit (operation)
   ()
   (:documentation "An operation that quits the editor."))
@@ -84,6 +87,9 @@
 
 (def (function e) make-operation/compound (elements)
   (make-instance 'operation/compound :elements elements))
+
+(def (function e) make-operation/functional (thunk)
+  (make-instance 'operation/functional :thunk thunk))
 
 (def (function e) make-operation/quit ()
   (make-instance 'operation/quit))
@@ -141,6 +147,9 @@
   (iter (for element :in-sequence (elements-of operation))
         (redo-operation element)))
 
+(def method redo-operation ((operation operation/functional))
+  (funcall (thunk-of operation)))
+
 (def method redo-operation ((operation operation/quit))
   (throw :quit-editor nil))
 
@@ -152,7 +161,7 @@
 
 (def function remove-selection (document selection)
   (labels ((recurse (document selection)
-               (when (typep document 'selection/base)
+               (when (typep document 'document)
                  (setf (selection-of document) nil))
                (when (rest selection)
                  (recurse (eval-reference document (first selection)) (rest selection)))))
@@ -163,7 +172,7 @@
 
 (def function set-selection (document selection)
   (labels ((recurse (document selection)
-             (when (typep document 'selection/base)
+             (when (typep document 'document)
                (setf (selection-of document) (reverse selection)))
              (when (rest selection)
                (recurse (eval-reference document (first selection)) (rest selection)))))

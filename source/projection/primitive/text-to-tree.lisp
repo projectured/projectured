@@ -45,6 +45,7 @@
     (merge-commands (awhen (labels ((recurse (operation)
                                       (typecase operation
                                         (operation/quit operation)
+                                        (operation/functional operation)
                                         (operation/replace-selection
                                          (make-operation/replace-selection printer-input
                                                                            (pattern-case (selection-of operation)

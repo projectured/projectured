@@ -27,7 +27,7 @@
 ;;;;;;
 ;;; IO map
 
-(def iomap iomap/copying (iomap)
+(def iomap iomap/copying ()
   ((slot-value-iomaps :type sequence)))
 
 ;;;;;;
@@ -77,7 +77,7 @@
                                                                        `((slot-value (the ,(form-type input) document) ',(slot-definition-name slot))
                                                                          ,@(typed-reference (form-type input) input-reference)))))))))
             (output (prog1-bind clone (allocate-instance class)
-                      (when (typep input 'selection/base)
+                      (when (typep input 'document)
                         (setf (selection-of clone) (selection-of input)))
                       (iter (for slot :in slots)
                             (for slot-value-iomap :in slot-value-iomaps)
@@ -98,6 +98,7 @@
                   (labels ((recurse (operation)
                              (typecase operation
                                (operation/quit operation)
+                               (operation/functional operation)
                                (operation/replace-selection
                                 (etypecase printer-input
                                   (number
@@ -144,6 +145,11 @@
                                    (awhen (pattern-case (reverse (target-of operation))
                                             (((the string (subseq (the string document) ?start-index ?end-index)))
                                              `((the string (subseq (the string document) ,?start-index ,?end-index)))))
+                                     (make-operation/sequence/replace-element-range printer-input it (replacement-of operation))))
+                                  (text/text
+                                   (awhen (pattern-case (reverse (target-of operation))
+                                            (((the text/text (text/subseq (the text/text document) ?start-index ?end-index)))
+                                             `((the text/text (text/subseq (the text/text document) ,?start-index ,?end-index)))))
                                      (make-operation/sequence/replace-element-range printer-input it (replacement-of operation))))
                                   (sequence
                                    (pattern-case (reverse (target-of operation))

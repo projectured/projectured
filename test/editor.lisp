@@ -161,6 +161,12 @@
 (def test test/editor/common-lisp/test (&key wrap (content (make-test-document/common-lisp/test)))
   (test/editor/read-eval-print-loop wrap content nil (make-test-projection/common-lisp->graphics/test)))
 
+(def test test/editor/common-lisp/search (&key wrap (content (make-test-document/common-lisp/search)))
+  (test/editor/read-eval-print-loop wrap content nil (make-test-projection/common-lisp->graphics/search)))
+
+(def test test/editor/common-lisp/split (&key wrap (content (make-test-document/common-lisp/split)))
+  (test/editor/read-eval-print-loop wrap content nil (make-test-projection/common-lisp->graphics/split)))
+
 (def test test/editor/evaluator (&key wrap)
   (test/editor/read-eval-print-loop wrap (make-test-document/evaluator) nil (make-test-projection/evaluator)))
 
@@ -197,8 +203,8 @@
 (def test test/editor/inspector/object/nested (&key wrap)
   (test/editor/read-eval-print-loop wrap (make-test-document/inspector/object/nested) nil (make-test-projection/inspector->graphics)))
 
-(def test test/editor/demo (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/demo) nil (make-test-projection/demo->graphics)))
+(def test test/editor/demo (&key wrap (content (make-test-document/demo)))
+  (test/editor/read-eval-print-loop wrap content nil (make-test-projection/demo->graphics)))
 
 (def test test/editor/documentation (&key wrap (content (make-test-document/documentation)))
   (test/editor/read-eval-print-loop wrap content nil (make-test-projection/documentation->graphics)))

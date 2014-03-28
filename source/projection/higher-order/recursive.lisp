@@ -9,11 +9,11 @@
 ;;;;;;
 ;;; IO map
 
-(def iomap iomap/recursive (iomap)
+(def iomap iomap/recursive ()
   ((input-reference :type reference)
    (output-reference :type reference)))
 
-(def iomap iomap/compound (iomap)
+(def iomap iomap/compound ()
   ((input-reference :type reference)
    (child-iomaps :type list)))
 

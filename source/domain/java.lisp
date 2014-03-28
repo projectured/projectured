@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; Java document classes
 
-(def document java/base (selection/base)
+(def document java/base ()
   ())
 
 ;;;;;;
@@ -50,9 +50,9 @@
 (def document java/statement/throw (java/statement)
   ())
 
-(def document java/statement/variable-declaration (java/statement)
+(def document java/statement/variable-definition (java/statement)
   ((name :type string)
-   (type :type java/declaration/type :accessor nil)))
+   (type :type java/definition/type :accessor nil)))
 
 ;;;;;;
 ;;; Java expression classes
@@ -64,7 +64,7 @@
   ())
 
 (def document java/expression/method-invocation (java/expression)
-  ((method :type java/declaration/method)
+  ((method :type java/definition/method)
    (arguments :type sequence)))
 
 (def document java/expression/infix-operator (java/expression)
@@ -96,34 +96,34 @@
   ((value :type string)))
 
 ;;;;;;
-;;; Java declaration classes
+;;; Java definition classes
 
-(def document java/declaration (java/base)
+(def document java/definition (java/base)
   ())
 
-(def document java/declaration/qualifier (java/base)
+(def document java/definition/qualifier (java/base)
   ((name :type string)))
 
-(def document java/declaration/type (java/base)
+(def document java/definition/type (java/base)
   ((name :type string)))
 
-(def document java/declaration/class (java/declaration)
+(def document java/definition/class (java/definition)
   ((name :type string)
-   (extends :type java/declaration/class)
+   (extends :type java/definition/class)
    (fields :type sequence)
    (methods :type sequence)))
 
-(def document java/declaration/interface (java/declaration)
+(def document java/definition/interface (java/definition)
   ((name :type string)
    (methods :type sequence)))
 
-(def document java/declaration/argument (java/declaration)
+(def document java/definition/argument (java/definition)
   ((name :type string)
-   (type :type java/declaration/type :accessor nil)))
+   (type :type java/definition/type :accessor nil)))
 
-(def document java/declaration/method (java/declaration)
-  ((qualifier :type java/declaration/qualifier)
-   (return-type :type java/declaration/type)
+(def document java/definition/method (java/definition)
+  ((qualifier :type java/definition/qualifier)
+   (return-type :type java/definition/type)
    (name :type string)
    (arguments :type sequence)
    (body :type java/base)))
@@ -168,19 +168,19 @@
   (make-instance 'java/literal/string :value value))
 
 ;;;;;;
-;;; Java declaration constructors
+;;; Java definition constructors
 
-(def (function e) make-java/declaration/qualifier (name)
-  (make-instance 'java/declaration/qualifier :name name))
+(def (function e) make-java/definition/qualifier (name)
+  (make-instance 'java/definition/qualifier :name name))
 
-(def (function e) make-java/declaration/argument (name type)
-  (make-instance 'java/declaration/argument :name name :type type))
+(def (function e) make-java/definition/argument (name type)
+  (make-instance 'java/definition/argument :name name :type type))
 
-(def (function e) make-java/declaration/type (name)
-  (make-instance 'java/declaration/type :name name))
+(def (function e) make-java/definition/type (name)
+  (make-instance 'java/definition/type :name name))
 
-(def (function e) make-java/declaration/method (qualifier return-type name arguments body)
-  (make-instance 'java/declaration/method
+(def (function e) make-java/definition/method (qualifier return-type name arguments body)
+  (make-instance 'java/definition/method
                  :qualifier qualifier
                  :return-type return-type
                  :name name

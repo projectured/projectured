@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; IO map
 
-(def iomap iomap/preserving (iomap)
+(def iomap iomap/preserving ()
   ())
 
 ;;;;;;

@@ -119,6 +119,7 @@
   (awhen (labels ((recurse (operation)
                     (typecase operation
                       (operation/quit operation)
+                      (operation/functional operation)
                       (operation/replace-selection
                        (awhen (map-backward/line-numbering printer-iomap (selection-of operation))
                          (make-operation/replace-selection (input-of printer-iomap) it)))

@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; IO map
 
-(def iomap iomap/table/table->text (iomap)
+(def iomap iomap/table/table->text ()
   ((row-heights :type sequence)
    (column-widths :type sequence)
    (cell-iomaps :type sequence)))
@@ -244,6 +244,7 @@
                   (labels ((recurse (operation)
                              (typecase operation
                                (operation/quit operation)
+                               (operation/functional operation)
                                (operation/replace-selection
                                 (make-operation/replace-selection printer-input (pattern-case (selection-of operation)
                                                                                   (((the text/text (text/subseq (the text/text ?a) ?table-character-index ?table-character-index)) . ?rest)

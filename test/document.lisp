@@ -30,6 +30,14 @@
     (widget/scroll-pane (:location (make-2d 0 0) :size (make-2d 640 720) :margin (make-inset :all 5))
       content)))
 
+(def function make-test-document/split (content-1 content-2)
+  (widget/shell ()
+    (widget/split-pane ()
+      (widget/scroll-pane (:location (make-2d 0 0) :size (make-2d 640 720) :margin (make-inset :all 5))
+        content-1)
+      (widget/scroll-pane (:location (make-2d 0 0) :size (make-2d 640 720) :margin (make-inset :all 5))
+        content-2))))
+
 (def function make-test-document/generic (content)
   (widget/shell ()
     (widget/split-pane ()
@@ -137,7 +145,7 @@
   (text/text ()
     (text/string "Hello" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/red*)
     (text/spacing 10 :unit :space)
-    ;;(image/image (asdf:system-relative-pathname :projectured "etc/lisp-flag.jpg"))
+    ;;(image/image () (asdf:system-relative-pathname :projectured "etc/lisp-flag.jpg"))
     (text/string "World" :font *font/ubuntu/monospace/bold/18* :font-color *color/solarized/green*)
     (text/newline)
     (text/string "New line" :font *font/ubuntu/bold/24* :font-color *color/solarized/blue*)))
@@ -402,55 +410,55 @@
 ;;; JSON
 
 (def function make-test-document/json/empty ()
-  (json/nothing))
+  (json/nothing ()))
 
 (def function make-test-document/json/null ()
-  (json/null))
+  (json/null ()))
 
 (def function make-test-document/json/boolean ()
-  (json/boolean #f))
+  (json/boolean () #f))
 
 (def function make-test-document/json/number ()
-  (json/number 42))
+  (json/number () 42))
 
 (def function make-test-document/json/string ()
-  (json/string "Hello World"))
+  (json/string () "Hello World"))
 
 (def function make-test-document/json/array ()
   (json/array ()
-    (json/null)
-    (json/boolean #f)
-    (json/boolean #t)
-    (json/number 42)
-    (json/string "Hello World")))
+    (json/null ())
+    (json/boolean () #f)
+    (json/boolean ()#t)
+    (json/number () 42)
+    (json/string () "Hello World")))
 
 (def function make-test-document/json/object ()
-  (json/object
-    ("null" (json/null))
-    ("false" (json/boolean #f))
-    ("true" (json/boolean #t))
-    ("number" (json/number 42))
-    ("string" (json/string "Hello World"))))
+  (json/object ()
+    ("null" (json/null ()))
+    ("false" (json/boolean () #f))
+    ("true" (json/boolean ()#t))
+    ("number" (json/number () 42))
+    ("string" (json/string () "Hello World"))))
 
 (def function make-test-document/json ()
   (json/array ()
-    (json/null)
-    (json/boolean #f)
-    (json/boolean #t)
-    (json/number 42)
-    (json/string "Hello World")
-    (json/object
-      ("null" (json/null))
-      ("false" (json/boolean #f))
-      ("true" (json/boolean #t))
-      ("number" (json/number 42))
-      ("string" (json/string "Hello World"))
+    (json/null ())
+    (json/boolean () #f)
+    (json/boolean ()#t)
+    (json/number () 42)
+    (json/string () "Hello World")
+    (json/object ()
+      ("null" (json/null ()))
+      ("false" (json/boolean () #f))
+      ("true" (json/boolean ()#t))
+      ("number" (json/number () 42))
+      ("string" (json/string () "Hello World"))
       ("array" (json/array ()
-                 (json/null)
-                 (json/boolean #f)
-                 (json/boolean #t)
-                 (json/number 42)
-                 (json/string "Hello World"))))))
+                 (json/null ())
+                 (json/boolean () #f)
+                 (json/boolean ()#t)
+                 (json/number () 42)
+                 (json/string () "Hello World"))))))
 
 ;;;;;;
 ;;; File system
@@ -465,10 +473,10 @@
   nil)
 
 (def function make-test-document/java ()
-  (make-java/declaration/method (make-java/declaration/qualifier "public")
-                                (make-java/declaration/type "int")
+  (make-java/definition/method (make-java/definition/qualifier "public")
+                                (make-java/definition/type "int")
                                 "factorial"
-                                (list (make-java/declaration/argument "n" (make-java/declaration/type "int")))
+                                (list (make-java/definition/argument "n" (make-java/definition/type "int")))
                                 (make-java/statement/block (list (make-java/statement/if (make-java/expression/infix-operator "==" (list (make-java/expression/variable-reference "n")
                                                                                                                                          (make-java/literal/number 0)))
                                                                                          (make-java/statement/return (make-java/literal/number 1))
@@ -491,18 +499,18 @@
           (make-javascript/expression/variable-reference "google")
           "setOnLoadCallback"
           (list (make-javascript/expression/variable-reference "drawPieChart")))
-         (make-javascript/declaration/function
+         (make-javascript/definition/function
           "drawPieChart"
           nil
           (make-javascript/statement/block
-           (list (make-javascript/declaration/variable
+           (list (make-javascript/definition/variable
                   "json"
                   (make-javascript/expression/property-access
                    (make-javascript/expression/method-invocation
                     (make-javascript/expression/variable-reference "$")
                     "ajax" nil)
                    "responseText"))
-                 (make-javascript/declaration/variable
+                 (make-javascript/definition/variable
                   "data"
                   (make-javascript/expression/constuctor-invocation
                    (make-javascript/expression/property-access
@@ -511,7 +519,7 @@
                      "visualization")
                     "DataTable")
                    (list (make-javascript/expression/variable-reference "json"))))
-                 (make-javascript/declaration/variable
+                 (make-javascript/definition/variable
                   "chart"
                   (make-javascript/expression/constuctor-invocation
                    (make-javascript/expression/property-access
@@ -578,8 +586,8 @@
                                                                                                                     (make-common-lisp/constant 1))))))))))
     factorial-function))
 
-(def function make-test-document/common-lisp/test ()
-  (bind ((factorial-function (make-test-document/common-lisp #t)))
+(def function make-test-document/common-lisp/test (&optional (faulty #t))
+  (bind ((factorial-function (make-test-document/common-lisp faulty)))
     (book/book (:title "Literate programming with continuous testing")
       (book/chapter (:title "Specification")
         (book/paragraph ()
@@ -624,6 +632,14 @@
                                                                                                                                (make-common-lisp/constant 3628800)))
                                                                                            evaluator)))))
           evaluator)))))
+
+(def function make-test-document/common-lisp/search ()
+  (document/search ()
+    (make-test-document/common-lisp)))
+
+(def function make-test-document/common-lisp/split ()
+  (bind ((test-document (make-test-document/common-lisp/test #f)))
+    (make-test-document/split (document/search () test-document) test-document)))
 
 ;;;;;;
 ;;; Evaluator
@@ -696,7 +712,7 @@
   (text/text ()
     (text/string "ProjecturEd is a generic purpose projectional editor written in Common Lisp. It provides editing for different problem domains represented in unrestricted arbitrary data structures. It uses multiple bidirectional projections providing different notations varying from textual to graphics." :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)
     (text/newline)
-    (image/image (asdf:system-relative-pathname :projectured "etc/lisp-boxed-alien.jpg"))
+    (image/image () (asdf:system-relative-pathname :projectured "etc/lisp-boxed-alien.jpg"))
     (text/newline)
     (text/string "Visit " :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)
     (text/string "http://projectured.org" :font *font/ubuntu/regular/18* :font-color *color/solarized/blue*)
@@ -704,7 +720,7 @@
     (text/string "http://github.com/projectured/projectured" :font *font/ubuntu/regular/18* :font-color *color/solarized/blue*)
     (text/string " for more information." :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)
     #+nil
-    (image/image (asdf:system-relative-pathname :projectured "etc/lisp-boxed-alien.jpg"))))
+    (image/image () (asdf:system-relative-pathname :projectured "etc/lisp-boxed-alien.jpg"))))
 
 (def function make-test-document/demo ()
   (bind ((page-path (make-adjustable-string "/page"))
@@ -712,35 +728,35 @@
          (trace-amounts (make-common-lisp/comment
                          (text/text ()
                            (text/string "This part contains trace amounts of " :font projectured::*font/ubuntu/regular/18* :font-color *color/solarized/gray*)
-                           (image/image (asdf:system-relative-pathname :projectured "etc/lisp-flag.jpg")))))
+                           (image/image () (asdf:system-relative-pathname :projectured "etc/lisp-flag.jpg")))))
          (chart-script (make-javascript/statement/top-level
                         (list (make-javascript/expression/method-invocation
                                (make-javascript/expression/variable-reference "google")
                                "load"
                                (list (make-javascript/literal/string "visualization")
                                      (make-javascript/literal/string "1")
-                                     (json/object
-                                       ("packages" (json/array () (json/string "corechart"))))))
+                                     (json/object ()
+                                       ("packages" (json/array () (json/string () "corechart"))))))
                               (make-javascript/expression/method-invocation
                                (make-javascript/expression/variable-reference "google")
                                "setOnLoadCallback"
                                (list (make-javascript/expression/variable-reference "drawPieChart")))
-                              (make-javascript/declaration/function
+                              (make-javascript/definition/function
                                "drawPieChart"
                                nil
                                (make-javascript/statement/block
-                                (list (make-javascript/declaration/variable
+                                (list (make-javascript/definition/variable
                                        "json"
                                        (make-javascript/expression/property-access
                                         (make-javascript/expression/method-invocation
                                          (make-javascript/expression/variable-reference "$")
                                          "ajax"
-                                         (list (json/object
-                                                 ("async" (json/boolean #f))
-                                                 ("url" (json/string data-path))
-                                                 ("dataType" (json/string "json")))))
+                                         (list (json/object ()
+                                                 ("async" (json/boolean () #f))
+                                                 ("url" (json/string () data-path))
+                                                 ("dataType" (json/string () "json")))))
                                         "responseText"))
-                                      (make-javascript/declaration/variable
+                                      (make-javascript/definition/variable
                                        "data"
                                        (make-javascript/expression/constuctor-invocation
                                         (make-javascript/expression/property-access
@@ -749,7 +765,7 @@
                                           "visualization")
                                          "DataTable")
                                         (list (make-javascript/expression/variable-reference "json"))))
-                                      (make-javascript/declaration/variable
+                                      (make-javascript/definition/variable
                                        "chart"
                                        (make-javascript/expression/constuctor-invocation
                                         (make-javascript/expression/property-access
@@ -765,8 +781,8 @@
                                        (make-javascript/expression/variable-reference "chart")
                                        "draw"
                                        (list (make-javascript/expression/variable-reference "data")
-                                             (json/object
-                                               ("title" (json/string "Daily Activities")))))))))))
+                                             (json/object ()
+                                               ("title" (json/string () "Daily Activities")))))))))))
          (dispatch-table (table/table ()
                            (table/row ()
                              (table/cell ()
@@ -811,27 +827,30 @@
                            (xml/text () "Last refresh: ")
                            (make-common-lisp/top-level
                             (list trace-amounts
-                                  (make-common-lisp/application :operator (make-lisp-form/symbol* 'local-time:format-timestring)
-                                                                :arguments (list (make-common-lisp/constant :value t)
-                                                                                 (make-common-lisp/application :operator (make-lisp-form/symbol* 'local-time:now) :arguments nil)
-                                                                                 (make-common-lisp/constant :value :format)
-                                                                                 (make-common-lisp/constant :value 'local-time:+asctime-format+)))))))))
+                                  (make-common-lisp/application (make-lisp-form/symbol* 'local-time:format-timestring)
+                                                                (list (make-common-lisp/constant t)
+                                                                      (make-common-lisp/application (make-lisp-form/symbol* 'local-time:now) nil)
+                                                                      (make-common-lisp/constant :format)
+                                                                      (make-common-lisp/constant 'local-time:+asctime-format+)))))))))
          (chart-data (json/array ()
-                       (json/array () (json/string "Task") (json/string "Hours per Day"))
-                       (json/array () (json/string "Work") (json/number 11))
-                       (json/array () (json/string "Eat") (json/number 2))
-                       (json/array () (json/string "Commute") (json/number 2))
-                       (json/array () (json/string "Watch TV") (json/number 2))
-                       (json/array () (json/string "Sleep")
+                       (json/array () (json/string () "Task") (json/string () "Hours per Day"))
+                       (json/array () (json/string () "Work") (json/number () 11))
+                       (json/array () (json/string () "Eat") (json/number () 2))
+                       (json/array () (json/string () "Commute") (json/number () 2))
+                       (json/array () (json/string () "Watch TV") (json/number () 2))
+                       (json/array () (json/string () "Sleep")
                                    (make-common-lisp/top-level
                                     (list trace-amounts
-                                          (make-common-lisp/application :operator (make-lisp-form/symbol* '-)
-                                                                        :arguments (list (make-common-lisp/constant :value 24)
-                                                                                         (make-common-lisp/application :operator (make-lisp-form/symbol* '+)
-                                                                                                                       :arguments (list (make-common-lisp/constant :value 11)
-                                                                                                                                        (make-common-lisp/constant :value 2)
-                                                                                                                                        (make-common-lisp/constant :value 2)
-                                                                                                                                        (make-common-lisp/constant :value 2))))))))))
+                                          (make-common-lisp/application (make-lisp-form/symbol* '-)
+                                                                        (list (make-common-lisp/constant 24)
+                                                                              (make-common-lisp/application (make-lisp-form/symbol* '+)
+                                                                                                            (list (make-common-lisp/constant 11)
+                                                                                                                  (make-common-lisp/constant 2)
+                                                                                                                  (make-common-lisp/constant 2)
+                                                                                                                  (make-common-lisp/constant 2))))))))))
+         (request-variable (make-common-lisp/required-function-argument (make-lisp-form/symbol* 'request)))
+         (path-variable (make-common-lisp/lexical-variable-binding (make-lisp-form/symbol* 'path) (make-common-lisp/application (make-lisp-form/symbol* 'path-of)
+                                                                                                                                (list (make-common-lisp/variable-reference request-variable)))))
          (error-page (xml/element ("html" ())
                        (xml/element ("head" ())
                          (xml/element ("title" ())
@@ -841,37 +860,33 @@
                            (xml/text () "We are sorry, page ")
                            (make-common-lisp/top-level
                             (list trace-amounts
-                                  (make-common-lisp/variable-reference :name 'path)))
+                                  (make-common-lisp/variable-reference path-variable)))
                            (xml/text () " cannot be found.")))))
          (common-lisp-function (make-common-lisp/function-definition (make-lisp-form/symbol* 'process-http-request)
-                                                                     (list (make-common-lisp/required-function-argument :name 'request))
+                                                                     (list request-variable)
                                                                      (list (make-common-lisp/comment
                                                                             (text/text ()
                                                                               (text/string "dispatch on the path of the incoming HTTP request according to the following table" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)
                                                                               (text/newline)
                                                                               #+nil ;; TODO: move out
                                                                               dispatch-table))
-                                                                           (make-common-lisp/let
-                                                                            :bindings (list (make-common-lisp/lexical-variable-binding :name 'path
-                                                                                                                                       :initial-value (make-common-lisp/application :operator (make-lisp-form/symbol* 'path-of)
-                                                                                                                                                                                    :arguments (list (make-common-lisp/variable-reference :name 'request)))))
-                                                                            :body (list (make-common-lisp/application :operator (make-lisp-form/symbol* 'make-http-response)
-                                                                                                                      :arguments (list (make-common-lisp/if
-                                                                                                                                        :condition (make-common-lisp/application :operator (make-lisp-form/symbol* 'string=)
-                                                                                                                                                                                 :arguments (list (make-common-lisp/constant :value page-path)
-                                                                                                                                                                                                  (make-common-lisp/variable-reference :name 'path)))
-                                                                                                                                        :then chart-page
-                                                                                                                                        :else (make-common-lisp/if
-                                                                                                                                               :condition (make-common-lisp/application :operator (make-lisp-form/symbol* 'string=)
-                                                                                                                                                                                        :arguments (list (make-common-lisp/constant :value data-path)
-                                                                                                                                                                                                         (make-common-lisp/variable-reference :name 'path)))
-                                                                                                                                               :then chart-data
-                                                                                                                                               :else error-page)))))))
+                                                                           (make-common-lisp/let (list path-variable)
+                                                                                                 (list (make-common-lisp/application (make-lisp-form/symbol* 'make-http-response)
+                                                                                                                                     (list (make-common-lisp/if (make-common-lisp/application (make-lisp-form/symbol* 'string=)
+                                                                                                                                                                                              (list (make-common-lisp/constant page-path)
+                                                                                                                                                                                                    (make-common-lisp/variable-reference path-variable)))
+                                                                                                                                                                chart-page
+                                                                                                                                                                (make-common-lisp/if (make-common-lisp/application (make-lisp-form/symbol* 'string=)
+                                                                                                                                                                                                                   (list (make-common-lisp/constant data-path)
+                                                                                                                                                                                                                         (make-common-lisp/variable-reference path-variable)))
+                                                                                                                                                                                     chart-data
+                                                                                                                                                                                     error-page)))))))
                                                                      :allow-other-keys #f
                                                                      :documentation nil)))
     (book/book (:title "ProjecturEd" :authors (list "Levente Mészáros"))
       (book/chapter (:title "Introduction")
-        (make-test-document/introduction))
+        (book/paragraph ()
+          (make-test-document/introduction)))
       (book/chapter (:title "Literate Programming")
         (book/paragraph ()
           (text/text ()
@@ -883,7 +898,7 @@
             (text/string data-path :font *font/ubuntu/italic/18* :font-color *color/solarized/violet*)
             (text/string "' path using JavaScript. For this request the web service returns another document in JSON format that provides the data for the pie chart. For all other unknown requests the web service sends an HTML error page. The following screenshot shows how the page looks like." :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)
             (text/newline)
-            (image/image (asdf:system-relative-pathname :projectured "etc/pie.png"))
+            (image/image () (asdf:system-relative-pathname :projectured "etc/pie.png"))
             (text/newline)
             (text/string "This example uses a compound projection that displays all used domains in their natural notation. Proper indentation and syntax highlight are automatically provided without inserting escape sequences that would make reading harder. Note that the edited document" :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)
             (text/string " is not text" :font projectured::*font/ubuntu/italic/18* :font-color *color/solarized/violet*)

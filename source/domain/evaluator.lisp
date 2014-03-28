@@ -9,14 +9,16 @@
 ;;;;;;
 ;;; Document
 
-(def document evaluator/evaluator (selection/base)
-  ((on-demand :type boolean)
-   (form :type t)
+(def document evaluator/evaluator ()
+  ((form :type t)
    (result :type t)
+   (on-demand :type boolean)
    (dynamic-environment-provider :type function)))
 
 ;;;;;;
 ;;; Construction
 
 (def (function e) make-evaluator/evaluator (form &key on-demand (dynamic-environment-provider 'funcall))
-  (make-instance 'evaluator/evaluator :form form :on-demand on-demand :dynamic-environment-provider dynamic-environment-provider))
+  (make-instance 'evaluator/evaluator
+                 :form form :result nil
+                 :on-demand on-demand :dynamic-environment-provider dynamic-environment-provider))

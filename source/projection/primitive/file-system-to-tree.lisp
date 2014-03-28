@@ -41,7 +41,7 @@
          (output (tree/leaf ()
                    (text/text ()
                      ;; TODO: icon
-                     (image/image (asdf:system-relative-pathname :projectured "etc/file.png"))
+                     (image/image () (asdf:system-relative-pathname :projectured "etc/file.png"))
                      (text/string (string+ (pathname-name pathname) "." (pathname-type (pathname-of input))) :font *font/ubuntu/regular/18* :font-color *color/solarized/blue*)))))
     (make-iomap/compound projection recursion input input-reference output)))
 
@@ -50,7 +50,7 @@
          (output (make-tree/node (list* (tree/leaf ()
                                           (text/text ()
                                             ;; TODO: icon
-                                            (image/image (asdf:system-relative-pathname :projectured "etc/directory.png"))
+                                            (image/image () (asdf:system-relative-pathname :projectured "etc/directory.png"))
                                             (text/string (last-elt (pathname-directory pathname)) :font *font/ubuntu/regular/18* :font-color *color/solarized/red*)))
                                         (iter (for index :from 0)
                                               (for element :in-sequence (elements-of input))

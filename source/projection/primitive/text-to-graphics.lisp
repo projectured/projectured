@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; IO map
 
-(def iomap iomap/text->graphics (iomap)
+(def iomap iomap/text->graphics ()
   ((graphics-element-indices :type sequence)
    (first-character-indices :type sequence)
    (last-character-indices :type sequence)))

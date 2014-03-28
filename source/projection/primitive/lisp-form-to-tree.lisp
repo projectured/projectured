@@ -117,7 +117,12 @@
          (font-color (or (font-color-of input) *color/solarized/violet*))
          (output (tree/leaf (:selection output-selection)
                    (text/text (:selection (butlast output-selection))
-                     (text/string (string-downcase (name-of input)) :font (or (font-of input) *font/ubuntu/monospace/regular/18*) :font-color font-color)))))
+                     (text/string (string-downcase (name-of input)) :font (or (font-of input) *font/ubuntu/monospace/regular/18*) :font-color font-color))
+                   ;; TODO: parameter
+                   #+nil
+                   (text/text (:selection (butlast output-selection))
+                     (text/string (string+ (string-downcase (package-of input)) "::" ) :font (or (font-of input) *font/ubuntu/monospace/regular/18*) :font-color (color/lighten font-color 0.5))
+                     (text/string (string-downcase (name-of input)) :font (or (font-of input) *font/ubuntu/monospace/bold/18*) :font-color font-color)))))
     (make-iomap/object projection recursion input input-reference output)))
 
 (def printer lisp-form/string->tree/leaf (projection recursion input input-reference)
@@ -213,6 +218,7 @@
     (merge-commands (awhen (labels ((recurse (operation)
                                       (typecase operation
                                         (operation/quit operation)
+                                        (operation/functional operation)
                                         (operation/replace-selection
                                          (awhen (pattern-case (reverse (selection-of operation))
                                                   (((the text/text (content-of (the tree/leaf document)))
@@ -247,6 +253,7 @@
     (merge-commands (awhen (labels ((recurse (operation)
                                       (typecase operation
                                         (operation/quit operation)
+                                        (operation/functional operation)
                                         (operation/replace-selection
                                          (awhen (pattern-case (reverse (selection-of operation))
                                                   (((the text/text (content-of (the tree/leaf document)))
@@ -278,6 +285,7 @@
     (merge-commands (awhen (labels ((recurse (operation)
                                       (typecase operation
                                         (operation/quit operation)
+                                        (operation/functional operation)
                                         (operation/replace-selection
                                          (awhen (pattern-case (reverse (selection-of operation))
                                                   (((the text/text (content-of (the tree/leaf document)))
@@ -309,6 +317,7 @@
     (merge-commands (awhen (labels ((recurse (operation)
                                       (typecase operation
                                         (operation/quit operation)
+                                        (operation/functional operation)
                                         (operation/replace-selection
                                          (awhen (pattern-case (reverse (selection-of operation))
                                                   (((the sequence (children-of (the tree/node document)))
@@ -359,6 +368,7 @@
     (merge-commands (awhen (labels ((recurse (operation)
                                       (typecase operation
                                         (operation/quit operation)
+                                        (operation/functional operation)
                                         (operation/replace-selection
                                          (awhen (pattern-case (reverse (selection-of operation))
                                                   (?a

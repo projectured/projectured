@@ -61,7 +61,9 @@
                    (output-of result-iomap))))
     #+nil
     (setf (indentation-of (output-of form-iomap)) 0)
-    (setf (indentation-of (output-of result-iomap)) 0)
+    ;; KLUDGE:
+    (when (typep (output-of result-iomap) 'tree/base)
+      (setf (indentation-of (output-of result-iomap)) 0))
     (set-selection (output-of form-iomap) (butlast output-selection 2))
     (set-selection (output-of result-iomap) (butlast output-selection 2))
     (make-iomap/compound projection recursion input input-reference output (list form-iomap result-iomap))))
@@ -74,6 +76,7 @@
     (merge-commands (labels ((recurse (operation)
                                (typecase operation
                                  (operation/quit operation)
+                                 (operation/functional operation)
                                  (operation/replace-selection
                                   (make-operation/replace-selection printer-input (append (selection-of operation) (last (selection-of printer-input)))))
                                  (operation/sequence/replace-element-range
@@ -99,6 +102,7 @@
                     (awhen (labels ((recurse (operation)
                                       (typecase operation
                                         (operation/quit operation)
+                                        (operation/functional operation)
                                         (operation/replace-selection
                                          (awhen (pattern-case (reverse (selection-of operation))
                                                   (((the sequence (children-of (the tree/node document)))

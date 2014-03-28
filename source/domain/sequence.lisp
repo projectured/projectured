@@ -10,7 +10,7 @@
 ;;; Document
 
 ;; TODO: rename?
-(def document sequence/sequence (selection/base sequence)
+(def document sequence/sequence (sequence)
   ((elements :type sequence)))
 
 ;;;;;;
@@ -106,9 +106,10 @@
                                                                     :selection (selection-of old-sequence)))
                          (sequence (concatenate (form-type old-sequence)
                                                 (subseq old-sequence 0 start) (replacement-of operation) (subseq old-sequence end)))
-                         (text/text (text/concatenate (text/substring* old-sequence 0 start)
-                                                      (make-text/text (list (make-text/string (replacement-of operation) :font *font/default* :font-color *color/default*)))
-                                                      (text/substring* old-sequence end))))))
+                         (text/text (bind ((element (first-elt (elements-of old-sequence))))
+                                      (text/concatenate (text/substring* old-sequence 0 start)
+                                                        (make-text/text (list (make-text/string (replacement-of operation) :font (font-of element) :font-color (font-color-of element))))
+                                                        (text/substring* old-sequence end)))))))
     ;; KLUDGE: somewhat kludgie to keep the original identity of the string
     (cond ((and (arrayp old-sequence) (adjustable-array-p old-sequence))
            (progn

@@ -54,11 +54,11 @@
 ;;;;;;
 ;;; IO map
 
-(def iomap iomap/sequence->table/table (iomap)
+(def iomap iomap/sequence->table/table ()
   ((element-iomaps :type sequence)))
 
 
-(def iomap iomap/object->table/table (iomap)
+(def iomap iomap/object->table/table ()
   ((slot-iomaps :type sequence)))
 
 ;;;;;;
@@ -167,8 +167,8 @@
   (bind ((printer-input (input-of printer-iomap)))
     (labels ((recurse (operation)
                (typecase operation
-                 (operation/quit
-                  operation)
+                 (operation/quit operation)
+                 (operation/functional operation)
                  (operation/replace-selection
                   (make-operation/replace-selection printer-input
                                                     (pattern-case (selection-of operation)

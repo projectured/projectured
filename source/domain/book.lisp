@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; Document
 
-(def document book/base (selection/base)
+(def document book/base ()
   ())
 
 (def document book/book (book/base)

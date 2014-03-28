@@ -39,16 +39,16 @@
 (def projection java/literal/string->string  ()
   ())
 
-(def projection java/declaration/method->tree/node ()
+(def projection java/definition/method->tree/node ()
   ())
 
-(def projection java/declaration/argument->tree/node ()
+(def projection java/definition/argument->tree/node ()
   ())
 
-(def projection java/declaration/qualifier->string ()
+(def projection java/definition/qualifier->string ()
   ())
 
-(def projection java/declaration/type->string ()
+(def projection java/definition/type->string ()
   ())
 
 ;;;;;;
@@ -84,17 +84,17 @@
 (def (function e) make-projection/java/literal/string->string  ()
   (make-projection 'java/literal/string->string))
 
-(def (function e) make-projection/java/declaration/method->tree/node ()
-  (make-projection 'java/declaration/method->tree/node))
+(def (function e) make-projection/java/definition/method->tree/node ()
+  (make-projection 'java/definition/method->tree/node))
 
-(def (function e) make-projection/java/declaration/argument->tree/node ()
-  (make-projection 'java/declaration/argument->tree/node))
+(def (function e) make-projection/java/definition/argument->tree/node ()
+  (make-projection 'java/definition/argument->tree/node))
 
-(def (function e) make-projection/java/declaration/qualifier->string ()
-  (make-projection 'java/declaration/qualifier->string))
+(def (function e) make-projection/java/definition/qualifier->string ()
+  (make-projection 'java/definition/qualifier->string))
 
-(def (function e) make-projection/java/declaration/type->string ()
-  (make-projection 'java/declaration/type->string))
+(def (function e) make-projection/java/definition/type->string ()
+  (make-projection 'java/definition/type->string))
 
 ;;;;;;
 ;;; Construction
@@ -129,17 +129,17 @@
 (def (macro e) java/literal/string->string  ()
   '(make-projection/java/literal/string->string))
 
-(def (macro e) java/declaration/method->tree/node ()
-  '(make-projection/java/declaration/method->tree/node))
+(def (macro e) java/definition/method->tree/node ()
+  '(make-projection/java/definition/method->tree/node))
 
-(def (macro e) java/declaration/argument->tree/node ()
-  '(make-projection/java/declaration/argument->tree/node))
+(def (macro e) java/definition/argument->tree/node ()
+  '(make-projection/java/definition/argument->tree/node))
 
-(def (macro e) java/declaration/qualifier->string ()
-  '(make-projection/java/declaration/qualifier->string))
+(def (macro e) java/definition/qualifier->string ()
+  '(make-projection/java/definition/qualifier->string))
 
-(def (macro e) java/declaration/type->string ()
-  '(make-projection/java/declaration/type->string))
+(def (macro e) java/definition/type->string ()
+  '(make-projection/java/definition/type->string))
 
 ;;;;;;
 ;;; Printer
@@ -255,13 +255,13 @@
   (bind ((output (value-of input)))
     (make-iomap/object projection recursion input input-reference output)))
 
-(def printer java/declaration/method->tree/node (projection recursion input input-reference)
+(def printer java/definition/method->tree/node (projection recursion input input-reference)
   (bind ((child-iomaps nil)
-         (qualifier-iomap (recurse-printer recursion (qualifier-of input) `((qualifier-of (the java/declaration/method document))
+         (qualifier-iomap (recurse-printer recursion (qualifier-of input) `((qualifier-of (the java/definition/method document))
                                                                             ,@(typed-reference (form-type input) input-reference))))
-         (return-type-iomap (recurse-printer recursion (return-type-of input) `((return-type-of (the java/declaration/method document))
+         (return-type-iomap (recurse-printer recursion (return-type-of input) `((return-type-of (the java/definition/method document))
                                                                                 ,@(typed-reference (form-type input) input-reference))))
-         (body-iomap (recurse-printer recursion (body-of input) `((body-of (the java/declaration/method document))
+         (body-iomap (recurse-printer recursion (body-of input) `((body-of (the java/definition/method document))
                                                                   ,@(typed-reference (form-type input) input-reference))))
          (output (make-tree/node (list (output-of qualifier-iomap)
                                        (output-of return-type-iomap)
@@ -269,7 +269,7 @@
                                        (make-tree/node (iter (for index :from 0)
                                                              (for argument :in-sequence (arguments-of input))
                                                              (for iomap = (recurse-printer recursion argument `((elt (the sequence document) ,index)
-                                                                                                                (the sequence (arguments-of (the java/declaration/method document)))
+                                                                                                                (the sequence (arguments-of (the java/definition/method document)))
                                                                                                                 ,@(typed-reference (form-type input) input-reference))))
                                                              (push iomap child-iomaps)
                                                              (collect (output-of iomap)))
@@ -288,8 +288,8 @@
                                 (make-iomap/object projection recursion (arguments-of input) `(arguments-of ,typed-input-reference) output)
                                 (nreverse child-iomaps)))))
 
-(def printer java/declaration/argument->tree/node (projection recursion input input-reference)
-  (bind ((type-iomap (recurse-printer recursion (slot-value input 'type) `((slot-value (the java/declaration/argument document) 'type)
+(def printer java/definition/argument->tree/node (projection recursion input input-reference)
+  (bind ((type-iomap (recurse-printer recursion (slot-value input 'type) `((slot-value (the java/definition/argument document) 'type)
                                                                            ,@(typed-reference (form-type input) input-reference))))
          (output (make-tree/node (list (output-of type-iomap)
                                        (make-tree/leaf (text/text () (text/string (name-of input) :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/red*))))
@@ -298,13 +298,13 @@
                          (list (make-iomap/object projection recursion input input-reference output)
                                type-iomap))))
 
-(def printer java/declaration/qualifier->string (projection recursion input input-reference)
+(def printer java/definition/qualifier->string (projection recursion input input-reference)
   (bind ((output-content (name-of input))
          (output (make-tree/leaf (text/text () (text/string output-content :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/blue*)))))
     (make-iomap/compound projection recursion input input-reference output
                          (list (make-iomap/object projection recursion input input-reference output)))))
 
-(def printer java/declaration/type->string (projection recursion input input-reference)
+(def printer java/definition/type->string (projection recursion input input-reference)
   (bind ((output-content (name-of input))
          (output (make-tree/leaf (text/text () (text/string output-content :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/violet*)))))
     (make-iomap/compound projection recursion input input-reference output
@@ -353,18 +353,18 @@
   (declare (ignore projection recursion input printer-iomap))
   input)
 
-(def reader java/declaration/method->tree/node (projection recursion input printer-iomap)
+(def reader java/definition/method->tree/node (projection recursion input printer-iomap)
   (declare (ignore projection recursion input printer-iomap))
   input)
 
-(def reader java/declaration/argument->tree/node (projection recursion input printer-iomap)
+(def reader java/definition/argument->tree/node (projection recursion input printer-iomap)
   (declare (ignore projection recursion input printer-iomap))
   input)
 
-(def reader java/declaration/qualifier->string (projection recursion input printer-iomap)
+(def reader java/definition/qualifier->string (projection recursion input printer-iomap)
   (declare (ignore projection recursion input printer-iomap))
   input)
 
-(def reader java/declaration/type->string (projection recursion input printer-iomap)
+(def reader java/definition/type->string (projection recursion input printer-iomap)
   (declare (ignore projection recursion input printer-iomap))
   input)

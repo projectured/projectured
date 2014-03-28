@@ -10,7 +10,7 @@
 ;;;;;;
 ;;; IO map
 
-(def iomap iomap/text (iomap)
+(def iomap iomap/text ()
   ((input-reference :type reference)
    (output-reference :type reference)
    (input-offset :type integer)
@@ -50,7 +50,7 @@
 (def document text/string (text/element)
   ((content :type string)))
 
-(def document text/text (text/base selection/base)
+(def document text/text (text/base)
   ((elements :type sequence)))
 
 ;;;;;;
@@ -78,8 +78,8 @@
                  :fill-color fill-color
                  :line-color line-color))
 
-(def (function e) make-text/text (elements &key selection)
-  (make-instance 'text/text :elements (coerce elements 'vector) :selection selection))
+(def (function e) make-text/text (elements &key projection selection)
+  (make-instance 'text/text :elements (coerce elements 'vector) :projection projection :selection selection))
 
 ;;;;;;
 ;;; Construction
@@ -97,8 +97,8 @@
   `(make-text/string "
 " :font *font/default* :font-color *color/default*))
 
-(def (macro e) text/text ((&key selection) &body elements)
-  `(make-text/text (list ,@elements) :selection ,selection))
+(def (macro e) text/text ((&key projection selection) &body elements)
+  `(make-text/text (list ,@elements) :projection ,projection :selection ,selection))
 
 ;;;;;;
 ;;; Operation data structure

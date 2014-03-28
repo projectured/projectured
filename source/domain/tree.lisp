@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; Document
 
-(def document tree/base (selection/base)
+(def document tree/base ()
   ((opening-delimiter :type string)
    (closing-delimiter :type string)
    (indentation :type integer)))
@@ -25,15 +25,16 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-tree/leaf (content &key opening-delimiter closing-delimiter indentation selection)
+(def (function e) make-tree/leaf (content &key projection opening-delimiter closing-delimiter indentation selection)
   (make-instance 'tree/leaf
+                 :projection projection
                  :content content
                  :opening-delimiter opening-delimiter
                  :closing-delimiter closing-delimiter
                  :indentation indentation
                  :selection selection))
 
-(def (function e) make-tree/node (children &key opening-delimiter closing-delimiter separator indentation (expanded #t) selection)
+(def (function e) make-tree/node (children &key opening-delimiter closing-delimiter separator indentation (expanded #t) projection selection)
   (make-instance 'tree/node
                  :children children
                  :opening-delimiter opening-delimiter
@@ -41,13 +42,15 @@
                  :separator separator
                  :indentation indentation
                  :expanded expanded
+                 :projection projection
                  :selection selection))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) tree/leaf ((&key opening-delimiter closing-delimiter indentation selection) &body content)
+(def (macro e) tree/leaf ((&key projection opening-delimiter closing-delimiter indentation selection) &body content)
   `(make-tree/leaf ,(first content)
+                   :projection ,projection
                    :opening-delimiter ,opening-delimiter
                    :closing-delimiter ,closing-delimiter
                    :indentation ,indentation

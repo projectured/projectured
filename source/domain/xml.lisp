@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; Document
 
-(def document xml/base (selection/base)
+(def document xml/base ()
   ())
 
 (def document xml/element (xml/base)
@@ -22,7 +22,7 @@
    (value :type string)))
 
 (def document xml/text (xml/base)
-  ((text :type string)))
+  ((value :type string)))
 
 ;;;;;;
 ;;; Construction
@@ -33,8 +33,8 @@
 (def (function e) make-xml/attribute (name value &key selection)
   (make-instance 'xml/attribute :name name :value value :selection selection))
 
-(def (function e) make-xml/text (text &key selection)
-  (make-instance 'xml/text :text text :selection selection))
+(def (function e) make-xml/text (value &key selection)
+  (make-instance 'xml/text :value value :selection selection))
 
 ;;;;;;
 ;;; Construction
@@ -45,8 +45,8 @@
 (def (macro e) xml/attribute ((&key selection) name value)
   `(make-xml/attribute ,name ,value :selection ,selection))
 
-(def (macro e) xml/text ((&key selection) text)
-  `(make-xml/text ,text :selection ,selection))
+(def (macro e) xml/text ((&key selection) &body value)
+  `(make-xml/text ,(first value) :selection ,selection))
 
 ;;;;;;
 ;;; Reference

@@ -33,10 +33,10 @@
 ;;;;;;
 ;;; IO map
 
-(def iomap iomap/book/book->tree/node (iomap)
+(def iomap iomap/book/book->tree/node ()
   ((element-iomaps :type sequence)))
 
-(def iomap iomap/book/chapter->tree/node (iomap)
+(def iomap iomap/book/chapter->tree/node ()
   ((element-iomaps :type sequence)
    (numbering :type string)))
 
@@ -218,7 +218,7 @@
          (output (tree/leaf (:selection output-selection)
                    (if (zerop (text/length content-output))
                        (text/text (:selection (butlast output-selection))
-                         (text/string "Enter text" :font *font/liberation/serif/regular/18* :font-color (color/lighten *color/solarized/gray* 0.75)))
+                         (text/string "Enter text" :font *font/liberation/serif/regular/24* :font-color (color/lighten *color/solarized/gray* 0.75)))
                        content-output))))
     (make-iomap/object projection recursion input input-reference output)))
 
@@ -239,6 +239,7 @@
                     (labels ((recurse (operation)
                                (typecase operation
                                  (operation/quit operation)
+                                 (operation/functional operation)
                                  (operation/replace-selection
                                   (make-operation/replace-selection printer-input (append (selection-of operation) (last (selection-of printer-input) 2))))
                                  (operation/sequence/replace-element-range
@@ -267,14 +268,30 @@
                        :domain "Book" :description "Starts an object insertion into the elements of the book"
                        :operation (bind ((elements-length (length (elements-of printer-input))))
                                     (make-operation/compound (list (make-operation/sequence/replace-element-range printer-input `((the sequence (subseq (the sequence document) ,elements-length ,elements-length))
-                                                                                                                                  (the sequence (elements-of (the book/book document)))) (list (document/insertion)))
+                                                                                                                                  (the sequence (elements-of (the book/book document))))
+                                                                                                                  (list (document/insertion)))
                                                                    (make-operation/replace-selection printer-input `((the string (subseq (the string document) 0 0))
                                                                                                                      (the string (value-of (the document/insertion document)))
                                                                                                                      (the document/insertion (elt (the sequence document) ,elements-length))
-                                                                                                                     (the sequence (elements-of (the book/book document))))))))))
+                                                                                                                     (the sequence (elements-of (the book/book document)))))))))
+                      ;; TODO: gesture
+                      ((gesture/keyboard/key-press :sdl-key-a :control)
+                       :domain "Book" :description "Inserts a new chapter into the elements of the book"
+                       :operation (bind ((elements-length (length (elements-of printer-input))))
+                                    (make-operation/compound (list (make-operation/sequence/replace-element-range printer-input `((the sequence (subseq (the sequence document) ,elements-length ,elements-length))
+                                                                                                                                  (the sequence (elements-of (the book/book document))))
+                                                                                                                  (list (book/chapter ())))
+                                                                   (make-operation/replace-selection printer-input `((the string (subseq (the string document) 0 0))
+                                                                                                                     (the string (title-of (the book/chapter document)))
+                                                                                                                     (the book/chapter (elt (the sequence document) ,elements-length))
+                                                                                                                     (the sequence (elements-of (the book/book document)))))))))
+                      ((gesture/keyboard/key-press :sdl-key-p :control)
+                       :domain "Book" :description "Switches to generic tree notation"
+                       :operation (make-operation/functional (lambda () (setf (projection-of printer-input) (recursive (make-projection/t->tree)))))))
                     (awhen (labels ((recurse (operation)
                                       (typecase operation
                                         (operation/quit operation)
+                                        (operation/functional operation)
                                         (operation/replace-selection
                                          (awhen (pattern-case (reverse (selection-of operation))
                                                   (((the tree/node document))
@@ -396,6 +413,7 @@
                     (labels ((recurse (operation)
                                (typecase operation
                                  (operation/quit operation)
+                                 (operation/functional operation)
                                  (operation/replace-selection
                                   (make-operation/replace-selection printer-input (append (selection-of operation) (last (selection-of printer-input) 2))))
                                  (operation/sequence/replace-element-range
@@ -428,10 +446,35 @@
                                                                    (make-operation/replace-selection printer-input `((the string (subseq (the string document) 0 0))
                                                                                                                      (the string (value-of (the document/insertion document)))
                                                                                                                      (the document/insertion (elt (the sequence document) ,elements-length))
+                                                                                                                     (the sequence (elements-of (the book/chapter document)))))))))
+                      ((gesture/keyboard/key-press :sdl-key-p :control)
+                       :domain "Book" :description "Switches to generic tree notation"
+                       :operation (make-operation/functional (lambda () (setf (projection-of printer-input) (recursive (make-projection/t->tree))))))
+                      ((gesture/keyboard/key-press :sdl-key-a :control)
+                       :domain "Book" :description "Inserts a new chapter into the elements of the book"
+                       :operation (bind ((elements-length (length (elements-of printer-input))))
+                                    (make-operation/compound (list (make-operation/sequence/replace-element-range printer-input `((the sequence (subseq (the sequence document) ,elements-length ,elements-length))
+                                                                                                                                  (the sequence (elements-of (the book/chapter document))))
+                                                                                                                  (list (book/chapter ())))
+                                                                   (make-operation/replace-selection printer-input `((the string (subseq (the string document) 0 0))
+                                                                                                                     (the string (title-of (the book/chapter document)))
+                                                                                                                     (the book/chapter (elt (the sequence document) ,elements-length))
+                                                                                                                     (the sequence (elements-of (the book/chapter document)))))))))
+                      ((gesture/keyboard/key-press :sdl-key-r :control)
+                       :domain "Book" :description "Inserts a new paragraph into the elements of the book"
+                       :operation (bind ((elements-length (length (elements-of printer-input))))
+                                    (make-operation/compound (list (make-operation/sequence/replace-element-range printer-input `((the sequence (subseq (the sequence document) ,elements-length ,elements-length))
+                                                                                                                                  (the sequence (elements-of (the book/chapter document))))
+                                                                                                                  (list (book/paragraph ()
+                                                                                                                          (text/text () (text/string "" :font *font/liberation/serif/regular/24* :font-color (color/darken *color/solarized/blue* 0.5))))))
+                                                                   (make-operation/replace-selection printer-input `((the text/text (text/subseq (the text/text document) 0 0))
+                                                                                                                     (the text/text (content-of (the book/paragraph document)))
+                                                                                                                     (the book/paragraph (elt (the sequence document) ,elements-length))
                                                                                                                      (the sequence (elements-of (the book/chapter document))))))))))
                     (awhen (labels ((recurse (operation)
                                       (typecase operation
                                         (operation/quit operation)
+                                        (operation/functional operation)
                                         (operation/replace-selection
                                          (make-operation/replace-selection printer-input
                                                                            (pattern-case (reverse (selection-of operation))
@@ -520,6 +563,7 @@
     (merge-commands (awhen (labels ((recurse (operation)
                                       (typecase operation
                                         (operation/quit operation)
+                                        (operation/functional operation)
                                         (operation/replace-selection
                                          (awhen (pattern-case (reverse (selection-of operation))
                                                   (((the text/text (content-of (the tree/leaf document)))
@@ -559,4 +603,8 @@
                       (make-command (gesture-of input) it
                                     :domain (domain-of input)
                                     :description (description-of input)))
+                    (gesture-case (gesture-of input)
+                      ((gesture/keyboard/key-press :sdl-key-p :control)
+                       :domain "Book" :description "Switches to generic tree notation"
+                       :operation (make-operation/functional (lambda () (setf (projection-of printer-input) (recursive (make-projection/t->tree)))))))
                     (make-command/nothing (gesture-of input)))))

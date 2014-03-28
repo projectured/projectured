@@ -22,7 +22,11 @@
   (make-projection 't/sequence->tree/node))
 
 (def (function e) make-projection/t/object->tree/node (&key slot-provider)
-  (make-projection 't/object->tree/node :slot-provider (or slot-provider (compose 'class-slots 'class-of))))
+  (make-projection 't/object->tree/node :slot-provider (or slot-provider
+                                                           (lambda (instance)
+                                                             (remove-if (lambda (slot) (member (slot-definition-name slot) '(projection selection raw))) (class-slots (class-of instance))))
+                                                           #+nil
+                                                           (compose 'class-slots 'class-of))))
 
 ;;;;;;
 ;;; Construction
@@ -30,7 +34,7 @@
 (def (macro e) t/sequence->tree/node ()
   '(make-projection/t/sequence->tree/node))
 
-(def (macro e) t/object->tree/node (&key slot-provider)
+(def (macro e) t/object->tree/node (q&key slot-provider)
   `(make-projection/t/object->tree/node :slot-provider ,slot-provider))
 
 ;;;;;;
@@ -42,7 +46,7 @@
                                (collect (recurse-printer recursion element
                                                          `((elt (the ,(form-type input) document) ,index)
                                                            ,@(typed-reference (form-type input) input-reference))))))
-         (output-selection (when (typep input 'selection/base)
+         (output-selection (when (typep input 'document)
                              (pattern-case (reverse (selection-of input))
                                (((the ?element-type (elt (the sequence document) ?index)) . ?rest)
                                 (bind ((element-iomap (elt element-iomaps ?index))
@@ -85,7 +89,7 @@
                                        (recurse-printer recursion (slot-value-using-class class input slot)
                                                         `((,slot-reader (the ,(form-type input) document))
                                                           ,@(typed-reference (form-type input) input-reference)))))))
-         (output-selection (when (typep input 'selection/base)
+         (output-selection (when (typep input 'document)
                              (pattern-case (reverse (selection-of input))
                                (((the ?type document))
                                 `((the tree/node document)))
@@ -141,7 +145,8 @@
                                                           (setf (indentation-of slot-iomap-output) 2))
                                                         (collect slot-iomap-output))
                                                       (progn
-                                                        (setf (selection-of slot-iomap-output) (butlast output-selection 3))
+                                                        (when (typep slot-iomap-output 'document)
+                                                          (setf (selection-of slot-iomap-output) (butlast output-selection 3)))
                                                         (collect (tree/leaf (:selection (butlast output-selection 2) :opening-delimiter (text/text () (text/string " " :font *font/ubuntu/monospace/regular/18*)))
                                                                    slot-iomap-output))))))))
                                  :selection output-selection)))
@@ -152,9 +157,44 @@
 
 (def reader t/sequence->tree/node (projection recursion input printer-iomap)
   (bind ((printer-input (input-of printer-iomap)))
-    (merge-commands (awhen (labels ((recurse (operation)
+    (merge-commands (when (typep printer-input 'document)
+                      (pattern-case (reverse (selection-of printer-input))
+                        (((the ?element-type (elt (the sequence document) ?index)) . ?rest)
+                         (bind ((output-operation (operation-of (recurse-reader recursion (make-command/nothing (gesture-of input)) (elt (child-iomaps-of printer-iomap) ?index)))))
+                           (labels ((recurse (operation)
+                                      (typecase operation
+                                        (operation/functional operation)
+                                        (operation/replace-selection
+                                         (make-operation/replace-selection printer-input
+                                                                           (append (selection-of operation)
+                                                                                   `((the ,?element-type (elt (the sequence document) ,?index))))))
+                                        (operation/replace-target
+                                         (make-operation/replace-target printer-input
+                                                                        (append (target-of operation)
+                                                                                `((the ,?element-type (elt (the sequence document) ,?index))))
+                                                                        (replacement-of operation)))
+                                        (operation/sequence/replace-element-range
+                                         (make-operation/sequence/replace-element-range printer-input
+                                                                                        (append (target-of operation)
+                                                                                                `((the ,?element-type (elt (the sequence document) ,?index))))
+                                                                                        (replacement-of operation)))
+                                        (operation/number/replace-range
+                                         (make-operation/number/replace-range printer-input
+                                                                              (append (target-of operation)
+                                                                                      `((the ,?element-type (elt (the sequence document) ,?index))))
+                                                                              (replacement-of operation)))
+                                        (operation/compound
+                                         (bind ((operations (mapcar #'recurse (elements-of operation))))
+                                           (unless (some 'null operations)
+                                             (make-operation/compound operations)))))))
+                             (awhen (recurse output-operation)
+                               (make-command (gesture-of input) it
+                                             :domain (domain-of input)
+                                             :description (description-of input))))))))
+                    (awhen (labels ((recurse (operation)
                                       (typecase operation
                                         (operation/quit operation)
+                                        (operation/functional operation)
                                         (operation/replace-selection
                                          (awhen (pattern-case (reverse (selection-of operation))
                                                   (((the sequence (children-of (the tree/node document)))
@@ -182,8 +222,9 @@
                                                           (element (elt printer-input index))
                                                           (input-operation (make-operation/sequence/replace-element-range element (reverse ?rest) (replacement-of operation)))
                                                           (output-operation (operation-of (recurse-reader recursion (make-command (gesture-of input) input-operation :domain (domain-of input) :description (description-of input)) (elt (child-iomaps-of printer-iomap) index)))))
-                                                     (append (target-of output-operation)
-                                                             `((the ,(form-type element) (elt (the sequence document) ,index)))))))
+                                                     (when (typep output-operation 'operation/sequence/replace-element-range)
+                                                       (append (target-of output-operation)
+                                                               `((the ,(form-type element) (elt (the sequence document) ,index))))))))
                                            (make-operation/sequence/replace-element-range printer-input it (replacement-of operation))))
                                         (operation/show-context-sensitive-help
                                          (make-instance 'operation/show-context-sensitive-help
@@ -206,9 +247,54 @@
 
 (def reader t/object->tree/node (projection recursion input printer-iomap)
   (bind ((printer-input (input-of printer-iomap)))
-    (merge-commands (awhen (labels ((recurse (operation)
+    (merge-commands (when (typep printer-input 'document)
+                      (pattern-case (reverse (selection-of printer-input))
+                        (((the ?slot-value-type (?slot-reader (the ?type document))) . ?rest)
+                         (bind ((slot-value (funcall ?slot-reader printer-input))
+                                (class (class-of printer-input))
+                                (slots (funcall (slot-provider-of projection) printer-input))
+                                (slot-readers (mapcar (curry 'find-slot-reader class) slots))
+                                (element-index (position ?slot-reader slot-readers)))
+                           (when element-index
+                             (bind ((output-operation (operation-of (recurse-reader recursion (make-command/nothing (gesture-of input)) (elt (child-iomaps-of printer-iomap) element-index)))))
+                               (labels ((recurse (operation)
+                                          (typecase operation
+                                            (operation/functional operation)
+                                            (operation/replace-selection
+                                             (make-operation/replace-selection printer-input
+                                                                               (append (selection-of operation)
+                                                                                       `((the ,(form-type slot-value) (,?slot-reader (the ,(form-type printer-input) document)))))))
+                                            (operation/replace-target
+                                             (make-operation/replace-target printer-input
+                                                                            (append (target-of operation)
+                                                                                    `((the ,(form-type slot-value) (,?slot-reader (the ,(form-type printer-input) document)))))
+                                                                            (replacement-of operation)))
+                                            (operation/sequence/replace-element-range
+                                             (make-operation/sequence/replace-element-range printer-input
+                                                                                            (append (target-of operation)
+                                                                                                    `((the ,(form-type slot-value) (,?slot-reader (the ,(form-type printer-input) document)))))
+                                                                                            (replacement-of operation)))
+                                            (operation/number/replace-range
+                                             (make-operation/number/replace-range printer-input
+                                                                                  (append (target-of operation)
+                                                                                          `((the ,(form-type slot-value) (,?slot-reader (the ,(form-type printer-input) document)))))
+                                                                                  (replacement-of operation)))
+                                            (operation/compound
+                                             (bind ((operations (mapcar #'recurse (elements-of operation))))
+                                               (unless (some 'null operations)
+                                                 (make-operation/compound operations)))))))
+                                 (awhen (recurse output-operation)
+                                   (make-command (gesture-of input) it
+                                                 :domain (domain-of input)
+                                                 :description (description-of input))))))))))
+                    (gesture-case (gesture-of input)
+                      ((gesture/keyboard/key-press :sdl-key-p :control)
+                       :domain "JSON" :description "Switches to domain specific projection"
+                       :operation (make-operation/functional (lambda () (setf (projection-of printer-input) (if (projection-of printer-input) nil (recursive (make-projection/json->tree))))))))
+                    (awhen (labels ((recurse (operation)
                                       (typecase operation
                                         (operation/quit operation)
+                                        (operation/functional operation)
                                         (operation/replace-selection
                                          (awhen (pattern-case (reverse (selection-of operation))
                                                   (((the sequence (children-of (the tree/node document)))
@@ -263,8 +349,9 @@
                                                           (slot-value (slot-value-using-class (class-of printer-input) printer-input slot))
                                                           (input-operation (make-operation/sequence/replace-element-range slot-value (reverse ?rest) (replacement-of operation)))
                                                           (output-operation (operation-of (recurse-reader recursion (make-command (gesture-of input) input-operation :domain (domain-of input) :description (description-of input)) (elt (child-iomaps-of printer-iomap) index)))))
-                                                     (append (target-of output-operation)
-                                                             `((the ,(form-type slot-value) (,slot-reader (the ,(form-type printer-input) document))))))))
+                                                     (when (typep output-operation 'operation/sequence/replace-element-range)
+                                                       (append (target-of output-operation)
+                                                               `((the ,(form-type slot-value) (,slot-reader (the ,(form-type printer-input) document)))))))))
                                            (make-operation/sequence/replace-element-range printer-input it (replacement-of operation))))
                                         (operation/show-context-sensitive-help
                                          (make-instance 'operation/show-context-sensitive-help

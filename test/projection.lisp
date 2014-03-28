@@ -16,7 +16,7 @@
 
 (def function make-test-projection/document (projection)
   (nesting
-    (document->text nil)
+    (document->t nil)
     (document/clipboard->t)
     projection))
 
@@ -66,6 +66,20 @@
                                      (make-iomap/object projection recursion input input-reference (selection-of input))))
            (reference->text)
            (text->graphics)))))))
+
+(def function make-test-projection/split (projection-1 projection-2)
+  (nesting
+    (widget->graphics)
+    (widget->graphics)
+    (reference-dispatching ()
+      (((the widget/scroll-pane (elt (the sequence document) 0)))
+       (nesting
+         (widget->graphics)
+         projection-1))
+      (((the widget/scroll-pane (elt (the sequence document) 1)))
+       (nesting
+         (widget->graphics)
+         projection-2)))))
 
 (def function make-test-projection/generic (projection)
   (nesting
@@ -250,22 +264,33 @@
                                            (the string (title-of (the book/chapter document)))))))
     ("paragraph" (book/paragraph (:selection '((the text/text (text/subseq (the text/text document) 0 0))
                                                (the text/text (content-of (the book/paragraph document)))))
-                   (text/text () (text/string "Hello" :font *font/liberation/serif/regular/24*))))
+                   (text/text () (text/string "" :font *font/liberation/serif/regular/24* :font-color (color/darken *color/solarized/blue* 0.5)))))
     ("text" (text/text () (text/string "")))
+    ;; TODO:
+    ("image" (image/image () (asdf:system-relative-pathname :projectured "etc/lisp-boxed-alien.jpg")))
+    ("table" (table/table ()
+               (table/row ()
+                 (table/cell ()
+                   (document/nothing)))))
     ("xml element" (xml/element ("" nil :selection '((the string (subseq (the string document) 0 0))
                                                      (the string (xml/start-tag (the xml/element document)))))))
     ("xml attribute" (xml/attribute (:selection '((the string (subseq (the string document) 0 0))
                                                   (the string (name-of (the xml/attribute document))))) "" ""))
     ("xml text" (xml/text (:selection '((the string (subseq (the string document) 0 0))
                                         (the string (text-of (the xml/text document))))) ""))
-    ("json null" (json/null))
-    ("json false" (json/boolean #f))
-    ("json true" (json/boolean #t))
-    ("json number" (json/number 0))
-    ("json string" (json/string ""))
-    ("json array" (json/array ()))
-    ("json object entry" (json/object-entry "" (document/insertion)))
-    ("json object" (json/object))
+    ("json null" (json/null ()))
+    ("json false" (json/boolean () #f))
+    ("json true" (json/boolean ()#t))
+    ("json number" (json/number () 0))
+    ("json string" (json/string () ""))
+    ("json array" (json/array (:selection '((the string (subseq (the string document) 0 0))
+                                            (the string (value-of (the json/nothing document)))
+                                            (the json/nothing (elt (the sequence document) 0))
+                                            (the sequence (elements-of (the json/array document)))))
+                    (json/nothing (:selection '((the string (subseq (the string document) 0 0))
+                                                (the string (value-of (the json/nothing document))))))))
+    ("json object entry" (json/object-entry () "" (document/insertion)))
+    ("json object" (json/object ()))
     ("common lisp string" (make-instance 'common-lisp/constant
                                          :value ""
                                          :selection '((the string (subseq (the string document) 0 0))
@@ -291,6 +316,8 @@
                                                       :selection '((the string (subseq (the string document) 0 0))
                                                                    (the string (name-of (the lisp-form/symbol document)))
                                                                    (the lisp-form/symbol (name-of (the common-lisp/function-definition document))))))
+    ("javascript block" (make-javascript/statement/block nil))
+    ("javascript function definition" (make-javascript/definition/function "" nil nil))
     ("evaluator" (make-evaluator/evaluator (make-instance 'common-lisp/progn :body nil)))))
 
 ;;;;;;
@@ -497,7 +524,7 @@
     (recursive
       (type-dispatching
         (book/base (book->tree))
-        (document/base (document->text 'test-factory))
+        (document/base (document->t 'test-factory))
         (text/text (preserving))))
     (make-test-projection/tree->text)))
 
@@ -524,12 +551,18 @@
 
 (def function make-test-projection/xml->text ()
   (sequential
-    (recursive (xml->tree))
+    (recursive
+      (type-dispatching
+        (document/base (document->t 'test-factory))
+        (xml/base (xml->tree))))
     (make-test-projection/tree->text)))
 
 (def function make-test-projection/xml->graphics ()
   (sequential
-    (recursive (xml->tree))
+    (recursive
+      (type-dispatching
+        (document/base (document->t 'test-factory))
+        (xml/base (xml->tree))))
     (make-test-projection/tree->text)
     (line-numbering)
     (make-test-projection/text->output)))
@@ -539,12 +572,18 @@
 
 (def function make-test-projection/json->text ()
   (sequential
-    (recursive (json->tree))
+    (recursive
+      (type-dispatching
+        (document/base (document->t 'test-factory))
+        (json/base (json->tree))))
     (make-test-projection/tree->text)))
 
 (def function make-test-projection/json->graphics ()
   (sequential
-    (recursive (json->tree))
+    (recursive
+      (type-dispatching
+        (document/base (document->t 'test-factory))
+        (json/base (json->tree))))
     (make-test-projection/tree->text)
     (line-numbering)
     (make-test-projection/text->output)))
@@ -730,7 +769,7 @@
                                 (t (copying))))
                             (recursive (type-dispatching
                                          (common-lisp/base (common-lisp->lisp-form))
-                                         (document/base (document->text 'test-factory))
+                                         (document/base (document->t 'test-factory))
                                          (t (copying))))
                             (recursive (type-dispatching
                                          (lisp-form/base (lisp-form->tree))
@@ -738,13 +777,52 @@
                             (make-test-projection/tree->text)
                             (line-numbering)
                             (text/text->tree/leaf)))
-        (document/base (document->text 'test-factory))
+        (document/base (document->t 'test-factory))
         (text/text (preserving))
         (t (sequential
              (t->tree)
              (text/text->tree/leaf)))))
     (make-test-projection/tree->text)
     (make-test-projection/text->output)))
+
+(def function make-test-projection/common-lisp->graphics/search ()
+  (sequential
+    (document/search->tree/node (lambda (search instance)
+                                  (search-parts instance (lambda (instance)
+                                                           (typecase instance
+                                                             (test/check
+                                                              (string= search "is"))
+                                                             (common-lisp/constant
+                                                              (search-ignorecase search (write-to-string (value-of instance))))
+                                                             (common-lisp/variable-reference
+                                                              (search-ignorecase search (name-of (name-of (variable-of instance)))))
+                                                             (common-lisp/application
+                                                              (typecase (operator-of instance)
+                                                                (lisp-form/symbol
+                                                                 (search-ignorecase search (name-of (operator-of instance))))
+                                                                (common-lisp/function-reference
+                                                                 (search-ignorecase search (name-of (name-of (function-of (operator-of instance))))))))
+                                                             (common-lisp/function-definition
+                                                              (search-ignorecase search (name-of (name-of instance))))))
+                                                :slot-provider 'test-slot-provider)))
+    (recursive
+      (type-dispatching
+        (test/check (test/check->tree/node))
+        (common-lisp/variable-reference (preserving))
+        (common-lisp/function-reference (preserving))
+        (t (copying))))
+    (recursive (type-dispatching
+                 (common-lisp/base (common-lisp->lisp-form))
+                 (document/base (document->t 'test-factory))
+                 (t (copying))))
+    (recursive (type-dispatching
+                 (lisp-form/base (lisp-form->tree))
+                 (t (copying))))
+    (make-test-projection/tree->text)
+    (make-test-projection/text->output)))
+
+(def function make-test-projection/common-lisp->graphics/split ()
+  (make-test-projection/split (make-test-projection/common-lisp->graphics/search) (make-test-projection/common-lisp->graphics/test)))
 
 ;;;;;;
 ;;; Evaluator
@@ -761,24 +839,24 @@
 ;;;;;;
 ;;; T
 
-(def function test-class-slots (instance)
-  (remove-if (lambda (slot) (member (slot-definition-name slot) '(raw selection))) (class-slots (class-of instance))))
+(def function test-slot-provider (instance)
+  (remove-if (lambda (slot) (member (slot-definition-name slot) '(raw projection selection))) (class-slots (class-of instance))))
 
 (def function make-test-projection/t->text/tree ()
   (sequential
-    (recursive (t->tree :slot-provider 'test-class-slots))
+    (recursive (t->tree :slot-provider 'test-slot-provider))
     (make-test-projection/tree->text)))
 
 (def function make-test-projection/t->graphics/tree ()
   (sequential
-    (recursive (t->tree :slot-provider 'test-class-slots ))
+    (recursive (t->tree :slot-provider 'test-slot-provider ))
     (make-test-projection/tree->text)
     (line-numbering)
     (make-test-projection/text->output)))
 
 (def function make-test-projection/t->text/table ()
   (sequential
-    (recursive (t->table :slot-provider 'test-class-slots))
+    (recursive (t->table :slot-provider 'test-slot-provider))
     (recursive
       (type-dispatching
         (table/base (table->text))
@@ -786,7 +864,7 @@
 
 (def function make-test-projection/t->graphics/table ()
   (sequential
-    (recursive (t->table :slot-provider 'test-class-slots))
+    (recursive (t->table :slot-provider 'test-slot-provider))
     (recursive
       (type-dispatching
         (table/base (table->text))
@@ -820,11 +898,12 @@
 
 (def function make-test-projection/demo->graphics ()
   (sequential
+    (focusing '(or json/base xml/base book/base) nil)
     (recursive
       (type-dispatching
         (book/base (book->tree))
-        (text/text (text/text->tree/leaf))
-        (image/image (make-projection/image/image->tree/leaf))
+        (document/base (document->t 'test-factory))
+        (text/text (preserving))
         (t
          (sequential
            (recursive
@@ -835,13 +914,14 @@
                (json/base (json->tree))
                (javascript/base (javascript->tree))
                (table/base (sequential
-                             (recursive (table->text))
+                             (table->text)
                              (text/text->tree/leaf)))
                (common-lisp/base (sequential
                                    (common-lisp->lisp-form)
                                    (lisp-form->tree)))
                (lisp-form/base (lisp-form->tree))
                (image/image (make-projection/image/image->tree/leaf))
+               (document/base (document->t 'test-factory))
                (t (preserving))))
            (make-test-projection/tree->text)
            ;; TODO: slow due to text/split
@@ -884,6 +964,6 @@
            (text/text->tree/leaf)))
         (list/base (make-test-projection/list->text))
         (text/text (word-wrapping 1280))
-        (document/base (document->text 'test-factory))))
+        (document/base (document->t 'test-factory))))
     (make-test-projection/tree->text)
     (make-test-projection/text->output)))

@@ -75,6 +75,7 @@
                   (awhen (labels ((recurse (operation)
                                     (typecase operation
                                       (operation/quit operation)
+                                      (operation/functional operation)
                                       (operation/replace-selection
                                        (make-operation/replace-selection (input-of printer-iomap)
                                                                          (append (selection-of operation) (part-of projection))))

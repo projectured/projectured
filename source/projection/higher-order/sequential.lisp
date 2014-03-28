@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; IO map
 
-(def iomap iomap/sequential (iomap)
+(def iomap iomap/sequential ()
   ((input-reference :type reference)
    (output-reference :type reference)
    (element-iomaps :type list)))

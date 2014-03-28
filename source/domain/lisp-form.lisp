@@ -15,7 +15,7 @@
 ;;;;;;
 ;;; Lisp form document classes
 
-(def document lisp-form/base (selection/base)
+(def document lisp-form/base ()
   ((indentation :type integer)))
 
 (def document lisp-form/comment (lisp-form/base)

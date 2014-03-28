@@ -467,6 +467,7 @@
     (merge-commands (awhen (labels ((recurse (operation)
                                       (typecase operation
                                         (operation/quit operation)
+                                        (operation/functional operation)
                                         (operation/replace-selection
                                          (awhen (pattern-case (reverse (selection-of operation))
                                                   (((the string (value-of (the lisp-form/string document)))
@@ -514,6 +515,7 @@
     (merge-commands (awhen (labels ((recurse (operation)
                                       (typecase operation
                                         (operation/quit operation)
+                                        (operation/functional operation)
                                         (operation/replace-selection
                                          (awhen (pattern-case (reverse (selection-of operation))
                                                   (((the string (name-of (the lisp-form/symbol document)))
@@ -550,6 +552,7 @@
     (merge-commands (awhen (labels ((recurse (operation)
                                       (typecase operation
                                         (operation/quit operation)
+                                        (operation/functional operation)
                                         (operation/replace-selection
                                          (awhen (pattern-case (reverse (selection-of operation))
                                                   (((the string (name-of (the lisp-form/symbol document)))
@@ -585,6 +588,7 @@
     (merge-commands (awhen (labels ((recurse (operation)
                                       (typecase operation
                                         (operation/quit operation)
+                                        (operation/functional operation)
                                         (operation/replace-selection
                                          (awhen (pattern-case (reverse (selection-of operation))
                                                   (((the sequence (elements-of (the lisp-form/list document)))
@@ -652,6 +656,7 @@
     (merge-commands (labels ((recurse (operation)
                                (typecase operation
                                  (operation/quit operation)
+                                 (operation/functional operation)
                                  (operation/replace-selection
                                   (make-operation/replace-selection printer-input (append (selection-of operation) (last (selection-of printer-input) 2))))
                                  (operation/sequence/replace-element-range
@@ -688,6 +693,7 @@
                     (awhen (labels ((recurse (operation)
                                       (typecase operation
                                         (operation/quit operation)
+                                        (operation/functional operation)
                                         (operation/replace-selection
                                          (awhen (pattern-case (reverse (selection-of operation))
                                                   (((the sequence (elements-of (the lisp-form/list document)))
@@ -755,6 +761,7 @@
     (merge-commands (awhen (labels ((recurse (operation)
                                       (typecase operation
                                         (operation/quit operation)
+                                        (operation/functional operation)
                                         (operation/replace-selection
                                          (awhen (pattern-case (reverse (selection-of operation))
                                                   (((the sequence (elements-of (the lisp-form/list document)))
@@ -851,6 +858,7 @@
     (merge-commands (labels ((recurse (operation)
                                (typecase operation
                                  (operation/quit operation)
+                                 (operation/functional operation)
                                  (operation/replace-selection
                                   (make-operation/replace-selection printer-input (append (selection-of operation) (last (selection-of printer-input) 2))))
                                  (operation/sequence/replace-element-range
@@ -887,6 +895,7 @@
                     (awhen (labels ((recurse (operation)
                                       (typecase operation
                                         (operation/quit operation)
+                                        (operation/functional operation)
                                         (operation/replace-selection
                                          (awhen (pattern-case (reverse (selection-of operation))
                                                   (((the sequence (elements-of (the lisp-form/list document)))

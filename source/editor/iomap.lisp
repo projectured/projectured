@@ -10,12 +10,19 @@
 ;;; IO map
 
 (def (definer :available-flags "e") iomap (name supers slots &rest options)
-  (if *use-computed-class*
-      `(def computed-class* ,name ,supers
-         ,(iter (for slot :in slots)
-                (collect (append slot (list :computed-in 'projectured))))
-         ,@options)
-      `(def class* ,name ,supers ,slots ,@options)))
+  (bind ((supers (if (or (eq name 'iomap) (member 'iomap supers))
+                     supers
+                     (append supers '(iomap)))))
+    (if *use-computed-class*
+        `(progn
+           (def computed-class* ,name ,supers
+             ,(iter (for slot :in slots)
+                    (collect (append slot (list :computed-in 'projectured))))
+             ,@options)
+           ,@(when (getf -options- :export) `((export ',name))))
+        `(progn
+           (def class* ,name ,supers ,slots ,@options)
+           ,@(when (getf -options- :export) `((export ',name)))))))
 
 (def iomap iomap ()
   ((projection :type projection)

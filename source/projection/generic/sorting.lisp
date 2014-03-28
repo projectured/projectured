@@ -28,7 +28,7 @@
 ;;;;;
 ;;; IO map
 
-(def iomap iomap/sorting (iomap)
+(def iomap iomap/sorting ()
   ((element-iomaps :type sequence)
    (input-indices :type sequence)))
 
@@ -71,6 +71,7 @@
                   (labels ((recurse (operation)
                              (typecase operation
                                (operation/quit operation)
+                               (operation/functional operation)
                                (operation/replace-selection
                                 (awhen (when (typep printer-input 'sequence/sequence)
                                          (pattern-case (reverse (selection-of operation))

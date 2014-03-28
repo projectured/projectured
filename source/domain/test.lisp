@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; Document
 
-(def document test/base (selection/base)
+(def document test/base ()
   ())
 
 (def document test/result (test/base)

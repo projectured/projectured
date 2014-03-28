@@ -16,13 +16,13 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-image/image (filename)
+(def (function e) make-image/image (filename &key projection selection)
   (make-instance 'image/image
-                 :filename filename
-                 :raw nil))
+                 :filename filename :raw nil
+                 :projection projection :selection selection))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) image/image (filename)
-  `(make-image/image ,filename))
+(def (macro e) image/image ((&key projection selection) &body filename)
+  `(make-image/image ,(first filename) :projection ,projection :selection ,selection))

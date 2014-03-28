@@ -27,7 +27,7 @@
 ;;;;;;
 ;;; IO map
 
-(def iomap iomap/word-wrapping (iomap)
+(def iomap iomap/word-wrapping ()
   ((newline-insertion-indices :type sequence)))
 
 ;;;;;;
@@ -106,6 +106,7 @@
   (merge-commands (labels ((recurse (operation)
                              (typecase operation
                                (operation/quit operation)
+                               (operation/functional operation)
                                (operation/replace-selection
                                 (make-operation/replace-selection (input-of printer-iomap)
                                                                   (pattern-case (selection-of operation)

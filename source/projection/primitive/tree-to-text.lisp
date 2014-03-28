@@ -9,10 +9,10 @@
 ;;;;;;
 ;;; IO map
 
-(def iomap iomap/tree/leaf->text/text (iomap)
+(def iomap iomap/tree/leaf->text/text ()
   ((content-iomap :type iomap)))
 
-(def iomap iomap/tree/node->text/text (iomap)
+(def iomap iomap/tree/node->text/text ()
   ((child-iomaps :type sequence)
    (child-indentations :type sequence)
    (child-first-character-indices :type sequence)
@@ -39,26 +39,28 @@
         (when (<= child-first-character-index parent-character-index child-last-character-index)
           (bind ((output-string (text/as-string (output-of iomap)))
                  (child-line-index (funcall 'count #\NewLine output-string :start child-first-character-index :end parent-character-index)))
-            (unless (find #\NewLine output-string :from-end #t :start (- parent-character-index child-indentation) :end parent-character-index)
+            (return (values child-index (- parent-character-index child-first-character-index (* child-line-index child-indentation))))
+            #+nil ;; TODO: KLUDGE: this was here for no apparent reason, or at least I don't remember
+            (unless (print (find #\NewLine output-string :from-end #t :start (- parent-character-index child-indentation) :end parent-character-index))
               (return (values child-index (- parent-character-index child-first-character-index (* child-line-index child-indentation)))))))))
 
 ;;;;;;
 ;;; Projection
 
 (def projection tree/leaf->text/text ()
-  ())
+  ((output-delimiters :type boolean)))
 
 (def projection tree/node->text/text ()
-  ())
+  ((output-delimiters :type boolean)))
 
 ;;;;;;
 ;;; Construction
 
 (def (function e) make-projection/tree/leaf->text/text ()
-  (make-projection 'tree/leaf->text/text))
+  (make-projection 'tree/leaf->text/text :output-delimiters #t))
 
 (def (function e) make-projection/tree/node->text/text ()
-  (make-projection 'tree/node->text/text))
+  (make-projection 'tree/node->text/text :output-delimiters #t))
 
 ;;;;;;
 ;;; Construction
@@ -73,7 +75,6 @@
 ;;; Printer
 
 (def printer tree/leaf->text/text (projection recursion input input-reference)
-  (declare (ignore projection))
   (bind ((content-iomap (recurse-printer recursion (content-of input)
                                          `((content-of (the tree/leaf document))
                                            ,@(typed-reference (form-type input) input-reference))))
@@ -104,10 +105,12 @@
                                         (character-index (+ ?character-index opening-delimiter-length content-length)))
                                    `((the text/text (text/subseq (the text/text document) ,character-index ,character-index)))))))))
          (output (make-text/text (concatenate 'vector
-                                              (awhen (opening-delimiter-of input)
+                                              (awhen (and (output-delimiters-p projection)
+                                                          (opening-delimiter-of input))
                                                 (elements-of it))
                                               (elements-of content-output)
-                                              (awhen (closing-delimiter-of input)
+                                              (awhen (and (output-delimiters-p projection)
+                                                          (closing-delimiter-of input))
                                                 (elements-of it)))
                                  :selection output-selection)))
     (make-iomap 'iomap/tree/leaf->text/text :input input :output output :content-iomap content-iomap)))
@@ -125,7 +128,8 @@
                    (text/push output indentation-text)))))
       (next-line 0)
       (when input
-        (awhen (opening-delimiter-of input)
+        (awhen (and (output-delimiters-p projection)
+                    (opening-delimiter-of input))
           (text/push output it))
         (iter (with children = (children-of input))
               (for index :from 0)
@@ -161,7 +165,8 @@
         (unless (expanded-p input)
           (bind ((last-element (last-elt (elements-of output))))
             (text/push output (text/text () (text/string " ..." :font (font-of last-element) :font-color (font-color-of last-element))))))
-        (awhen (closing-delimiter-of input)
+        (awhen (and (output-delimiters-p projection)
+                    (closing-delimiter-of input))
           (text/push output it)))
       (next-line 0))
     ;; TODO: move iomap to return value, make more functional style
@@ -258,6 +263,7 @@
     (awhen (labels ((recurse (operation)
                       (typecase operation
                         (operation/quit operation)
+                        (operation/functional operation)
                         (operation/replace-selection
                          (awhen (if (and (typep gesture 'gesture/mouse/button/click)
                                          (equal (modifiers-of gesture) '(:control)))
@@ -343,7 +349,6 @@
                     :description (description-of command)))))
 
 (def reader tree/leaf->text/text (projection recursion input printer-iomap)
-  (declare (ignore projection))
   (bind ((printer-input (input-of printer-iomap))
          (content-iomap (content-iomap-of printer-iomap))
          (selection (selection-of printer-input))
@@ -364,6 +369,9 @@
                        :domain "Tree" :description "Turn the selection into a tree selection"
                        :operation (when text-selection?
                                     (make-operation/replace-selection printer-input '((the tree/leaf document)))))
+                      ((gesture/keyboard/key-press :sdl-key-d :control)
+                       :domain "Tree" :description "Toggles visibility of delimiters"
+                       :operation (make-operation/functional (lambda () (setf (output-delimiters-p projection) (not (output-delimiters-p projection))))))
                       ((gesture/keyboard/key-press :sdl-key-home :alt)
                        :domain "Tree" :description "Moves the selection to the root node"
                        :operation (bind ((new-selection `((the tree/leaf document))))
@@ -377,6 +385,7 @@
     (awhen (labels ((recurse (operation)
                       (typecase operation
                         (operation/quit operation)
+                        (operation/functional operation)
                         (operation/replace-selection
                          (pattern-case (selection-of operation)
                            (((the text/text (text/subseq (the text/text document) ?parent-character-index ?parent-character-index)) . ?rest)
@@ -513,6 +522,9 @@
                                     (when-bind node-reference (find-tree-node-reference selection)
                                       (bind ((node (eval-reference printer-input (reference/flatten (reverse node-reference)))))
                                         (make-operation/replace-selection printer-input `((the ,(form-type node) document) ,@node-reference))))))
+                      ((gesture/keyboard/key-press :sdl-key-d :control)
+                       :domain "Tree" :description "Toggles visibility of delimiters"
+                       :operation (make-operation/functional (lambda () (setf (output-delimiters-p projection) (not (output-delimiters-p projection))))))
                       ((gesture/keyboard/key-press :sdl-key-tab :control)
                        :domain "Tree" :description "Expands or collapses the selected ndoe"
                        :operation (awhen (find-tree-node-parent-reference (find-tree-node-reference selection))

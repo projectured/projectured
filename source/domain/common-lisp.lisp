@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; Document
 
-(def document common-lisp/base (selection/base)
+(def document common-lisp/base ()
   ())
 
 (def document common-lisp/constant (common-lisp/base)

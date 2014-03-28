@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; Javascript document classes
 
-(def document javascript/base (selection/base)
+(def document javascript/base ()
   ())
 
 ;;;;;;
@@ -43,7 +43,7 @@
 
 (def document javascript/expression/method-invocation (javascript/expression)
   ((object :type javascript/expression)
-   (method :type javascript/declaration/method)
+   (method :type javascript/definition/method)
    (arguments :type sequence)))
 
 ;;;;;;
@@ -68,16 +68,16 @@
   ((value :type string)))
 
 ;;;;;;
-;;; Javascript declaration classes
+;;; Javascript definition classes
 
-(def document javascript/declaration (javascript/base)
+(def document javascript/definition (javascript/base)
   ())
 
-(def document javascript/declaration/variable (javascript/declaration)
+(def document javascript/definition/variable (javascript/definition)
   ((name :type string)
    (body :type javascript/base)))
 
-(def document javascript/declaration/function (javascript/declaration)
+(def document javascript/definition/function (javascript/definition)
   ((name :type string)
    (arguments :type sequence)
    (body :type javascript/base)))
@@ -119,15 +119,15 @@
   (make-instance 'javascript/literal/string :value value))
 
 ;;;;;;
-;;; Javascript declaration constructors
+;;; Javascript definition constructors
 
-(def (function e) make-javascript/declaration/variable (name body)
-  (make-instance 'javascript/declaration/variable
+(def (function e) make-javascript/definition/variable (name body)
+  (make-instance 'javascript/definition/variable
                  :name name
                  :body body))
 
-(def (function e) make-javascript/declaration/function (name arguments body)
-  (make-instance 'javascript/declaration/function
+(def (function e) make-javascript/definition/function (name arguments body)
+  (make-instance 'javascript/definition/function
                  :name name
                  :arguments arguments
                  :body body))
