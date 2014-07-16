@@ -26,6 +26,11 @@
   ((alignment :type (member :left :center :right :justified))
    (content :type t)))
 
+(def document book/picture (book/base)
+  ((title :type string)
+   (alignment :type (member :left :center :right :justified))
+   (content :type image/image)))
+
 ;;;;;;
 ;;; Construction
 
@@ -38,6 +43,9 @@
 (def (function e) make-book/paragraph (content &key (alignment :left) selection)
   (make-instance 'book/paragraph :content content :alignment alignment :selection selection))
 
+(def (function e) make-book/picture (content &key title (alignment :left) selection)
+  (make-instance 'book/picture :content content :title title :alignment alignment :selection selection))
+
 ;;;;;;
 ;;; Construction
 
@@ -49,3 +57,6 @@
 
 (def (macro e) book/paragraph ((&key (alignment :left) selection) &body content)
   `(make-book/paragraph ,(first content) :alignment ,alignment :selection ,selection))
+
+(def (macro e) book/picture ((&key (title "") (alignment :left) selection) &body content)
+  `(make-book/picture ,(first content) :title ,title :alignment ,alignment :selection ,selection))

@@ -36,7 +36,11 @@
            `((the text/text (text/subseq (the text/text document) ,input-character-index ,input-character-index))))))
       (((the text/text (text/subseq (the text/text ?a) ?b ?c)))
        ;; TODO:
-       `((the text/text (text/subseq (the text/text document) ,(map-character-index ?b) ,(map-character-index ?c)))))
+       (bind (((:values b-line-number? b-line-index b-input-character-index) (map-character-index ?b))
+              ((:values c-line-number? c-line-index c-input-character-index) (map-character-index ?c)))
+         (declare (ignore b-line-index c-line-index))
+         (unless (or b-line-number? c-line-number?)
+           `((the text/text (text/subseq (the text/text document) ,b-input-character-index ,c-input-character-index))))))
       (((the sequence-box (text/subbox (the text/text ?a) ?b ?c)))
        ;; TODO:
        `((the sequence-box (text/subbox (the text/text document) ,(map-character-index ?b) ,(map-character-index ?c))))))))
@@ -124,7 +128,8 @@
                        (awhen (map-backward/line-numbering printer-iomap (selection-of operation))
                          (make-operation/replace-selection (input-of printer-iomap) it)))
                       (operation/sequence/replace-element-range
-                       (make-operation/sequence/replace-element-range (input-of printer-iomap) (map-backward/line-numbering printer-iomap (target-of operation)) (replacement-of operation)))
+                       (awhen (map-backward/line-numbering printer-iomap (target-of operation))
+                         (make-operation/sequence/replace-element-range (input-of printer-iomap) it (replacement-of operation))))
                       (operation/describe
                        (make-instance 'operation/describe :target (map-backward/line-numbering printer-iomap (target-of operation))))
                       (operation/show-context-sensitive-help

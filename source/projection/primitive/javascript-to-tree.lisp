@@ -78,7 +78,8 @@
                                        (push iomap child-iomaps)
                                        ;; KLUDGE:
                                        (setf (indentation-of (output-of iomap)) 2)
-                                       (collect (output-of iomap)))
+                                       (collect (output-of iomap))
+                                       (collect (tree/leaf () (text/text () (text/string ";" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))))
                                  :indentation 2
                                  :opening-delimiter (text/text () (text/string "{" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))
                                  ;; KLUDGE:
@@ -95,7 +96,8 @@
                                        (push iomap child-iomaps)
                                        ;; KLUDGE:
                                        (setf (indentation-of (output-of iomap)) 0)
-                                       (collect (output-of iomap)))
+                                       (collect (output-of iomap))
+                                       (collect (tree/leaf () (text/text () (text/string ";" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))))
                                  :indentation 2)))
     (make-iomap/compound projection recursion input input-reference output
                          (list* (make-iomap/object projection recursion input input-reference output) (nreverse child-iomaps)))))
@@ -121,7 +123,7 @@
   (bind ((child-iomaps nil)
          (object-iomap (recurse-printer recursion (object-of input) `((object-of (the javascript/expression/constructor-invocation document))
                                                                       ,@(typed-reference (form-type input) input-reference))))
-         (output (make-tree/node (list (make-tree/leaf (text/text () (text/string "new" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/blue*)))
+         (output (make-tree/node (list (make-tree/leaf (text/text () (text/string "new " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/blue*)))
                                        (output-of object-iomap)
                                        (make-tree/node (list (make-tree/node (iter (for index :from 0)
                                                                                    (for argument :in-sequence (arguments-of input))
@@ -131,8 +133,7 @@
                                                                                    (collect (output-of child-iomap)))
                                                                              :opening-delimiter (text/text () (text/string "(" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))
                                                                              :closing-delimiter (text/text () (text/string ")" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))
-                                                                             :separator (text/text () (text/string ", " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))))))
-                                 :separator (text/text () (text/string " " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))))
+                                                                             :separator (text/text () (text/string ", " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))))))))
     (make-iomap/compound projection recursion input input-reference output
                          (list* (make-iomap/object projection recursion input input-reference output)
                                 #+nil

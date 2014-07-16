@@ -46,7 +46,8 @@
 (def document document/insertion (document/base)
   ((prefix "Insert a new " :type string :allocation :class)
    (value :type string)
-   (suffix " here" :type string :allocation :class)))
+   (suffix " here" :type string :allocation :class)
+   (font nil :type style/font)))
 
 (def document document/search (document/base)
   ((content :type t)
@@ -65,8 +66,8 @@
 (def (function e) make-document/nothing (&key selection)
   (make-instance 'document/nothing :selection selection))
 
-(def (function e) make-document/insertion (&key selection (value ""))
-  (make-instance 'document/insertion :selection selection :value value))
+(def (function e) make-document/insertion (&key selection (value "") font)
+  (make-instance 'document/insertion :selection selection :value value :font font))
 
 (def (function e) make-document/search (content &key search selection)
   (make-instance 'document/search :content content :search (or search "") :selection selection))
@@ -83,8 +84,8 @@
 (def (macro e) document/nothing (&key selection)
   `(make-document/nothing :selection ,selection))
 
-(def (macro e) document/insertion (&key selection (value ""))
-  `(make-document/insertion :selection ,selection :value ,value))
+(def (macro e) document/insertion (&key selection (value "") font)
+  `(make-document/insertion :selection ,selection :value ,value :font ,font))
 
 (def (macro e) document/search ((&key selection search) &body content)
   `(make-document/search ,(first content) :search ,search :selection ,selection))

@@ -36,6 +36,9 @@
 (def projection common-lisp/application->lisp-form/list ()
   ())
 
+(def projection common-lisp/special-variable-definition->lisp-form/list ()
+  ())
+
 (def projection common-lisp/function-definition->lisp-form/list ()
   ())
 
@@ -81,6 +84,9 @@
 (def (function e) make-projection/common-lisp/application->lisp-form/list ()
   (make-projection 'common-lisp/application->lisp-form/list))
 
+(def (function e) make-projection/common-lisp/special-variable-definition->lisp-form/list ()
+  (make-projection 'common-lisp/special-variable-definition->lisp-form/list))
+
 (def (function e) make-projection/common-lisp/function-definition->lisp-form/list ()
   (make-projection 'common-lisp/function-definition->lisp-form/list))
 
@@ -125,6 +131,9 @@
 
 (def (macro e) common-lisp/application->lisp-form/list ()
   '(make-projection/common-lisp/application->lisp-form/list))
+
+(def (macro e) common-lisp/special-variable-definition->lisp-form/list ()
+  '(make-projection/common-lisp/special-variable-definition->lisp-form/list))
 
 (def (macro e) common-lisp/function-definition->lisp-form/list ()
   '(make-projection/common-lisp/function-definition->lisp-form/list))
@@ -387,6 +396,17 @@
                                       :selection output-selection)))
     (make-iomap/compound projection recursion input input-reference output argument-iomaps)))
 
+(def printer common-lisp/special-variable-definition->lisp-form/list (projection recursion input input-reference)
+  (bind ((variable-name (name-of input))
+         (value-iomap (recurse/slot recursion input 'value input-reference))
+         (output (make-lisp-form/list (list (make-lisp-form/symbol* 'defvar :font-color *color/solarized/blue*)
+                                            (make-lisp-form/symbol (name-of variable-name) (package-of variable-name) :font *font/ubuntu/monospace/italic/18* :font-color *color/solarized/violet*)
+                                            (progn
+                                              ;; KLUDGE:
+                                              (setf (indentation-of (output-of value-iomap)) 2)
+                                              (output-of value-iomap))))))
+    (make-iomap/compound projection recursion input input-reference output (list value-iomap))))
+
 (def printer common-lisp/function-definition->lisp-form/list (projection recursion input input-reference)
   (bind ((documentation (documentation-of input))
          (binding-iomaps (recurse/ordinary-lambda-list recursion input input-reference))
@@ -434,10 +454,12 @@
          (body-iomaps (recurse/slot recursion input 'body input-reference))
          (output (make-lisp-form/list (list* (make-lisp-form/symbol* 'lambda :font-color *color/solarized/blue*)
                                              (make-lisp-form/list (mapcar 'output-of binding-iomaps))
-                                             (mapcar 'output-of body-iomaps)))))
-    (make-iomap/compound projection recursion input input-reference output
-                         (append binding-iomaps
-                                 body-iomaps))))
+                                             (iter (for body-iomap :in-sequence body-iomaps)
+                                                   (for body-output = (output-of body-iomap))
+                                                   ;; KLUDGE:
+                                                   (setf (indentation-of body-output) 2)
+                                                   (collect body-output))))))
+    (make-iomap/compound projection recursion input input-reference output (append binding-iomaps body-iomaps))))
 
 (def printer common-lisp/function-argument->lisp-form/string (projection recursion input input-reference)
   (bind ((name (name-of input))
@@ -852,6 +874,10 @@
                                                                                                                      (the document/insertion (elt (the sequence document) ,argument-length))
                                                                                                                      (the sequence (arguments-of (the common-lisp/function-definition document))))))))))
                     (make-command/nothing (gesture-of input)))))
+
+(def reader common-lisp/special-variable-definition->lisp-form/list (projection recursion input printer-iomap)
+  (declare (ignore projection recursion printer-iomap))
+  input)
 
 (def reader common-lisp/function-definition->lisp-form/list (projection recursion input printer-iomap)
   (bind ((printer-input (input-of printer-iomap)))

@@ -18,6 +18,9 @@
 (def projection book/paragraph->tree/leaf ()
   ())
 
+(def projection book/picture->tree/leaf ()
+  ())
+
 ;;;;;;
 ;;; Construction
 
@@ -29,6 +32,9 @@
 
 (def (function e) make-projection/book/paragraph->tree/leaf ()
   (make-projection 'book/paragraph->tree/leaf))
+
+(def (function e) make-projection/book/picture->tree/leaf ()
+  (make-projection 'book/picture->tree/leaf))
 
 ;;;;;;
 ;;; IO map
@@ -101,7 +107,7 @@
          (output (make-tree/node (append (list (tree/leaf (:selection (butlast title-selection 2))
                                                  (text/text (:selection (butlast title-selection 3))
                                                    (if (string= title "")
-                                                       (text/string "Enter book title" :font *font/liberation/serif/bold/36* :font-color (color/lighten *color/solarized/red* 0.75))
+                                                       (text/string "enter book title" :font *font/liberation/serif/bold/36* :font-color (color/lighten *color/solarized/red* 0.75))
                                                        (text/string title :font *font/liberation/serif/bold/36* :font-color *color/solarized/red*)))))
                                          (when authors
                                            (list (make-tree/node (iter (for index :from 0)
@@ -192,7 +198,7 @@
          (output (make-tree/node (list* (tree/leaf (:selection (butlast output-selection 2))
                                           (text/text (:selection (butlast output-selection 3))
                                             (if (string= title "")
-                                                (text/string (string+ numbering " " "Enter chapter title") :font title-font :font-color (color/lighten *color/solarized/blue* 0.75))
+                                                (text/string (string+ numbering " " "enter chapter title") :font title-font :font-color (color/lighten *color/solarized/blue* 0.75))
                                                 (text/string (string+ numbering " " (title-of input)) :font title-font :font-color *color/solarized/blue*))))
                                         (mapcar 'output-of element-iomaps))
                                  :selection output-selection
@@ -218,8 +224,39 @@
          (output (tree/leaf (:selection output-selection)
                    (if (zerop (text/length content-output))
                        (text/text (:selection (butlast output-selection))
-                         (text/string "Enter text" :font *font/liberation/serif/regular/24* :font-color (color/lighten *color/solarized/gray* 0.75)))
+                         (text/string "enter paragraph text" :font *font/liberation/serif/regular/24* :font-color (color/lighten *color/solarized/gray* 0.75)))
                        content-output))))
+    (make-iomap/object projection recursion input input-reference output)))
+
+(def printer book/picture->tree/leaf (projection recursion input input-reference)
+  (bind ((content (content-of input))
+         (filename (filename-of content))
+         (filename-empty? (zerop (length (namestring filename))))
+         (file-exists? (and (not filename-empty?)
+                            (not (null (pathname-name filename)))
+                            (not (null (pathname-type filename)))
+                            (probe-file filename)))
+         (filename-string (if filename-empty?
+                              "enter picture path"
+                              (namestring filename)))
+         (filename-color (if filename-empty?
+                             (color/lighten *color/solarized/gray* 0.75)
+                             *color/solarized/gray*))
+         (output-selection (unless file-exists?
+                             (pattern-case (reverse (selection-of input))
+                               (((the image/image (content-of (the book/picture document)))
+                                 (the string (filename-of (the image/image document)))
+                                 (the string (subseq (the string document) ?start-character-index ?end-character-index)))
+                                `((the text/text (text/subseq (the text/text document) ,?start-character-index ,?end-character-index))
+                                  (the text/text (content-of (the tree/leaf document)))))
+                               (((the tree/leaf (printer-output (the book/picture document) ?projection ?recursion)) . ?rest)
+                                (when (and (eq projection ?projection) (eq recursion ?recursion))
+                                  (reverse ?rest))))))
+         (output (tree/leaf (:selection output-selection)
+                   (text/text (:selection (butlast output-selection))
+                     (if file-exists?
+                         (content-of input)
+                         (text/string filename-string :font *font/liberation/serif/regular/24* :font-color filename-color))))))
     (make-iomap/object projection recursion input input-reference output)))
 
 ;;;;;;
@@ -585,6 +622,58 @@
                                                            (the text/text (content-of (the book/paragraph document)))))
                                                        `((the text/text (text/subseq (the text/text document) ,?start-character-index ,?end-character-index))
                                                          (the text/text (content-of (the book/paragraph document)))))))
+                                           (make-operation/sequence/replace-element-range printer-input it (replacement-of operation))))
+                                        (operation/show-context-sensitive-help
+                                         (make-instance 'operation/show-context-sensitive-help
+                                                        :commands (iter (for command :in (commands-of operation))
+                                                                        (awhen (recurse (operation-of command))
+                                                                          (collect (make-instance 'command
+                                                                                                  :gesture (gesture-of command)
+                                                                                                  :domain (domain-of command)
+                                                                                                  :description (description-of command)
+                                                                                                  :operation it))))))
+                                        (operation/compound
+                                         (bind ((operations (mapcar #'recurse (elements-of operation))))
+                                           (unless (some 'null operations)
+                                             (make-operation/compound operations)))))))
+                             (recurse (operation-of input)))
+                      (make-command (gesture-of input) it
+                                    :domain (domain-of input)
+                                    :description (description-of input)))
+                    (gesture-case (gesture-of input)
+                      ((gesture/keyboard/key-press :sdl-key-p :control)
+                       :domain "Book" :description "Switches to generic tree notation"
+                       :operation (make-operation/functional (lambda () (setf (projection-of printer-input) (recursive (make-projection/t->tree)))))))
+                    (make-command/nothing (gesture-of input)))))
+
+(def reader book/picture->tree/leaf (projection recursion input printer-iomap)
+  (bind ((printer-input (input-of printer-iomap)))
+    (merge-commands (awhen (labels ((recurse (operation)
+                                      (typecase operation
+                                        (operation/quit operation)
+                                        (operation/functional operation)
+                                        (operation/replace-selection
+                                         (awhen (pattern-case (reverse (selection-of operation))
+                                                  (((the text/text (content-of (the tree/leaf document)))
+                                                    (the text/text (text/subseq (the text/text document) ?start-character-index ?end-character-index)))
+                                                   `((the string (subseq (the string document) ,?start-character-index ,?end-character-index))
+                                                     (the string (filename-of (the image/image document)))
+                                                     (the image/image (content-of (the book/picture document)))))
+                                                  (?a
+                                                   (append (selection-of operation) `((the tree/leaf (printer-output (the book/picture document) ,projection ,recursion))))))
+                                           (make-operation/replace-selection printer-input it)))
+                                        (operation/sequence/replace-element-range
+                                         (awhen (pattern-case (reverse (target-of operation))
+                                                  (((the text/text (content-of (the tree/leaf document)))
+                                                    (the text/text (text/subseq (the text/text document) ?start-character-index ?end-character-index)))
+                                                   (if (zerop (length (namestring (filename-of (content-of printer-input)))))
+                                                       (when (= ?start-character-index ?end-character-index)
+                                                         `((the string (subseq (the string document) 0 0))
+                                                           (the string (filename-of (the image/image document)))
+                                                           (the image/image (content-of (the book/picture document)))))
+                                                       `((the string (subseq (the string document) ,?start-character-index ,?end-character-index))
+                                                         (the string (filename-of (the image/image document)))
+                                                         (the image/image (content-of (the book/picture document)))))))
                                            (make-operation/sequence/replace-element-range printer-input it (replacement-of operation))))
                                         (operation/show-context-sensitive-help
                                          (make-instance 'operation/show-context-sensitive-help

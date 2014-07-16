@@ -265,6 +265,10 @@
     ("paragraph" (book/paragraph (:selection '((the text/text (text/subseq (the text/text document) 0 0))
                                                (the text/text (content-of (the book/paragraph document)))))
                    (text/text () (text/string "" :font *font/liberation/serif/regular/24* :font-color (color/darken *color/solarized/blue* 0.5)))))
+    ("picture" (book/picture (:selection '((the string (subseq (the string document) 0 0))
+                                           (the string (filename-of (the image/image document)))
+                                           (the image/image (content-of (the book/picture document)))))
+                 (image/image () "")))
     ("text" (text/text () (text/string "")))
     ;; TODO:
     ("image" (image/image () (asdf:system-relative-pathname :projectured "etc/lisp-boxed-alien.jpg")))
@@ -913,8 +917,12 @@
                (xml/base (xml->tree))
                (json/base (json->tree))
                (javascript/base (javascript->tree))
+               (css/base (css->tree))
                (table/base (sequential
-                             (table->text)
+                             (recursive
+                               (type-dispatching
+                                 (table/base (table->text))
+                                 (text/base (preserving))))
                              (text/text->tree/leaf)))
                (common-lisp/base (sequential
                                    (common-lisp->lisp-form)
@@ -922,6 +930,7 @@
                (lisp-form/base (lisp-form->tree))
                (image/image (make-projection/image/image->tree/leaf))
                (document/base (document->t 'test-factory))
+               (evaluator/evaluator (evaluator/evaluator->tree/node))
                (t (preserving))))
            (make-test-projection/tree->text)
            ;; TODO: slow due to text/split

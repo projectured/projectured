@@ -63,6 +63,7 @@
                  :unit unit))
 
 (def (function e) make-text/character (content &key font font-color fill-color line-color)
+  (check-type content character)
   (make-instance 'text/character
                  :content content
                  :font font
@@ -71,6 +72,7 @@
                  :line-color line-color))
 
 (def (function e) make-text/string (content &key font font-color fill-color line-color)
+  (check-type content string)
   (make-instance 'text/string
                  :content content
                  :font font
@@ -460,7 +462,7 @@
          :domain "Text" :description "Deletes the word following the selection"
          :operation (pattern-case (selection-of text)
                       (((the text/text (text/subseq (the text/text document) ?b ?b)))
-                       (bind (((:values element-index character-index) (text/find text (text/element-index text ?b) (text/character-index text ?b) 'whitespace?)))
+                       (bind (((:values element-index character-index) (text/find text (text/element-index text ?b) (text/character-index text ?b) (lambda (c) (not (alphanumericp c))))))
                          (when-bind index (text/index text element-index character-index)
                            (make-operation/sequence/replace-element-range text `((the text/text (text/subseq (the text/text document) ,?b ,index))) ""))))))
         ((gesture/keyboard/key-press :sdl-key-backspace)

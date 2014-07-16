@@ -1,0 +1,44 @@
+ProjecturEd
+===========
+
+1. Introduction
+---------------
+
+ProjecturEd is a generic purpose projectional editor written in Common Lisp. It provides editing for different problem domains represented in unrestricted arbitrary data structures. It uses multiple composable bidirectional projections to provide different notations varying from textual to graphics.
+
+<lisp-alien>
+
+Visit http://projectured.org or http://github.com/projectured/projectured for more information.
+
+2. Specification
+----------------
+
+This example demonstrates mixing multiple different problem domains in the same document. The document contains Common Lisp, HTML, JavaScript, JSON, table, image and styled text nested into each other. It describes a web service implemented as a single Common Lisp function that processes HTTP requests. When the function receives a request to the '/page' path it sends an HTML page in response. This page contains a pie chart that utilizes the Google Charts JavaScript API. When the pie chart is shown in the browser it sends another request to the '/data' path using JavaScript. For this request the web service returns another document in JSON format that provides the data for the pie chart. For all other unknown requests the web service sends an HTML error page. The following screenshot shows how the page looks like.
+
+<pie-chart>
+
+This example uses a compound projection that displays all used domains in their natural notation. Proper indentation and syntax highlight are automatically provided without inserting escape sequences that would make reading harder. Note that the edited document is not text even though it looks like. It's a complex domain specific data structure that precisely captures the intentions. The projections keep track of what is what to make navigation and editing possible.
+
+3. Implementation
+-----------------
+
+3.1. Dispatch Table
+-------------------
+
+3.2. Data
+---------
+
+3.3. Main Page
+--------------
+
+3.4. Error Page
+---------------
+
+3.5. Client Side
+----------------
+
+3.6. Server Side
+----------------
+
+3.7. Putting Together
+---------------------

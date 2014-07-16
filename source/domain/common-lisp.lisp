@@ -45,6 +45,10 @@
   ((operator :type symbol)
    (arguments :type sequence)))
 
+(def document common-lisp/special-variable-definition (common-lisp/base)
+  ((name :type lisp-form/symbol)
+   (value :type common-lisp/base)))
+
 (def document common-lisp/function-definition (common-lisp/base)
   ((name :type lisp-form/symbol)
    (bindings :type sequence)
@@ -111,12 +115,25 @@
 (def (function e) make-common-lisp/required-function-argument (name &key selection)
   (make-instance 'common-lisp/required-function-argument :name name :selection selection))
 
+(def (function e) make-common-lisp/special-variable-definition (name value &key selection)
+  (make-instance 'common-lisp/special-variable-definition
+                 :name name
+                 :value value
+                 :selection selection))
+
 (def (function e) make-common-lisp/function-definition (name bindings body &key allow-other-keys documentation selection)
   (make-instance 'common-lisp/function-definition
                  :name name
                  :bindings bindings
                  :allow-other-keys allow-other-keys
                  :documentation documentation
+                 :body body
+                 :selection selection))
+
+(def (function e) make-common-lisp/lambda-function (bindings body &key allow-other-keys selection)
+  (make-instance 'common-lisp/lambda-function
+                 :bindings bindings
+                 :allow-other-keys allow-other-keys
                  :body body
                  :selection selection))
 

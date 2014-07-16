@@ -45,7 +45,8 @@
   (type-dispatching
     (book/book (make-projection/book/book->tree/node))
     (book/chapter (make-projection/book/chapter->tree/node))
-    (book/paragraph (make-projection/book/paragraph->tree/leaf))))
+    (book/paragraph (make-projection/book/paragraph->tree/leaf))
+    (book/picture (make-projection/book/picture->tree/leaf))))
 
 (def (macro e) book->tree ()
   '(make-projection/book->tree))
@@ -113,6 +114,64 @@
   '(make-projection/inspector->table))
 
 ;;;;;;
+;;; XML
+
+(def (function e) make-projection/xml->tree ()
+  (type-dispatching
+    (xml/text (make-projection/xml/text->tree/leaf))
+    (xml/attribute (make-projection/xml/attribute->tree/node))
+    (xml/element (make-projection/xml/element->tree/node))))
+
+(def (macro e) xml->tree ()
+  '(make-projection/xml->tree))
+
+;;;;;;
+;;; JSON
+
+(def (function e) make-projection/json->tree ()
+  (type-dispatching
+    (json/nothing (make-projection/json/nothing->tree/leaf))
+    (json/null (make-projection/json/null->tree/leaf))
+    (json/boolean (make-projection/json/boolean->tree/leaf))
+    (json/number (make-projection/json/number->tree/leaf))
+    (json/string (make-projection/json/string->tree/leaf))
+    (json/array (make-projection/json/array->tree/node))
+    (json/object-entry (make-projection/json/object-entry->tree/node))
+    (json/object (make-projection/json/object->tree/node))))
+
+(def (macro e) json->tree ()
+  '(make-projection/json->tree))
+
+;;;;;;
+;;; Javascript
+
+(def (function e) make-projection/javascript->tree ()
+  (type-dispatching
+    (javascript/statement/block (make-projection/javascript/statement/block->tree/node))
+    (javascript/statement/top-level (make-projection/javascript/statement/top-level->tree/node))
+    (javascript/expression/variable-reference (make-projection/javascript/expression/variable-reference->tree/leaf))
+    (javascript/expression/property-access (make-projection/javascript/expression/property-access->tree/node))
+    (javascript/expression/constructor-invocation (make-projection/javascript/expression/constructor-invocation->tree/node))
+    (javascript/expression/method-invocation (make-projection/javascript/expression/method-invocation->tree/node))
+    (javascript/literal/string (make-projection/javascript/literal/string->tree/leaf))
+    (javascript/definition/variable (make-projection/javascript/definition/variable->tree/node))
+    (javascript/definition/function (make-projection/javascript/definition/function->tree/node))))
+
+(def (macro e) javascript->tree ()
+  '(make-projection/javascript->tree))
+
+;;;;;;
+;;; CSS
+
+(def (function e) make-projection/css->tree ()
+  (type-dispatching
+    (css/attribute (make-projection/css/attribute->tree/leaf))
+    (css/rule (make-projection/css/rule->tree/node))))
+
+(def (macro e) css->tree ()
+  '(make-projection/css->tree))
+
+;;;;;;
 ;;; T
 
 (def (function e) make-projection/t->tree (&key slot-provider)
@@ -142,35 +201,6 @@
 
 (def (macro e) t->table (&key slot-provider)
   `(make-projection/t->table :slot-provider ,slot-provider))
-
-;;;;;;
-;;; XML
-
-(def (function e) make-projection/xml->tree ()
-  (type-dispatching
-    (xml/text (make-projection/xml/text->tree/leaf))
-    (xml/attribute (make-projection/xml/attribute->tree/node))
-    (xml/element (make-projection/xml/element->tree/node))))
-
-(def (macro e) xml->tree ()
-  '(make-projection/xml->tree))
-
-;;;;;;
-;;; JSON
-
-(def (function e) make-projection/json->tree ()
-  (type-dispatching
-    (json/nothing (make-projection/json/nothing->tree/leaf))
-    (json/null (make-projection/json/null->tree/leaf))
-    (json/boolean (make-projection/json/boolean->tree/leaf))
-    (json/number (make-projection/json/number->tree/leaf))
-    (json/string (make-projection/json/string->tree/leaf))
-    (json/array (make-projection/json/array->tree/node))
-    (json/object-entry (make-projection/json/object-entry->tree/node))
-    (json/object (make-projection/json/object->tree/node))))
-
-(def (macro e) json->tree ()
-  '(make-projection/json->tree))
 
 ;;;;;;
 ;;; File system
@@ -205,24 +235,6 @@
 
 (def (macro e) java->tree ()
   '(make-projection/java->tree))
-
-;;;;;;
-;;; Javascript
-
-(def (function e) make-projection/javascript->tree ()
-  (type-dispatching
-    (javascript/statement/block (make-projection/javascript/statement/block->tree/node))
-    (javascript/statement/top-level (make-projection/javascript/statement/top-level->tree/node))
-    (javascript/expression/variable-reference (make-projection/javascript/expression/variable-reference->tree/leaf))
-    (javascript/expression/property-access (make-projection/javascript/expression/property-access->tree/node))
-    (javascript/expression/constructor-invocation (make-projection/javascript/expression/constructor-invocation->tree/node))
-    (javascript/expression/method-invocation (make-projection/javascript/expression/method-invocation->tree/node))
-    (javascript/literal/string (make-projection/javascript/literal/string->tree/leaf))
-    (javascript/definition/variable (make-projection/javascript/definition/variable->tree/node))
-    (javascript/definition/function (make-projection/javascript/definition/function->tree/node))))
-
-(def (macro e) javascript->tree ()
-  '(make-projection/javascript->tree))
 
 ;;;;;;
 ;;; Lisp form
@@ -264,6 +276,7 @@
     (common-lisp/lexical-variable-binding (make-projection/common-lisp/lexical-variable-binding->lisp-form/list))
     (common-lisp/let (make-projection/common-lisp/let->lisp-form/list))
     (common-lisp/application (make-projection/common-lisp/application->lisp-form/list))
+    (common-lisp/special-variable-definition (make-projection/common-lisp/special-variable-definition->lisp-form/list))
     (common-lisp/function-definition (make-projection/common-lisp/function-definition->lisp-form/list))
     (common-lisp/lambda-function (make-projection/common-lisp/lambda-function->lisp-form/list))
     (common-lisp/function-argument (make-projection/common-lisp/function-argument->lisp-form/string))

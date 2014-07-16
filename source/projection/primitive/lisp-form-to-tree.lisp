@@ -115,18 +115,22 @@
                               (when (and (eq projection ?projection) (eq recursion ?recursion))
                                 (reverse ?rest)))))
          (font-color (or (font-color-of input) *color/solarized/violet*))
+         (name (name-of input))
+         (name-string (string-downcase (if (string= "KEYWORD" (package-of input))
+                                           (string+ ":" name)
+                                           name)))
          (output (tree/leaf (:selection output-selection)
                    (text/text (:selection (butlast output-selection))
-                     (text/string (string-downcase (name-of input)) :font (or (font-of input) *font/ubuntu/monospace/regular/18*) :font-color font-color))
+                     (text/string name-string :font (or (font-of input) *font/ubuntu/monospace/regular/18*) :font-color font-color))
                    ;; TODO: parameter
                    #+nil
                    (text/text (:selection (butlast output-selection))
                      (text/string (string+ (string-downcase (package-of input)) "::" ) :font (or (font-of input) *font/ubuntu/monospace/regular/18*) :font-color (color/lighten font-color 0.5))
-                     (text/string (string-downcase (name-of input)) :font (or (font-of input) *font/ubuntu/monospace/bold/18*) :font-color font-color)))))
+                     (text/string name-string :font (or (font-of input) *font/ubuntu/monospace/bold/18*) :font-color font-color)))))
     (make-iomap/object projection recursion input input-reference output)))
 
 (def printer lisp-form/string->tree/leaf (projection recursion input input-reference)
-  (bind ((value (value-of input))
+  (bind ((value (write-to-string (value-of input)))
          (output-selection (pattern-case (reverse (selection-of input))
                              (((the string (value-of (the lisp-form/string document)))
                                (the string (subseq (the string document) ?start-index ?end-index)))
@@ -138,7 +142,7 @@
          (output (tree/leaf (:selection output-selection
                              :opening-delimiter (text/text () (text/string "\"" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))
                              :closing-delimiter (text/text () (text/string "\"" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))
-                   (text/text (:selection (butlast output-selection)) (text/string value :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/green*)))))
+                   (text/text (:selection (butlast output-selection)) (text/string (subseq value 1 (1- (length value))) :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/green*)))))
     (make-iomap/object projection recursion input input-reference output)))
 
 (def printer lisp-form/list->tree/node (projection recursion input input-reference)
