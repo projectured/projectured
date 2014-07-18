@@ -229,7 +229,9 @@
          (output (etypecase value
                    (number (make-lisp-form/number value :selection output-selection))
                    (string (make-lisp-form/string value :selection output-selection))
-                   (symbol (make-lisp-form/symbol (symbol-name value) (package-name (symbol-package value)) :font-color *color/solarized/magenta* :selection output-selection)))))
+                   (symbol (if (keywordp value)
+                               (make-lisp-form/symbol (symbol-name value) (package-name (symbol-package value)) :font-color *color/solarized/magenta* :selection output-selection)
+                               (make-lisp-form/quote (make-lisp-form/symbol (symbol-name value) (package-name (symbol-package value)) :font-color *color/solarized/magenta* :selection output-selection)))))))
     (make-iomap/object projection recursion input input-reference output)))
 
 (def printer common-lisp/variable-reference->lisp-form/symbol (projection recursion input input-reference)
@@ -399,12 +401,29 @@
 (def printer common-lisp/special-variable-definition->lisp-form/list (projection recursion input input-reference)
   (bind ((variable-name (name-of input))
          (value-iomap (recurse/slot recursion input 'value input-reference))
-         (output (make-lisp-form/list (list (make-lisp-form/symbol* 'defvar :font-color *color/solarized/blue*)
-                                            (make-lisp-form/symbol (name-of variable-name) (package-of variable-name) :font *font/ubuntu/monospace/italic/18* :font-color *color/solarized/violet*)
+         (output-selection (pattern-case (reverse (selection-of input))
+                             (((the lisp-form/symbol (name-of (the common-lisp/special-variable-definition document)))
+                               (the string (name-of (the lisp-form/symbol document)))
+                               (the string (subseq (the string document) ?start-index ?end-index)))
+                              `((the string (subseq (the string document) ,?start-index ,?end-index))
+                                (the string (name-of (the lisp-form/symbol document)))
+                                (the lisp-form/symbol (elt (the sequence document) 1))
+                                (the sequence (elements-of (the lisp-form/list document)))))
+                             (((the sequence (value-of (the common-lisp/special-variable-definition document)))
+                               . ?rest)
+                              (append (selection-of (output-of value-iomap))
+                                      `((the lisp-form/list (elt (the sequence document) 2))
+                                        (the sequence (elements-of (the lisp-form/list document))))))
+                             (((the lisp-form/list (printer-output (the common-lisp/special-variable-definition document) ?projection ?recursion)) . ?rest)
+                              (when (and (eq projection ?projection) (eq recursion ?recursion))
+                                (reverse ?rest)))))
+         (output (make-lisp-form/list (list (make-lisp-form/symbol* 'defvar :font-color *color/solarized/blue* :selection (butlast output-selection 2))
+                                            (make-lisp-form/symbol (name-of variable-name) (package-of variable-name) :font *font/ubuntu/monospace/italic/18* :font-color *color/solarized/violet* :selection (butlast output-selection 2))
                                             (progn
                                               ;; KLUDGE:
                                               (setf (indentation-of (output-of value-iomap)) 2)
-                                              (output-of value-iomap))))))
+                                              (output-of value-iomap)))
+                                      :selection output-selection)))
     (make-iomap/compound projection recursion input input-reference output (list value-iomap))))
 
 (def printer common-lisp/function-definition->lisp-form/list (projection recursion input input-reference)
@@ -876,8 +895,68 @@
                     (make-command/nothing (gesture-of input)))))
 
 (def reader common-lisp/special-variable-definition->lisp-form/list (projection recursion input printer-iomap)
-  (declare (ignore projection recursion printer-iomap))
-  input)
+  (bind ((printer-input (input-of printer-iomap)))
+    (merge-commands (labels ((recurse (operation)
+                               (typecase operation
+                                 (operation/quit operation)
+                                 (operation/functional operation)
+                                 (operation/replace-selection
+                                  (make-operation/replace-selection printer-input (append (selection-of operation) (last (selection-of printer-input) 2))))
+                                 (operation/sequence/replace-element-range
+                                  (make-operation/sequence/replace-element-range printer-input (append (target-of operation) (last (selection-of printer-input) 2)) (replacement-of operation)))
+                                 (operation/number/replace-range
+                                  (make-operation/number/replace-range printer-input (append (target-of operation) (last (selection-of printer-input) 2)) (replacement-of operation)))
+                                 (operation/replace-target
+                                  (make-operation/replace-target printer-input (append (target-of operation) (last (selection-of printer-input) 2)) (replacement-of operation)))
+                                 (operation/compound
+                                  (bind ((operations (mapcar #'recurse (elements-of operation))))
+                                    (unless (some 'null operations)
+                                      (make-operation/compound operations)))))))
+                      (pattern-case (reverse (selection-of printer-input))
+                        (((the sequence (body-of (the common-lisp/special-variable-definition document)))
+                          (the ?type (elt (the sequence document) ?index))
+                          . ?rest)
+                         (bind ((content-command (recurse-reader recursion (make-command (gesture-of input) nil :domain (domain-of input) :description (description-of input)) (elt (child-iomaps-of printer-iomap) (+ ?index (length (bindings-of printer-input))))))
+                                (content-operation (recurse (operation-of content-command))))
+                           (when content-operation
+                             (make-command (gesture-of input)
+                                           content-operation
+                                           :domain (domain-of content-command)
+                                           :description (description-of content-command)))))))
+                    (awhen (labels ((recurse (operation)
+                                      (typecase operation
+                                        (operation/quit operation)
+                                        (operation/functional operation)
+                                        (operation/replace-selection
+                                         (awhen (pattern-case (reverse (selection-of operation))
+                                                  (((the sequence (elements-of (the lisp-form/list document)))
+                                                    (the lisp-form/symbol (elt (the sequence document) 1))
+                                                    (the string (name-of (the lisp-form/symbol document)))
+                                                    (the string (subseq (the string document) ?start-index ?end-index)))
+                                                   `((the string (subseq (the string document) ,?start-index ,?end-index))
+                                                     (the string (name-of (the lisp-form/symbol document)))
+                                                     (the lisp-form/symbol (name-of (the common-lisp/special-variable-definition document)))))
+                                                  (((the sequence (elements-of (the lisp-form/list document)))
+                                                    (the lisp-form/list (elt (the sequence document) 2))
+                                                    . ?rest)
+                                                   (bind ((value (value-of printer-input))
+                                                          (input-operation (make-operation/replace-selection value (reverse ?rest)))
+                                                          (output-operation (operation-of (recurse-reader recursion (make-command (gesture-of input) input-operation :domain (domain-of input) :description (description-of input)) (elt (child-iomaps-of printer-iomap) 0)))))
+                                                     (append (selection-of output-operation)
+                                                             `((the ,(form-type value) (value-of (the sequence document)))
+                                                               (the sequence (body-of (the common-lisp/special-variable-definition document)))))))
+                                                  (?a
+                                                   (append (selection-of operation) `((the lisp-form/list (printer-output (the common-lisp/special-variable-definition document) ,projection ,recursion))))))
+                                           (make-operation/replace-selection printer-input it)))
+                                        (operation/compound
+                                         (bind ((operations (mapcar #'recurse (elements-of operation))))
+                                           (unless (some 'null operations)
+                                             (make-operation/compound operations)))))))
+                             (recurse (operation-of input)))
+                      (make-command (gesture-of input) it
+                                    :domain (domain-of input)
+                                    :description (description-of input)))
+                    (make-command/nothing (gesture-of input)))))
 
 (def reader common-lisp/function-definition->lisp-form/list (projection recursion input printer-iomap)
   (bind ((printer-input (input-of printer-iomap)))

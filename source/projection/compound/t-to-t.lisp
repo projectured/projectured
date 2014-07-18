@@ -245,6 +245,7 @@
     (lisp-form/number (make-projection/lisp-form/number->tree/leaf))
     (lisp-form/symbol (make-projection/lisp-form/symbol->tree/leaf))
     (lisp-form/string (make-projection/lisp-form/string->tree/leaf))
+    (lisp-form/quote (make-projection/lisp-form/quote->tree/node))
     (lisp-form/list (make-projection/lisp-form/list->tree/node))
     (lisp-form/object (make-projection/lisp-form/object->tree/leaf))
     (lisp-form/top-level (make-projection/lisp-form/top-level->tree/node))))
@@ -257,6 +258,7 @@
     (lisp-form/number (make-projection/lisp-form/number->number))
     (lisp-form/string (make-projection/lisp-form/string->string))
     (lisp-form/symbol (make-projection/lisp-form/symbol->symbol))
+    (lisp-form/quote (make-projection/lisp-form/quote->list))
     (lisp-form/list (make-projection/lisp-form/list->list))))
 
 (def (macro e) lisp-form->form ()

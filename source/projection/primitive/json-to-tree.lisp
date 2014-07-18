@@ -276,58 +276,75 @@
 
 (def function json/read-opeartion (printer-iomap gesture)
   (bind ((printer-input (input-of printer-iomap)))
-    (gesture-case gesture
-      ((gesture/keyboard/key-press #\n)
-       :domain "JSON" :description "Replaces the selected element with null"
-       :operation (make-operation/replace-target printer-input nil (json/null ())))
-      ((gesture/keyboard/key-press #\f)
-       :domain "JSON" :description "Replaces the selected element with false"
-       :operation (make-operation/replace-target printer-input nil (json/boolean () #f)))
-      ((gesture/keyboard/key-press #\t)
-       :domain "JSON" :description "Replaces the selected element with true"
-       :operation (make-operation/replace-target printer-input nil (json/boolean ()#t)))
-      ((gesture/keyboard/key-press #\" :shift) ;; TODO: modifier
-       :domain "JSON" :description "Replaces the selected element with an empty string"
-       :operation (make-operation/replace-target printer-input nil (json/string (:selection '((the string (subseq (the string document) 0 0))
-                                                                                              (the string (value-of (the json/string document)))))
-                                                                     "")))
-      ((gesture/keyboard/key-press #\[)
-       :domain "JSON" :description "Replaces the selected element with an empty array"
-       :operation (make-operation/replace-target printer-input nil (json/array (:selection '((the string (subseq (the string document) 0 0))
-                                                                                             (the string (value-of (the json/nothing document)))
-                                                                                             (the json/nothing (elt (the sequence document) 0))
-                                                                                             (the sequence (elements-of (the json/array document)))))
-                                                                     (json/nothing (:selection '((the string (subseq (the string document) 0 0))
-                                                                                                 (the string (value-of (the json/nothing document)))))))))
-      ((gesture/keyboard/key-press #\{ :shift) ;; TODO: modifier
-       :domain "JSON" :description "Replaces the selected element with an empty object"
-       :operation (make-operation/replace-target printer-input nil (json/object ())))
-      #+nil
-      ((gesture/keyboard/key-press #\,)
-       :domain "JSON" :description "Inserts a new element into an array or object"
-       :operation (bind ((target (tree-replace (input-reference-of printer-iomap) (input-reference-of document-iomap) 'document))
-                         (before? #f))
-                    (pattern-case (selection-of document)
-                      ((the sequence-position (pos (the string ?a) ?b))
-                       (map-forward document-iomap (tree-replace `(the sequence-position (pos (the string ,?a) ,(* 2 ?b))) '(the document document) `(the document ,(input-reference-of document-iomap)))
-                                    (lambda (iomap reference)
-                                      (declare (ignore iomap reference))
-                                      (setf before? #t)))))
-                    (pattern-case target
-                      ((elt (the sequence ?a) ?b)
-                       (bind ((index (if before? ?b (1+ ?b))))
-                         (make-operation/compound (list (make-operation/sequence/replace-element-range document `(the sequence (subseq (the sequence ,?a) ,index ,index)) (list (json/nothing)))
-                                                        (make-operation/replace-selection document `(the sequence-position (pos (the string (value (the json/nothing (elt (the sequence ,?a) ,index)))) 0)))))))
-                      ((value-of (the json/object-entry (elt (the sequence ?a) ?b)))
-                       (make-operation/compound (list (make-operation/sequence/replace-element-range document `(the sequence (subseq (the sequence ,?a) ,?b ,?b)) (list (json/object-entry "" (json/nothing))))))))))
-      #+nil
-      ((gesture/keyboard/key-press :sdl-key-delete)
-       :domain "JSON" :description "Deletes the selected element"
-       :operation (make-operation/replace-foo document
-                                              (tree-replace (input-reference-of printer-iomap) (input-reference-of document-iomap) 'document)
-                                              `((the sequence-position (pos (the string document) 0))
-                                                (the string (value (the json/nothing document))))
-                                              (json/nothing) nil)))))
+    (merge-commands (gesture-case gesture
+                      ((gesture/keyboard/key-press #\n)
+                       :domain "JSON" :description "Replaces the selected element with null"
+                       :operation (make-operation/replace-target printer-input nil (json/null ())))
+                      ((gesture/keyboard/key-press #\f)
+                       :domain "JSON" :description "Replaces the selected element with false"
+                       :operation (make-operation/replace-target printer-input nil (json/boolean () #f)))
+                      ((gesture/keyboard/key-press #\t)
+                       :domain "JSON" :description "Replaces the selected element with true"
+                       :operation (make-operation/replace-target printer-input nil (json/boolean ()#t)))
+                      ((gesture/keyboard/key-press #\" :shift) ;; TODO: modifier
+                       :domain "JSON" :description "Replaces the selected element with an empty string"
+                       :operation (make-operation/replace-target printer-input nil (json/string (:selection '((the string (subseq (the string document) 0 0))
+                                                                                                              (the string (value-of (the json/string document)))))
+                                                                                     "")))
+                      ((gesture/keyboard/key-press #\[)
+                       :domain "JSON" :description "Replaces the selected element with an empty array"
+                       :operation (make-operation/replace-target printer-input nil (json/array (:selection '((the string (subseq (the string document) 0 0))
+                                                                                                             (the string (value-of (the json/nothing document)))
+                                                                                                             (the json/nothing (elt (the sequence document) 0))
+                                                                                                             (the sequence (elements-of (the json/array document)))))
+                                                                                     (json/nothing (:selection '((the string (subseq (the string document) 0 0))
+                                                                                                                 (the string (value-of (the json/nothing document)))))))))
+                      ((gesture/keyboard/key-press #\{ :shift) ;; TODO: modifier
+                       :domain "JSON" :description "Replaces the selected element with an empty object"
+                       :operation (make-operation/replace-target printer-input nil (make-document/json/object (make-sequence/sequence (list (json/nothing (:selection '((the string (subseq (the string document) 0 0))
+                                                                                                                                                                        (the string (value-of (the json/nothing document)))))))
+                                                                                                                                      :selection '((the string (subseq (the string document) 0 0))
+                                                                                                                                                   (the string (value-of (the json/nothing document)))
+                                                                                                                                                   (the json/nothing (elt (the sequence document) 0))))
+                                                                                                              :selection '((the string (subseq (the string document) 0 0))
+                                                                                                                           (the string (value-of (the json/nothing document)))
+                                                                                                                           (the json/nothing (elt (the sequence document) 0))
+                                                                                                                           (the sequence (entries-of (the json/object document)))))))
+                      #+nil
+                      ((gesture/keyboard/key-press #\,)
+                       :domain "JSON" :description "Inserts a new element into an array or object"
+                       :operation (bind ((target (tree-replace (input-reference-of printer-iomap) (input-reference-of document-iomap) 'document))
+                                         (before? #f))
+                                    (pattern-case (selection-of document)
+                                      ((the sequence-position (pos (the string ?a) ?b))
+                                       (map-forward document-iomap (tree-replace `(the sequence-position (pos (the string ,?a) ,(* 2 ?b))) '(the document document) `(the document ,(input-reference-of document-iomap)))
+                                                    (lambda (iomap reference)
+                                                      (declare (ignore iomap reference))
+                                                      (setf before? #t)))))
+                                    (pattern-case target
+                                      ((elt (the sequence ?a) ?b)
+                                       (bind ((index (if before? ?b (1+ ?b))))
+                                         (make-operation/compound (list (make-operation/sequence/replace-element-range document `(the sequence (subseq (the sequence ,?a) ,index ,index)) (list (json/nothing)))
+                                                                        (make-operation/replace-selection document `(the sequence-position (pos (the string (value (the json/nothing (elt (the sequence ,?a) ,index)))) 0)))))))
+                                      ((value-of (the json/object-entry (elt (the sequence ?a) ?b)))
+                                       (make-operation/compound (list (make-operation/sequence/replace-element-range document `(the sequence (subseq (the sequence ,?a) ,?b ,?b)) (list (json/object-entry "" (json/nothing))))))))))
+                      #+nil
+                      ((gesture/keyboard/key-press :sdl-key-delete)
+                       :domain "JSON" :description "Deletes the selected element"
+                       :operation (make-operation/replace-foo document
+                                                              (tree-replace (input-reference-of printer-iomap) (input-reference-of document-iomap) 'document)
+                                                              `((the sequence-position (pos (the string document) 0))
+                                                                (the string (value (the json/nothing document))))
+                                                              (json/nothing) nil)))
+                    (when (and (typep gesture 'gesture/keyboard/key-press)
+                               (character-of gesture)
+                               (digit-char-p (character-of gesture)))
+                      (make-command gesture
+                                    (make-operation/replace-target printer-input nil (json/number (:selection '((the string (subseq (the string document) 1 1))
+                                                                                                                (the string (write-to-string (the number document)))
+                                                                                                                (the number (value-of (the json/number document))))) (parse-integer (string (character-of gesture)))))
+                                    :domain "JSON"
+                                    :description "TODO")))))
 
 (def reader json/nothing->tree/leaf (projection recursion input printer-iomap)
   (declare (ignore projection recursion))
@@ -578,6 +595,17 @@
                                               :domain (domain-of input)
                                               :description (description-of input)))))))))
                     (gesture-case (gesture-of input)
+                      ((gesture/keyboard/key-press #\,)
+                       :domain "JSON" :description "Starts a JSON object insertion into the elements of the JSON array"
+                       :operation (bind ((index (length (elements-of printer-input))))
+                                    (make-operation/compound (list (make-operation/sequence/replace-element-range printer-input
+                                                                                                                  `((the sequence (subseq (the sequence document) ,index ,index))
+                                                                                                                    (the sequence (elements-of (the json/array document))))
+                                                                                                                  (list (json/nothing ())))
+                                                                   (make-operation/replace-selection printer-input `((the string (subseq (the string document) 0 0))
+                                                                                                                     (the string (value-of (the json/nothing document)))
+                                                                                                                     (the json/nothing (elt (the sequence document) ,index))
+                                                                                                                     (the sequence (elements-of (the json/array document)))))))))
                       ((gesture/keyboard/key-press :sdl-key-insert)
                        :domain "JSON" :description "Starts an object insertion into the elements of the JSON array"
                        :operation (bind ((elements-length (length (elements-of printer-input))))
@@ -615,6 +643,7 @@
                                                                                                                      (the sequence (elements-of (the json/array document)))
                                                                                                                      (the json/array (elt (the sequence document) ,index))
                                                                                                                      (the sequence (elements-of (the json/array document))))))))))
+                    #+nil
                     (bind ((gesture (gesture-of input)))
                       (when (and (typep gesture 'gesture/keyboard/key-press)
                                  (character-of gesture)
@@ -727,6 +756,18 @@
                                            :domain (domain-of input)
                                            :description (description-of input)))))))
                     (gesture-case (gesture-of input)
+                      ((gesture/keyboard/key-press :sdl-key-tab)
+                       :domain "JSON" :description "Moves the selection to the value of the JSON object entry"
+                       :operation (pattern-case (reverse (selection-of printer-input))
+                                    (((the string (key-of (the json/object-entry document))) . ?rest)
+                                     ;; TODO: this is quite fragile
+                                     (bind ((command (recurse-reader recursion (make-command (gesture-of input) (make-operation/replace-selection (value-of printer-input) `((the text/text (text/subseq (the text/text document) 0 0))
+                                                                                                                                                                             (the text/text (content-of (the tree/leaf document)))))
+                                                                                             :domain "JSON")
+                                                                     (elt (child-iomaps-of printer-iomap) 0)))
+                                            (operation (operation-of command)))
+                                       (when (typep operation 'operation/replace-selection)
+                                         (make-operation/replace-selection printer-input (append (selection-of operation) `((the ,(form-type value) (value-of (the json/object-entry document)))))))))))
                       ((gesture/keyboard/key-press :sdl-key-p :control)
                        :domain "JSON" :description "Switches to generic tree notation"
                        :operation (make-operation/functional (lambda () (setf (projection-of printer-input) (recursive (make-projection/t->tree)))))))
@@ -760,8 +801,10 @@
                                              (the tree/leaf (elt (the sequence document) 0))
                                              (the text/text (content-of (the tree/leaf document)))
                                              (the text/text (text/subseq (the text/text document) ?start-character-index ?end-character-index)))
-                                            `((the string (subseq (the string document) ,?start-character-index ,?end-character-index))
-                                              (the string (key-of (the json/object-entry document)))))
+                                            (make-operation/sequence/replace-element-range printer-input
+                                                                                           `((the string (subseq (the string document) ,?start-character-index ,?end-character-index))
+                                                                                             (the string (key-of (the json/object-entry document))))
+                                                                                           (replacement-of operation)))
                                            (((the sequence (children-of (the tree/node document)))
                                              (the ?child-type (elt (the sequence document) ?child-index))
                                              . ?rest)
@@ -839,6 +882,30 @@
                                            :domain (domain-of input)
                                            :description (description-of input)))))))
                     (gesture-case (gesture-of input)
+                      ((gesture/keyboard/key-press #\" :shift)
+                       :domain "JSON" :description "Inserts a new entry into the entries of the JSON object"
+                       :operation (bind ((start-index (length (entries-of printer-input)))
+                                         (end-index start-index))
+                                    (when (typep (elt (entries-of printer-input) (1- start-index)) 'json/nothing)
+                                      (decf start-index))
+                                    (make-operation/compound (list (make-operation/sequence/replace-element-range printer-input `((the sequence (subseq (the sequence document) ,start-index ,end-index))
+                                                                                                                                  (the sequence (entries-of (the json/object document))))
+                                                                                                                  (list (json/object-entry () "" (json/nothing ()))))
+                                                                   (make-operation/replace-selection printer-input `((the string (subseq (the string document) 0 0))
+                                                                                                                     (the string (key-of (the json/object-entry document)))
+                                                                                                                     (the json/object-entry (elt (the sequence document) ,start-index))
+                                                                                                                     (the sequence (entries-of (the json/object document)))))))))
+                      #+nil
+                      ((gesture/keyboard/key-press :sdl-key-tab)
+                       :domain "JSON" :description "Moves the selection to the next entry of the JSON object"
+                       :operation (pattern-case (reverse (selection-of printer-input))
+                                    (((the sequence (entries-of (the json/object document))) . ?rest)
+                                     (pattern-case (reverse (selection-of (entries-of input)))
+                                       (((the ?entry-type (elt (the sequence document) ?entry-index)) . ?rest)
+                                        (make-operation/replace-selection printer-input `((the string (subseq (the string document) 0 0))
+                                                                                          (the string (key-of (the json/object-entry document)))
+                                                                                          (the json/object-entry (elt (the sequence document) ,index))
+                                                                                          (the sequence (entries-of (the json/object document))))))))))
                       ((gesture/keyboard/key-press :sdl-key-p :control)
                        :domain "JSON" :description "Switches to generic tree notation"
                        :operation (make-operation/functional (lambda () (setf (projection-of printer-input) (recursive (make-projection/t->tree)))))))

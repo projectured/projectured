@@ -67,7 +67,7 @@
   (make-instance 'json/object-entry :key key :value value :projection projection :selection selection))
 
 (def (function e) make-document/json/object (entries &key projection selection)
-  (make-instance 'json/object :entries (make-sequence/sequence entries) :projection projection :selection selection))
+  (make-instance 'json/object :entries (coerce entries 'sequence/sequence) :projection projection :selection selection))
 
 ;;;;;;
 ;;; Construction

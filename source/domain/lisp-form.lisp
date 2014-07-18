@@ -33,6 +33,9 @@
    (font :type style/font)
    (font-color :type style/color)))
 
+(def document lisp-form/quote (lisp-form/base)
+  ((value :type lisp-form/base)))
+
 (def document lisp-form/object (lisp-form/base)
   ((value :type standard-object)))
 
@@ -55,7 +58,10 @@
   (make-instance 'lisp-form/string :value value :indentation indentation :selection selection))
 
 (def (function e) make-lisp-form/symbol (name package &key indentation font font-color selection)
-  (make-instance 'lisp-form/symbol :name name :package package :indentation indentation :font font :font-color font-color  :selection selection))
+  (make-instance 'lisp-form/symbol :name name :package package :indentation indentation :font font :font-color font-color :selection selection))
+
+(def (function e) make-lisp-form/quote (value &key indentation font font-color selection)
+  (make-instance 'lisp-form/quote :value value :indentation indentation :selection selection))
 
 (def (function e) make-lisp-form/object (value &key indentation selection)
   (make-instance 'lisp-form/object :value value :indentation indentation :selection selection))

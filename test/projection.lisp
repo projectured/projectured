@@ -269,19 +269,25 @@
                                            (the string (filename-of (the image/image document)))
                                            (the image/image (content-of (the book/picture document)))))
                  (image/image () "")))
-    ("text" (text/text () (text/string "")))
+    ("text" (text/text (:selection '((the text/text (text/subseq (the text/text document) 0 0)))) (text/string "")))
     ;; TODO:
     ("image" (image/image () (asdf:system-relative-pathname :projectured "etc/lisp-boxed-alien.jpg")))
     ("table" (table/table ()
                (table/row ()
                  (table/cell ()
+                   (text/text () (text/string ""))
+                   #+nil
                    (document/nothing)))))
     ("xml element" (xml/element ("" nil :selection '((the string (subseq (the string document) 0 0))
                                                      (the string (xml/start-tag (the xml/element document)))))))
     ("xml attribute" (xml/attribute (:selection '((the string (subseq (the string document) 0 0))
                                                   (the string (name-of (the xml/attribute document))))) "" ""))
     ("xml text" (xml/text (:selection '((the string (subseq (the string document) 0 0))
-                                        (the string (text-of (the xml/text document))))) ""))
+                                        (the string (value-of (the xml/text document))))) ""))
+    ("css rule" (css/rule ("" :selection '((the string (subseq (the string document) 0 0))
+                                           (the string (selector-of (the css/rule document)))))))
+    ("css attribute" (css/attribute (:selection '((the string (subseq (the string document) 0 0))
+                                                  (the string (name-of (the css/attribute document))))) "" ""))
     ("json null" (json/null ()))
     ("json false" (json/boolean () #f))
     ("json true" (json/boolean ()#t))
@@ -293,8 +299,22 @@
                                             (the sequence (elements-of (the json/array document)))))
                     (json/nothing (:selection '((the string (subseq (the string document) 0 0))
                                                 (the string (value-of (the json/nothing document))))))))
-    ("json object entry" (json/object-entry () "" (document/insertion)))
-    ("json object" (json/object ()))
+    ("json object entry" (json/object-entry (:selection '((the string (subseq (the string document) 0 0))
+                                                          (the string (key-of (the json/object-entry document))))) ""
+                                                          (json/nothing ())))
+    ("json object" (make-document/json/object (make-sequence/sequence (list (json/nothing (:selection '((the string (subseq (the string document) 0 0))
+                                                                                                        (the string (value-of (the json/nothing document)))))))
+                                                                      :selection '((the string (subseq (the string document) 0 0))
+                                                                                   (the string (value-of (the json/nothing document)))
+                                                                                   (the json/nothing (elt (the sequence document) 0))))
+                                              :selection '((the string (subseq (the string document) 0 0))
+                                                           (the string (value-of (the json/nothing document)))
+                                                           (the json/nothing (elt (the sequence document) 0))
+                                                           (the sequence (entries-of (the json/object document))))))
+    ("common lisp comment" (make-instance 'common-lisp/comment
+                                          :content (text/text () (text/string ""))
+                                          :selection '((the string (subseq (the string document) 0 0))
+                                                       (the string (content-of (the common-lisp/comment document))))))
     ("common lisp string" (make-instance 'common-lisp/constant
                                          :value ""
                                          :selection '((the string (subseq (the string document) 0 0))
@@ -309,12 +329,12 @@
                                      :then (document/nothing)
                                      :else (document/nothing)))
     ("common lisp progn" (make-instance 'common-lisp/progn :body nil))
-    ("common lisp application" (make-instance 'common-lisp/application
-                                              :operator (make-lisp-form/symbol "" "PROJECTURED.TEST")
-                                              :selection '((the string (subseq (the string document) 0 0))
-                                                           (the string (name-of (the lisp-form/symbol document)))
-                                                           (the lisp-form/symbol (operator-of (the common-lisp/application document))))
-                                              :arguments nil))
+    ("common lisp function application" (make-instance 'common-lisp/application
+                                                       :operator (make-lisp-form/symbol "" "PROJECTURED.TEST")
+                                                       :selection '((the string (subseq (the string document) 0 0))
+                                                                    (the string (name-of (the lisp-form/symbol document)))
+                                                                    (the lisp-form/symbol (operator-of (the common-lisp/application document))))
+                                                       :arguments nil))
     ("common lisp function definition" (make-instance 'common-lisp/function-definition
                                                       :name (make-lisp-form/symbol "" "PROJECTURED.TEST") :documentation "" :bindings nil :allow-other-keys #f :body nil
                                                       :selection '((the string (subseq (the string document) 0 0))
@@ -844,7 +864,7 @@
 ;;; T
 
 (def function test-slot-provider (instance)
-  (remove-if (lambda (slot) (member (slot-definition-name slot) '(raw projection selection))) (class-slots (class-of instance))))
+  (remove-if (lambda (slot) (member (slot-definition-name slot) '(raw projection selection font font-color stroke-color fill-color line-color))) (class-slots (class-of instance))))
 
 (def function make-test-projection/t->text/tree ()
   (sequential
@@ -908,6 +928,12 @@
         (book/base (book->tree))
         (document/base (document->t 'test-factory))
         (text/text (preserving))
+        (table/base (sequential
+                      (recursive
+                        (type-dispatching
+                          (table/base (table->text))
+                          (text/base (preserving))))
+                      (text/text->tree/leaf)))
         (t
          (sequential
            (recursive

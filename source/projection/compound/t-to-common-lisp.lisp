@@ -67,7 +67,7 @@
 
 (def (function e) make-projection/t->common-lisp ()
   (type-dispatching
-    (common-lisp/comment
+    ((or document/insertion tree/base table/base common-lisp/comment)
      (make-instance 'projection
                     :reader (constantly nil)
                     :printer (lambda (projection recursion input input-reference)
@@ -77,11 +77,8 @@
     (javascript/base (javascript->common-lisp))
     (css/base (css->common-lisp))
     (test/check (make-projection/test/check->common-lisp/application))
-    (lisp-form/base (preserving))
-    (common-lisp/variable-reference (preserving))
-    (common-lisp/function-reference (preserving))
-    (common-lisp/base (copying))
-    (sequence (copying))))
+    ((or lisp-form/base common-lisp/constant common-lisp/variable-reference common-lisp/function-reference) (preserving))
+    ((or sequence common-lisp/base) (copying))))
 
 (def (function e) make-projection/common-lisp->form ()
   (sequential

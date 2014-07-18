@@ -231,11 +231,14 @@
 (def printer book/picture->tree/leaf (projection recursion input input-reference)
   (bind ((content (content-of input))
          (filename (filename-of content))
+         (absolute-filename (if (starts-with #\/ (namestring filename))
+                                filename
+                                (merge-pathnames filename (hu.dwim.asdf:system-pathname :projectured))))
          (filename-empty? (zerop (length (namestring filename))))
          (file-exists? (and (not filename-empty?)
-                            (not (null (pathname-name filename)))
-                            (not (null (pathname-type filename)))
-                            (probe-file filename)))
+                            (not (null (pathname-name absolute-filename)))
+                            (not (null (pathname-type absolute-filename)))
+                            (probe-file absolute-filename)))
          (filename-string (if filename-empty?
                               "enter picture path"
                               (namestring filename)))

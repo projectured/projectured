@@ -58,10 +58,20 @@
                           (redo-operation operation)))))))))
 
 (def method print-to-devices ((editor editor) document projection)
-  (bind ((printer-iomap (setf (printer-iomap-of editor) (apply-printer document projection))
-                        #+nil
-                        (if (slot-boundp editor 'printer-iomap)
-                            (printer-iomap-of editor)
-                            (setf (printer-iomap-of editor) (time (apply-printer document projection))))))
+  (bind ((printer-iomap (if *use-computed-class*
+                            (if (slot-boundp editor 'printer-iomap)
+                                (printer-iomap-of editor)
+                                (setf (printer-iomap-of editor) (apply-printer document projection)))
+                            (setf (printer-iomap-of editor) (apply-printer document projection)))))
+    #+nil
+    (time (labels ((recurse (instance)
+                     (typecase instance
+                       ((or number string symbol pathname standard-method standard-class) (values))
+                       (cons (recurse (car instance)) (recurse (cdr instance)))
+                       (sequence (foreach #'recurse instance))
+                       (standard-object (iter (with class = (class-of instance))
+                                              (for slot :in (class-slots class))
+                                              (recurse (slot-value-using-class class instance slot)))))))
+            (recurse (output-of printer-iomap))))
     (iter (for device :in-sequence (remove-if-not 'output-device? (devices-of editor)))
           (print-to-device (output-of printer-iomap) device))))

@@ -22,6 +22,9 @@
 (def projection lisp-form/string->tree/leaf ()
   ())
 
+(def projection lisp-form/quote->tree/node ()
+  ())
+
 (def projection lisp-form/list->tree/node ()
   ())
 
@@ -46,6 +49,9 @@
 (def (function e) make-projection/lisp-form/string->tree/leaf ()
   (make-projection 'lisp-form/string->tree/leaf))
 
+(def (function e) make-projection/lisp-form/quote->tree/node ()
+  (make-projection 'lisp-form/quote->tree/node))
+
 (def (function e) make-projection/lisp-form/list->tree/node ()
   (make-projection 'lisp-form/list->tree/node))
 
@@ -69,6 +75,9 @@
 
 (def (macro e) lisp-form/string->tree/leaf ()
   '(make-projection/lisp-form/string->tree/leaf))
+
+(def (macro e) lisp-form/quote->tree/node ()
+  '(make-projection/lisp-form/quote->tree/node))
 
 (def (macro e) lisp-form/list->tree/node ()
   '(make-projection/lisp-form/list->tree/node))
@@ -143,6 +152,14 @@
                              :opening-delimiter (text/text () (text/string "\"" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))
                              :closing-delimiter (text/text () (text/string "\"" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))
                    (text/text (:selection (butlast output-selection)) (text/string (subseq value 1 (1- (length value))) :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/green*)))))
+    (make-iomap/object projection recursion input input-reference output)))
+
+(def printer lisp-form/quote->tree/node (projection recursion input input-reference)
+  (bind ((value-iomap (recurse-printer recursion (value-of input)
+                                       `((value-of (the sequence document))
+                                         ,@(typed-reference (form-type input) input-reference))))
+         (output (tree/node (:opening-delimiter (text/text () (text/string "'" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))
+                   (output-of value-iomap))))
     (make-iomap/object projection recursion input input-reference output)))
 
 (def printer lisp-form/list->tree/node (projection recursion input input-reference)
@@ -315,6 +332,10 @@
                                     :domain (domain-of input)
                                     :description (description-of input)))
                     (make-command/nothing (gesture-of input)))))
+
+(def reader lisp-form/quote->tree/node (projection recursion input printer-iomap)
+  (declare (ignore projection recursion printer-iomap))
+  input)
 
 (def reader lisp-form/list->tree/node (projection recursion input printer-iomap)
   (bind ((printer-input (input-of printer-iomap)))

@@ -151,7 +151,9 @@
                           (round (2d-x size))
                           (round (2d-y size))
                           :color (raw-of fill-color))))
-      (unless (every 'whitespace? (text-of instance))
+      (unless (or (every 'whitespace? (text-of instance))
+                  (< (2d-y location) (- (sdl:get-font-size text :size :h :font (raw-of font))))
+                  (> (2d-y location) (sdl:height sdl:*default-surface*)))
         (sdl:draw-string-blended-* text
                                    (round (2d-x location))
                                    (round (2d-y location))

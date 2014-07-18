@@ -25,19 +25,24 @@
   '(make-projection/evaluator/evaluator->tree/node))
 
 ;;;;;;
+;;; API
+
+(def function evaluate-form (evaluator)
+  (bind ((form (printer-output (form-of evaluator) (make-projection/t->form))))
+    (block nil
+      (handler-bind ((warning (lambda (condition)
+                                (muffle-warning condition)))
+                     (serious-condition (lambda (condition)
+                                          (return (princ-to-string condition)))))
+        (funcall (dynamic-environment-provider-of evaluator) (lambda () (eval form)))))))
+
+;;;;;;
 ;;; Printer
 
 (def printer evaluator/evaluator->tree/node (projection recursion input input-reference)
   (bind ((result (if (on-demand-p input)
                      (result-of input)
-                     (bind ((form (printer-output (form-of input) (make-projection/t->form))))
-                       (setf (result-of input)
-                             (block nil
-                               (handler-bind ((warning (lambda (condition)
-                                                         (muffle-warning condition)))
-                                              (serious-condition (lambda (condition)
-                                                                   (return (princ-to-string condition)))))
-                                 (funcall (dynamic-environment-provider-of input) (lambda () (eval form)))))))))
+                     (setf (result-of input) (evaluate-form input))))
          (form-iomap (recurse-printer recursion (form-of input) `((form-of (the evaluator/evaluator document))
                                                                   ,@(typed-reference (form-type input) input-reference))))
          (result-iomap (recurse-printer recursion result `((result-of (the evaluator/evaluator document))
@@ -51,21 +56,24 @@
                              (((the tree/node (printer-output (the evaluator/evaluator document) ?projection ?recursion)) . ?rest)
                               (when (and (eq projection ?projection) (eq recursion ?recursion))
                                 (reverse ?rest)))))
-         (output (tree/node (:selection output-selection)
-                   #+nil
-                   (tree/leaf (:selection (butlast output-selection 2))
-                     (text/text (:selection (butlast output-selection 3))
-                       (image/image (asdf:system-relative-pathname :projectured "etc/refresh.png"))
-                       (text/string "Evaluate" :font *font/liberation/serif/regular/24* :font-color *color/solarized/green*)))
-                   (output-of form-iomap)
-                   (output-of result-iomap))))
+         (output (make-tree/node (append #+nil
+                                         (when (on-demand-p input)
+                                           (list (tree/leaf (:selection (butlast output-selection 2))
+                                                   (text/text (:selection (butlast output-selection 3))
+                                                     (image/image () (asdf:system-relative-pathname :projectured "etc/refresh.png"))
+                                                     (text/string "Evaluate" :font *font/liberation/serif/regular/24* :font-color *color/solarized/green*)))))
+                                         (list (output-of form-iomap))
+                                         (when result (list (output-of result-iomap))))
+                                 :selection output-selection)))
     #+nil
-    (setf (indentation-of (output-of form-iomap)) 0)
+    (when (on-demand-p input)
+      (setf (indentation-of (output-of form-iomap)) 0))
     ;; KLUDGE:
     (when (typep (output-of result-iomap) 'tree/base)
       (setf (indentation-of (output-of result-iomap)) 0))
     (set-selection (output-of form-iomap) (butlast output-selection 2))
-    (set-selection (output-of result-iomap) (butlast output-selection 2))
+    (unless (on-demand-p input)
+      (set-selection (output-of result-iomap) (butlast output-selection 2)))
     (make-iomap/compound projection recursion input input-reference output (list form-iomap result-iomap))))
 
 ;;;;;;
@@ -73,7 +81,11 @@
 
 (def reader evaluator/evaluator->tree/node (projection recursion input printer-iomap)
   (bind ((printer-input (input-of printer-iomap)))
-    (merge-commands (labels ((recurse (operation)
+    (merge-commands (gesture-case (gesture-of input)
+                      ((gesture/keyboard/key-press :sdl-key-e :control)
+                       :domain "Evaluator" :description "Evaluates the form"
+                       :operation (make-operation/functional (lambda () (evaluate-form printer-input)))))
+                    (labels ((recurse (operation)
                                (typecase operation
                                  (operation/quit operation)
                                  (operation/functional operation)

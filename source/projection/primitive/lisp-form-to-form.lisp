@@ -18,6 +18,9 @@
 (def projection lisp-form/symbol->symbol ()
   ())
 
+(def projection lisp-form/quote->list ()
+  ())
+
 (def projection lisp-form/list->list ()
   ())
 
@@ -32,6 +35,9 @@
 
 (def (function e) make-projection/lisp-form/symbol->symbol ()
   (make-projection 'lisp-form/symbol->symbol))
+
+(def (function e) make-projection/lisp-form/quote->list ()
+  (make-projection 'lisp-form/quote->list))
 
 (def (function e) make-projection/lisp-form/list->list ()
   (make-projection 'lisp-form/list->list))
@@ -51,11 +57,16 @@
   (bind ((output (intern (string-upcase (name-of input)) (package-of input))))
     (make-iomap/object projection recursion input input-reference output)))
 
+(def printer lisp-form/quote->list (projection recursion input input-reference)
+  (bind ((output (list 'quote (output-of (recurse-printer recursion (value-of input) `((value-of (the sequence document))
+                                                                                       ,@(typed-reference (form-type input) input-reference)))))))
+    (make-iomap/object projection recursion input input-reference output)))
+
 (def printer lisp-form/list->list (projection recursion input input-reference)
   (bind ((output (iter (for index :from 0)
                        (for element :in (elements-of input))
                        (collect (output-of (recurse-printer recursion element `((elt (the sequence document) ,index)
-                                                                      ,@(typed-reference (form-type input) input-reference))))))))
+                                                                                ,@(typed-reference (form-type input) input-reference))))))))
     (make-iomap/object projection recursion input input-reference output)))
 
 ;;;;;;
@@ -70,6 +81,10 @@
   input)
 
 (def reader lisp-form/symbol->symbol (projection recursion input printer-iomap)
+  (declare (ignore projection recursion printer-iomap))
+  input)
+
+(def reader lisp-form/quote->list (projection recursion input printer-iomap)
   (declare (ignore projection recursion printer-iomap))
   input)
 

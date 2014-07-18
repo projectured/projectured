@@ -44,7 +44,7 @@
                  :elements (if initial-contents?
                                initial-contents
                                (make-list length :initial-element initial-element))
-                 :selection (selection-of instance)))
+                 :selection (when (slot-boundp instance 'selection) (selection-of instance))))
 
 ;;;;;;;;
 ;;;; Sequence domain provides:

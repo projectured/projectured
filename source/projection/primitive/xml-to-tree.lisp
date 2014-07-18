@@ -260,8 +260,7 @@
     (merge-commands (gesture-case (gesture-of input)
                       ((gesture/keyboard/key-press :sdl-key-p :control)
                        :domain "XML" :description "Switches to generic tree notation"
-                       :operation (make-operation/functional (lambda () (setf (projection-of printer-input) (recursive (make-projection/t->tree)))))))
-                    (gesture-case (gesture-of input)
+                       :operation (make-operation/functional (lambda () (setf (projection-of printer-input) (recursive (make-projection/t->tree))))))
                       ((gesture/keyboard/key-press :sdl-key-tab)
                        :domain "XML" :description "Moves the selection to the value"
                        :operation (make-operation/replace-selection printer-input
@@ -362,12 +361,13 @@
                     (gesture-case (gesture-of input)
                       ((gesture/keyboard/key-press :sdl-key-insert)
                        :domain "XML" :description "Starts an object insertion into the children of the XML element"
-                       :operation (make-operation/compound (list (make-operation/sequence/replace-element-range printer-input `((the sequence (subseq (the sequence document) 0 0))
-                                                                                                                                (the sequence (children-of (the xml/element document)))) (list (document/insertion :font *font/liberation/serif/regular/18*)))
-                                                                 (make-operation/replace-selection printer-input `((the string (subseq (the string document) 0 0))
-                                                                                                                   (the string (value-of (the document/insertion document)))
-                                                                                                                   (the document/insertion (elt (the sequence document) 0))
-                                                                                                                   (the sequence (children-of (the xml/element document))))))))
+                       :operation (make-operation/compound (bind ((children-length (length (children-of printer-input))))
+                                                             (list (make-operation/sequence/replace-element-range printer-input `((the sequence (subseq (the sequence document) ,children-length ,children-length))
+                                                                                                                                  (the sequence (children-of (the xml/element document)))) (list (document/insertion :font *font/liberation/serif/regular/18*)))
+                                                                   (make-operation/replace-selection printer-input `((the string (subseq (the string document) 0 0))
+                                                                                                                     (the string (value-of (the document/insertion document)))
+                                                                                                                     (the document/insertion (elt (the sequence document) ,children-length))
+                                                                                                                     (the sequence (children-of (the xml/element document)))))))))
                       ((gesture/keyboard/key-press :sdl-key-p :control)
                        :domain "XML" :description "Switches to generic tree notation"
                        :operation (make-operation/functional (lambda () (setf (projection-of printer-input) (recursive (make-projection/t->tree))))))

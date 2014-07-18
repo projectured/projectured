@@ -23,8 +23,9 @@
 
 (def (function e) make-projection/t/object->tree/node (&key slot-provider)
   (make-projection 't/object->tree/node :slot-provider (or slot-provider
+                                                           ;; TODO: default
                                                            (lambda (instance)
-                                                             (remove-if (lambda (slot) (member (slot-definition-name slot) '(projection selection raw))) (class-slots (class-of instance))))
+                                                             (remove-if (lambda (slot) (member (slot-definition-name slot) '(projection selection raw font font-color stroke-color fill-color line-color))) (class-slots (class-of instance))))
                                                            #+nil
                                                            (compose 'class-slots 'class-of))))
 
