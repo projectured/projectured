@@ -53,6 +53,7 @@
            (new-sequence (concatenate (form-type old-sequence)
                                       (subseq old-sequence 0 start) (replacement-of operation) (subseq old-sequence end))))
       (setf (eval-reference document flat-reference) (parse-number:parse-number new-sequence))
+      #+nil
       (when *use-computed-class*
         ;; KLUDGE: forece recomputation
         (invalidate-computed-slot document 'content))

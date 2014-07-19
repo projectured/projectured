@@ -17,7 +17,7 @@
         `(progn
            (def computed-class* ,name ,supers
              ,(iter (for slot :in slots)
-                    (collect (append slot (list :computed-in 'projectured))))
+                    (collect (append slot (unless (find :computed-in slot) (list :computed-in 'projectured)))))
              ,@options)
            ,@(when (getf -options- :export) `((export ',name))))
         `(progn

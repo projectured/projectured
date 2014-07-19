@@ -20,7 +20,7 @@
         `(progn
            (def computed-class* ,name ,supers
              ,(iter (for slot :in slots)
-                    (collect (append slot (list :computed-in 'projectured))))
+                    (collect (append slot (unless (find :computed-in slot) (list :computed-in 'projectured)))))
              ,@options)
            ,@(when (getf -options- :export) `((export ',name))))
         `(progn
@@ -41,12 +41,12 @@
   ((content :type t)))
 
 (def document document/nothing (document/base)
-  ((value "Empty document" :type string :allocation :class)))
+  ((value "Empty document" :type string :allocation :class :computed-in nil)))
 
 (def document document/insertion (document/base)
-  ((prefix "Insert a new " :type string :allocation :class)
+  ((prefix "Insert a new " :type string :allocation :class :computed-in nil)
    (value :type string)
-   (suffix " here" :type string :allocation :class)
+   (suffix " here" :type string :allocation :class :computed-in nil)
    (font nil :type style/font)))
 
 (def document document/search (document/base)

@@ -10,18 +10,16 @@
 ;;; IO map
 
 (def iomap iomap/sequential ()
-  ((input-reference :type reference)
-   (output-reference :type reference)
-   (element-iomaps :type list)))
+  ((element-iomaps :type list)))
 
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-iomap/sequential (projection recursion input input-reference output output-reference element-iomaps)
+(def (function e) make-iomap/sequential (projection recursion input input-reference output element-iomaps)
   (make-iomap 'iomap/sequential
               :projection projection :recursion recursion
-              :input input :input-reference (typed-reference (form-type input) input-reference)
-              :output output :output-reference (when output-reference (typed-reference (form-type output) output-reference))
+              :input input :output output
+              :input-reference (typed-reference (form-type input) input-reference)
               :element-iomaps element-iomaps))
 
 ;;;;;;
@@ -52,7 +50,7 @@
         (for element-output-reference = `((printer-output (the ,(form-type output) document) ,element ,recursion) ,@(typed-reference (form-type output) element-input-reference)))
         (for element-iomap = (call-printer element recursion output element-input-reference))
         (collect element-iomap :into element-iomaps)
-        (finally (return (make-iomap/sequential projection recursion input input-reference output nil element-iomaps)))))
+        (finally (return (make-iomap/sequential projection recursion input input-reference output element-iomaps)))))
 
 ;;;;;;
 ;;; Reader

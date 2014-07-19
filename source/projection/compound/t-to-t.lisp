@@ -7,6 +7,18 @@
 (in-package :projectured)
 
 ;;;;;;
+;;; Graphics
+
+(def (function e) make-projection/graphics->graphics ()
+  (type-dispatching
+    (graphics/canvas (graphics/canvas->graphics/image))
+    (graphics/viewport (graphics/viewport->graphics/image))
+    (graphics/base (preserving))))
+
+(def (macro e) graphics->graphics ()
+  '(make-projection/graphics->graphics))
+
+;;;;;;
 ;;; Widget
 
 (def (function e) make-projection/document->t (factory)

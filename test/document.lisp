@@ -83,7 +83,7 @@
 (def function make-test-document/ide (content)
   (widget/shell ()
     (widget/split-pane ()
-      (make-file-system/pathname (asdf:system-relative-pathname :projectured "test/"))
+      (make-file-system/pathname (resource-pathname "test/"))
       (widget/tabbed-pane ()
         ((widget/label (:location (make-2d 5 5) :margin (make-inset :all 5))
            (text/text ()
@@ -120,7 +120,7 @@
                                                                                   (make-graphics/circle (make-2d 50 250) 50 :stroke-color *color/black* :fill-color *color/blue*)
                                                                                   (make-graphics/ellipse (make-2d 50 50) (make-2d 100 50) :stroke-color *color/red*)
                                                                                   (make-graphics/text (make-2d 200 150) "hello world" :font *font/default* :font-color *color/default* :fill-color *color/light-cyan*)
-                                                                                  (make-graphics/image (make-2d 300 0) (make-image/image (asdf:system-relative-pathname :projectured "etc/projectured.png"))))
+                                                                                  (make-graphics/image (make-2d 300 0) (make-image/image (resource-pathname "image/projectured.png"))))
                                                                             (make-2d 0 0))
                                                       (make-2d 50 50)
                                                       (make-2d 700 400))
@@ -145,7 +145,7 @@
   (text/text ()
     (text/string "Hello" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/red*)
     (text/spacing 10 :unit :space)
-    ;;(image/image () (asdf:system-relative-pathname :projectured "etc/lisp-flag.jpg"))
+    ;;(image/image () (resource-pathname "image/lisp-flag.jpg"))
     (text/string "World" :font *font/ubuntu/monospace/bold/18* :font-color *color/solarized/green*)
     (text/newline)
     (text/string "New line" :font *font/ubuntu/bold/24* :font-color *color/solarized/blue*)))
@@ -369,7 +369,7 @@
 ;;; Book
 
 (def function make-test-document/book/empty ()
-  (book/book (:title"")))
+  (book/book (:title "")))
 
 (def function make-test-document/book ()
   (book/book (:title "Lorem ipsum" :authors (list "me"))
@@ -464,7 +464,7 @@
 ;;; File system
 
 (def function make-test-document/file-system ()
-  (make-file-system/pathname (asdf:system-relative-pathname :projectured "source/")))
+  (make-file-system/pathname (resource-pathname "source/projection/")))
 
 ;;;;;;
 ;;; Java
@@ -704,7 +704,7 @@
   (text/text ()
     (text/string "ProjecturEd is a generic purpose projectional editor written in Common Lisp. It provides editing for different problem domains represented in unrestricted arbitrary data structures. It uses multiple bidirectional projections providing different notations varying from textual to graphics." :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)
     (text/newline)
-    (image/image () (asdf:system-relative-pathname :projectured "etc/lisp-boxed-alien.jpg"))
+    (image/image () (resource-pathname "image/lisp-boxed-alien.jpg"))
     (text/newline)
     (text/string "Visit " :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)
     (text/string "http://projectured.org" :font *font/ubuntu/regular/18* :font-color *color/solarized/blue*)
@@ -720,7 +720,7 @@
          (trace-amounts (make-common-lisp/comment
                          (text/text ()
                            (text/string "This part contains trace amounts of " :font projectured::*font/ubuntu/regular/18* :font-color *color/solarized/gray*)
-                           (image/image () (asdf:system-relative-pathname :projectured "etc/lisp-flag.jpg")))))
+                           (image/image () (resource-pathname "image/lisp-flag.jpg")))))
          (chart-script (make-javascript/statement/top-level
                         (list (make-javascript/expression/method-invocation
                                (make-javascript/expression/variable-reference "google")
@@ -937,7 +937,7 @@
             (text/string chart-data-path :font *font/ubuntu/italic/18* :font-color *color/solarized/violet*)
             (text/string "' path using JavaScript. For this request the web service returns another document in JSON format that provides the data for the pie chart. For all other unknown requests the web service sends an HTML error page. The following screenshot shows how the pie chart should look like." :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)
             (text/newline)
-            (image/image () (asdf:system-relative-pathname :projectured "etc/pie.png"))
+            (image/image () (resource-pathname "image/pie.png"))
             (text/newline)
             (text/string "This example uses a compound projection that displays all used domains in their natural notation. Proper indentation and syntax highlight are automatically provided without inserting escape sequences that would make reading harder. Note that the edited document" :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)
             (text/string " is not text" :font projectured::*font/ubuntu/italic/18* :font-color *color/solarized/violet*)

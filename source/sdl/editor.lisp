@@ -6,18 +6,6 @@
 
 (in-package :projectured)
 
-;; KLUDGE:
-(sdl:init-sdl)
-
-;; KLUDGE:
-(sdl-image:init-image :jpg :png :tif)
-
-;; KLUDGE:
-(sdl:initialise-default-font (make-instance 'sdl:ttf-font-definition :size 18 :filename (system-relative-pathname :projectured "etc/UbuntuMono-R.ttf")))
-
-;; KLUDGE:
-(setf sdl:*default-color* sdl:*black*)
-
 ;;;;;;
 ;;; Editor
 
@@ -44,6 +32,9 @@
 (def method run-read-evaluate-print-loop ((editor editor/sdl) document projection)
   (unwind-protect
        (progn
+         (sdl:init-sdl)
+         (sdl-image:init-image :jpg :png :tif)
+         (sdl:initialise-default-font (make-instance 'sdl:ttf-font-definition :size 18 :filename (resource-pathname "font/UbuntuMono-R.ttf")))
          (sdl:init-video)
          (call-next-method))
     (sdl:quit-video)))

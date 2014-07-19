@@ -41,34 +41,35 @@
          (output (tree/leaf ()
                    (text/text ()
                      ;; TODO: icon
-                     (image/image () (asdf:system-relative-pathname :projectured "etc/file.png"))
+                     ;;(image/image () (resource-pathname "image/file.png"))
                      (text/string (string+ (pathname-name pathname) "." (pathname-type (pathname-of input))) :font *font/ubuntu/regular/18* :font-color *color/solarized/blue*)))))
-    (make-iomap/compound projection recursion input input-reference output)))
+    (make-iomap/compound projection recursion input input-reference output nil)))
 
 (def printer file-system/directory->tree/node (projection recursion input input-reference)
   (bind ((pathname (pathname-of input))
          (output (make-tree/node (list* (tree/leaf ()
                                           (text/text ()
                                             ;; TODO: icon
-                                            (image/image () (asdf:system-relative-pathname :projectured "etc/directory.png"))
+                                            ;;(image/image () (resource-pathname "image/directory.png"))
+                                            (text/spacing 5 :unit :pixel)
                                             (text/string (last-elt (pathname-directory pathname)) :font *font/ubuntu/regular/18* :font-color *color/solarized/red*)))
                                         (iter (for index :from 0)
                                               (for element :in-sequence (elements-of input))
                                               (for element-iomap = (recurse-printer recursion element
                                                                                     `((elt (the sequence (elements-of document)) ,index)
                                                                                       ,@(typed-reference (form-type input) input-reference))))
-                                              (setf (indentation-of (output-of element-iomap)) 1)
+                                              (setf (indentation-of (output-of element-iomap)) 2)
                                               ;; TODO: iomap
                                               (collect (output-of element-iomap)))))))
-    (make-iomap/compound projection recursion input input-reference output)))
+    (make-iomap/compound projection recursion input input-reference output nil)))
 
 ;;;;;;
 ;;; Reader
 
 (def reader file-system/file->tree/leaf (projection recursion input printer-iomap)
-  (declare (ignore projection recursion operation))
-  (document/read-operation (input-of printer-iomap) (gesture-of input)))
+  (declare (ignore projection recursion printer-iomap))
+  input)
 
 (def reader file-system/directory->tree/node (projection recursion input printer-iomap)
-  (declare (ignore projection recursion operation))
-  (document/read-operation (input-of printer-iomap) (gesture-of input)))
+  (declare (ignore projection recursion printer-iomap))
+  input)

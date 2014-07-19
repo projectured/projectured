@@ -104,6 +104,7 @@
                                                          (:file "evaluator-to-tree")
                                                          (:file "file-system-to-tree")
                                                          (:file "graph-to-graphics")
+                                                         (:file "graphics-to-graphics")
                                                          (:file "image-to-tree")
                                                          (:file "inliner")
                                                          (:file "inspector-to-table")
@@ -143,4 +144,9 @@
                                             :depends-on ("primitive" "higher-order")
                                             :components ((:file "t-to-common-lisp" :depends-on ("t-to-t"))
                                                          (:file "t-to-string" :depends-on ("t-to-t"))
-                                                         (:file "t-to-t")))))))))
+                                                         (:file "t-to-t")))))
+                             (:module "executable"
+                              :depends-on ("projection")
+                              :components ((:file "document")
+                                           (:file "projection")
+                                           (:file "top-level" :depends-on ("document" "projection"))))))))

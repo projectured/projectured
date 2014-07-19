@@ -176,7 +176,7 @@
 
 (def methods make-bounding-rectangle
   (:method ((instance graphics/point))
-    (make-rectangle (location-of instance) (make-2d 0 0)))
+    (make-rectangle (location-of instance) (make-2d 1 1)))
 
   (:method ((instance graphics/line))
     (bind ((begin (begin-of instance))
@@ -189,7 +189,7 @@
                               (min begin-y end-y)))
            (bottom-right (make-2d (max begin-x end-x)
                                   (max begin-y end-y))))
-      (make-rectangle top-left (- bottom-right top-left))))
+      (make-rectangle top-left (+ (- bottom-right top-left) (make-2d 1 1)))))
 
   (:method ((instance graphics/rectangle))
     (make-rectangle (location-of instance) (size-of instance)))

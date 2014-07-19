@@ -10,8 +10,8 @@
 ;;; Document
 
 ;; TODO: rename?
-(def document sequence/sequence (sequence)
-  ((elements :type sequence)))
+(def document sequence/sequence (computed-sequence)
+  ())
 
 ;;;;;;
 ;;; Construction
@@ -25,25 +25,11 @@
 (def (macro e) sequence/sequence ((&key selection) &body elements)
   `(make-sequence/sequence (list ,@elements) :selection ,selection))
 
-(def method sb-sequence:elt ((instance sequence/sequence) index)
-  (elt (elements-of instance) index))
-
-(def method (setf sb-sequence:elt) (new-value (instance sequence/sequence) index)
-  (setf (elt (elements-of instance) index) new-value))
-
-(def method sb-sequence:length ((instance sequence/sequence))
-  (length (elements-of instance)))
-
-(def method sb-sequence:adjust-sequence ((instance sequence/sequence) length &key initial-element (initial-contents nil initial-contents?))
-  (setf (elements-of instance) (if initial-contents?
-                                   initial-contents
-                                   (make-list length :initial-element initial-element))))
-
-(def method sb-sequence:make-sequence-like ((instance sequence/sequence) length &key initial-element (initial-contents nil initial-contents?))
+(def method sb-sequence:make-sequence-like ((instance sequence/sequence) length &key (initial-element nil initial-element?) initial-contents)
   (make-instance 'sequence/sequence
-                 :elements (if initial-contents?
-                               initial-contents
-                               (make-list length :initial-element initial-element))
+                 :elements (if initial-element?
+                               (make-array (list length) :initial-element initial-element)
+                               (make-array (list length) :initial-contents (append initial-contents (make-list (- length (length initial-contents))))))
                  :selection (when (slot-boundp instance 'selection) (selection-of instance))))
 
 ;;;;;;;;
@@ -101,8 +87,10 @@
          (flat-reference (reference/flatten reference))
          (old-sequence (eval-reference document flat-reference))
          (new-sequence (etypecase old-sequence
-                         (sequence/sequence (make-sequence/sequence (concatenate (form-type (elements-of old-sequence))
-                                                                                 (subseq (elements-of old-sequence) 0 start) (replacement-of operation) (subseq (elements-of old-sequence) end))
+                         (sequence/sequence (make-sequence/sequence (concatenate 'vector
+                                                                                 (subseq (hu.dwim.computed-class::elements-of old-sequence) 0 start)
+                                                                                 (hu.dwim.computed-class::elements-of (replacement-of operation))
+                                                                                 (subseq (hu.dwim.computed-class::elements-of old-sequence) end))
                                                                     :selection (selection-of old-sequence)))
                          (sequence (concatenate (form-type old-sequence)
                                                 (subseq old-sequence 0 start) (replacement-of operation) (subseq old-sequence end)))
@@ -119,6 +107,7 @@
            (setf (elements-of old-sequence) (elements-of new-sequence)))
           (t
            (setf (eval-reference document flat-reference) new-sequence)))
+    #+nil
     (when *use-computed-class*
       ;; KLUDGE: forece recomputation
       (invalidate-computed-slot (document-of operation) 'content))

@@ -26,6 +26,10 @@
 (def (generic e) run-read-evaluate-print-loop (editor document projection)
   (:documentation "Runs read-evaluate-print loop of EDITOR on DOCUMENT using PROJECTION. The loop first prints DOCUMENT to the output devices of EDITOR. Next it reads an operation from the input devices of EDITOR. Finally it evaluates the result of read operation and starts over. Has side effects continuously on the state of EDITOR and the content of DOCUMENT while running."))
 
+(def (special-variable e) *profile-printer* #f)
+
+(def (special-variable e) *measure-printer* #f)
+
 ;;;;;;
 ;;; Editor classes
 
@@ -42,7 +46,14 @@
 
 (def method run-read-evaluate-print-loop ((editor editor) document projection)
   (catch :quit-editor
-    (iter (print-to-devices editor document projection)
+    (iter (cond (*profile-printer*
+                 (with-profiling ()
+                   (print-to-devices editor document projection)))
+                (*measure-printer*
+                 (time
+                  (print-to-devices editor document projection)))
+                (t
+                 (print-to-devices editor document projection)))
           (funcall (read-from-devices editor document projection)))))
 
 (def method read-from-devices ((editor editor) document projection)
@@ -63,15 +74,5 @@
                                 (printer-iomap-of editor)
                                 (setf (printer-iomap-of editor) (apply-printer document projection)))
                             (setf (printer-iomap-of editor) (apply-printer document projection)))))
-    #+nil
-    (time (labels ((recurse (instance)
-                     (typecase instance
-                       ((or number string symbol pathname standard-method standard-class) (values))
-                       (cons (recurse (car instance)) (recurse (cdr instance)))
-                       (sequence (foreach #'recurse instance))
-                       (standard-object (iter (with class = (class-of instance))
-                                              (for slot :in (class-slots class))
-                                              (recurse (slot-value-using-class class instance slot)))))))
-            (recurse (output-of printer-iomap))))
     (iter (for device :in-sequence (remove-if-not 'output-device? (devices-of editor)))
           (print-to-device (output-of printer-iomap) device))))

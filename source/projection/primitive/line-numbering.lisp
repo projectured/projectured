@@ -74,41 +74,38 @@
 ;;; Printer
 
 (def printer line-numbering (projection recursion input input-reference)
-  (bind ((line-count (1+ (text/count input #\NewLine)))
-         (line-number-length (1+ (floor (log line-count) (log 10))))
-         (line-number-format-string (format nil "\~~~A,' D " line-number-length))
-         (line-index 0)
-         (elements nil)
-         (output (labels ((write-element (element)
-                            (push element elements)))
-                   (text/map-split input #\NewLine
-                                   (lambda (start-element-index start-character-index end-element-index end-character-index)
-                                     (bind ((line-number (format nil line-number-format-string (1+ line-index)))
-                                            (line (text/substring input start-element-index start-character-index end-element-index end-character-index)))
-                                       (write-element (make-text/string line-number
-                                                                        :font (font-of projection)
-                                                                        :font-color *color/solarized/content/light*
-                                                                        :fill-color (fill-color-of projection)
-                                                                        :line-color (line-color-of projection)))
-                                       (iter (for line-element-index :from 0)
-                                             (for line-element :in-sequence (elements-of line))
-                                             (write-element line-element))
-                                       (write-element (make-text/string (string #\NewLine) :font *font/default* :font-color *color/default*))
-                                       (incf line-index))))
-                   (make-text/text (nreverse (rest elements))
-                                   :selection (labels ((map-character-index (character-index)
-                                                         (+ character-index
-                                                            (* (1+ line-number-length)
-                                                               (1+ (count #\NewLine (text/as-string input) :end character-index))))))
-                                                (pattern-case (selection-of input)
-                                                  (((the text/text (text/subseq (the text/text ?a) ?b ?c)))
-                                                   `((the text/text (text/subseq (the text/text document) ,(map-character-index ?b) ,(map-character-index ?c)))))
-                                                  (((the sequence-box (text/subbox (the text/text document) ?start-character-index ?end-character-index)))
-                                                   `((the sequence-box (text/subbox (the text/text document) ,(map-character-index ?start-character-index) ,(map-character-index ?end-character-index)))))))))))
+  (bind ((line-number-length (as (1+ (floor (log (1+ (text/count input #\NewLine))) (log 10)))))
+         (output (as (make-text/text (as (bind ((elements nil)
+                                                (line-index 0)
+                                                (line-number-format-string (format nil "\~~~A,' D " (va line-number-length))))
+                                           (text/map-split input #\NewLine
+                                                           (lambda (start-element-index start-character-index end-element-index end-character-index)
+                                                             (bind ((line-number (format nil line-number-format-string (1+ line-index)))
+                                                                    (line (text/substring input start-element-index start-character-index end-element-index end-character-index)))
+                                                               (push (make-text/string line-number
+                                                                                       :font (font-of projection)
+                                                                                       :font-color *color/solarized/content/light*
+                                                                                       :fill-color (fill-color-of projection)
+                                                                                       :line-color (line-color-of projection))
+                                                                     elements)
+                                                               (iter (for line-element-index :from 0)
+                                                                     (for line-element :in-sequence (elements-of line))
+                                                                     (push line-element elements))
+                                                               (push (make-text/string (string #\NewLine) :font *font/default* :font-color *color/default*) elements)
+                                                               (incf line-index))))
+                                           (nreverse (rest elements))))
+                                     :selection (as (labels ((map-character-index (character-index)
+                                                               (+ character-index
+                                                                  (* (1+ (va line-number-length))
+                                                                     (1+ (count #\NewLine (text/as-string input) :end character-index))))))
+                                                      (pattern-case (selection-of input)
+                                                        (((the text/text (text/subseq (the text/text ?a) ?b ?c)))
+                                                         `((the text/text (text/subseq (the text/text document) ,(map-character-index ?b) ,(map-character-index ?c)))))
+                                                        (((the sequence-box (text/subbox (the text/text document) ?start-character-index ?end-character-index)))
+                                                         `((the sequence-box (text/subbox (the text/text document) ,(map-character-index ?start-character-index) ,(map-character-index ?end-character-index))))))))))))
     (make-iomap 'iomap/line-numbering
                 :projection projection :recursion recursion
-                :input input :input-reference (typed-reference (form-type input) input-reference)
-                :output output
+                :input input :output output :input-reference (typed-reference (form-type input) input-reference)
                 :line-number-length line-number-length)))
 
 ;;;;;;

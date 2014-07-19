@@ -1,0 +1,4 @@
+.cache
+*.build-log
+projectured
+projectured.tar.gz

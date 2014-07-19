@@ -60,7 +60,7 @@
                                          (when (on-demand-p input)
                                            (list (tree/leaf (:selection (butlast output-selection 2))
                                                    (text/text (:selection (butlast output-selection 3))
-                                                     (image/image () (asdf:system-relative-pathname :projectured "etc/refresh.png"))
+                                                     (image/image () (resource-pathname "image/refresh.png"))
                                                      (text/string "Evaluate" :font *font/liberation/serif/regular/24* :font-color *color/solarized/green*)))))
                                          (list (output-of form-iomap))
                                          (when result (list (output-of result-iomap))))

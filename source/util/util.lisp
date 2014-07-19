@@ -17,7 +17,7 @@
 
 (def logger backend ())
 
-(def special-variable *use-computed-class* #f)
+(def special-variable *use-computed-class* #t)
 
 (if *use-computed-class*
     (def (computed-universe e) projectured ()
@@ -26,17 +26,10 @@
     (def macro as (&body forms)
       `(progn ,@forms)))
 
-(def (function e) computed-state-value* (computed-state)
+(def (function e) va (computed-state)
   (if *use-computed-class*
       (computed-state-value computed-state)
       computed-state))
-
-(def (class* ea) sequence-position ()
-  ((sequence :type sequence)
-   (index :type integer)))
-
-(def (function e) pos (sequence index)
-  (make-instance 'sequence-position :sequence sequence :index index))
 
 (def (class* ea) sequence-box ()
   ((sequence :type sequence)
@@ -45,6 +38,11 @@
 
 (def (function e) box (sequence start end)
   (make-instance 'sequence-box :sequence sequence :start start :end end))
+
+(def function resource-pathname (name)
+  (if (probe-file (asdf/component:component-pathname (asdf/system:find-system :projectured)))
+      (asdf/system:system-relative-pathname :projectured name)
+      (pathname (string+ (directory-namestring sb-ext:*runtime-pathname*) name))))
 
 (def (function e) form-type (form)
   (typecase form

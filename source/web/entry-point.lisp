@@ -8,7 +8,7 @@
 
 ;; TODO: use font from CSS
 (def file-serving-entry-points *projectional-editor-application*
-  ("static/" (asdf:system-relative-pathname :projectured "etc/")))
+  ("static/" (resource-pathname "www/")))
 
 (def entry-point (*projectional-editor-application* :path "projectional-editor")
   (with-entry-point-logic (:ensure-session #t :ensure-frame #t)

@@ -21,32 +21,38 @@
     projection))
 
 (def function make-test-projection/shell (projection)
-  (nesting
-    (widget->graphics)
-    (type-dispatching
-      (widget/tooltip (nesting
-                        (widget->graphics)
-                        (sequential
-                          (type-dispatching
-                            (text/base (preserving))
-                            (t (reference->text)))
-                          (make-test-projection/text->output))))
-      (t projection))))
+  (sequential
+    (nesting
+      (widget->graphics)
+      (type-dispatching
+        (widget/tooltip (nesting
+                          (widget->graphics)
+                          (sequential
+                            (type-dispatching
+                              (text/base (preserving))
+                              (t (reference->text)))
+                            (make-test-projection/text->output))))
+        (t projection)))
+    (recursive
+      (graphics->graphics))))
 
 (def function make-test-projection/plain (projection)
-  (nesting
-    (widget->graphics)
-    (type-dispatching
-      (widget/tooltip (nesting
-                        (widget->graphics)
-                        (sequential
-                          (type-dispatching
-                            (text/base (preserving))
-                            (t (reference->text)))
-                          (make-test-projection/text->output))))
-      (widget/scroll-pane (nesting
-                            (widget->graphics)
-                            projection)))))
+  (sequential
+    (nesting
+      (widget->graphics)
+      (type-dispatching
+        (widget/tooltip (nesting
+                          (widget->graphics)
+                          (sequential
+                            (type-dispatching
+                              (text/base (preserving))
+                              (t (reference->text)))
+                            (make-test-projection/text->output))))
+        (widget/scroll-pane (nesting
+                              (widget->graphics)
+                              projection))))
+    (recursive
+      (graphics->graphics))))
 
 (def function make-test-projection/selection (projection)
   (nesting
@@ -271,7 +277,7 @@
                  (image/image () "")))
     ("text" (text/text (:selection '((the text/text (text/subseq (the text/text document) 0 0)))) (text/string "")))
     ;; TODO:
-    ("image" (image/image () (asdf:system-relative-pathname :projectured "etc/lisp-boxed-alien.jpg")))
+    ("image" (image/image () (resource-pathname "image/lisp-boxed-alien.jpg")))
     ("table" (table/table ()
                (table/row ()
                  (table/cell ()
@@ -431,7 +437,7 @@
 (def function make-test-projection/text->graphics ()
   (sequential
     (line-numbering)
-    (text->graphics)))
+    (make-test-projection/text->output)))
 
 ;;;;;;
 ;;; Text

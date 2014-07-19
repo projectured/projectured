@@ -81,7 +81,7 @@
                  :line-color line-color))
 
 (def (function e) make-text/text (elements &key projection selection)
-  (make-instance 'text/text :elements (coerce elements 'vector) :projection projection :selection selection))
+  (make-instance 'text/text :elements (if (typep elements 'hu.dwim.computed-class::computed-state) elements (coerce elements 'vector)) :projection projection :selection selection))
 
 ;;;;;;
 ;;; Construction
@@ -95,9 +95,9 @@
 (def (macro e) text/string (content &key font font-color fill-color line-color)
   `(make-text/string ,content :font ,(or font '*font/default*) :font-color ,(or font-color '*color/default*) :fill-color ,fill-color :line-color ,line-color))
 
-(def (macro e) text/newline ()
+(def (macro e) text/newline (&key font font-color fill-color line-color)
   `(make-text/string "
-" :font *font/default* :font-color *color/default*))
+" :font ,(or font '*font/default*) :font-color ,(or font-color '*color/default*) :fill-color ,fill-color :line-color ,line-color))
 
 (def (macro e) text/text ((&key projection selection) &body elements)
   `(make-text/text (list ,@elements) :projection ,projection :selection ,selection))
@@ -183,10 +183,10 @@
                   (bind ((word-part (subseq content element-start-character-index element-end-character-index)))
                     (unless (zerop (length word-part))
                       (collect (make-text/string word-part
-                                                          :font (font-of element)
-                                                          :font-color (font-color-of element)
-                                                          :fill-color (fill-color-of element)
-                                                          :line-color (line-color-of element))))))))
+                                                 :font (font-of element)
+                                                 :font-color (font-color-of element)
+                                                 :fill-color (fill-color-of element)
+                                                 :line-color (line-color-of element))))))))
            (t
             (collect element))))))
 
@@ -273,6 +273,24 @@
 (def (function e) text/push (text other)
   (setf (elements-of text) (concatenate 'vector (elements-of text) (elements-of other)))
   text)
+
+(def (function e) text/consolidate (text)
+  (make-text/text (iter (with last-string-element = nil)
+                        (for element-index :from 0)
+                        (for element :in-sequence (elements-of text))
+                        (if (and last-string-element
+                                 (typep element 'text/string)
+                                 (eq (font-of element) (font-of last-string-element))
+                                 (eq (font-color-of element) (font-color-of last-string-element))
+                                 (eq (fill-color-of element) (fill-color-of last-string-element))
+                                 (eq (line-color-of element) (line-color-of last-string-element)))
+                            (setf (content-of last-string-element) (concatenate 'string (content-of last-string-element) (content-of element)))
+                            (collect (if (typep element 'text/string)
+                                         (setf last-string-element (make-text/string (copy-seq (content-of element)) :font (font-of element) :font-color (font-color-of element) :fill-color (fill-color-of element) :line-color (line-color-of element)))
+                                         element)
+                               :result-type vector)))
+                  :projection (projection-of text)
+                  :selection (selection-of text)))
 
 (def (function e) text/element-index (text index)
   (iter (for element-index :from 0)

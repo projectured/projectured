@@ -11,7 +11,7 @@
 
 (def method raw-of :around ((font style/font))
   (or (call-next-method)
-      (setf (raw-of font) (sdl:initialise-font (make-instance 'sdl:ttf-font-definition :size (size-of font) :filename (filename-of font))))))
+      (setf (raw-of font) (sdl:initialise-font (make-instance 'sdl:ttf-font-definition :size (size-of font) :filename (resource-pathname (filename-of font)))))))
 
 (def method raw-of :around ((color style/color))
   (or (call-next-method)
