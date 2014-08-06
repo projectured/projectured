@@ -41,7 +41,7 @@
                                    (collect (recurse-printer recursion element nil)))))
          (output (as (if (> (length (elements-of input)) (threshold-of projection))
                          (make-graphics/image (as (location-of input)) (make-image/memory (as (bind ((size (size-of (make-bounding-rectangle input)))
-                                                                                                     (*translation* 0))
+                                                                                                     (*translation* (make-2d 0 0)))
                                                                                                 (declare (special *translation*))
                                                                                                 (printer.debug "Creating image of ~A canvas elements" (length (elements-of input)))
                                                                                                 ;; TODO: KLUDGE: when do we destroy this surface?
@@ -56,7 +56,7 @@
 (def printer graphics/viewport->graphics/image (projection recursion input input-reference)
   (bind ((contents-iomap (as (list (recurse-printer recursion (content-of input) nil))))
          (output (as (make-graphics/image (as (location-of input)) (make-image/memory (as (bind ((size (size-of input))
-                                                                                                 (*translation* 0))
+                                                                                                 (*translation* (make-2d 0 0)))
                                                                                             (declare (special *translation*))
                                                                                             (printer.debug "Creating image of viewport")
                                                                                             ;; TODO: KLUDGE: when do we destroy this surface?

@@ -36,5 +36,5 @@
 ;;;;;;
 ;;; Object operation API implementation
 
-(def method redo-operation ((operation operation/object/replace-place-value))
+(def method run-operation ((operation operation/object/replace-place-value))
   (setf (eval-reference document (target-of operation)) (replacement-of operation)))

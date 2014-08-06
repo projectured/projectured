@@ -72,7 +72,7 @@
       (reference/flatten (rest reference) (tree-replace (car reference) 'document result))
       result))
 
-(def method redo-operation ((operation operation/sequence/replace-element-range))
+(def method run-operation ((operation operation/sequence/replace-element-range))
   (bind (((:values reference start end)
           (pattern-case (target-of operation)
             (((the string (subseq (the ?type (?if (subtypep ?type 'string)) ?a) ?b ?c)) . ?rest)
@@ -94,7 +94,7 @@
                                                                     :selection (selection-of old-sequence)))
                          (sequence (concatenate (form-type old-sequence)
                                                 (subseq old-sequence 0 start) (replacement-of operation) (subseq old-sequence end)))
-                         (text/text (bind ((element (first-elt (elements-of old-sequence))))
+                         (text/text (bind ((element (last-elt (elements-of old-sequence))))
                                       (text/concatenate (text/substring* old-sequence 0 start)
                                                         (make-text/text (list (make-text/string (replacement-of operation) :font (font-of element) :font-color (font-color-of element))))
                                                         (text/substring* old-sequence end)))))))
@@ -113,5 +113,5 @@
       (invalidate-computed-slot (document-of operation) 'content))
     ;; KLUDGE: can't do this in a separate operation
     (bind ((character-index (+ start (length (replacement-of operation)))))
-      (redo-operation (make-operation/replace-selection document `((the ,(form-type new-sequence) (,(if (typep old-sequence 'text/text) 'text/subseq 'subseq) (the ,(form-type old-sequence) document) ,character-index ,character-index))
+      (run-operation (make-operation/replace-selection document `((the ,(form-type new-sequence) (,(if (typep old-sequence 'text/text) 'text/subseq 'subseq) (the ,(form-type old-sequence) document) ,character-index ,character-index))
                                                                    ,@(rest (reverse reference))))))))

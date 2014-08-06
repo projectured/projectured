@@ -172,7 +172,17 @@
 (def reader document/document->t (projection recursion input printer-iomap)
   (declare (ignore projection))
   (bind ((printer-input (input-of printer-iomap)))
-    (merge-commands (labels ((recurse (operation)
+    (merge-commands (gesture-case (gesture-of input)
+                      ((gesture/keyboard/key-press :sdl-key-s :control)
+                       :domain "Document" :description "Saves the currently edited document."
+                       :operation (make-operation/save-document (content-of printer-input) (filename-of printer-input)))
+                      ((gesture/keyboard/key-press :sdl-key-l :control)
+                       :domain "Document" :description "Loads the previously saved document."
+                       :operation (make-operation/load-document (content-of printer-input) (filename-of printer-input)))
+                      ((gesture/keyboard/key-press :sdl-key-e :control)
+                       :domain "Document" :description "Exports the currently edited document as text."
+                       :operation (make-operation/export-document (content-of printer-input) (filename-of printer-input))))
+                    (labels ((recurse (operation)
                                (typecase operation
                                  (operation/quit operation)
                                  (operation/functional operation)

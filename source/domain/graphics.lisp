@@ -388,11 +388,11 @@
      :domain "Graphics" :description "Describes what the mouse is pointing at"
      :operation (make-instance 'operation/describe :target (make-reference graphics (location-of gesture) nil)))))
 
-(def method redo-operation ((operation operation/graphics/translate-location))
+(def method run-operation ((operation operation/graphics/translate-location))
   (translate-location (target-of (selection-of operation)) (translation-of operation)))
 
-(def method redo-operation ((operation operation/graphics/scale-size))
+(def method run-operation ((operation operation/graphics/scale-size))
   (scale-size (target-of (selection-of operation)) (scale-of operation)))
 
-(def method redo-operation ((operation operation/graphics/rotate-clockwise))
+(def method run-operation ((operation operation/graphics/rotate-clockwise))
   (not-yet-implemented))

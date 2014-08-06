@@ -40,7 +40,7 @@
 ;;;;;;
 ;;; Number operation API implementation
 
-(def method redo-operation ((operation operation/number/replace-range))
+(def method run-operation ((operation operation/number/replace-range))
   (bind (((:values reference start end)
           (pattern-case (target-of operation)
             (((the string (subseq (the string document) ?b ?c))
@@ -59,6 +59,6 @@
         (invalidate-computed-slot document 'content))
       ;; KLUDGE: can't do this in a separate operation
       (bind ((character-index (+ start (length (replacement-of operation)))))
-        (redo-operation (make-operation/replace-selection document `((the string (subseq (the string document) ,character-index ,character-index))
+        (run-operation (make-operation/replace-selection document `((the string (subseq (the string document) ,character-index ,character-index))
                                                                      (the string (write-to-string (the number document)))
                                                                      ,@(rest (reverse reference)))))))))

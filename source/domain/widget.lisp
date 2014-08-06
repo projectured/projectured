@@ -117,11 +117,12 @@
   (make-instance 'widget/composite
                  :elements elements))
 
-(def (function e) make-widget/split-pane (orientation elements)
+(def (function e) make-widget/split-pane (orientation elements &key selection)
   (make-instance 'widget/split-pane
                  :orientation orientation
                  :elements elements
-                 :sizes nil))
+                 :sizes nil
+                 :selection selection))
 
 (def (function e) make-widget/tabbed-pane (selector-element-pairs selected-index)
   (make-instance 'widget/tabbed-pane
@@ -161,8 +162,8 @@
 (def (macro e) widget/composite ((&key) &body elements)
   `(make-widget/composite (list ,@elements)))
 
-(def (macro e) widget/split-pane ((&key orientation) &body elements)
-  `(make-widget/split-pane ,orientation (list ,@elements)))
+(def (macro e) widget/split-pane ((&key orientation selection) &body elements)
+  `(make-widget/split-pane ,orientation (list ,@elements) :selection ,selection))
 
 (def (macro e) widget/tabbed-pane ((&key) &body selector-element-pairs)
   `(make-widget/tabbed-pane (list ,@(iter (for pair :in-sequence selector-element-pairs)
@@ -204,22 +205,22 @@
 ;;;;;;
 ;;; Redo
 
-(def method redo-operation ((operation operation/widget/hide))
+(def method run-operation ((operation operation/widget/hide))
   (setf (visible-p (widget-of operation)) #f))
 
-(def method redo-operation ((operation operation/widget/show))
+(def method run-operation ((operation operation/widget/show))
   (setf (visible-p (widget-of operation)) #t))
 
-(def method redo-operation ((operation operation/widget/tooltip/move))
+(def method run-operation ((operation operation/widget/tooltip/move))
   (setf (location-of (tooltip-of operation)) (location-of operation)))
 
-(def method redo-operation ((operation operation/widget/tooltip/replace-content))
+(def method run-operation ((operation operation/widget/tooltip/replace-content))
   (setf (content-of (tooltip-of operation)) (content-of operation)))
 
-(def method redo-operation ((operation operation/widget/tabbed-pane/select-page))
+(def method run-operation ((operation operation/widget/tabbed-pane/select-page))
   (setf (selected-index-of (tabbed-pane-of operation)) (selected-index-of operation)))
 
-(def method redo-operation ((operation operation/widget/scroll-pane/scroll))
+(def method run-operation ((operation operation/widget/scroll-pane/scroll))
   (bind ((scroll-pane (scroll-pane-of operation)))
     (setf (scroll-position-of scroll-pane) (+ (scroll-position-of scroll-pane)
                                               (scroll-delta-of operation)))))

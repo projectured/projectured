@@ -83,5 +83,5 @@
 ;;;;;;
 ;;; Redo
 
-(def method redo-operation ((operation operation/tree/toggle-expanded))
+(def method run-operation ((operation operation/tree/toggle-expanded))
   (notf (expanded-p (eval-reference (document-of operation) (reference/flatten (reverse (target-of operation)))))))

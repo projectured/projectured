@@ -66,7 +66,7 @@
               (when-bind operation (operation-of (apply-reader (make-command gesture nil :domain "Default" :description "Does nothing") projection (printer-iomap-of editor)))
                 (return (lambda ()
                           (editor.debug "Redoing ~A" operation)
-                          (redo-operation operation)))))))))
+                          (run-operation operation)))))))))
 
 (def method print-to-devices ((editor editor) document projection)
   (bind ((printer-iomap (if *use-computed-class*

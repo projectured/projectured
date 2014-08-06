@@ -81,7 +81,7 @@
                                       (incf y (elt line-heights line-index))
                                       (incf line-index))
                                     ;;                                    when (not (zerop (length line)))
-                                    (for line-height = (elt line-heights line-index))
+                                    (for line-height = (or (elt line-heights line-index) 0))
                                     (for size = (measure-text line (font-of element)))
                                     (for text = (make-graphics/text (make-2d x (+ y (- line-height (2d-y size)))) line
                                                                     :font (font-of element)
@@ -221,7 +221,8 @@
                 (((the string (subseq (the string document) ?graphics-start-character-index ?graphics-end-character-index))
                   (the string (text-of (the graphics/text document)))
                   (the graphics/text (elt (the sequence document) ?graphics-element-index))
-                  (the sequence (elements-of (the graphics/canvas document))))
+                  (the sequence (elements-of (the graphics/canvas document)))
+                  . ?rest)
                  (bind ((text-character-index (+ ?graphics-start-character-index (elt (first-character-indices-of printer-iomap) (position ?graphics-element-index (graphics-element-indices-of printer-iomap))))))
                    (make-operation/replace-selection (input-of printer-iomap) `((the text/text (text/subseq (the text/text document) ,text-character-index ,text-character-index))))))))
              (operation/describe
@@ -229,7 +230,8 @@
                 (((the string (subseq (the string document) ?graphics-start-character-index ?graphics-end-character-index))
                   (the string (text-of (the graphics/text document)))
                   (the graphics/text (elt (the sequence document) ?graphics-element-index))
-                  (the sequence (elements-of (the graphics/canvas document))))
+                  (the sequence (elements-of (the graphics/canvas document)))
+                  . ?rest)
                  (bind ((text-character-index (+ ?graphics-start-character-index (elt (first-character-indices-of printer-iomap) (position ?graphics-element-index (graphics-element-indices-of printer-iomap))))))
                    (make-instance 'operation/describe :target `((the text/text (text/subseq (the text/text document) ,text-character-index ,(1+ text-character-index)))))))))
              (operation/show-context-sensitive-help
@@ -242,7 +244,7 @@
   (declare (ignore projection recursion))
   (bind ((printer-input (input-of printer-iomap))
          (text-command (text/read-operation printer-input (gesture-of input)))
-         (document-command (document/read-operation printer-input (gesture-of input)))
+         (document-command (document/read-operation (gesture-of input)))
          (graphics-command (awhen (graphics/read-operation (output-of printer-iomap) (gesture-of input))
                              (text->graphics/read-backward it printer-iomap))))
     (merge-commands text-command document-command graphics-command input)))

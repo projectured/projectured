@@ -116,7 +116,7 @@
               (for operation = (operation-of command))
               (when (typep operation 'operation/replace-selection)
                 (test.debug "Executing gesture: ~A" (gesture/describe gesture))
-                (redo-operation operation)
+                (run-operation operation)
                 (incf executed-operation-count)
                 (bind ((new-selection (selection-of document)))
                   (unless (or (member new-selection remaining-selections :test 'equal)

@@ -42,4 +42,4 @@
 
 (def reader sequence->list (projection recursion input printer-iomap)
   (declare (ignore projection recursion))
-  (document/read-operation (input-of printer-iomap) (gesture-of input)))
+  input)

@@ -128,10 +128,10 @@
 ;;;;;;;
 ;;; Operation API
 
-(def method redo-operation ((operation operation/text/replace-font))
+(def method run-operation ((operation operation/text/replace-font))
   (not-yet-implemented))
 
-(def method redo-operation ((operation operation/text/replace-font-color))
+(def method run-operation ((operation operation/text/replace-font-color))
   (not-yet-implemented))
 
 ;;;;;;
@@ -276,7 +276,6 @@
 
 (def (function e) text/consolidate (text)
   (make-text/text (iter (with last-string-element = nil)
-                        (for element-index :from 0)
                         (for element :in-sequence (elements-of text))
                         (if (and last-string-element
                                  (typep element 'text/string)
@@ -287,7 +286,9 @@
                             (setf (content-of last-string-element) (concatenate 'string (content-of last-string-element) (content-of element)))
                             (collect (if (typep element 'text/string)
                                          (setf last-string-element (make-text/string (copy-seq (content-of element)) :font (font-of element) :font-color (font-color-of element) :fill-color (fill-color-of element) :line-color (line-color-of element)))
-                                         element)
+                                         (progn
+                                           (setf last-string-element nil)
+                                           element))
                                :result-type vector)))
                   :projection (projection-of text)
                   :selection (selection-of text)))

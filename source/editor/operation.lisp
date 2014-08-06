@@ -11,11 +11,8 @@
 ;;;
 ;;; An operation represents a change in domain data, selections or any other editor state.
 
-(def (generic e) redo-operation (operation)
+(def (generic e) run-operation (operation)
   (:documentation "Redoes all side effects of OPERATION. Has side effects."))
-
-(def (generic e) undo-operation (operation)
-  (:documentation "Undoes all side effects of OPERATION. Has side effects."))
 
 (def (definer :available-flags "e") operation (name supers slots &rest options)
   `(def class* ,name ,supers ,slots ,@options))
@@ -106,33 +103,24 @@
 (def (function e) make-operation/replace-target (document target replacement)
   (make-instance 'operation/replace-target :document document :target target :replacement replacement))
 
-(def (function e) make-operation/save-document (document)
-  (make-instance 'operation/save-document :document document :filename #P"/tmp/document.pred"))
+(def (function e) make-operation/save-document (document filename)
+  (make-instance 'operation/save-document :document document :filename filename))
 
-(def (function e) make-operation/load-document (document)
-  (make-instance 'operation/load-document :document document :filename #P"/tmp/document.pred"))
+(def (function e) make-operation/load-document (document filename)
+  (make-instance 'operation/load-document :document document :filename filename))
 
-(def (function e) make-operation/export-document (document)
-  (make-instance 'operation/export-document :document document :filename #P"/tmp/document.txt"))
+(def (function e) make-operation/export-document (document filename)
+  (make-instance 'operation/export-document :document document :filename filename))
 
-(def (function e) make-operation/import-document (document)
-  (make-instance 'operation/import-document :document document :filename #P"/tmp/document.txt"))
+(def (function e) make-operation/import-document (document filename)
+  (make-instance 'operation/import-document :document document :filename filename))
 
 (def (function e) make-operation/select-next-alternative (alternatives)
   (make-instance 'operation/select-next-alternative :alternatives alternatives))
 
-;; TODO: move?
-(def function document/read-operation (document gesture)
+;; TODO: rename?
+(def function document/read-operation (gesture)
   (gesture-case gesture
-    ((gesture/keyboard/key-press :sdl-key-s :control)
-     :domain "Document" :description "Saves the currently edited document to '/tmp/document.pred'"
-     :operation (make-operation/save-document document))
-    ((gesture/keyboard/key-press :sdl-key-l :control)
-     :domain "Document" :description "Loads a previously saved document from '/tmp/document.pred'"
-     :operation (make-operation/load-document document))
-    ((gesture/keyboard/key-press :sdl-key-e :control)
-     :domain "Document" :description "Exports the currently edited document to '/tmp/document.txt'"
-     :operation (make-operation/export-document document))
     ((gesture/keyboard/key-press :sdl-key-escape)
      :domain "Document" :description "Quits from the editor"
      :operation (make-operation/quit))
@@ -143,20 +131,20 @@
 ;;;;;;
 ;;; Operation API implementation
 
-(def method redo-operation ((operation operation/compound))
+(def method run-operation ((operation operation/compound))
   (iter (for element :in-sequence (elements-of operation))
-        (redo-operation element)))
+        (run-operation element)))
 
-(def method redo-operation ((operation operation/functional))
+(def method run-operation ((operation operation/functional))
   (funcall (thunk-of operation)))
 
-(def method redo-operation ((operation operation/quit))
+(def method run-operation ((operation operation/quit))
   (throw :quit-editor nil))
 
-(def method redo-operation ((operation operation/undo))
+(def method run-operation ((operation operation/undo))
   (not-yet-implemented))
 
-(def method redo-operation ((operation operation/replace-content))
+(def method run-operation ((operation operation/replace-content))
   (setf (content-of (document-of operation)) (content-of operation)))
 
 (def function remove-selection (document selection)
@@ -178,7 +166,7 @@
                (recurse (eval-reference document (first selection)) (rest selection)))))
     (recurse document (reverse selection))))
 
-(def method redo-operation ((operation operation/replace-selection))
+(def method run-operation ((operation operation/replace-selection))
   (bind ((document (document-of operation))
          (old-selection (selection-of document))
          (new-selection (selection-of operation)))
@@ -186,34 +174,57 @@
     (set-selection document new-selection)
     (editor.debug "Selection of ~A is set to ~A" document new-selection)))
 
-(def method redo-operation ((operation operation/replace-target))
+(def method run-operation ((operation operation/replace-target))
   (setf (eval-reference (document-of operation) (reference/flatten (reverse (target-of operation)))) (replacement-of operation)))
 
-(def method redo-operation ((operation operation/save-document))
-  (with-output-to-file (output (filename-of operation) :if-does-not-exist :create :if-exists :overwrite :element-type '(unsigned-byte 8))
-    (hu.dwim.serializer:serialize (document-of operation) :output output)))
+(def (function e) deserialize-document (filename)
+  (bind ((extension (pathname-type filename)))
+    (eswitch (extension :test 'string=)
+      ("pred"
+       (with-input-from-file (input filename :element-type '(unsigned-byte 8))
+         (hu.dwim.serializer:deserialize input)))
+      ("json"
+       ;; TODO:
+       (make-text/text (list (make-text/string (read-file-into-string filename) :font *font/default* :font-color *color/default*))))
+      ("xml"
+       ;; TODO:
+       (make-text/text (list (make-text/string (read-file-into-string filename) :font *font/default* :font-color *color/default*))))
+      ("html"
+       ;; TODO:
+       (make-text/text (list (make-text/string (read-file-into-string filename) :font *font/default* :font-color *color/default*))))
+      ("txt"
+       (make-text/text (list (make-text/string (read-file-into-string filename) :font *font/default* :font-color *color/default*)))))))
 
-(def method redo-operation ((operation operation/load-document))
-  (with-input-from-file (input (filename-of operation) :element-type '(unsigned-byte 8))
-    (bind ((document (hu.dwim.serializer:deserialize input)))
-      (setf (content-of (document-of operation)) (content-of document))
-      (setf (selection-of (document-of operation)) (selection-of document)))))
+(def (function e) serialize-document (filename document)
+  (bind ((extension (pathname-type filename)))
+    (eswitch (extension :test 'string=)
+      ("pred"
+       (with-output-to-file (output filename :if-does-not-exist :create :if-exists :overwrite :element-type '(unsigned-byte 8))
+         (hu.dwim.serializer:serialize document :output output)))
+      ("txt"
+       (not-yet-implemented)))))
 
-(def method redo-operation ((operation operation/export-document))
+(def method run-operation ((operation operation/save-document))
+  (serialize-document (filename-of operation) (document-of operation)))
+
+(def method run-operation ((operation operation/load-document))
+  (deserialize-document (filename-of operation)))
+
+(def method run-operation ((operation operation/export-document))
   (with-output-to-file (output (filename-of operation) :if-does-not-exist :create :if-exists :overwrite :element-type 'character)
     (print-document (content-of (document-of operation)) output)))
 
-(def method redo-operation ((operation operation/import-document))
+(def method run-operation ((operation operation/import-document))
   (with-input-from-file (input (filename-of operation) :element-type 'character)
     (not-yet-implemented)))
 
-(def method redo-operation ((operation operation/select-next-alternative))
+(def method run-operation ((operation operation/select-next-alternative))
   (bind ((alternatives (alternatives-of operation)))
     (setf (selection-of alternatives) (mod (1+ (selection-of alternatives))
                                            (length (alternatives-of alternatives))))))
 
-(def method redo-operation ((operation operation/describe))
+(def method run-operation ((operation operation/describe))
   (values))
 
-(def method redo-operation ((operation operation/show-context-sensitive-help))
+(def method run-operation ((operation operation/show-context-sensitive-help))
   (values))

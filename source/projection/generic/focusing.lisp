@@ -36,7 +36,7 @@
   ((projection :type focusing)
    (part :type reference)))
 
-(def method redo-operation ((operation operation/focusing/replace-part))
+(def method run-operation ((operation operation/focusing/replace-part))
   (bind ((projection (projection-of operation))
          (part (part-of operation)))
     (setf (part-of projection) part)

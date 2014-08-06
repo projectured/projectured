@@ -292,11 +292,11 @@
 
 (def reader widget/menu->graphics/canvas (projection recursion input printer-iomap)
   (declare (ignore projection recursion))
-  (document/read-operation (input-of printer-iomap) input))
+  input)
 
 (def reader widget/menu-item->graphics/canvas (projection recursion input printer-iomap)
   (declare (ignore projection recursion))
-  (document/read-operation (input-of printer-iomap) input))
+  input)
 
 (def reader widget/shell->graphics/canvas (projection recursion input printer-iomap)
   (declare (ignore projection))
@@ -338,22 +338,48 @@
 
 (def reader widget/split-pane->graphics/canvas (projection recursion input printer-iomap)
   (declare (ignore projection))
-  (pattern-case (reverse (make-reference (output-of printer-iomap) (mouse-position) nil))
-    (((the sequence (elements-of (the graphics/canvas document)))
-      (the graphics/canvas (elt (the sequence document) ?index))
-      . ?rest)
-     (bind ((index (floor (/ ?index 2)))
-            (child-iomap (elt (child-iomaps-of printer-iomap) index))
-            (gesture (gesture-of input))
-            (child-gesture (progn
-                             ;; KLUDGE: copy gesture
-                             (setf (location-of gesture) (- (location-of gesture) (location-of (elt (elements-of (output-of printer-iomap)) ?index))))
-                             gesture))
-            (child-input (make-command child-gesture
-                                       (operation-of input)
-                                       :domain (domain-of input)
-                                       :description (description-of input))))
-       (recurse-reader recursion child-input child-iomap))))
+  (bind ((printer-input (input-of printer-iomap)))
+    (merge-commands (if (typep (gesture-of input) 'gesture/mouse)
+                        (pattern-case (reverse (make-reference (output-of printer-iomap) (mouse-position) nil))
+                          (((the sequence (elements-of (the graphics/canvas document)))
+                            (the graphics/canvas (elt (the sequence document) ?index))
+                            . ?rest)
+                           (bind ((index (floor (/ ?index 2)))
+                                  (element (elt (elements-of printer-input) index))
+                                  (child-iomap (elt (child-iomaps-of printer-iomap) index))
+                                  (gesture (gesture-of input))
+                                  (child-gesture (progn
+                                                   ;; KLUDGE: copy gesture
+                                                   (setf (location-of gesture) (- (location-of gesture) (location-of (elt (elements-of (output-of printer-iomap)) ?index))))
+                                                   gesture))
+                                  (child-input (make-command child-gesture
+                                                             (operation-of input)
+                                                             :domain (domain-of input)
+                                                             :description (description-of input)))
+                                  (child-output (recurse-reader recursion child-input child-iomap)))
+                             (if (typep child-gesture 'gesture/mouse/button/click)
+                                 (make-command (gesture-of input)
+                                               (make-operation/compound (list (operation-of child-output)
+                                                                              (make-operation/replace-selection printer-input `((the ,(form-type element) (elt (the sequence document) ,index))
+                                                                                                                                (the sequence (elements-of (the widget/split-pane document)))))))
+                                               :domain (domain-of child-output)
+                                               :description (description-of child-output))
+                                 child-output))))
+                        (pattern-case (selection-of printer-input)
+                          (((the ?type (elt (the sequence document) ?index))
+                            (the sequence (elements-of (the widget/split-pane document))))
+                           (bind ((child-iomap (elt (child-iomaps-of printer-iomap) ?index))
+                                  (gesture (gesture-of input))
+                                  (child-gesture (if (typep gesture 'gesture/mouse/button/click)
+                                                     ;; TODO: width
+                                                     (make-instance 'gesture/mouse/button/click :modifiers (modifiers-of gesture) :button (button-of gesture) :location (- (location-of (gesture-of input)) (make-2d 250 0)))
+                                                     (gesture-of input)))
+                                  (child-input (make-command child-gesture
+                                                             (operation-of input)
+                                                             :domain (domain-of input)
+                                                             :description (description-of input))))
+                             (recurse-reader recursion child-input child-iomap)))))
+                    (make-command/nothing (gesture-of input))))
   #+nil
   (iter (for index :from 0)
         (for element :in-sequence (elements-of (input-of printer-iomap)))
@@ -362,14 +388,26 @@
 (def reader widget/tabbed-pane->graphics/canvas (projection recursion input printer-iomap)
   (declare (ignore projection))
   (bind ((printer-input (input-of printer-iomap))
-         (child-operation (recurse-reader recursion input (elt (child-iomaps-of printer-iomap) 1))))
+         (gesture (gesture-of input))
+         (child-input (if (typep gesture 'gesture/mouse/button/click)
+                          ;; TODO: width
+                          (make-command (make-instance 'gesture/mouse/button/click :modifiers (modifiers-of gesture) :button (button-of gesture) :location (- (location-of (gesture-of input)) (make-2d 0 40)))
+                                        (operation-of input)
+                                        :domain (domain-of input)
+                                        :description (description-of input))
+                          input))
+         (child-output (recurse-reader recursion child-input (elt (child-iomaps-of printer-iomap) 1))))
     (merge-commands (gesture-case (gesture-of input)
-                      #+nil
                       ((make-instance 'gesture/mouse/button/click :button :button-left :modifiers nil)
                        :domain "Widget" :description "Selects the page in the tabbed pane where the mouse is pointing at"
-                       :operation (make-instance 'operation/widget/tabbed-pane/select-page
-                                                 :tabbed-pane printer-input
-                                                 :selected-index 1))
+                       :operation (pattern-case (reverse (make-reference (output-of printer-iomap) (location-of (gesture-of input)) nil))
+                                    (((the sequence (elements-of (the graphics/canvas document)))
+                                      (the ?type (elt (the sequence document) ?index))
+                                      . ?rest)
+                                     (when (< ?index (* 2 (length (selector-element-pairs-of printer-input))))
+                                       (make-instance 'operation/widget/tabbed-pane/select-page
+                                                      :tabbed-pane printer-input
+                                                      :selected-index (floor ?index 2))))))
                       ((gesture/keyboard/key-press :sdl-key-tab :control)
                        :domain "Widget" :description "Selects the next page in the tabbed pane"
                        :operation (make-instance 'operation/widget/tabbed-pane/select-page
@@ -380,7 +418,8 @@
                        :operation (make-instance 'operation/widget/tabbed-pane/select-page
                                                  :tabbed-pane printer-input
                                                  :selected-index (mod (1- (selected-index-of printer-input)) (length (selector-element-pairs-of printer-input))))))
-                    child-operation)))
+                    child-output
+                    (make-command/nothing (gesture-of input)))))
 
 (def reader widget/scroll-pane->graphics/canvas (projection recursion input printer-iomap)
   (declare (ignore projection))

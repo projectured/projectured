@@ -29,5 +29,5 @@
 ;;;;;;
 ;;; Boolean operation API implementation
 
-(def method redo-operation ((operation operation/boolean/negate))
+(def method run-operation ((operation operation/boolean/negate))
   (not-yet-implemented))

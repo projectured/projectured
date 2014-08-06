@@ -100,7 +100,7 @@
                                        `((the text/text (text/subseq (the text/text document) ,?character-index ,?character-index))))
                                       (((the text/text (text/subseq (the text/text document) ?character-index ?character-index))
                                         (the text/text (closing-delimiter-of (the tree/leaf document))))
-                                       (bind ((content-length (text/length (output-of content-iomap)))
+                                       (bind ((content-length (text/length (output-of (va content-iomap))))
                                               (opening-delimiter-length (aif (opening-delimiter-of input) (text/length it) 0))
                                               (character-index (+ ?character-index opening-delimiter-length content-length)))
                                          `((the text/text (text/subseq (the text/text document) ,character-index ,character-index)))))))))))

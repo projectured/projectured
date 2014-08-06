@@ -38,7 +38,8 @@
   ())
 
 (def document document/document (document/base)
-  ((content :type t)))
+  ((filename :type pathname)
+   (content :type t)))
 
 (def document document/nothing (document/base)
   ((value "Empty document" :type string :allocation :class :computed-in nil)))
@@ -60,8 +61,8 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-document/document (content &key selection)
-  (make-instance 'document/document :content content :selection selection))
+(def (function e) make-document/document (content &key filename selection)
+  (make-instance 'document/document :content content :filename filename :selection selection))
 
 (def (function e) make-document/nothing (&key selection)
   (make-instance 'document/nothing :selection selection))
@@ -78,8 +79,8 @@
 ;;;;;;
 ;;; Construction
 
-(def (macro e) document/document ((&key selection) &body content)
-  `(make-document/document ,(first content) :selection ,selection))
+(def (macro e) document/document ((&key filename selection) &body content)
+  `(make-document/document ,(first content) :filename ,filename :selection ,selection))
 
 (def (macro e) document/nothing (&key selection)
   `(make-document/nothing :selection ,selection))
