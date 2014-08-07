@@ -15,5 +15,5 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-device/display/slime ()
+(def function make-device/display/slime ()
   (make-instance 'device/display/slime))

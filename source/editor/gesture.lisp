@@ -11,10 +11,10 @@
 ;;;
 ;;; A gesture is a pattern of low level events satisfying certain constraints.
 
-(def (generic e) read-gesture (event-queue)
+(def generic read-gesture (event-queue)
   (:documentation "Reads a single gesture from EVENT-QUEUE. Does not return until it has successfully read a gesture. Purely functional."))
 
-(def (generic e) last-gesture (gesture-queue)
+(def generic last-gesture (gesture-queue)
   (:documentation "Returns the last gesture that has been read. Purely functional."))
 
 ;;;;;;

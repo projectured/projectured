@@ -18,10 +18,10 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/t/sequence->tree/node ()
+(def function make-projection/t/sequence->tree/node ()
   (make-projection 't/sequence->tree/node))
 
-(def (function e) make-projection/t/object->tree/node (&key slot-provider)
+(def function make-projection/t/object->tree/node (&key slot-provider)
   (make-projection 't/object->tree/node :slot-provider (or slot-provider
                                                            ;; TODO: default
                                                            (lambda (instance)
@@ -32,10 +32,10 @@
 ;;;;;;
 ;;; Construction
 
-(def (macro e) t/sequence->tree/node ()
+(def macro t/sequence->tree/node ()
   '(make-projection/t/sequence->tree/node))
 
-(def (macro e) t/object->tree/node (q&key slot-provider)
+(def macro t/object->tree/node (q&key slot-provider)
   `(make-projection/t/object->tree/node :slot-provider ,slot-provider))
 
 ;;;;;;

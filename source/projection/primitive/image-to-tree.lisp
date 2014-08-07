@@ -12,7 +12,7 @@
 (def projection image/image->tree/leaf ()
   ())
 
-(def (function e) make-projection/image/image->tree/leaf ()
+(def function make-projection/image/image->tree/leaf ()
   (make-projection 'image/image->tree/leaf))
 
 ;;;;;;

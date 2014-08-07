@@ -11,7 +11,7 @@
 ;;;
 ;;; A file is an output device.
 
-(def (generic e) file? (object)
+(def generic file? (object)
   (:documentation "Returns TRUE if OBJECT is a file device, otherwise returns FALSE."))
 
 ;;;;;;

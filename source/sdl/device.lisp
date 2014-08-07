@@ -21,10 +21,10 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-device/display/sdl (width height)
+(def function make-device/display/sdl (width height)
   (make-instance 'device/display/sdl :width width :height height))
 
-(def (function e) make-device/file/sdl (filename)
+(def function make-device/file/sdl (filename)
   (make-instance 'device/file/sdl :filename filename))
 
 ;;;;;;

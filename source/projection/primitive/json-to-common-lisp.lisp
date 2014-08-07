@@ -33,49 +33,49 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/json/null->common-lisp/application ()
+(def function make-projection/json/null->common-lisp/application ()
   (make-projection 'json/null->common-lisp/application))
 
-(def (function e) make-projection/json/boolean->common-lisp/application ()
+(def function make-projection/json/boolean->common-lisp/application ()
   (make-projection 'json/boolean->common-lisp/application))
 
-(def (function e) make-projection/json/number->common-lisp/application ()
+(def function make-projection/json/number->common-lisp/application ()
   (make-projection 'json/number->common-lisp/application))
 
-(def (function e) make-projection/json/string->common-lisp/application ()
+(def function make-projection/json/string->common-lisp/application ()
   (make-projection 'json/string->common-lisp/application))
 
-(def (function e) make-projection/json/array->common-lisp/progn ()
+(def function make-projection/json/array->common-lisp/progn ()
   (make-projection 'json/array->common-lisp/progn))
 
-(def (function e) make-projection/json/object-entry->common-lisp/progn ()
+(def function make-projection/json/object-entry->common-lisp/progn ()
   (make-projection 'json/object-entry->common-lisp/progn))
 
-(def (function e) make-projection/json/object->common-lisp/progn ()
+(def function make-projection/json/object->common-lisp/progn ()
   (make-projection 'json/object->common-lisp/progn))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) json/null->common-lisp/application ()
+(def macro json/null->common-lisp/application ()
   '(make-projection/json/null->common-lisp/application))
 
-(def (macro e) json/boolean->common-lisp/application ()
+(def macro json/boolean->common-lisp/application ()
   '(make-projection/json/boolean->common-lisp/application))
 
-(def (macro e) json/number->common-lisp/application ()
+(def macro json/number->common-lisp/application ()
   '(make-projection/json/number->common-lisp/application))
 
-(def (macro e) json/string->common-lisp/application ()
+(def macro json/string->common-lisp/application ()
   '(make-projection/json/string->common-lisp/application))
 
-(def (macro e) json/array->common-lisp/progn ()
+(def macro json/array->common-lisp/progn ()
   '(make-projection/json/array->common-lisp/progn))
 
-(def (macro e) json/object-entry->common-lisp/progn ()
+(def macro json/object-entry->common-lisp/progn ()
   '(make-projection/json/object-entry->common-lisp/progn))
 
-(def (macro e) json/object->common-lisp/progn ()
+(def macro json/object->common-lisp/progn ()
   '(make-projection/json/object->common-lisp/progn))
 
 ;;;;;;

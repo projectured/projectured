@@ -15,13 +15,13 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/test/check->common-lisp/application ()
+(def function make-projection/test/check->common-lisp/application ()
   (make-projection 'test/check->common-lisp/application))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) test/check->common-lisp/application ()
+(def macro test/check->common-lisp/application ()
   '(make-projection/test/check->common-lisp/application))
 
 ;;;;;;

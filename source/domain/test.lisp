@@ -24,8 +24,8 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-test/result (failed-assertions succeeded-assertions error)
+(def function make-test/result (failed-assertions succeeded-assertions error)
   (make-instance 'test/result :failed-assertions failed-assertions :succeeded-assertions succeeded-assertions :error error))
 
-(def (function e) make-test/check (content evaluator)
+(def function make-test/check (content evaluator)
   (make-instance 'test/check :content content :evaluator evaluator))

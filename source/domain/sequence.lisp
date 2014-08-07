@@ -16,13 +16,13 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-sequence/sequence (elements &key selection)
+(def function make-sequence/sequence (elements &key selection)
   (make-instance 'sequence/sequence :elements elements :selection selection))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) sequence/sequence ((&key selection) &body elements)
+(def macro sequence/sequence ((&key selection) &body elements)
   `(make-sequence/sequence (list ,@elements) :selection ,selection))
 
 (def method sb-sequence:make-sequence-like ((instance sequence/sequence) length &key (initial-element nil initial-element?) initial-contents)
@@ -57,7 +57,7 @@
 ;;;;;;
 ;;; Sequence operation constructors
 
-(def (function e) make-operation/sequence/replace-element-range (document target replacement)
+(def function make-operation/sequence/replace-element-range (document target replacement)
   (make-instance 'operation/sequence/replace-element-range
                  :document document
                  :target target
@@ -67,7 +67,7 @@
 ;;; Sequence operation API implementation
 
 ;; KLUDGE: TODO: this!
-(def (function e) reference/flatten (reference &optional (result 'document))
+(def function reference/flatten (reference &optional (result 'document))
   (if (consp reference)
       (reference/flatten (rest reference) (tree-replace (car reference) 'document result))
       result))

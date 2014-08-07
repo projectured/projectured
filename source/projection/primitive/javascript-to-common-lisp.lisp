@@ -39,31 +39,31 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/javascript/statement/block->common-lisp/progn ()
+(def function make-projection/javascript/statement/block->common-lisp/progn ()
   (make-projection 'javascript/statement/block->common-lisp/progn))
 
-(def (function e) make-projection/javascript/statement/top-level->common-lisp/progn ()
+(def function make-projection/javascript/statement/top-level->common-lisp/progn ()
   (make-projection 'javascript/statement/top-level->common-lisp/progn))
 
-(def (function e) make-projection/javascript/expression/variable-reference->common-lisp/application ()
+(def function make-projection/javascript/expression/variable-reference->common-lisp/application ()
   (make-projection 'javascript/expression/variable-reference->common-lisp/application))
 
-(def (function e) make-projection/javascript/expression/property-access->common-lisp/progn ()
+(def function make-projection/javascript/expression/property-access->common-lisp/progn ()
   (make-projection 'javascript/expression/property-access->common-lisp/progn))
 
-(def (function e) make-projection/javascript/expression/constructor-invocation->common-lisp/progn ()
+(def function make-projection/javascript/expression/constructor-invocation->common-lisp/progn ()
   (make-projection 'javascript/expression/constructor-invocation->common-lisp/progn))
 
-(def (function e) make-projection/javascript/expression/method-invocation->common-lisp/progn ()
+(def function make-projection/javascript/expression/method-invocation->common-lisp/progn ()
   (make-projection 'javascript/expression/method-invocation->common-lisp/progn))
 
-(def (function e) make-projection/javascript/literal/string->common-lisp/application ()
+(def function make-projection/javascript/literal/string->common-lisp/application ()
   (make-projection 'javascript/literal/string->common-lisp/application))
 
-(def (function e) make-projection/javascript/definition/variable->common-lisp/progn ()
+(def function make-projection/javascript/definition/variable->common-lisp/progn ()
   (make-projection 'javascript/definition/variable->common-lisp/progn))
 
-(def (function e) make-projection/javascript/definition/function->common-lisp/progn ()
+(def function make-projection/javascript/definition/function->common-lisp/progn ()
   (make-projection 'javascript/definition/function->common-lisp/progn))
 
 ;;;;;;

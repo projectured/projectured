@@ -15,13 +15,13 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/sequence->list ()
+(def function make-projection/sequence->list ()
   (make-projection 'sequence->list))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) sequence->list ()
+(def macro sequence->list ()
   '(make-projection/sequence->list))
 
 ;;;;;;

@@ -18,19 +18,19 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/graphics/canvas->graphics/image ()
+(def function make-projection/graphics/canvas->graphics/image ()
   (make-projection 'graphics/canvas->graphics/image))
 
-(def (function e) make-projection/graphics/viewport->graphics/image ()
+(def function make-projection/graphics/viewport->graphics/image ()
   (make-projection 'graphics/viewport->graphics/image))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) graphics/canvas->graphics/image ()
+(def macro graphics/canvas->graphics/image ()
   '(make-projection/graphics/canvas->graphics/image))
 
-(def (macro e) graphics/viewport->graphics/image ()
+(def macro graphics/viewport->graphics/image ()
   '(make-projection/graphics/viewport->graphics/image))
 
 ;;;;;;

@@ -11,7 +11,7 @@
 ;;;
 ;;; A keyboard is an input hardware device.
 
-(def (generic e) keyboard? (object)
+(def generic keyboard? (object)
   (:documentation "Returns TRUE if OBJECT is a keyboard device, otherwise returns FALSE."))
 
 ;;;;;;

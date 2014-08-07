@@ -18,19 +18,19 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/file-system/file->tree/leaf ()
+(def function make-projection/file-system/file->tree/leaf ()
   (make-projection 'file-system/file->tree/leaf))
 
-(def (function e) make-projection/file-system/directory->tree/node ()
+(def function make-projection/file-system/directory->tree/node ()
   (make-projection 'file-system/directory->tree/node))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) file-system/file->tree/leaf ()
+(def macro file-system/file->tree/leaf ()
   '(make-projection/file-system/file->tree/leaf))
 
-(def (macro e) file-system/directory->tree/node ()
+(def macro file-system/directory->tree/node ()
   '(make-projection/file-system/directory->tree/node))
 
 ;;;;;;

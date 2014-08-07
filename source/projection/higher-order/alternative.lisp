@@ -16,13 +16,13 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/alternative (projections &key (selection 0))
+(def function make-projection/alternative (projections &key (selection 0))
   (make-projection 'alternative :alternatives projections :selection selection))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) alternative (&body forms)
+(def macro alternative (&body forms)
   `(make-projection/alternative (list ,@forms)))
 
 ;;;;;;

@@ -15,7 +15,7 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-iomap/parallel (input output element-iomaps)
+(def function make-iomap/parallel (input output element-iomaps)
   (make-iomap 'iomap/parallel :input input :output output :element-iomaps element-iomaps))
 
 ;;;;;;
@@ -27,13 +27,13 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/parallel (projections)
+(def function make-projection/parallel (projections)
   (make-projection 'parallel :elements projections))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) parallel (&body forms)
+(def macro parallel (&body forms)
   `(make-projection/parallel (list ,@forms)))
 
 ;;;;;;

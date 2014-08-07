@@ -39,31 +39,31 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/javascript/statement/block->tree/node ()
+(def function make-projection/javascript/statement/block->tree/node ()
   (make-projection 'javascript/statement/block->tree/node))
 
-(def (function e) make-projection/javascript/statement/top-level->tree/node ()
+(def function make-projection/javascript/statement/top-level->tree/node ()
   (make-projection 'javascript/statement/top-level->tree/node))
 
-(def (function e) make-projection/javascript/expression/variable-reference->tree/leaf ()
+(def function make-projection/javascript/expression/variable-reference->tree/leaf ()
   (make-projection 'javascript/expression/variable-reference->tree/leaf))
 
-(def (function e) make-projection/javascript/expression/property-access->tree/node ()
+(def function make-projection/javascript/expression/property-access->tree/node ()
   (make-projection 'javascript/expression/property-access->tree/node))
 
-(def (function e) make-projection/javascript/expression/constructor-invocation->tree/node ()
+(def function make-projection/javascript/expression/constructor-invocation->tree/node ()
   (make-projection 'javascript/expression/constructor-invocation->tree/node))
 
-(def (function e) make-projection/javascript/expression/method-invocation->tree/node ()
+(def function make-projection/javascript/expression/method-invocation->tree/node ()
   (make-projection 'javascript/expression/method-invocation->tree/node))
 
-(def (function e) make-projection/javascript/literal/string->tree/leaf ()
+(def function make-projection/javascript/literal/string->tree/leaf ()
   (make-projection 'javascript/literal/string->tree/leaf))
 
-(def (function e) make-projection/javascript/definition/variable->tree/node ()
+(def function make-projection/javascript/definition/variable->tree/node ()
   (make-projection 'javascript/definition/variable->tree/node))
 
-(def (function e) make-projection/javascript/definition/function->tree/node ()
+(def function make-projection/javascript/definition/function->tree/node ()
   (make-projection 'javascript/definition/function->tree/node))
 
 ;;;;;;

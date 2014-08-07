@@ -16,13 +16,13 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/sorting (key predicate)
+(def function make-projection/sorting (key predicate)
   (make-projection 'sorting :key key :predicate predicate))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) sorting (key predicate)
+(def macro sorting (key predicate)
   `(make-projection/sorting ,key ,predicate))
 
 ;;;;;

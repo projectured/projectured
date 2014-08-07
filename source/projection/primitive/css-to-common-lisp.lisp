@@ -18,10 +18,10 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/css/attribute->common-lisp/application ()
+(def function make-projection/css/attribute->common-lisp/application ()
   (make-projection 'css/attribute->common-lisp/application))
 
-(def (function e) make-projection/css/rule->common-lisp/progn ()
+(def function make-projection/css/rule->common-lisp/progn ()
   (make-projection 'css/rule->common-lisp/progn))
 
 ;;;;;;

@@ -15,13 +15,13 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/list/list->text ()
+(def function make-projection/list/list->text ()
   (make-projection 'list/list->text :output-border #f))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) list/list->text ()
+(def macro list/list->text ()
   '(make-projection/list/list->text))
 
 ;;;;;;

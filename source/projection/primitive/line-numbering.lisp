@@ -57,7 +57,7 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/line-numbering (&key font font-color fill-color line-color)
+(def function make-projection/line-numbering (&key font font-color fill-color line-color)
   (make-projection 'line-numbering
                    :font (or font *font/ubuntu/monospace/regular/18*)
                    :font-color (or font-color *color/solarized/content/light*)
@@ -67,7 +67,7 @@
 ;;;;;;
 ;;; Construction
 
-(def (macro e) line-numbering (&key font font-color fill-color line-color)
+(def macro line-numbering (&key font font-color fill-color line-color)
   `(make-projection/line-numbering :font ,font :font-color ,font-color :fill-color ,fill-color :line-color ,line-color))
 
 ;;;;;;

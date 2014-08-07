@@ -56,19 +56,19 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/tree/leaf->text/text ()
+(def function make-projection/tree/leaf->text/text ()
   (make-projection 'tree/leaf->text/text :output-delimiters #t))
 
-(def (function e) make-projection/tree/node->text/text ()
+(def function make-projection/tree/node->text/text ()
   (make-projection 'tree/node->text/text :output-delimiters #t))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) tree/leaf->text/text ()
+(def macro tree/leaf->text/text ()
   `(make-projection/tree/leaf->text/text))
 
-(def (macro e) tree/node->text/text ()
+(def macro tree/node->text/text ()
   `(make-projection/tree/node->text/text))
 
 ;;;;;;

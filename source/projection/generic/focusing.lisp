@@ -17,7 +17,7 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/focusing (part-type part)
+(def function make-projection/focusing (part-type part)
   (make-projection 'focusing
                    :part-type part-type
                    :part part
@@ -26,7 +26,7 @@
 ;;;;;;
 ;;; Construction
 
-(def (macro e) focusing (part-type part)
+(def macro focusing (part-type part)
   `(make-projection/focusing ,part-type ,part))
 
 ;;;;;;

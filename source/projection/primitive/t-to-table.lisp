@@ -24,31 +24,31 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/t/sequence->table/table ()
+(def function make-projection/t/sequence->table/table ()
   (make-projection 't/sequence->table/table))
 
-(def (function e) make-projection/t/hash-table->table/table ()
+(def function make-projection/t/hash-table->table/table ()
   (make-projection 't/hash-table->table/table))
 
-(def (function e) make-projection/t/function->table/table ()
+(def function make-projection/t/function->table/table ()
   (make-projection 't/function->table/table))
 
-(def (function e) make-projection/t/object->table/table (&key slot-provider)
+(def function make-projection/t/object->table/table (&key slot-provider)
   (make-projection 't/object->table/table :slot-provider (or slot-provider (compose 'class-slots 'class-of))))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) t/sequence->table/table ()
+(def macro t/sequence->table/table ()
   '(make-projection/t/sequence->table/table))
 
-(def (macro e) t/hash-table->table/table ()
+(def macro t/hash-table->table/table ()
   '(make-projection/t/hash-table->table/table))
 
-(def (macro e) t/function->table/table ()
+(def macro t/function->table/table ()
   '(make-projection/t/function->table/table))
 
-(def (macro e) t/object->table/table (&key slot-provider)
+(def macro t/object->table/table (&key slot-provider)
   `(make-projection/t/object->table/table :slot-provider ,slot-provider))
 
 ;;;;;;

@@ -24,16 +24,16 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/book/book->tree/node ()
+(def function make-projection/book/book->tree/node ()
   (make-projection 'book/book->tree/node))
 
-(def (function e) make-projection/book/chapter->tree/node ()
+(def function make-projection/book/chapter->tree/node ()
   (make-projection 'book/chapter->tree/node))
 
-(def (function e) make-projection/book/paragraph->tree/leaf ()
+(def function make-projection/book/paragraph->tree/leaf ()
   (make-projection 'book/paragraph->tree/leaf))
 
-(def (function e) make-projection/book/picture->tree/leaf ()
+(def function make-projection/book/picture->tree/leaf ()
   (make-projection 'book/picture->tree/leaf))
 
 ;;;;;;

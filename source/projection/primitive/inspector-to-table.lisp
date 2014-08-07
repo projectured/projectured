@@ -18,19 +18,19 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/inspector/object->table/table ()
+(def function make-projection/inspector/object->table/table ()
   (make-projection 'inspector/object->table/table))
 
-(def (function e) make-projection/inspector/object-slot->table/row ()
+(def function make-projection/inspector/object-slot->table/row ()
   (make-projection 'inspector/object-slot->table/row))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) inspector/object->table/table ()
+(def macro inspector/object->table/table ()
   '(make-projection/inspector/object->table/table))
 
-(def (macro e) inspector/object-slot->table/row ()
+(def macro inspector/object-slot->table/row ()
   '(make-projection/inspector/object-slot->table/row))
 
 ;;;;;;

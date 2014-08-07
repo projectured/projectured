@@ -27,37 +27,37 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/t/null->text/text ()
+(def function make-projection/t/null->text/text ()
   (make-projection 't/null->text/text))
 
-(def (function e) make-projection/t/number->text/text ()
+(def function make-projection/t/number->text/text ()
   (make-projection 't/number->text/text))
 
-(def (function e) make-projection/t/string->text/text ()
+(def function make-projection/t/string->text/text ()
   (make-projection 't/string->text/text))
 
-(def (function e) make-projection/t/symbol->text/text ()
+(def function make-projection/t/symbol->text/text ()
   (make-projection 't/symbol->text/text))
 
-(def (function e) make-projection/t/pathname->text/text ()
+(def function make-projection/t/pathname->text/text ()
   (make-projection 't/pathname->text/text))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) t/null->text/text ()
+(def macro t/null->text/text ()
   '(make-projection/t/null->text/text))
 
-(def (macro e) t/number->text/text ()
+(def macro t/number->text/text ()
   '(make-projection/t/number->text/text))
 
-(def (macro e) t/string->text/text ()
+(def macro t/string->text/text ()
   '(make-projection/t/string->text/text))
 
-(def (macro e) t/symbol->text/text ()
+(def macro t/symbol->text/text ()
   '(make-projection/t/symbol->text/text))
 
-(def (macro e) t/pathname->text/text ()
+(def macro t/pathname->text/text ()
   '(make-projection/t/pathname->text/text))
 
 ;;;;;;

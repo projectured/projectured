@@ -15,13 +15,13 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/predicate-dispatching (predicate-projection-pairs)
+(def function make-projection/predicate-dispatching (predicate-projection-pairs)
   (make-projection 'predicate-dispatching :predicate-projection-pairs predicate-projection-pairs))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) predicate-dispatching (&body predicate-projection-pairs)
+(def macro predicate-dispatching (&body predicate-projection-pairs)
   `(make-projection/predicate-dispatching (list ,@(iter (for (predicate projection) :in predicate-projection-pairs)
                                                         (collect `(list ',predicate ,projection))))))
 ;;;;;;

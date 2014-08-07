@@ -26,23 +26,23 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-graph/graph (vertices edges)
+(def function make-graph/graph (vertices edges)
   (make-instance 'graph/graph :vertices vertices :edges edges))
 
-(def (function e) make-graph/vertex (content)
+(def function make-graph/vertex (content)
   (make-instance 'graph/vertex :content content))
 
-(def (function e) make-graph/edge (source target)
+(def function make-graph/edge (source target)
   (make-instance 'graph/edge :source source :target target))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) graph (() vertices edges)
+(def macro graph (() vertices edges)
   `(make-graph/graph (list ,@vertices) (list ,@edges)))
 
-(def (macro e) vertex (() content)
+(def macro vertex (() content)
   `(make-graph/vertex ,content))
 
-(def (macro e) edge (() source target)
+(def macro edge (() source target)
   `(make-graph/edge ,source ,target))

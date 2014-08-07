@@ -15,13 +15,13 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/inliner ()
+(def function make-projection/inliner ()
   (make-projection 'inliner))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) inliner ()
+(def macro inliner ()
   '(make-projection/inliner))
 
 ;;;;;;

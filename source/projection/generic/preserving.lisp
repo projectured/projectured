@@ -21,13 +21,13 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/preserving ()
+(def function make-projection/preserving ()
   (make-projection 'preserving))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) preserving ()
+(def macro preserving ()
   '(make-projection/preserving))
 
 ;;;;;;

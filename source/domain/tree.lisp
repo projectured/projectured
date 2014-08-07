@@ -25,7 +25,7 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-tree/leaf (content &key projection opening-delimiter closing-delimiter indentation selection)
+(def function make-tree/leaf (content &key projection opening-delimiter closing-delimiter indentation selection)
   (make-instance 'tree/leaf
                  :projection projection
                  :content content
@@ -34,7 +34,7 @@
                  :indentation indentation
                  :selection selection))
 
-(def (function e) make-tree/node (children &key opening-delimiter closing-delimiter separator indentation (expanded #t) projection selection)
+(def function make-tree/node (children &key opening-delimiter closing-delimiter separator indentation (expanded #t) projection selection)
   (make-instance 'tree/node
                  :children children
                  :opening-delimiter opening-delimiter
@@ -48,7 +48,7 @@
 ;;;;;;
 ;;; Construction
 
-(def (macro e) tree/leaf ((&key projection opening-delimiter closing-delimiter indentation selection) &body content)
+(def macro tree/leaf ((&key projection opening-delimiter closing-delimiter indentation selection) &body content)
   `(make-tree/leaf ,(first content)
                    :projection ,projection
                    :opening-delimiter ,opening-delimiter
@@ -56,7 +56,7 @@
                    :indentation ,indentation
                    :selection ,selection))
 
-(def (macro e) tree/node ((&key opening-delimiter closing-delimiter separator indentation selection) &body children)
+(def macro tree/node ((&key opening-delimiter closing-delimiter separator indentation selection) &body children)
   `(make-tree/node (list ,@children)
                    :opening-delimiter ,opening-delimiter
                    :closing-delimiter ,closing-delimiter
@@ -77,7 +77,7 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-operation/tree/toggle-expanded (document target)
+(def function make-operation/tree/toggle-expanded (document target)
   (make-instance 'operation/tree/toggle-expanded :document document :target target))
 
 ;;;;;;

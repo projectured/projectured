@@ -15,13 +15,13 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/command->text ()
+(def function make-projection/command->text ()
   (make-projection 'command->text))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) command->text ()
+(def macro command->text ()
   '(make-projection/command->text))
 
 ;;;;;;

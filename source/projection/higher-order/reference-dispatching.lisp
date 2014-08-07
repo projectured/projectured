@@ -16,7 +16,7 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/reference-dispatching (default-projection reference-projection-pairs)
+(def function make-projection/reference-dispatching (default-projection reference-projection-pairs)
   (make-projection 'reference-dispatching
                    :default-projection default-projection
                    :reference-projection-pairs reference-projection-pairs))
@@ -24,7 +24,7 @@
 ;;;;;;
 ;;; Construction
 
-(def (macro e) reference-dispatching (default-projection &body reference-projection-pairs)
+(def macro reference-dispatching (default-projection &body reference-projection-pairs)
   `(make-projection/reference-dispatching
     ,default-projection
     (list ,@(iter (for (reference projection) :in reference-projection-pairs)

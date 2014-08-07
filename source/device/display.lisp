@@ -11,7 +11,7 @@
 ;;;
 ;;; A display is an output hardware device.
 
-(def (generic e) display? (object)
+(def generic display? (object)
   (:documentation "Returns TRUE if OBJECT is a display device, otherwise returns FALSE."))
 
 ;;;;;;

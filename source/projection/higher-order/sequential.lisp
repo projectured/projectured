@@ -15,7 +15,7 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-iomap/sequential (projection recursion input input-reference output element-iomaps)
+(def function make-iomap/sequential (projection recursion input input-reference output element-iomaps)
   (make-iomap 'iomap/sequential
               :projection projection :recursion recursion
               :input input :output output
@@ -31,13 +31,13 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/sequential (projections)
+(def function make-projection/sequential (projections)
   (make-projection 'sequential :elements projections))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) sequential (&body forms)
+(def macro sequential (&body forms)
   `(make-projection/sequential (list ,@forms)))
 
 ;;;;;;

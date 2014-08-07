@@ -11,7 +11,7 @@
 ;;;
 ;;; An operation represents a change in domain data, selections or any other editor state.
 
-(def (generic e) run-operation (operation)
+(def generic run-operation (operation)
   (:documentation "Redoes all side effects of OPERATION. Has side effects."))
 
 (def (definer :available-flags "e") operation (name supers slots &rest options)
@@ -82,40 +82,40 @@
 ;;;;;;
 ;;; Operation constructors
 
-(def (function e) make-operation/compound (elements)
+(def function make-operation/compound (elements)
   (make-instance 'operation/compound :elements elements))
 
-(def (function e) make-operation/functional (thunk)
+(def function make-operation/functional (thunk)
   (make-instance 'operation/functional :thunk thunk))
 
-(def (function e) make-operation/quit ()
+(def function make-operation/quit ()
   (make-instance 'operation/quit))
 
-(def (function e) make-operation/undo ()
+(def function make-operation/undo ()
   (make-instance 'operation/undo))
 
-(def (function e) make-operation/replace-content (document content)
+(def function make-operation/replace-content (document content)
   (make-instance 'operation/replace-content :document document :content content))
 
-(def (function e) make-operation/replace-selection (document selection)
+(def function make-operation/replace-selection (document selection)
   (make-instance 'operation/replace-selection :document document :selection selection))
 
-(def (function e) make-operation/replace-target (document target replacement)
+(def function make-operation/replace-target (document target replacement)
   (make-instance 'operation/replace-target :document document :target target :replacement replacement))
 
-(def (function e) make-operation/save-document (document filename)
+(def function make-operation/save-document (document filename)
   (make-instance 'operation/save-document :document document :filename filename))
 
-(def (function e) make-operation/load-document (document filename)
+(def function make-operation/load-document (document filename)
   (make-instance 'operation/load-document :document document :filename filename))
 
-(def (function e) make-operation/export-document (document filename)
+(def function make-operation/export-document (document filename)
   (make-instance 'operation/export-document :document document :filename filename))
 
-(def (function e) make-operation/import-document (document filename)
+(def function make-operation/import-document (document filename)
   (make-instance 'operation/import-document :document document :filename filename))
 
-(def (function e) make-operation/select-next-alternative (alternatives)
+(def function make-operation/select-next-alternative (alternatives)
   (make-instance 'operation/select-next-alternative :alternatives alternatives))
 
 ;; TODO: rename?
@@ -177,7 +177,7 @@
 (def method run-operation ((operation operation/replace-target))
   (setf (eval-reference (document-of operation) (reference/flatten (reverse (target-of operation)))) (replacement-of operation)))
 
-(def (function e) deserialize-document (filename)
+(def function deserialize-document (filename)
   (bind ((extension (pathname-type filename)))
     (eswitch (extension :test 'string=)
       ("pred"
@@ -195,7 +195,7 @@
       ("txt"
        (make-text/text (list (make-text/string (read-file-into-string filename) :font *font/default* :font-color *color/default*)))))))
 
-(def (function e) serialize-document (filename document)
+(def function serialize-document (filename document)
   (bind ((extension (pathname-type filename)))
     (eswitch (extension :test 'string=)
       ("pred"

@@ -15,13 +15,13 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/type-dispatching (type-projection-pairs)
+(def function make-projection/type-dispatching (type-projection-pairs)
   (make-projection 'type-dispatching :type-projection-pairs type-projection-pairs))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) type-dispatching (&body forms)
+(def macro type-dispatching (&body forms)
   `(make-projection/type-dispatching (list ,@(iter (for (type projection) :in forms)
                                                    (collect `(list ',type ,projection))))))
 

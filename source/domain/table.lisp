@@ -30,23 +30,23 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-table/table (rows)
+(def function make-table/table (rows)
   (make-instance 'table/table :rows rows))
 
-(def (function e) make-table/row (cells)
+(def function make-table/row (cells)
   (make-instance 'table/row :cells cells))
 
-(def (function e) make-table/cell (content)
+(def function make-table/cell (content)
   (make-instance 'table/cell :content content))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) table/table (() &body rows)
+(def macro table/table (() &body rows)
   `(make-table/table (list ,@rows)))
 
-(def (macro e) table/row (() &body cells)
+(def macro table/row (() &body cells)
   `(make-table/row (list ,@cells)))
 
-(def (macro e) table/cell (() &body content)
+(def macro table/cell (() &body content)
   `(make-table/cell ,(first content)))

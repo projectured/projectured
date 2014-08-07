@@ -20,13 +20,13 @@
 (def special-variable *use-computed-class* #t)
 
 (if *use-computed-class*
-    (def (computed-universe e) projectured ()
+    (def computed-universe projectured ()
       ()
       (:computed-state-factory-name as))
     (def macro as (&body forms)
       `(progn ,@forms)))
 
-(def (function e) va (computed-state)
+(def function va (computed-state)
   (if *use-computed-class*
       (computed-state-value computed-state)
       computed-state))
@@ -36,7 +36,7 @@
    (start :type integer)
    (end :type integer)))
 
-(def (function e) box (sequence start end)
+(def function box (sequence start end)
   (make-instance 'sequence-box :sequence sequence :start start :end end))
 
 (def function resource-pathname (name)
@@ -44,7 +44,7 @@
       (asdf/system:system-relative-pathname :projectured name)
       (pathname (string+ (directory-namestring sb-ext:*runtime-pathname*) name))))
 
-(def (function e) form-type (form)
+(def function form-type (form)
   (typecase form
     (null 'sequence)
     (cons 'sequence)
@@ -54,28 +54,28 @@
     (sequence/sequence 'sequence)
     (t (type-of form))))
 
-(def (function e) boolean-to-string (value)
+(def function boolean-to-string (value)
   (if value "true" "false"))
 
-(def (function e) object-class-name (object)
+(def function object-class-name (object)
   (form-type object)
   #+nil
   (class-name (class-of object)))
 
-(def (function e) object-class-symbol-name (object)
+(def function object-class-symbol-name (object)
   (symbol-name (object-class-name object)))
 
-(def (function e) find-slot-reader (class slot)
+(def function find-slot-reader (class slot)
   (bind ((direct-slot (some (lambda (super) (find-direct-slot super (slot-definition-name slot) :otherwise nil)) (class-precedence-list class))))
     (first (slot-definition-readers direct-slot))))
 
-(def (function e) tree-search (tree element)
+(def function tree-search (tree element)
   (or (equal tree element)
       (when (listp tree)
         (iter (for tree-element :in tree)
               (thereis (tree-search tree-element element))))))
 
-(def (function e) tree-replace (tree element replacement)
+(def function tree-replace (tree element replacement)
   (cond ((equal tree element)
          replacement)
         ((listp tree)
@@ -83,13 +83,13 @@
                (collect (tree-replace tree-element element replacement))))
         (t tree)))
 
-(def (function e) char=ignorecase (c1 c2)
+(def function char=ignorecase (c1 c2)
   (char= (char-downcase c1) (char-downcase c2)))
 
-(def (function e) search-ignorecase (sequence1 sequence2)
+(def function search-ignorecase (sequence1 sequence2)
   (search sequence1 sequence2 :test 'char=ignorecase))
 
-(def (function e) search-parts (root test &key (slot-provider (compose 'class-slots 'class-of)))
+(def function search-parts (root test &key (slot-provider (compose 'class-slots 'class-of)))
   (bind ((seen-set (make-hash-table))
          (result nil))
     (labels ((recurse (instance reference)
@@ -113,7 +113,7 @@
       (recurse root nil))
     (nreverse result)))
 
-(def (function e) longest-common-prefix (string-1 string-2)
+(def function longest-common-prefix (string-1 string-2)
   (iter (for index :from 0)
         (while (and (< index (length string-1))
                     (< index (length string-2))
@@ -126,13 +126,13 @@
    (selection :type positive-integer))
   (:metaclass funcallable-standard-class))
 
-(def (function e) make-alternative-function (alternatives &optional (selection 0))
+(def function make-alternative-function (alternatives &optional (selection 0))
   (bind ((instance (make-instance 'alternative-function :alternatives alternatives :selection selection)))
     (set-funcallable-instance-function instance (lambda (&rest args)
                                                   (apply (elt (alternatives-of instance) (selection-of instance)) args)))
     instance))
 
-(def (function e) deep-copy (instance)
+(def function deep-copy (instance)
   (labels ((recurse (instance)
              (etypecase instance
                ((or number string symbol pathname function sb-sys:system-area-pointer)

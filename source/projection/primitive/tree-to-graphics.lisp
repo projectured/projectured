@@ -15,13 +15,13 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/tree->graphics ()
+(def function make-projection/tree->graphics ()
   (make-projection 'tree->graphics))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) tree->graphics ()
+(def macro tree->graphics ()
   `(make-projection/tree->graphics))
 
 ;;;;;;

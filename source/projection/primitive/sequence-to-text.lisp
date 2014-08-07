@@ -18,7 +18,7 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/sequence->text (&key opening-delimiter closing-delimiter separator indentation)
+(def function make-projection/sequence->text (&key opening-delimiter closing-delimiter separator indentation)
   (make-projection 'sequence->text
                    :opening-delimiter opening-delimiter
                    :closing-delimiter closing-delimiter
@@ -28,7 +28,7 @@
 ;;;;;;
 ;;; Construction
 
-(def (macro e) sequence->text (&key opening-delimiter closing-delimiter separator indentation)
+(def macro sequence->text (&key opening-delimiter closing-delimiter separator indentation)
   `(make-projection/sequence->text :opening-delimiter ,opening-delimiter
                                    :closing-delimiter ,closing-delimiter
                                    :separator ,separator

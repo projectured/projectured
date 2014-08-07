@@ -39,61 +39,61 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/widget/label->graphics/canvas ()
+(def function make-projection/widget/label->graphics/canvas ()
   (make-projection 'widget/label->graphics/canvas))
 
-(def (function e) make-projection/widget/tooltip->graphics/canvas ()
+(def function make-projection/widget/tooltip->graphics/canvas ()
   (make-projection 'widget/tooltip->graphics/canvas))
 
-(def (function e) make-projection/widget/menu->graphics/canvas ()
+(def function make-projection/widget/menu->graphics/canvas ()
   (make-projection 'widget/menu->graphics/canvas))
 
-(def (function e) make-projection/widget/menu-item->graphics/canvas ()
+(def function make-projection/widget/menu-item->graphics/canvas ()
   (make-projection 'widget/menu-item->graphics/canvas))
 
-(def (function e) make-projection/widget/shell->graphics/canvas ()
+(def function make-projection/widget/shell->graphics/canvas ()
   (make-projection 'widget/shell->graphics/canvas))
 
-(def (function e) make-projection/widget/composite->graphics/canvas ()
+(def function make-projection/widget/composite->graphics/canvas ()
   (make-projection 'widget/composite->graphics/canvas))
 
-(def (function e) make-projection/widget/split-pane->graphics/canvas ()
+(def function make-projection/widget/split-pane->graphics/canvas ()
   (make-projection 'widget/split-pane->graphics/canvas))
 
-(def (function e) make-projection/widget/tabbed-pane->graphics/canvas ()
+(def function make-projection/widget/tabbed-pane->graphics/canvas ()
   (make-projection 'widget/tabbed-pane->graphics/canvas))
 
-(def (function e) make-projection/widget/scroll-pane->graphics/canvas ()
+(def function make-projection/widget/scroll-pane->graphics/canvas ()
   (make-projection 'widget/scroll-pane->graphics/canvas))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) widget/label->graphics/canvas ()
+(def macro widget/label->graphics/canvas ()
   '(make-projection/widget/label->graphics/canvas))
 
-(def (macro e) widget/tooltip->graphics/canvas ()
+(def macro widget/tooltip->graphics/canvas ()
   '(make-projection/widget/tooltip->graphics/canvas))
 
-(def (macro e) widget/menu->graphics/canvas ()
+(def macro widget/menu->graphics/canvas ()
   '(make-projection/widget/menu->graphics/canvas))
 
-(def (macro e) widget/menu-item->graphics/canvas ()
+(def macro widget/menu-item->graphics/canvas ()
   '(make-projection/widget/menu-item->graphics/canvas))
 
-(def (macro e) widget/shell->graphics/canvas ()
+(def macro widget/shell->graphics/canvas ()
   '(make-projection/widget/shell->graphics/canvas))
 
-(def (macro e) widget/composite->graphics/canvas ()
+(def macro widget/composite->graphics/canvas ()
   '(make-projection/widget/composite->graphics/canvas))
 
-(def (macro e) widget/split-pane->graphics/canvas ()
+(def macro widget/split-pane->graphics/canvas ()
   '(make-projection/widget/split-pane->graphics/canvas))
 
-(def (macro e) widget/tabbed-pane->graphics/canvas ()
+(def macro widget/tabbed-pane->graphics/canvas ()
   '(make-projection/widget/tabbed-pane->graphics/canvas))
 
-(def (macro e) widget/scroll-pane->graphics/canvas ()
+(def macro widget/scroll-pane->graphics/canvas ()
   '(make-projection/widget/scroll-pane->graphics/canvas))
 
 ;;;;;;

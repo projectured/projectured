@@ -9,19 +9,19 @@
 ;;;;;;
 ;;; Graphics
 
-(def (function e) make-projection/graphics->graphics ()
+(def function make-projection/graphics->graphics ()
   (type-dispatching
     (graphics/canvas (graphics/canvas->graphics/image))
     (graphics/viewport (graphics/viewport->graphics/image))
     (graphics/base (preserving))))
 
-(def (macro e) graphics->graphics ()
+(def macro graphics->graphics ()
   '(make-projection/graphics->graphics))
 
 ;;;;;;
 ;;; Widget
 
-(def (function e) make-projection/document->t (factory)
+(def function make-projection/document->t (factory)
   (type-dispatching
     (document/document (document/document->t))
     (document/nothing (document/nothing->tree/leaf))
@@ -29,13 +29,13 @@
     (document/search (document/search->tree/node nil))
     (document/clipboard (document/clipboard->t))))
 
-(def (macro e) document->t (factory)
+(def macro document->t (factory)
   `(make-projection/document->t ,factory))
 
 ;;;;;;
 ;;; Widget
 
-(def (function e) make-projection/widget->graphics ()
+(def function make-projection/widget->graphics ()
   (type-dispatching
     (widget/label (make-projection/widget/label->graphics/canvas))
     (widget/tooltip (make-projection/widget/tooltip->graphics/canvas))
@@ -47,100 +47,100 @@
     (widget/tabbed-pane (make-projection/widget/tabbed-pane->graphics/canvas))
     (widget/scroll-pane (make-projection/widget/scroll-pane->graphics/canvas))))
 
-(def (macro e) widget->graphics ()
+(def macro widget->graphics ()
   '(make-projection/widget->graphics))
 
 ;;;;;;
 ;;; Book
 
-(def (function e) make-projection/book->tree ()
+(def function make-projection/book->tree ()
   (type-dispatching
     (book/book (make-projection/book/book->tree/node))
     (book/chapter (make-projection/book/chapter->tree/node))
     (book/paragraph (make-projection/book/paragraph->tree/leaf))
     (book/picture (make-projection/book/picture->tree/leaf))))
 
-(def (macro e) book->tree ()
+(def macro book->tree ()
   '(make-projection/book->tree))
 
 ;;;;;;
 ;;; Tree
 
-(def (function e) make-projection/tree->text ()
+(def function make-projection/tree->text ()
   (type-dispatching
     (tree/leaf (tree/leaf->text/text))
     (tree/node (tree/node->text/text))))
 
-(def (macro e) tree->text ()
+(def macro tree->text ()
   `(make-projection/tree->text))
 
 ;;;;;;
 ;;; Graph
 
-(def (function e) make-projection/graph->tree ()
+(def function make-projection/graph->tree ()
   (type-dispatching
     ))
 
-(def (macro e) graph->tree ()
+(def macro graph->tree ()
   '(make-projection/graph->tree))
 
 ;;;;;;
 ;;; Statae machine
 
-(def (function e) make-projection/state-machine->tree ()
+(def function make-projection/state-machine->tree ()
   (type-dispatching
     (state-machine/state-machine (make-projection/state-machine/state-machine->tree/node))
     (state-machine/state (make-projection/state-machine/state->tree/node))
     (state-machine/transition (make-projection/state-machine/transition->tree/node))))
 
-(def (macro e) state-machine->tree ()
+(def macro state-machine->tree ()
   '(make-projection/state-machine->tree))
 
 ;;;;;;
 ;;; List
 
-(def (function e) make-projection/list->text ()
+(def function make-projection/list->text ()
   (make-projection/list/list->text))
 
-(def (macro e) list->text ()
+(def macro list->text ()
   '(make-projection/list->text))
 
 ;;;;;;
 ;;; Table
 
-(def (function e) make-projection/table->text ()
+(def function make-projection/table->text ()
   (make-projection/table/table->text))
 
-(def (macro e) table->text ()
+(def macro table->text ()
   '(make-projection/table->text))
 
 ;;;;;;
 ;;; Inspector
 
-(def (function e) make-projection/inspector->table ()
+(def function make-projection/inspector->table ()
   (type-dispatching
     (inspector/object (make-projection/inspector/object->table/table))
     (inspector/object-slot (make-projection/inspector/object-slot->table/row))))
 
-(def (macro e) inspector->table ()
+(def macro inspector->table ()
   '(make-projection/inspector->table))
 
 ;;;;;;
 ;;; XML
 
-(def (function e) make-projection/xml->tree ()
+(def function make-projection/xml->tree ()
   (type-dispatching
     (xml/text (make-projection/xml/text->tree/leaf))
     (xml/attribute (make-projection/xml/attribute->tree/node))
     (xml/element (make-projection/xml/element->tree/node))))
 
-(def (macro e) xml->tree ()
+(def macro xml->tree ()
   '(make-projection/xml->tree))
 
 ;;;;;;
 ;;; JSON
 
-(def (function e) make-projection/json->tree ()
+(def function make-projection/json->tree ()
   (type-dispatching
     (json/nothing (make-projection/json/nothing->tree/leaf))
     (json/null (make-projection/json/null->tree/leaf))
@@ -151,13 +151,13 @@
     (json/object-entry (make-projection/json/object-entry->tree/node))
     (json/object (make-projection/json/object->tree/node))))
 
-(def (macro e) json->tree ()
+(def macro json->tree ()
   '(make-projection/json->tree))
 
 ;;;;;;
 ;;; Javascript
 
-(def (function e) make-projection/javascript->tree ()
+(def function make-projection/javascript->tree ()
   (type-dispatching
     (javascript/statement/block (make-projection/javascript/statement/block->tree/node))
     (javascript/statement/top-level (make-projection/javascript/statement/top-level->tree/node))
@@ -169,24 +169,24 @@
     (javascript/definition/variable (make-projection/javascript/definition/variable->tree/node))
     (javascript/definition/function (make-projection/javascript/definition/function->tree/node))))
 
-(def (macro e) javascript->tree ()
+(def macro javascript->tree ()
   '(make-projection/javascript->tree))
 
 ;;;;;;
 ;;; CSS
 
-(def (function e) make-projection/css->tree ()
+(def function make-projection/css->tree ()
   (type-dispatching
     (css/attribute (make-projection/css/attribute->tree/leaf))
     (css/rule (make-projection/css/rule->tree/node))))
 
-(def (macro e) css->tree ()
+(def macro css->tree ()
   '(make-projection/css->tree))
 
 ;;;;;;
 ;;; T
 
-(def (function e) make-projection/t->tree (&key slot-provider)
+(def function make-projection/t->tree (&key slot-provider)
   (type-dispatching
     (null (make-projection/t/null->text/text))
     (number (make-projection/t/number->text/text))
@@ -196,10 +196,10 @@
     (sequence (make-projection/t/sequence->tree/node))
     ((or structure-object standard-object) (make-projection/t/object->tree/node :slot-provider slot-provider))))
 
-(def (macro e) t->tree (&key slot-provider)
+(def macro t->tree (&key slot-provider)
   `(make-projection/t->tree :slot-provider ,slot-provider))
 
-(def (function e) make-projection/t->table (&key slot-provider)
+(def function make-projection/t->table (&key slot-provider)
   (type-dispatching
     (null (make-projection/t/null->text/text))
     (number (make-projection/t/number->text/text))
@@ -211,24 +211,24 @@
     (function (make-projection/t/function->table/table))
     ((or structure-object standard-object) (make-projection/t/object->table/table :slot-provider slot-provider))))
 
-(def (macro e) t->table (&key slot-provider)
+(def macro t->table (&key slot-provider)
   `(make-projection/t->table :slot-provider ,slot-provider))
 
 ;;;;;;
 ;;; File system
 
-(def (function e) make-projection/file-system->tree ()
+(def function make-projection/file-system->tree ()
   (type-dispatching
     (file-system/file (make-projection/file-system/file->tree/leaf))
     (file-system/directory (make-projection/file-system/directory->tree/node))))
 
-(def (macro e) file-system->tree ()
+(def macro file-system->tree ()
   '(make-projection/file-system->tree))
 
 ;;;;;;
 ;;; Java
 
-(def (function e) make-projection/java->tree ()
+(def function make-projection/java->tree ()
   (type-dispatching
     (java/statement/block (make-projection/java/statement/block->tree/node))
     (java/statement/if (make-projection/java/statement/if->tree/node))
@@ -245,13 +245,13 @@
     (java/definition/qualifier (make-projection/java/definition/qualifier->string))
     (java/definition/type (make-projection/java/definition/type->string))))
 
-(def (macro e) java->tree ()
+(def macro java->tree ()
   '(make-projection/java->tree))
 
 ;;;;;;
 ;;; Lisp form
 
-(def (function e) make-projection/lisp-form->tree ()
+(def function make-projection/lisp-form->tree ()
   (type-dispatching
     (lisp-form/comment (make-projection/lisp-form/comment->tree/node))
     (lisp-form/number (make-projection/lisp-form/number->tree/leaf))
@@ -262,10 +262,10 @@
     (lisp-form/object (make-projection/lisp-form/object->tree/leaf))
     (lisp-form/top-level (make-projection/lisp-form/top-level->tree/node))))
 
-(def (macro e) lisp-form->tree ()
+(def macro lisp-form->tree ()
   '(make-projection/lisp-form->tree))
 
-(def (function e) make-projection/lisp-form->form ()
+(def function make-projection/lisp-form->form ()
   (type-dispatching
     (lisp-form/number (make-projection/lisp-form/number->number))
     (lisp-form/string (make-projection/lisp-form/string->string))
@@ -273,13 +273,13 @@
     (lisp-form/quote (make-projection/lisp-form/quote->list))
     (lisp-form/list (make-projection/lisp-form/list->list))))
 
-(def (macro e) lisp-form->form ()
+(def macro lisp-form->form ()
   '(make-projection/lisp-form->form))
 
 ;;;;;;
 ;;; Common lisp
 
-(def (function e) make-projection/common-lisp->lisp-form ()
+(def function make-projection/common-lisp->lisp-form ()
   (type-dispatching
     (common-lisp/constant (make-projection/common-lisp/constant->lisp-form/string))
     (common-lisp/variable-reference (make-projection/common-lisp/variable-reference->lisp-form/symbol))
@@ -297,16 +297,16 @@
     (common-lisp/comment (make-projection/common-lisp/comment->lisp-form/comment))
     (common-lisp/top-level (make-projection/common-lisp/top-level->lisp-form/top-level))))
 
-(def (macro e) common-lisp->lisp-form ()
+(def macro common-lisp->lisp-form ()
   '(make-projection/common-lisp->lisp-form))
 
 ;;;;;;
 ;;; Test
 
-(def (function e) make-projection/test->tree ()
+(def function make-projection/test->tree ()
   (type-dispatching
     (test/check (test/check->tree/node))
     (test/result (test/result->tree/leaf))))
 
-(def (macro e) test->tree ()
+(def macro test->tree ()
   '(make-projection/test->tree))

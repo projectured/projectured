@@ -15,13 +15,13 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/tree/node->list ()
+(def function make-projection/tree/node->list ()
   (make-projection 'tree/node->list))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) tree/node->list ()
+(def macro tree/node->list ()
   '(make-projection/tree/node->list))
 
 ;;;;;;

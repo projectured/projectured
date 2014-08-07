@@ -6,7 +6,7 @@
 
 (in-package :projectured)
 
-(def (function e) make-projection/t->text ()
+(def function make-projection/t->text ()
   (sequential
     (recursive
       (type-dispatching
@@ -27,7 +27,7 @@
         (tree/base (tree->text))
         (text/text (preserving))))))
 
-(def (function e) make-projection/t->string ()
+(def function make-projection/t->string ()
   (sequential
     (make-projection/t->text)
     (text->string)))

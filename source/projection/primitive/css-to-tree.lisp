@@ -18,10 +18,10 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/css/attribute->tree/leaf ()
+(def function make-projection/css/attribute->tree/leaf ()
   (make-projection 'css/attribute->tree/leaf))
 
-(def (function e) make-projection/css/rule->tree/node ()
+(def function make-projection/css/rule->tree/node ()
   (make-projection 'css/rule->tree/node))
 
 ;;;;;;

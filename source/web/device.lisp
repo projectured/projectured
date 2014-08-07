@@ -15,5 +15,5 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-device/display/web (width height)
+(def function make-device/display/web (width height)
   (make-instance 'device/display/web :width width :height height))

@@ -131,55 +131,55 @@
 ;;;;;;
 ;;; Java statement constructors
 
-(def (function e) make-java/statement/block (elements)
+(def function make-java/statement/block (elements)
   (make-instance 'java/statement/block :elements elements))
 
-(def (function e) make-java/statement/if (condition then &optional else)
+(def function make-java/statement/if (condition then &optional else)
   (make-instance 'java/statement/if :condition condition :then then :else else))
 
-(def (function e) make-java/statement/return (value)
+(def function make-java/statement/return (value)
   (make-instance 'java/statement/return :value value))
 
 ;;;;;;
 ;;; Java expression constructors
 
-(def (function e) make-java/expression/variable-reference (name)
+(def function make-java/expression/variable-reference (name)
   (make-instance 'java/expression/variable-reference :name name))
 
-(def (function e) make-java/expression/method-invocation (method arguments)
+(def function make-java/expression/method-invocation (method arguments)
   (make-instance 'java/expression/method-invocation :method method :arguments arguments))
 
-(def (function e) make-java/expression/infix-operator (operator arguments)
+(def function make-java/expression/infix-operator (operator arguments)
   (make-instance 'java/expression/infix-operator :operator operator :arguments arguments))
 
 ;;;;;;
 ;;; Java literal constructors
 
-(def (function e) make-java/literal/boolean (value)
+(def function make-java/literal/boolean (value)
   (make-instance 'java/literal/boolean :value value))
 
-(def (function e) make-java/literal/number (value)
+(def function make-java/literal/number (value)
   (make-instance 'java/literal/number :value value))
 
-(def (function e) make-java/literal/character (value)
+(def function make-java/literal/character (value)
   (make-instance 'java/literal/character :value value))
 
-(def (function e) make-java/literal/string (value)
+(def function make-java/literal/string (value)
   (make-instance 'java/literal/string :value value))
 
 ;;;;;;
 ;;; Java definition constructors
 
-(def (function e) make-java/definition/qualifier (name)
+(def function make-java/definition/qualifier (name)
   (make-instance 'java/definition/qualifier :name name))
 
-(def (function e) make-java/definition/argument (name type)
+(def function make-java/definition/argument (name type)
   (make-instance 'java/definition/argument :name name :type type))
 
-(def (function e) make-java/definition/type (name)
+(def function make-java/definition/type (name)
   (make-instance 'java/definition/type :name name))
 
-(def (function e) make-java/definition/method (qualifier return-type name arguments body)
+(def function make-java/definition/method (qualifier return-type name arguments body)
   (make-instance 'java/definition/method
                  :qualifier qualifier
                  :return-type return-type

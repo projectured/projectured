@@ -25,14 +25,14 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-inspector/object (instance &key (expanded #t))
+(def function make-inspector/object (instance &key (expanded #t))
   (make-instance 'inspector/object
                  :instance instance
                  :expanded expanded
                  :slot-values (iter (for slot :in (class-slots (class-of instance)))
                                     (collect (make-inspector/object-slot instance slot)))))
 
-(def (function e) make-inspector/object-slot (instance slot-or-name)
+(def function make-inspector/object-slot (instance slot-or-name)
   (bind ((slot (if (symbolp slot-or-name)
                    (find-slot (class-of instance) slot-or-name)
                    slot-or-name)))
@@ -45,8 +45,8 @@
 ;;;;;;
 ;;; Construction
 
-(def (macro e) inspector/object ((&key) &body instance)
+(def macro inspector/object ((&key) &body instance)
   `(make-inspector/object ,(first instance)))
 
-(def (macro e) inspector/object-slot ((&key) &body instance-slot-pair)
+(def macro inspector/object-slot ((&key) &body instance-slot-pair)
   `(make-inspector/object ,(first instance-slot-pair) ,(second instance-slot-pair)))

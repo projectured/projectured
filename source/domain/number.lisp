@@ -31,7 +31,7 @@
 ;;;;;;
 ;;; Number operation constructors
 
-(def (function e) make-operation/number/replace-range (document target replacement)
+(def function make-operation/number/replace-range (document target replacement)
   (make-instance 'operation/number/replace-range
                  :document document
                  :target target

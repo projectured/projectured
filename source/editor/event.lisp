@@ -11,7 +11,7 @@
 ;;;
 ;;; An event is a low level hardware signal provided by an input hardware device.
 
-(def (generic e) read-event (devices)
+(def generic read-event (devices)
   (:documentation "Reads a single event from the sequence of DEVICES at once. Does not return until is has successfully read an event. Has side effects on the state of devices."))
 
 ;;;;;;

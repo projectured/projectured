@@ -20,7 +20,7 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-iomap/text (projection recursion input input-reference input-offset output output-reference output-offset length)
+(def function make-iomap/text (projection recursion input input-reference input-offset output output-reference output-offset length)
   (make-iomap 'iomap/text
               :projection projection :recursion recursion
               ;; TODO: when?
@@ -56,13 +56,13 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-text/spacing (size &key font (unit :pixel))
+(def function make-text/spacing (size &key font (unit :pixel))
   (make-instance 'text/spacing
                  :size size
                  :font font
                  :unit unit))
 
-(def (function e) make-text/character (content &key font font-color fill-color line-color)
+(def function make-text/character (content &key font font-color fill-color line-color)
   (check-type content character)
   (make-instance 'text/character
                  :content content
@@ -71,7 +71,7 @@
                  :fill-color fill-color
                  :line-color line-color))
 
-(def (function e) make-text/string (content &key font font-color fill-color line-color)
+(def function make-text/string (content &key font font-color fill-color line-color)
   (check-type content string)
   (make-instance 'text/string
                  :content content
@@ -80,26 +80,26 @@
                  :fill-color fill-color
                  :line-color line-color))
 
-(def (function e) make-text/text (elements &key projection selection)
+(def function make-text/text (elements &key projection selection)
   (make-instance 'text/text :elements (if (typep elements 'hu.dwim.computed-class::computed-state) elements (coerce elements 'vector)) :projection projection :selection selection))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) text/spacing (size &key font unit)
+(def macro text/spacing (size &key font unit)
   `(make-text/spacing ,size :font ,(or font '*font/default*) :unit ,unit))
 
-(def (macro e) text/character (content &key font font-color fill-color line-color)
+(def macro text/character (content &key font font-color fill-color line-color)
   `(make-text/character ,content :font ,(or font '*font/default*) :font-color ,font-color :fill-color ,fill-color :line-color ,line-color))
 
-(def (macro e) text/string (content &key font font-color fill-color line-color)
+(def macro text/string (content &key font font-color fill-color line-color)
   `(make-text/string ,content :font ,(or font '*font/default*) :font-color ,(or font-color '*color/default*) :fill-color ,fill-color :line-color ,line-color))
 
-(def (macro e) text/newline (&key font font-color fill-color line-color)
+(def macro text/newline (&key font font-color fill-color line-color)
   `(make-text/string "
 " :font ,(or font '*font/default*) :font-color ,(or font-color '*color/default*) :fill-color ,fill-color :line-color ,line-color))
 
-(def (macro e) text/text ((&key projection selection) &body elements)
+(def macro text/text ((&key projection selection) &body elements)
   `(make-text/text (list ,@elements) :projection ,projection :selection ,selection))
 
 ;;;;;;
@@ -119,10 +119,10 @@
 ;;;;;;;
 ;;; Operation construction
 
-(def (function e) make-operation/text/replace-font (selection font)
+(def function make-operation/text/replace-font (selection font)
   (make-instance 'make-operation/text/replace-font :selection selection :font font))
 
-(def (function e) make-operation/text/replace-font-color (selection color)
+(def function make-operation/text/replace-font-color (selection color)
   (make-instance 'operation/text/replace-font-color :selection selection :color color))
 
 ;;;;;;;
@@ -137,22 +137,22 @@
 ;;;;;;
 ;;; API
 
-(def (function e) text/elt (text character-index)
+(def function text/elt (text character-index)
   (declare (ignore text character-index))
   (not-yet-implemented))
 
-(def (function e) text/pos (text character-index)
+(def function text/pos (text character-index)
   (declare (ignore text character-index))
   (not-yet-implemented))
 
-(def (function e) text/subbox (text start-character-index end-character-index)
+(def function text/subbox (text start-character-index end-character-index)
   (declare (ignore text start-character-index end-character-index))
   (not-yet-implemented))
 
-(def (function e) text/empty (text)
+(def function text/empty (text)
   (zerop (text/length text)))
 
-(def (function e) text/length (text)
+(def function text/length (text)
   (iter (for element :in-sequence (elements-of text))
         (summing
          (typecase element
@@ -160,7 +160,7 @@
             (length (content-of element)))
            (t 0)))))
 
-(def (function e) text/substring (text start-element-index start-character-index end-element-index end-character-index)
+(def function text/substring (text start-element-index start-character-index end-element-index end-character-index)
   (make-text/text
    (iter (with elements = (elements-of text))
          (with elements-length = (length elements))
@@ -190,16 +190,16 @@
            (t
             (collect element))))))
 
-(def (function e) text/substring* (text start-character-index &optional (end-character-index (text/length text)))
+(def function text/substring* (text start-character-index &optional (end-character-index (text/length text)))
   (text/substring text
                   (text/element-index text start-character-index) (text/character-index text start-character-index)
                   (text/element-index text end-character-index) (text/character-index text end-character-index)))
 
 ;; TODO: rename and/or merge with text/substring*
-(def (function e) text/subseq (text start-character-index &optional (end-character-index (text/length text)))
+(def function text/subseq (text start-character-index &optional (end-character-index (text/length text)))
   (text/substring* text start-character-index end-character-index ))
 
-(def (function e) text/find (text start-element-index start-character-index test)
+(def function text/find (text start-element-index start-character-index test)
   (iter (with elements = (elements-of text))
         (with element-index = start-element-index)
         (for element = (elt elements element-index))
@@ -222,7 +222,7 @@
                (return (values element-index 0))
                (next-iteration))))))
 
-(def (function e) text/count (text character)
+(def function text/count (text character)
   (iter (for element :in-sequence (elements-of text))
         (summing
          (typecase element
@@ -230,14 +230,14 @@
             (funcall 'count character (content-of element)))
            (t 0)))))
 
-(def (function e) text/as-string (text)
+(def function text/as-string (text)
   (with-output-to-string (stream)
     (iter (for element :in-sequence (elements-of text))
           (typecase element
             (text/string
              (write-string (content-of element) stream))))))
 
-(def (function e) text/split (text split-character)
+(def function text/split (text split-character)
   (iter (with elements = (elements-of text))
         (with start-element-index = 0)
         (with start-character-index = 0)
@@ -247,7 +247,7 @@
         (setf (values start-element-index start-character-index) (text/next-index text end-element-index end-character-index))
         (while (< start-element-index (length elements)))))
 
-(def (function e) text/map-split (text split-character function)
+(def function text/map-split (text split-character function)
   (bind ((elements (elements-of text)))
     (unless (zerop (length elements))
       (iter (with start-element-index = 0)
@@ -258,7 +258,7 @@
             (setf (values start-element-index start-character-index) (text/next-index text end-element-index end-character-index))
             (while (< start-element-index (length elements)))))))
 
-(def (function e) text/next-index (text element-index character-index)
+(def function text/next-index (text element-index character-index)
   (bind ((element (elt (elements-of text) element-index)))
     (typecase element
       (text/string
@@ -267,14 +267,14 @@
            (values (1+ element-index) 0)))
       (t (values (1+ element-index) 0)))))
 
-(def (function e) text/concatenate (&rest texts)
+(def function text/concatenate (&rest texts)
   (make-text/text (apply #'concatenate 'vector (mapcar #'elements-of texts))))
 
-(def (function e) text/push (text other)
+(def function text/push (text other)
   (setf (elements-of text) (concatenate 'vector (elements-of text) (elements-of other)))
   text)
 
-(def (function e) text/consolidate (text)
+(def function text/consolidate (text)
   (make-text/text (iter (with last-string-element = nil)
                         (for element :in-sequence (elements-of text))
                         (if (and last-string-element
@@ -293,7 +293,7 @@
                   :projection (projection-of text)
                   :selection (selection-of text)))
 
-(def (function e) text/element-index (text index)
+(def function text/element-index (text index)
   (iter (for element-index :from 0)
         (for element :in-sequence (elements-of text))
         (typecase element
@@ -301,7 +301,7 @@
         (when (<= index 0)
           (return element-index))))
 
-(def (function e) text/character-index (text index)
+(def function text/character-index (text index)
   (iter (for element :in-sequence (elements-of text))
         (typecase element
           (text/string
@@ -310,7 +310,7 @@
                (return index)
                (decf index length))))))
 
-(def (function e) text/index (text element-index character-index)
+(def function text/index (text element-index character-index)
   (+ (iter (for index :from 0 :below element-index)
            (for element :in-sequence (elements-of text))
            (summing
@@ -333,7 +333,7 @@
      (text/string " " :font *font/default* :font-color *color/black*)
      (text/string (or (description-of command) "No description") :font *font/default* :font-color *color/black*))))
 
-(def (function e) text/read-operation/replace-selection (text key &optional modifier)
+(def function text/read-operation/replace-selection (text key &optional modifier)
   (pattern-case (selection-of text)
     (((the text/text (text/subseq (the text/text document) ?character-index ?character-index)) . ?rest)
      (bind ((string (text/as-string text))
@@ -433,7 +433,7 @@
             (selection (when character-index `((the text/text (text/subseq (the text/text document) ,character-index ,character-index))))))
        (when selection (make-operation/replace-selection text selection))))))
 
-(def (function e) text/read-operation (text gesture)
+(def function text/read-operation (text gesture)
   (or (gesture-case gesture
         ((gesture/keyboard/key-press :sdl-key-left)
          :domain "Text" :description "Moves the selection one character to the left"

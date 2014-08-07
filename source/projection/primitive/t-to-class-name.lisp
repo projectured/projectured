@@ -15,13 +15,13 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/t->class-name ()
+(def function make-projection/t->class-name ()
   (make-projection 't->class-name))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) t->class-name ()
+(def macro t->class-name ()
   '(make-projection/t->class-name))
 
 ;;;;;;

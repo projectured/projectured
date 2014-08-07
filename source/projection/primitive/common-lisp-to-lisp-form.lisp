@@ -57,97 +57,97 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/common-lisp/constant->lisp-form/string ()
+(def function make-projection/common-lisp/constant->lisp-form/string ()
   (make-projection 'common-lisp/constant->lisp-form/string))
 
-(def (function e) make-projection/common-lisp/variable-reference->lisp-form/symbol ()
+(def function make-projection/common-lisp/variable-reference->lisp-form/symbol ()
   (make-projection 'common-lisp/variable-reference->lisp-form/symbol))
 
-(def (function e) make-projection/common-lisp/function-reference->lisp-form/symbol ()
+(def function make-projection/common-lisp/function-reference->lisp-form/symbol ()
   (make-projection 'common-lisp/function-reference->lisp-form/symbol))
 
-(def (function e) make-projection/common-lisp/if->lisp-form/list ()
+(def function make-projection/common-lisp/if->lisp-form/list ()
   (make-projection 'common-lisp/if->lisp-form/list))
 
-(def (function e) make-projection/common-lisp/the->lisp-form/list ()
+(def function make-projection/common-lisp/the->lisp-form/list ()
   (make-projection 'common-lisp/the->lisp-form/list))
 
-(def (function e) make-projection/common-lisp/progn->lisp-form/list ()
+(def function make-projection/common-lisp/progn->lisp-form/list ()
   (make-projection 'common-lisp/progn->lisp-form/list))
 
-(def (function e) make-projection/common-lisp/lexical-variable-binding->lisp-form/list ()
+(def function make-projection/common-lisp/lexical-variable-binding->lisp-form/list ()
   (make-projection 'common-lisp/lexical-variable-binding->lisp-form/list))
 
-(def (function e) make-projection/common-lisp/let->lisp-form/list ()
+(def function make-projection/common-lisp/let->lisp-form/list ()
   (make-projection 'common-lisp/let->lisp-form/list))
 
-(def (function e) make-projection/common-lisp/application->lisp-form/list ()
+(def function make-projection/common-lisp/application->lisp-form/list ()
   (make-projection 'common-lisp/application->lisp-form/list))
 
-(def (function e) make-projection/common-lisp/special-variable-definition->lisp-form/list ()
+(def function make-projection/common-lisp/special-variable-definition->lisp-form/list ()
   (make-projection 'common-lisp/special-variable-definition->lisp-form/list))
 
-(def (function e) make-projection/common-lisp/function-definition->lisp-form/list ()
+(def function make-projection/common-lisp/function-definition->lisp-form/list ()
   (make-projection 'common-lisp/function-definition->lisp-form/list))
 
-(def (function e) make-projection/common-lisp/lambda-function->lisp-form/list ()
+(def function make-projection/common-lisp/lambda-function->lisp-form/list ()
   (make-projection 'common-lisp/lambda-function->lisp-form/list))
 
-(def (function e) make-projection/common-lisp/function-argument->lisp-form/string ()
+(def function make-projection/common-lisp/function-argument->lisp-form/string ()
   (make-projection 'common-lisp/function-argument->lisp-form/string))
 
-(def (function e) make-projection/common-lisp/comment->lisp-form/comment ()
+(def function make-projection/common-lisp/comment->lisp-form/comment ()
   (make-projection 'common-lisp/comment->lisp-form/comment))
 
-(def (function e) make-projection/common-lisp/top-level->lisp-form/top-level ()
+(def function make-projection/common-lisp/top-level->lisp-form/top-level ()
   (make-projection 'common-lisp/top-level->lisp-form/top-level))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) common-lisp/constant->lisp-form/string ()
+(def macro common-lisp/constant->lisp-form/string ()
   '(make-projection/common-lisp/constant->lisp-form/string))
 
-(def (macro e) common-lisp/variable-reference->lisp-form/symbol ()
+(def macro common-lisp/variable-reference->lisp-form/symbol ()
   '(make-projection/common-lisp/variable-reference->lisp-form/symbol))
 
-(def (macro e) common-lisp/function-reference->lisp-form/symbol ()
+(def macro common-lisp/function-reference->lisp-form/symbol ()
   '(make-projection/common-lisp/function-reference->lisp-form/symbol))
 
-(def (macro e) common-lisp/if->lisp-form/list ()
+(def macro common-lisp/if->lisp-form/list ()
   '(make-projection/common-lisp/if->lisp-form/list))
 
-(def (macro e) common-lisp/the->lisp-form/list ()
+(def macro common-lisp/the->lisp-form/list ()
   '(make-projection/common-lisp/the->lisp-form/list))
 
-(def (macro e) common-lisp/progn->lisp-form/list ()
+(def macro common-lisp/progn->lisp-form/list ()
   '(make-projection/common-lisp/progn->lisp-form/list))
 
-(def (macro e) common-lisp/lexical-variable-binding->lisp-form/list ()
+(def macro common-lisp/lexical-variable-binding->lisp-form/list ()
   '(make-projection/common-lisp/lexical-variable-binding->lisp-form/list))
 
-(def (macro e) common-lisp/let->lisp-form/list ()
+(def macro common-lisp/let->lisp-form/list ()
   '(make-projection/common-lisp/let->lisp-form/list))
 
-(def (macro e) common-lisp/application->lisp-form/list ()
+(def macro common-lisp/application->lisp-form/list ()
   '(make-projection/common-lisp/application->lisp-form/list))
 
-(def (macro e) common-lisp/special-variable-definition->lisp-form/list ()
+(def macro common-lisp/special-variable-definition->lisp-form/list ()
   '(make-projection/common-lisp/special-variable-definition->lisp-form/list))
 
-(def (macro e) common-lisp/function-definition->lisp-form/list ()
+(def macro common-lisp/function-definition->lisp-form/list ()
   '(make-projection/common-lisp/function-definition->lisp-form/list))
 
-(def (macro e) common-lisp/lambda-function->lisp-form/list ()
+(def macro common-lisp/lambda-function->lisp-form/list ()
   '(make-projection/common-lisp/lambda-function->lisp-form/list))
 
-(def (macro e) common-lisp/function-argument->lisp-form/string ()
+(def macro common-lisp/function-argument->lisp-form/string ()
   '(make-projection/common-lisp/function-argument->lisp-form/string))
 
-(def (macro e) common-lisp/comment->lisp-form/comment ()
+(def macro common-lisp/comment->lisp-form/comment ()
   '(make-projection/common-lisp/comment->lisp-form/comment))
 
-(def (macro e) common-lisp/top-level->lisp-form/top-level ()
+(def macro common-lisp/top-level->lisp-form/top-level ()
   '(make-projection/common-lisp/top-level->lisp-form/top-level))
 
 ;;;;;;

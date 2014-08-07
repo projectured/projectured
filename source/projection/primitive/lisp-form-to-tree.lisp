@@ -37,55 +37,55 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/lisp-form/comment->tree/node ()
+(def function make-projection/lisp-form/comment->tree/node ()
   (make-projection 'lisp-form/comment->tree/node))
 
-(def (function e) make-projection/lisp-form/number->tree/leaf ()
+(def function make-projection/lisp-form/number->tree/leaf ()
   (make-projection 'lisp-form/number->tree/leaf))
 
-(def (function e) make-projection/lisp-form/symbol->tree/leaf ()
+(def function make-projection/lisp-form/symbol->tree/leaf ()
   (make-projection 'lisp-form/symbol->tree/leaf))
 
-(def (function e) make-projection/lisp-form/string->tree/leaf ()
+(def function make-projection/lisp-form/string->tree/leaf ()
   (make-projection 'lisp-form/string->tree/leaf))
 
-(def (function e) make-projection/lisp-form/quote->tree/node ()
+(def function make-projection/lisp-form/quote->tree/node ()
   (make-projection 'lisp-form/quote->tree/node))
 
-(def (function e) make-projection/lisp-form/list->tree/node ()
+(def function make-projection/lisp-form/list->tree/node ()
   (make-projection 'lisp-form/list->tree/node))
 
-(def (function e) make-projection/lisp-form/object->tree/leaf ()
+(def function make-projection/lisp-form/object->tree/leaf ()
   (make-projection 'lisp-form/object->tree/leaf))
 
-(def (function e) make-projection/lisp-form/top-level->tree/node ()
+(def function make-projection/lisp-form/top-level->tree/node ()
   (make-projection 'lisp-form/top-level->tree/node))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) lisp-form/comment->tree/node ()
+(def macro lisp-form/comment->tree/node ()
   '(make-projection/lisp-form/comment->tree/node))
 
-(def (macro e) lisp-form/number->tree/leaf ()
+(def macro lisp-form/number->tree/leaf ()
   '(make-projection/lisp-form/number->tree/leaf))
 
-(def (macro e) lisp-form/symbol->tree/leaf ()
+(def macro lisp-form/symbol->tree/leaf ()
   '(make-projection/lisp-form/symbol->tree/leaf))
 
-(def (macro e) lisp-form/string->tree/leaf ()
+(def macro lisp-form/string->tree/leaf ()
   '(make-projection/lisp-form/string->tree/leaf))
 
-(def (macro e) lisp-form/quote->tree/node ()
+(def macro lisp-form/quote->tree/node ()
   '(make-projection/lisp-form/quote->tree/node))
 
-(def (macro e) lisp-form/list->tree/node ()
+(def macro lisp-form/list->tree/node ()
   '(make-projection/lisp-form/list->tree/node))
 
-(def (macro e) lisp-form/object->tree/node ()
+(def macro lisp-form/object->tree/node ()
   '(make-projection/lisp-form/object->tree/leaf))
 
-(def (macro e) lisp-form/top-level->tree/node ()
+(def macro lisp-form/top-level->tree/node ()
   '(make-projection/lisp-form/top-level->tree/node))
 
 ;;;;;;

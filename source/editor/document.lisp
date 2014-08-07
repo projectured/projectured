@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; API
 
-(def (generic e) print-document (document stream)
+(def generic print-document (document stream)
   (:documentation "Prints the content of DOCUMENT to STREAM. Has side effects on STREAM."))
 
 (def (definer :available-flags "e") document (name supers slots &rest options)
@@ -61,37 +61,37 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-document/document (content &key filename selection)
+(def function make-document/document (content &key filename selection)
   (make-instance 'document/document :content content :filename filename :selection selection))
 
-(def (function e) make-document/nothing (&key selection)
+(def function make-document/nothing (&key selection)
   (make-instance 'document/nothing :selection selection))
 
-(def (function e) make-document/insertion (&key selection (value "") font)
+(def function make-document/insertion (&key selection (value "") font)
   (make-instance 'document/insertion :selection selection :value value :font font))
 
-(def (function e) make-document/search (content &key search selection)
+(def function make-document/search (content &key search selection)
   (make-instance 'document/search :content content :search (or search "") :selection selection))
 
-(def (function e) make-document/clipboard (content &key selection slice)
+(def function make-document/clipboard (content &key selection slice)
   (make-instance 'document/clipboard :content content :selection selection :slice slice))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) document/document ((&key filename selection) &body content)
+(def macro document/document ((&key filename selection) &body content)
   `(make-document/document ,(first content) :filename ,filename :selection ,selection))
 
-(def (macro e) document/nothing (&key selection)
+(def macro document/nothing (&key selection)
   `(make-document/nothing :selection ,selection))
 
-(def (macro e) document/insertion (&key selection (value "") font)
+(def macro document/insertion (&key selection (value "") font)
   `(make-document/insertion :selection ,selection :value ,value :font ,font))
 
-(def (macro e) document/search ((&key selection search) &body content)
+(def macro document/search ((&key selection search) &body content)
   `(make-document/search ,(first content) :search ,search :selection ,selection))
 
-(def (macro e) document/clipboard ((&key selection slice) &body content)
+(def macro document/clipboard ((&key selection slice) &body content)
   `(make-document/clipboard ,(first content) :selection ,selection :slice ,slice))
 
 ;;;;;;
@@ -100,7 +100,7 @@
 (def method print-document (document stream)
   (princ (output-of (apply-printer document (make-projection/t->string))) stream))
 
-(def (macro e) completion-prefix-switch (prefix &body cases)
+(def macro completion-prefix-switch (prefix &body cases)
   `(switch (,prefix :test 'string=)
      ,@cases
      (t (values nil

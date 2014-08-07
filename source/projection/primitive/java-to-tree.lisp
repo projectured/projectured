@@ -54,91 +54,91 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/java/statement/block->tree/node ()
+(def function make-projection/java/statement/block->tree/node ()
   (make-projection 'java/statement/block->tree/node))
 
-(def (function e) make-projection/java/statement/if->tree/node ()
+(def function make-projection/java/statement/if->tree/node ()
   (make-projection 'java/statement/if->tree/node))
 
-(def (function e) make-projection/java/statement/return->tree/node ()
+(def function make-projection/java/statement/return->tree/node ()
   (make-projection 'java/statement/return->tree/node))
 
-(def (function e) make-projection/java/expression/variable-reference->string ()
+(def function make-projection/java/expression/variable-reference->string ()
   (make-projection 'java/expression/variable-reference->string))
 
-(def (function e) make-projection/java/expression/method-invocation->tree/node  ()
+(def function make-projection/java/expression/method-invocation->tree/node  ()
   (make-projection 'java/expression/method-invocation->tree/node))
 
-(def (function e) make-projection/java/expression/infix-operator->tree/node ()
+(def function make-projection/java/expression/infix-operator->tree/node ()
   (make-projection 'java/expression/infix-operator->tree/node))
 
-(def (function e) make-projection/java/literal/null->string ()
+(def function make-projection/java/literal/null->string ()
   (make-projection 'java/literal/null->string))
 
-(def (function e) make-projection/java/literal/number->string ()
+(def function make-projection/java/literal/number->string ()
   (make-projection 'java/literal/number->string))
 
-(def (function e) make-projection/java/literal/character->string ()
+(def function make-projection/java/literal/character->string ()
   (make-projection 'java/literal/character->string))
 
-(def (function e) make-projection/java/literal/string->string  ()
+(def function make-projection/java/literal/string->string  ()
   (make-projection 'java/literal/string->string))
 
-(def (function e) make-projection/java/definition/method->tree/node ()
+(def function make-projection/java/definition/method->tree/node ()
   (make-projection 'java/definition/method->tree/node))
 
-(def (function e) make-projection/java/definition/argument->tree/node ()
+(def function make-projection/java/definition/argument->tree/node ()
   (make-projection 'java/definition/argument->tree/node))
 
-(def (function e) make-projection/java/definition/qualifier->string ()
+(def function make-projection/java/definition/qualifier->string ()
   (make-projection 'java/definition/qualifier->string))
 
-(def (function e) make-projection/java/definition/type->string ()
+(def function make-projection/java/definition/type->string ()
   (make-projection 'java/definition/type->string))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) java/statement/block->tree/node ()
+(def macro java/statement/block->tree/node ()
   '(make-projection/java/statement/block->tree/node))
 
-(def (macro e) java/statement/if->tree/node ()
+(def macro java/statement/if->tree/node ()
   '(make-projection/java/statement/if->tree/node))
 
-(def (macro e) java/statement/return->tree/node ()
+(def macro java/statement/return->tree/node ()
   '(make-projection/java/statement/return->tree/node))
 
-(def (macro e) java/expression/variable-reference->string ()
+(def macro java/expression/variable-reference->string ()
   '(make-projection/java/expression/variable-reference->string))
 
-(def (macro e) java/expression/method-invocation->tree/node  ()
+(def macro java/expression/method-invocation->tree/node  ()
   '(make-projection/java/expression/method-invocation->tree/node))
 
-(def (macro e) java/expression/infix-operator->tree/node ()
+(def macro java/expression/infix-operator->tree/node ()
   '(make-projection/java/expression/infix-operator->tree/node))
 
-(def (macro e) java/literal/null->string ()
+(def macro java/literal/null->string ()
   '(make-projection/java/literal/null->string))
 
-(def (macro e) java/literal/number->string ()
+(def macro java/literal/number->string ()
   '(make-projection/java/literal/number->string))
 
-(def (macro e) java/literal/character->string ()
+(def macro java/literal/character->string ()
   '(make-projection/java/literal/character->string))
 
-(def (macro e) java/literal/string->string  ()
+(def macro java/literal/string->string  ()
   '(make-projection/java/literal/string->string))
 
-(def (macro e) java/definition/method->tree/node ()
+(def macro java/definition/method->tree/node ()
   '(make-projection/java/definition/method->tree/node))
 
-(def (macro e) java/definition/argument->tree/node ()
+(def macro java/definition/argument->tree/node ()
   '(make-projection/java/definition/argument->tree/node))
 
-(def (macro e) java/definition/qualifier->string ()
+(def macro java/definition/qualifier->string ()
   '(make-projection/java/definition/qualifier->string))
 
-(def (macro e) java/definition/type->string ()
+(def macro java/definition/type->string ()
   '(make-projection/java/definition/type->string))
 
 ;;;;;;

@@ -15,13 +15,13 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/evaluator/evaluator->tree/node ()
+(def function make-projection/evaluator/evaluator->tree/node ()
   (make-projection 'evaluator/evaluator->tree/node))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) evaluator/evaluator->tree/node ()
+(def macro evaluator/evaluator->tree/node ()
   '(make-projection/evaluator/evaluator->tree/node))
 
 ;;;;;;

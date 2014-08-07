@@ -9,12 +9,12 @@
 ;;;;;;;
 ;;; Printer API
 
-(def (generic e) print-to-device (document device)
+(def generic print-to-device (document device)
   (:documentation "Prints DOCUMENT to a single DEVICE. Has side effects on DEVICE."))
 
-(def (namespace e) printer)
+(def namespace printer)
 
-(def (definer e) printer (name arguments &body forms)
+(def definer printer (name arguments &body forms)
   (bind ((function-name (format-symbol (symbol-package name) "PRINTER/~A" name)))
     `(progn
        (def function ,function-name ,arguments ,@forms)
@@ -25,17 +25,17 @@
         (projection-of input))
       projection))
 
-(def (function e) call-printer (projection recursion input input-reference #+nil reader-iomap)
+(def function call-printer (projection recursion input input-reference #+nil reader-iomap)
   (funcall (printer-of projection) projection recursion input input-reference #+nil reader-iomap))
 
-(def (function e) recurse-printer (recursion input input-reference #+nil reader-iomap)
+(def function recurse-printer (recursion input input-reference #+nil reader-iomap)
   (assert (not (eq 'the (first (first input-reference)))))
   (call-printer (printer-projection recursion input) recursion input input-reference #+nil reader-iomap))
 
-(def (function e) apply-printer (input projection #+nil reader-iomap &optional (recursion (make-projection/preserving)))
+(def function apply-printer (input projection #+nil reader-iomap &optional (recursion (make-projection/preserving)))
   (call-printer (printer-projection projection input) recursion input nil #+nil reader-iomap))
 
-(def (function e) printer-output (input projection #+nil reader-iomap &optional (recursion (make-projection/preserving)))
+(def function printer-output (input projection #+nil reader-iomap &optional (recursion (make-projection/preserving)))
   (output-of (call-printer (printer-projection projection input) recursion input nil #+nil reader-iomap)))
 
 ;;;;;;

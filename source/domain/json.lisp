@@ -45,55 +45,55 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-document/json/nothing (&key projection selection)
+(def function make-document/json/nothing (&key projection selection)
   (make-instance 'json/nothing :projection projection :selection selection))
 
-(def (function e) make-document/json/null (&key projection selection)
+(def function make-document/json/null (&key projection selection)
   (make-instance 'json/null :projection projection :selection selection))
 
-(def (function e) make-document/json/boolean (value &key projection selection)
+(def function make-document/json/boolean (value &key projection selection)
   (make-instance 'json/boolean :value value :projection projection :selection selection))
 
-(def (function e) make-document/json/number (value &key projection selection)
+(def function make-document/json/number (value &key projection selection)
   (make-instance 'json/number :value value :projection projection :selection selection))
 
-(def (function e) make-document/json/string (value &key projection selection)
+(def function make-document/json/string (value &key projection selection)
   (make-instance 'json/string :value value :projection projection :selection selection))
 
-(def (function e) make-document/json/array (elements &key projection selection)
+(def function make-document/json/array (elements &key projection selection)
   (make-instance 'json/array :elements (make-sequence/sequence elements :selection (butlast selection)) :projection projection :selection selection))
 
-(def (function e) make-document/json/object-entry (key value &key projection selection)
+(def function make-document/json/object-entry (key value &key projection selection)
   (make-instance 'json/object-entry :key key :value value :projection projection :selection selection))
 
-(def (function e) make-document/json/object (entries &key projection selection)
+(def function make-document/json/object (entries &key projection selection)
   (make-instance 'json/object :entries (coerce entries 'sequence/sequence) :projection projection :selection selection))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) json/nothing ((&key selection projection))
+(def macro json/nothing ((&key selection projection))
   `(make-document/json/nothing :projection ,projection :selection ,selection))
 
-(def (macro e) json/null ((&key selection projection))
+(def macro json/null ((&key selection projection))
   `(make-document/json/null :projection ,projection :selection ,selection))
 
-(def (macro e) json/boolean ((&key selection projection) &body value)
+(def macro json/boolean ((&key selection projection) &body value)
   `(make-document/json/boolean ,(first value) :projection ,projection :selection ,selection))
 
-(def (macro e) json/number ((&key selection projection) &body value)
+(def macro json/number ((&key selection projection) &body value)
   `(make-document/json/number ,(first value) :projection ,projection :selection ,selection))
 
-(def (macro e) json/string ((&key selection projection) &body value)
+(def macro json/string ((&key selection projection) &body value)
   `(make-document/json/string ,(first value) :projection ,projection :selection ,selection))
 
-(def (macro e) json/array ((&key selection projection) &body elements)
+(def macro json/array ((&key selection projection) &body elements)
   `(make-document/json/array (list ,@elements) :projection ,projection :selection ,selection))
 
-(def (macro e) json/object-entry ((&key selection projection) key value)
+(def macro json/object-entry ((&key selection projection) key value)
   `(make-document/json/object-entry ,key ,value :projection ,projection :selection ,selection))
 
-(def (macro e) json/object ((&key selection projection) &body key-value-pairs)
+(def macro json/object ((&key selection projection) &body key-value-pairs)
   `(make-document/json/object (list ,@(iter (for (key value) :in key-value-pairs)
                                             (collect `(make-document/json/object-entry ,key ,value))))
                                :projection ,projection :selection ,selection))

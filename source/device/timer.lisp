@@ -11,7 +11,7 @@
 ;;;
 ;;; A timer is an input hardware device.
 
-(def (generic e) timer? (object)
+(def generic timer? (object)
   (:documentation "Returns TRUE if OBJECT is a timer device, otherwise returns FALSE."))
 
 ;;;;;;

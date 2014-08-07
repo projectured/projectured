@@ -14,16 +14,16 @@
 ;;;;;;
 ;;; 2d coordinate
 
-(def (type e) 2d ()
+(def type 2d ()
   'complex)
 
-(def (function e) make-2d (x y)
+(def function make-2d (x y)
   (complex x y))
 
-(def (function e) 2d-x (coordinate)
+(def function 2d-x (coordinate)
   (realpart coordinate))
 
-(def (function e) 2d-y (coordinate)
+(def function 2d-y (coordinate)
   (imagpart coordinate))
 
 ;;;;;;
@@ -33,10 +33,10 @@
   ((location :type 2d)
    (size :type 2d)))
 
-(def (function e) make-rectangle (location size)
+(def function make-rectangle (location size)
   (make-instance 'rectangle :location location :size size))
 
-(def (function e) rectangle-contains-point? (rectangle point)
+(def function rectangle-contains-point? (rectangle point)
   (bind ((location (location-of rectangle))
          (location-x (2d-x location))
          (location-y (2d-y location))
@@ -46,7 +46,7 @@
     (and (<= location-x (2d-x point) (+ location-x size-x))
          (<= location-y (2d-y point) (+ location-y size-y)))))
 
-(def (function e) rectangle-union (rectangle-1 rectangle-2)
+(def function rectangle-union (rectangle-1 rectangle-2)
   (bind ((location-1 (location-of rectangle-1))
          (location-2 (location-of rectangle-2))
          (size-1 (size-of rectangle-1))
@@ -61,16 +61,16 @@
 ;;;;;;
 ;;; Graphics API
 
-(def (generic e) make-bounding-rectangle (instance)
+(def generic make-bounding-rectangle (instance)
   (:documentation "Returns a rectangle that contains all graphics of INSTANCE."))
 
-(def (generic e) translate-location (instance translation)
+(def generic translate-location (instance translation)
   (:documentation "Translates the graphics element INSTANCE with a 2d TRANSLATION."))
 
-(def (generic e) scale-size (instance scale)
+(def generic scale-size (instance scale)
   (:documentation "Scales the size of the graphics element INSTANCE with a 2d SCALE."))
 
-(def (generic e) make-reference (instance location reference)
+(def generic make-reference (instance location reference)
   (:documentation "Returns a reference describing the given LOCATION in the graphics element INSTANCE."))
 
 ;;;;;;
@@ -138,37 +138,37 @@
 ;;;;;;
 ;;; Graphics document constructors
 
-(def (function e) make-graphics/point (location &key stroke-color)
+(def function make-graphics/point (location &key stroke-color)
   (make-instance 'graphics/point :location location :stroke-color stroke-color))
 
-(def (function e) make-graphics/line (begin end &key stroke-color)
+(def function make-graphics/line (begin end &key stroke-color)
   (make-instance 'graphics/line :begin begin :end end :stroke-color stroke-color))
 
-(def (function e) make-graphics/rectangle (location size &key stroke-color fill-color)
+(def function make-graphics/rectangle (location size &key stroke-color fill-color)
   (make-instance 'graphics/rectangle :location location :size size :stroke-color stroke-color :fill-color fill-color))
 
-(def (function e) make-graphics/rounded-rectangle (location size radius &key stroke-color fill-color)
+(def function make-graphics/rounded-rectangle (location size radius &key stroke-color fill-color)
   (make-instance 'graphics/rounded-rectangle :location location :size size :radius radius :stroke-color stroke-color :fill-color fill-color))
 
-(def (function e) make-graphics/polygon (points &key stroke-color fill-color)
+(def function make-graphics/polygon (points &key stroke-color fill-color)
   (make-instance 'graphics/polygon :points points :stroke-color stroke-color :fill-color fill-color))
 
-(def (function e) make-graphics/circle (center radius &key stroke-color fill-color)
+(def function make-graphics/circle (center radius &key stroke-color fill-color)
   (make-instance 'graphics/circle :center center :radius radius :stroke-color stroke-color :fill-color fill-color))
 
-(def (function e) make-graphics/ellipse (center radius &key stroke-color fill-color)
+(def function make-graphics/ellipse (center radius &key stroke-color fill-color)
   (make-instance 'graphics/ellipse :center center :radius radius :stroke-color stroke-color :fill-color fill-color))
 
-(def (function e) make-graphics/text (location text &key font font-color fill-color)
+(def function make-graphics/text (location text &key font font-color fill-color)
   (make-instance 'graphics/text :location location :text text :font font :font-color font-color :fill-color fill-color))
 
-(def (function e) make-graphics/image (location image)
+(def function make-graphics/image (location image)
   (make-instance 'graphics/image :location location :image image))
 
-(def (function e) make-graphics/viewport (content location size)
+(def function make-graphics/viewport (content location size)
   (make-instance 'graphics/viewport :content content :location location :size size))
 
-(def (function e) make-graphics/canvas (elements location)
+(def function make-graphics/canvas (elements location)
   (make-instance 'graphics/canvas :elements elements :location location))
 
 ;;;;;;
@@ -363,19 +363,19 @@
 ;;;;;;
 ;;; Graphics operation constructors
 
-(def (function e) make-operation/graphics/translate-location (selection translation)
+(def function make-operation/graphics/translate-location (selection translation)
   (make-instance 'operation/graphics/translate-location :selection selection :translation translation))
 
-(def (function e) make-operation/graphics/scale-size (selection scale)
+(def function make-operation/graphics/scale-size (selection scale)
   (make-instance 'operation/graphics/scale-size :selection selection :scale scale))
 
-(def (function e) make-operation/graphics/rotate-clockwise (selection rotation)
+(def function make-operation/graphics/rotate-clockwise (selection rotation)
   (make-instance 'operation/graphics/rotate-clockwise :selection selection :rotation rotation))
 
 ;;;;;;
 ;;; Graphics operation API implementation
 
-(def (function e) graphics/read-operation (graphics gesture)
+(def function graphics/read-operation (graphics gesture)
   (gesture-case gesture
     ((make-instance 'gesture/mouse/button/click :button :button-left :modifiers nil)
      :domain "Graphics" :description "Moves the selection to where the mouse is pointing at"

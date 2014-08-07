@@ -21,13 +21,13 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/state-machine/state-machine->tree/node ()
+(def function make-projection/state-machine/state-machine->tree/node ()
   (make-projection 'state-machine/state-machine->tree/node))
 
-(def (function e) make-projection/state-machine/state->tree/node ()
+(def function make-projection/state-machine/state->tree/node ()
   (make-projection 'state-machine/state->tree/node))
 
-(def (function e) make-projection/state-machine/transition->tree/node ()
+(def function make-projection/state-machine/transition->tree/node ()
   (make-projection 'state-machine/transition->tree/node))
 
 ;;;;;;

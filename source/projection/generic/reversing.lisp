@@ -15,13 +15,13 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/reversing ()
+(def function make-projection/reversing ()
   (make-projection 'reversing))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) reversing ()
+(def macro reversing ()
   `(make-projection/reversing))
 
 ;;;;;;

@@ -11,10 +11,10 @@
 ;;;
 ;;; A mouse is an input hardware device.
 
-(def (generic e) mouse? (object)
+(def generic mouse? (object)
   (:documentation "Returns TRUE if OBJECT is a mouse device, otherwise returns FALSE."))
 
-(def (generic e) mouse-position ()
+(def generic mouse-position ()
   (:documentation "Returns the current mouse position."))
 
 ;;;;;;

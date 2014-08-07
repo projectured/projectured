@@ -15,13 +15,13 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/word-wrapping (wrap-width)
+(def function make-projection/word-wrapping (wrap-width)
   (make-projection 'word-wrapping :wrap-width wrap-width))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) word-wrapping (wrap-width)
+(def macro word-wrapping (wrap-width)
   `(make-projection/word-wrapping ,wrap-width))
 
 ;;;;;;

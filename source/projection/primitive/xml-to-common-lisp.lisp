@@ -21,25 +21,25 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/xml/text->common-lisp/application ()
+(def function make-projection/xml/text->common-lisp/application ()
   (make-projection 'xml/text->common-lisp/application))
 
-(def (function e) make-projection/xml/attribute->common-lisp/progn ()
+(def function make-projection/xml/attribute->common-lisp/progn ()
   (make-projection 'xml/attribute->common-lisp/progn))
 
-(def (function e) make-projection/xml/element->common-lisp/progn ()
+(def function make-projection/xml/element->common-lisp/progn ()
   (make-projection 'xml/element->common-lisp/progn))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) xml/text->common-lisp/application ()
+(def macro xml/text->common-lisp/application ()
   '(make-projection/xml/text->common-lisp/application))
 
-(def (macro e) xml/attribute->common-lisp/progn ()
+(def macro xml/attribute->common-lisp/progn ()
   '(make-projection/xml/attribute->common-lisp/progn))
 
-(def (macro e) xml/element->common-lisp/progn ()
+(def macro xml/element->common-lisp/progn ()
   '(make-projection/xml/element->common-lisp/progn))
 
 ;;;;;;

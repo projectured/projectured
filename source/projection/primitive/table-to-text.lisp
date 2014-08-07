@@ -58,13 +58,13 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/table/table->text ()
+(def function make-projection/table/table->text ()
   (make-projection 'table/table->text :output-border #t))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) table/table->text ()
+(def macro table/table->text ()
   '(make-projection/table/table->text))
 
 ;;;;;;

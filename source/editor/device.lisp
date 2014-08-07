@@ -11,13 +11,13 @@
 ;;;
 ;;; A device is a hardware element.
 
-(def (generic e) device? (object)
+(def generic device? (object)
   (:documentation "Returns TRUE if OBJECT is a device, otherwise returns FALSE. Purely functional."))
 
-(def (generic e) input-device? (device)
+(def generic input-device? (device)
   (:documentation "Returns TRUE if OBJECT is an input device, otherwise returns FALSE. Purely functional."))
 
-(def (generic e) output-device? (device)
+(def generic output-device? (device)
   (:documentation "Returns TRUE if OBJECT is an output device, otherwise returns FALSE. Purely functional."))
 
 ;;;;;;

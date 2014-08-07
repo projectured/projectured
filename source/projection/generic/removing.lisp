@@ -17,7 +17,7 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/removing (element predicate key)
+(def function make-projection/removing (element predicate key)
   (make-projection 'removing
                    :element element
                    :predicate predicate
@@ -26,7 +26,7 @@
 ;;;;;;
 ;;; Construction
 
-(def (macro e) removing (element predicate key)
+(def macro removing (element predicate key)
   `(make-projection/removing ,element ,predicate ,key))
 
 ;;;;;

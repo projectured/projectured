@@ -9,14 +9,14 @@
 ;;;;;;
 ;;; Reference API
 
-(def (function e) eval-reference (document reference)
+(def function eval-reference (document reference)
   "Returns the value of REFERENCE within DOCUMENT. Purely functional."
   (bind ((sb-ext::*evaluator-mode* :interpret))
     (eval `(bind ((document ',document))
              (declare (ignorable document))
              ,reference))))
 
-(def (function e) (setf eval-reference) (new-value document reference)
+(def function (setf eval-reference) (new-value document reference)
   "Sets the value of REFERENCE within DOCUMENT to NEW-VALUE. Has side effects on DOCUMENT."
   (bind ((sb-ext::*evaluator-mode* :interpret))
     (eval `(bind ((document ,document))

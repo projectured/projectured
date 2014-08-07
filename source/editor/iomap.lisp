@@ -32,10 +32,10 @@
    (output :type t))
   (:documentation "An IOMAP provides a bidirectional mapping between INPUT and OUTPUT."))
 
-(def (function e) make-iomap (type &rest args &key &allow-other-keys)
+(def function make-iomap (type &rest args &key &allow-other-keys)
   (apply #'make-instance type args))
 
-(def (function e) make-iomap/object (projection recursion input input-reference output)
+(def function make-iomap/object (projection recursion input input-reference output)
   (make-iomap 'iomap
               :projection projection :recursion recursion
               :input input :input-reference (when input-reference (typed-reference (form-type input) input-reference)) :output output))

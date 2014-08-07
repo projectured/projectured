@@ -15,13 +15,13 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/text/text->tree/leaf ()
+(def function make-projection/text/text->tree/leaf ()
   (make-projection 'text/text->tree/leaf))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) text/text->tree/leaf ()
+(def macro text/text->tree/leaf ()
   '(make-projection/text/text->tree/leaf))
 
 ;;;;;;

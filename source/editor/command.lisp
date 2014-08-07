@@ -19,13 +19,13 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-command (gesture operation &key domain icon description)
+(def function make-command (gesture operation &key domain icon description)
   (assert domain)
   (make-instance 'command
                  :gesture gesture :operation operation
                  :domain domain :icon icon :description description))
 
-(def (function e) make-command/nothing (gesture)
+(def function make-command/nothing (gesture)
   (make-command gesture nil :domain "Default" :description "Does nothing"))
 
 ;;;;;;

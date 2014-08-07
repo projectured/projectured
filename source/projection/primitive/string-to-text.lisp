@@ -18,19 +18,19 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/string->text (&key font-provider font-color-provider fill-color-provider line-color-provider)
+(def function make-projection/string->text (&key font-provider font-color-provider fill-color-provider line-color-provider)
   (make-projection 'string->text
                    :font-provider font-provider
                    :font-color-provider font-color-provider
                    :fill-color-provider fill-color-provider
                    :line-color-provider line-color-provider))
 
-(def (function e) make-color-provider (color)
+(def function make-color-provider (color)
   (lambda (iomap reference)
     (declare (ignore iomap reference))
     color))
 
-(def (function e) make-font-provider (font)
+(def function make-font-provider (font)
   (lambda (iomap reference)
     (declare (ignore iomap reference))
     font))
@@ -38,7 +38,7 @@
 ;;;;;;
 ;;; Construction
 
-(def (macro e) string->text (&key font-provider font-color-provider fill-color-provider line-color-provider)
+(def macro string->text (&key font-provider font-color-provider fill-color-provider line-color-provider)
   `(make-projection/string->text :font-provider ,font-provider
                                  :font-color-provider ,font-color-provider
                                  :fill-color-provider ,fill-color-provider

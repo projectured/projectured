@@ -20,13 +20,13 @@
 ;;;;;;
 ;;; Constuction
 
-(def (function e) make-iomap/recursive (projection recursion input input-reference output output-reference)
+(def function make-iomap/recursive (projection recursion input input-reference output output-reference)
   (make-iomap 'iomap/recursive
               :projection projection :recursion recursion
               :input input :input-reference (typed-reference (form-type input) input-reference)
               :output output :output-reference (typed-reference (form-type output) output-reference)))
 
-(def (function e) make-iomap/compound (projection recursion input input-reference output child-iomaps)
+(def function make-iomap/compound (projection recursion input input-reference output child-iomaps)
   (make-iomap 'iomap/compound :projection projection :recursion recursion
               :input input :input-reference (typed-reference (form-type input) input-reference)
               :output output :child-iomaps child-iomaps))
@@ -40,13 +40,13 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/recursive (projection)
+(def function make-projection/recursive (projection)
   (make-projection 'recursive :child projection))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) recursive (&body forms)
+(def macro recursive (&body forms)
   `(make-projection/recursive ,@forms))
 
 ;;;;;;

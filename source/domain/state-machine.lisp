@@ -32,23 +32,23 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-state-machine/state-machine (name states transitions)
+(def function make-state-machine/state-machine (name states transitions)
   (make-instance 'state-machine/state-machine :name name :states states :transitions transitions))
 
-(def (function e) make-state-machine/state (name)
+(def function make-state-machine/state (name)
   (make-instance 'state-machine/state :name name))
 
-(def (function e) make-state-machine/transition (name event source target)
+(def function make-state-machine/transition (name event source target)
   (make-instance 'state-machine/transition :name name :event event :source source :target target))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) state-machine (name states transitions)
+(def macro state-machine (name states transitions)
   `(make-state-machine/state-machine ,name (list ,@states) (list ,@transitions)))
 
-(def (macro e) state (name)
+(def macro state (name)
   `(make-state-machine/state ,name))
 
-(def (macro e) transition (name event source target)
+(def macro transition (name event source target)
   `(make-state-machine/transition ,name ,event ,source ,target))

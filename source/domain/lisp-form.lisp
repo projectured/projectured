@@ -48,32 +48,32 @@
 ;;;;;;
 ;;; Lisp form document constructors
 
-(def (function e) make-lisp-form/comment (content &key indentation selection)
+(def function make-lisp-form/comment (content &key indentation selection)
   (make-instance 'lisp-form/comment :content content :indentation indentation  :selection selection))
 
-(def (function e) make-lisp-form/number (value &key indentation selection)
+(def function make-lisp-form/number (value &key indentation selection)
   (make-instance 'lisp-form/number :value value :indentation indentation  :selection selection))
 
-(def (function e) make-lisp-form/string (value &key indentation selection)
+(def function make-lisp-form/string (value &key indentation selection)
   (make-instance 'lisp-form/string :value value :indentation indentation :selection selection))
 
-(def (function e) make-lisp-form/symbol (name package &key indentation font font-color selection)
+(def function make-lisp-form/symbol (name package &key indentation font font-color selection)
   (make-instance 'lisp-form/symbol :name name :package package :indentation indentation :font font :font-color font-color :selection selection))
 
-(def (function e) make-lisp-form/quote (value &key indentation font font-color selection)
+(def function make-lisp-form/quote (value &key indentation font font-color selection)
   (make-instance 'lisp-form/quote :value value :indentation indentation :selection selection))
 
-(def (function e) make-lisp-form/object (value &key indentation selection)
+(def function make-lisp-form/object (value &key indentation selection)
   (make-instance 'lisp-form/object :value value :indentation indentation :selection selection))
 
-(def (function e) make-lisp-form/list (elements &key indentation selection)
+(def function make-lisp-form/list (elements &key indentation selection)
   (make-instance 'lisp-form/list :elements elements :indentation indentation :selection selection))
 
-(def (function e) make-lisp-form/top-level (elements &key indentation selection)
+(def function make-lisp-form/top-level (elements &key indentation selection)
   (make-instance 'lisp-form/top-level :elements elements :indentation indentation :selection selection))
 
 ;;;;;;
 ;;; API
 
-(def (function e) make-lisp-form/symbol* (symbol &rest args)
+(def function make-lisp-form/symbol* (symbol &rest args)
   (apply 'make-lisp-form/symbol (symbol-name symbol) (package-name (symbol-package symbol)) args))

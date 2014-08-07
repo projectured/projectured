@@ -36,55 +36,55 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/json/nothing->tree/leaf ()
+(def function make-projection/json/nothing->tree/leaf ()
   (make-projection 'json/nothing->tree/leaf))
 
-(def (function e) make-projection/json/null->tree/leaf ()
+(def function make-projection/json/null->tree/leaf ()
   (make-projection 'json/null->tree/leaf))
 
-(def (function e) make-projection/json/boolean->tree/leaf ()
+(def function make-projection/json/boolean->tree/leaf ()
   (make-projection 'json/boolean->tree/leaf))
 
-(def (function e) make-projection/json/number->tree/leaf ()
+(def function make-projection/json/number->tree/leaf ()
   (make-projection 'json/number->tree/leaf))
 
-(def (function e) make-projection/json/string->tree/leaf ()
+(def function make-projection/json/string->tree/leaf ()
   (make-projection 'json/string->tree/leaf))
 
-(def (function e) make-projection/json/array->tree/node ()
+(def function make-projection/json/array->tree/node ()
   (make-projection 'json/array->tree/node))
 
-(def (function e) make-projection/json/object-entry->tree/node ()
+(def function make-projection/json/object-entry->tree/node ()
   (make-projection 'json/object-entry->tree/node))
 
-(def (function e) make-projection/json/object->tree/node ()
+(def function make-projection/json/object->tree/node ()
   (make-projection 'json/object->tree/node))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) json/nothing->tree/leaf ()
+(def macro json/nothing->tree/leaf ()
   '(make-projection/json/nothing->tree/leaf))
 
-(def (macro e) json/null->tree/leaf ()
+(def macro json/null->tree/leaf ()
   '(make-projection/json/null->tree/leaf))
 
-(def (macro e) json/boolean->tree/leaf ()
+(def macro json/boolean->tree/leaf ()
   '(make-projection/json/boolean->tree/leaf))
 
-(def (macro e) json/number->tree/leaf ()
+(def macro json/number->tree/leaf ()
   '(make-projection/json/number->tree/leaf))
 
-(def (macro e) json/string->tree/leaf ()
+(def macro json/string->tree/leaf ()
   `(make-projection/json/string->tree/leaf))
 
-(def (macro e) json/array->tree/node ()
+(def macro json/array->tree/node ()
   `(make-projection/json/array->tree/node))
 
-(def (macro e) json/object-entry->tree/node ()
+(def macro json/object-entry->tree/node ()
   '(make-projection/json/object-entry->tree/node))
 
-(def (macro e) json/object->tree/node ()
+(def macro json/object->tree/node ()
   '(make-projection/json/object->tree/node))
 
 ;;;;;;

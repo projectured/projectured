@@ -9,19 +9,19 @@
 ;;;;;;
 ;;; XML
 
-(def (function e) make-projection/xml->common-lisp ()
+(def function make-projection/xml->common-lisp ()
   (type-dispatching
     (xml/text (make-projection/xml/text->common-lisp/application))
     (xml/attribute (make-projection/xml/attribute->common-lisp/progn))
     (xml/element (make-projection/xml/element->common-lisp/progn))))
 
-(def (macro e) xml->common-lisp ()
+(def macro xml->common-lisp ()
   '(make-projection/xml->common-lisp))
 
 ;;;;;;
 ;;; JSON
 
-(def (function e) make-projection/json->common-lisp ()
+(def function make-projection/json->common-lisp ()
   (type-dispatching
     (json/null (make-projection/json/null->common-lisp/application))
     (json/boolean (make-projection/json/boolean->common-lisp/application))
@@ -31,13 +31,13 @@
     (json/object-entry (make-projection/json/object-entry->common-lisp/progn))
     (json/object (make-projection/json/object->common-lisp/progn))))
 
-(def (macro e) json->common-lisp ()
+(def macro json->common-lisp ()
   '(make-projection/json->common-lisp))
 
 ;;;;;;
 ;;; Javascript
 
-(def (function e) make-projection/javascript->common-lisp ()
+(def function make-projection/javascript->common-lisp ()
   (type-dispatching
     (javascript/statement/block (make-projection/javascript/statement/block->common-lisp/progn))
     (javascript/statement/top-level (make-projection/javascript/statement/top-level->common-lisp/progn))
@@ -49,23 +49,23 @@
     (javascript/definition/variable (make-projection/javascript/definition/variable->common-lisp/progn))
     (javascript/definition/function (make-projection/javascript/definition/function->common-lisp/progn))))
 
-(def (macro e) javascript->common-lisp ()
+(def macro javascript->common-lisp ()
   '(make-projection/javascript->common-lisp))
 
 ;;;;;;
 ;;; CSS
 
-(def (function e) make-projection/css->common-lisp ()
+(def function make-projection/css->common-lisp ()
   (type-dispatching
     (css/attribute (make-projection/css/attribute->common-lisp/application))
     (css/rule (make-projection/css/rule->common-lisp/progn))))
 
-(def (macro e) css->common-lisp ()
+(def macro css->common-lisp ()
   '(make-projection/css->common-lisp))
 ;;;;;;
 ;;; T
 
-(def (function e) make-projection/t->common-lisp ()
+(def function make-projection/t->common-lisp ()
   (type-dispatching
     ((or document/insertion tree/base table/base common-lisp/comment)
      (make-instance 'projection
@@ -80,15 +80,15 @@
     ((or lisp-form/base common-lisp/constant common-lisp/variable-reference common-lisp/function-reference) (preserving))
     ((or sequence common-lisp/base) (copying))))
 
-(def (function e) make-projection/common-lisp->form ()
+(def function make-projection/common-lisp->form ()
   (sequential
     (recursive (make-projection/common-lisp->lisp-form))
     (recursive (make-projection/lisp-form->form))))
 
-(def (function e) make-projection/t->form ()
+(def function make-projection/t->form ()
   (sequential
     (recursive (make-projection/t->common-lisp))
     (recursive (make-projection/common-lisp->form))))
 
-(def (macro e) t->common-lisp ()
+(def macro t->common-lisp ()
   '(make-projection/t->common-lisp))

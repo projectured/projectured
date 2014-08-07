@@ -15,13 +15,13 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/evaluator ()
+(def function make-projection/evaluator ()
   (make-projection 'evaluator))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) evaluator ()
+(def macro evaluator ()
   '(make-projection/evaluator))
 
 ;;;;;;

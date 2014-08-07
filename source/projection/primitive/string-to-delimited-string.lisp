@@ -16,7 +16,7 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/string->delimited-string (opening-delimiter closing-delimiter)
+(def function make-projection/string->delimited-string (opening-delimiter closing-delimiter)
   (make-projection 'string->delimited-string
                    :opening-delimiter opening-delimiter
                    :closing-delimiter closing-delimiter))
@@ -24,7 +24,7 @@
 ;;;;;;
 ;;; Construction
 
-(def (macro e) string->delimited-string (opening-delimiter closing-delimiter)
+(def macro string->delimited-string (opening-delimiter closing-delimiter)
   `(make-projection/string->delimited-string ,opening-delimiter ,closing-delimiter))
 
 ;;;;;;

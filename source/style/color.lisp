@@ -19,7 +19,7 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-style/color (alpha red green blue)
+(def function make-style/color (alpha red green blue)
   (make-instance 'style/color
                  :alpha alpha
                  :red red
@@ -1114,18 +1114,18 @@
 ;;;;;;
 ;;; API
 
-(def (function e) color= (color-1 color-2)
+(def function color= (color-1 color-2)
   (and (= (alpha-of color-1) (alpha-of color-2))
        (= (red-of color-1) (red-of color-2))
        (= (green-of color-1) (green-of color-2))
        (= (blue-of color-1) (blue-of color-2))))
 
-(def (function e) color=* (color-1 color-2)
+(def function color=* (color-1 color-2)
   (if (and color-1 color-2)
       (color= color-1 color-2)
       (eq color-1 color-2)))
 
-(def (function e) color/iterpolate (color-1 color-2 ratio)
+(def function color/iterpolate (color-1 color-2 ratio)
   (make-style/color (+ (* (- 1 ratio) (alpha-of color-1))
                        (* ratio (alpha-of color-2)))
                     (+ (* (- 1 ratio) (red-of color-1))
@@ -1135,18 +1135,18 @@
                     (+ (* (- 1 ratio) (blue-of color-1))
                        (* ratio (blue-of color-2)))))
 
-(def (function e) color/lighten (color ratio)
+(def function color/lighten (color ratio)
   (color/iterpolate color *color/white* ratio))
 
-(def (function e) color/darken (color ratio)
+(def function color/darken (color ratio)
   (color/iterpolate color *color/black* ratio))
 
-(def (function e) color/lighten/selection (color selection &optional (default-color color))
+(def function color/lighten/selection (color selection &optional (default-color color))
   (if selection
       (color/lighten color (/ (max 0 (min 6 (- (length selection) 4))) 6))
       default-color))
 
-(def (function e) color/darken/selection (color selection &optional (default-color color))
+(def function color/darken/selection (color selection &optional (default-color color))
   (if selection
       (color/darken color (- 1 (/ (max 0 (min 6 (- (length selection) 4))) 6)))
       default-color))

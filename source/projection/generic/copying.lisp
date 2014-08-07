@@ -15,13 +15,13 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/copying ()
+(def function make-projection/copying ()
   (make-projection 'copying))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) copying ()
+(def macro copying ()
   '(make-projection/copying))
 
 ;;;;;;

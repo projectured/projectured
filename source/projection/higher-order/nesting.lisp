@@ -16,13 +16,13 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/nesting (elements)
+(def function make-projection/nesting (elements)
   (make-projection 'nesting :elements elements :rest (when elements (make-projection/nesting (rest elements)))))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) nesting (&body forms)
+(def macro nesting (&body forms)
   `(make-projection/nesting (list ,@forms)))
 
 ;;;;;;

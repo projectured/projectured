@@ -17,7 +17,7 @@
        (def class* ,name ,supers ,slots ,@options)
        ,@(when (getf -options- :export) `((export ',name))))))
 
-(def (function e) make-projection (name &rest args)
+(def function make-projection (name &rest args)
   (apply #'make-instance name
          :reader (find-reader name)
          :printer (find-printer name)

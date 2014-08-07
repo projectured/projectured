@@ -21,25 +21,25 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/xml/text->tree/leaf ()
+(def function make-projection/xml/text->tree/leaf ()
   (make-projection 'xml/text->tree/leaf))
 
-(def (function e) make-projection/xml/attribute->tree/node ()
+(def function make-projection/xml/attribute->tree/node ()
   (make-projection 'xml/attribute->tree/node))
 
-(def (function e) make-projection/xml/element->tree/node ()
+(def function make-projection/xml/element->tree/node ()
   (make-projection 'xml/element->tree/node))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) xml/text->tree/leaf ()
+(def macro xml/text->tree/leaf ()
   '(make-projection/xml/text->tree/leaf))
 
-(def (macro e) xml/attribute->tree/node ()
+(def macro xml/attribute->tree/node ()
   '(make-projection/xml/attribute->tree/node))
 
-(def (macro e) xml/element->tree/node ()
+(def macro xml/element->tree/node ()
   '(make-projection/xml/element->tree/node))
 
 ;;;;;;

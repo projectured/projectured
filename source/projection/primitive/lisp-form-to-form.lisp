@@ -27,19 +27,19 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/lisp-form/number->number ()
+(def function make-projection/lisp-form/number->number ()
   (make-projection 'lisp-form/number->number))
 
-(def (function e) make-projection/lisp-form/string->string ()
+(def function make-projection/lisp-form/string->string ()
   (make-projection 'lisp-form/string->string))
 
-(def (function e) make-projection/lisp-form/symbol->symbol ()
+(def function make-projection/lisp-form/symbol->symbol ()
   (make-projection 'lisp-form/symbol->symbol))
 
-(def (function e) make-projection/lisp-form/quote->list ()
+(def function make-projection/lisp-form/quote->list ()
   (make-projection 'lisp-form/quote->list))
 
-(def (function e) make-projection/lisp-form/list->list ()
+(def function make-projection/lisp-form/list->list ()
   (make-projection 'lisp-form/list->list))
 
 ;;;;;;

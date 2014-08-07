@@ -30,7 +30,7 @@
 ;;;;;;
 ;;; Object operation constructors
 
-(def (function e) make-operation/object/replace-place-value (target replacement)
+(def function make-operation/object/replace-place-value (target replacement)
   (make-instance 'operation/object/replace-place-value :target target :replacement replacement))
 
 ;;;;;;

@@ -34,37 +34,37 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/document/document->t ()
+(def function make-projection/document/document->t ()
   (make-projection 'document/document->t))
 
-(def (function e) make-projection/document/nothing->tree/leaf ()
+(def function make-projection/document/nothing->tree/leaf ()
   (make-projection 'document/nothing->tree/leaf))
 
-(def (function e) make-projection/document/insertion->tree/leaf (factory)
+(def function make-projection/document/insertion->tree/leaf (factory)
   (make-projection 'document/insertion->tree/leaf :factory factory))
 
-(def (function e) make-projection/document/search->tree/node (searcher)
+(def function make-projection/document/search->tree/node (searcher)
   (make-projection 'document/search->tree/node :searcher searcher))
 
-(def (function e) make-projection/document/clipboard->t ()
+(def function make-projection/document/clipboard->t ()
   (make-projection 'document/clipboard->t))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) document/document->t ()
+(def macro document/document->t ()
   '(make-projection/document/document->t))
 
-(def (macro e) document/nothing->tree/leaf ()
+(def macro document/nothing->tree/leaf ()
   `(make-projection/document/nothing->tree/leaf))
 
-(def (macro e) document/insertion->tree/leaf (factory)
+(def macro document/insertion->tree/leaf (factory)
   `(make-projection/document/insertion->tree/leaf ,factory))
 
-(def (macro e) document/search->tree/node (searcher)
+(def macro document/search->tree/node (searcher)
   `(make-projection/document/search->tree/node ,searcher))
 
-(def (macro e) document/clipboard->t ()
+(def macro document/clipboard->t ()
   `(make-projection/document/clipboard->t))
 
 ;;;;;;

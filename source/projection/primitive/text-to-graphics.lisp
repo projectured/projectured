@@ -23,13 +23,13 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/text->graphics ()
+(def function make-projection/text->graphics ()
   (make-projection 'text->graphics))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) text->graphics ()
+(def macro text->graphics ()
   `(make-projection/text->graphics))
 
 ;;;;;;

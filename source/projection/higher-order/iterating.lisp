@@ -16,7 +16,7 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/iterating (projections &key (test 'eq))
+(def function make-projection/iterating (projections &key (test 'eq))
   (make-projection 'iterating
                    :elements projections
                    :test test))
@@ -24,7 +24,7 @@
 ;;;;;;
 ;;; Construction
 
-(def (macro e) iterating (&body forms)
+(def macro iterating (&body forms)
   `(make-projection/iterating (list ,@forms)))
 
 ;;;;;;

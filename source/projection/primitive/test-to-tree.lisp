@@ -18,19 +18,19 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-projection/test/check->tree/node ()
+(def function make-projection/test/check->tree/node ()
   (make-projection 'test/check->tree/node))
 
-(def (function e) make-projection/test/result->tree/leaf ()
+(def function make-projection/test/result->tree/leaf ()
   (make-projection 'test/result->tree/leaf))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) test/check->tree/node ()
+(def macro test/check->tree/node ()
   '(make-projection/test/check->tree/node))
 
-(def (macro e) test/result->tree/leaf ()
+(def macro test/result->tree/leaf ()
   '(make-projection/test/result->tree/leaf))
 
 ;;;;;;

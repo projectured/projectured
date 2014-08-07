@@ -21,17 +21,17 @@
 ;;;;;;
 ;;; Construction
 
-(def (function e) make-list/list (elements)
+(def function make-list/list (elements)
   (make-instance 'list/list :elements elements))
 
-(def (function e) make-list/element (content)
+(def function make-list/element (content)
   (make-instance 'list/element :content content))
 
 ;;;;;;
 ;;; Construction
 
-(def (macro e) list/list (() &body elements)
+(def macro list/list (() &body elements)
   `(make-list/list (list ,@elements)))
 
-(def (macro e) list/element (() &body content)
+(def macro list/element (() &body content)
   `(make-list/element ,(first content)))
