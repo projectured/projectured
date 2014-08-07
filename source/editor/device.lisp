@@ -7,21 +7,7 @@
 (in-package :projectured)
 
 ;;;;;;
-;;; Device API
-;;;
-;;; A device is a hardware element.
-
-(def generic device? (object)
-  (:documentation "Returns TRUE if OBJECT is a device, otherwise returns FALSE. Purely functional."))
-
-(def generic input-device? (device)
-  (:documentation "Returns TRUE if OBJECT is an input device, otherwise returns FALSE. Purely functional."))
-
-(def generic output-device? (device)
-  (:documentation "Returns TRUE if OBJECT is an output device, otherwise returns FALSE. Purely functional."))
-
-;;;;;;
-;;; Device classes
+;;; Class
 
 (def class* device ()
   ()
@@ -38,15 +24,3 @@
 (def class* device/input-output (device/input device/output)
   ()
   (:documentation "Base class for input-output devices."))
-
-;;;;;;
-;;; Device API implementation
-
-(def method device? (object)
-  (typep object 'device))
-
-(def method input-device? (object)
-  (typep object 'device/input))
-
-(def method output-device? (object)
-  (typep object 'device/output))

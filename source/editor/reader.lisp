@@ -44,6 +44,6 @@
 
 (def method read-from-device (object (device device/output))
   ;; NOTE: continue if DEVICE is also an input device, otherwise do nothing
-  (if (input-device? device)
+  (if (typep device 'device/input)
       (call-next-method)
       (values)))

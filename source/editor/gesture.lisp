@@ -14,9 +14,6 @@
 (def generic read-gesture (event-queue)
   (:documentation "Reads a single gesture from EVENT-QUEUE. Does not return until it has successfully read a gesture. Purely functional."))
 
-(def generic last-gesture (gesture-queue)
-  (:documentation "Returns the last gesture that has been read. Purely functional."))
-
 ;;;;;;
 ;;; Gesture classes
 
@@ -116,11 +113,6 @@
                           :location (location-of event0)
                           :modifiers (modifiers-of event0)))
           (t nil))))
-
-(def method last-gesture ((gesture-queue gesture-queue))
-  (bind ((gestures (gestures-of gesture-queue)))
-    (when (> (length gestures) 0)
-      (elt gestures 0))))
 
 (def function key-press? (gesture &key (key nil key?) (character nil character?) (modifier nil modifier?) (modifiers nil modifiers?))
   (and (typep gesture 'gesture/keyboard/key-press)

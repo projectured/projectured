@@ -7,25 +7,14 @@
 (in-package :projectured)
 
 ;;;;;;
-;;; Mouse API
-;;;
-;;; A mouse is an input hardware device.
-
-(def generic mouse? (object)
-  (:documentation "Returns TRUE if OBJECT is a mouse device, otherwise returns FALSE."))
+;;; API
 
 (def generic mouse-position ()
   (:documentation "Returns the current mouse position."))
 
 ;;;;;;
-;;; Mouse classes
+;;; Class
 
 (def class* device/mouse (device/input)
   ()
-  (:documentation "A mouse device."))
-
-;;;;;;
-;;; Mouse API implementation
-
-(def method mouse? (object)
-  (typep object 'device/mouse))
+  (:documentation "A mouse is an input device."))

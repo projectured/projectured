@@ -43,6 +43,6 @@
 
 (def method print-to-device (document (device device/input))
   ;; NOTE: continue if DEVICE is also an output device, otherwise do nothing
-  (if (output-device? device)
+  (if (typep device 'device/output)
       (call-next-method)
       (values)))

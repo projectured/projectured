@@ -7,22 +7,8 @@
 (in-package :projectured)
 
 ;;;;;;
-;;; Timer API
-;;;
-;;; A timer is an input hardware device.
-
-(def generic timer? (object)
-  (:documentation "Returns TRUE if OBJECT is a timer device, otherwise returns FALSE."))
-
-;;;;;;
-;;; Timer classes
+;;; Class
 
 (def class* device/timer (device/input)
   ()
-  (:documentation "A timer device."))
-
-;;;;;;
-;;; Timer API implementation
-
-(def method timer? (object)
-  (typep object 'device/timer))
+  (:documentation "A timer is an input device."))

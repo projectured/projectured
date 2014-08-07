@@ -9,9 +9,6 @@
 ;;;;;;
 ;;; API
 
-(def generic print-document (document stream)
-  (:documentation "Prints the content of DOCUMENT to STREAM. Has side effects on STREAM."))
-
 (def (definer :available-flags "e") document (name supers slots &rest options)
   (bind ((supers (if (or (eq name 'document) (member 'document supers))
                      supers
@@ -97,7 +94,7 @@
 ;;;;;;
 ;;; API implementation
 
-(def method print-document (document stream)
+(def function print-document (document stream)
   (princ (output-of (apply-printer document (make-projection/t->string))) stream))
 
 (def macro completion-prefix-switch (prefix &body cases)

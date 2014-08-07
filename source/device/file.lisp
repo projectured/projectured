@@ -7,22 +7,8 @@
 (in-package :projectured)
 
 ;;;;;;
-;;; File API
-;;;
-;;; A file is an output device.
-
-(def generic file? (object)
-  (:documentation "Returns TRUE if OBJECT is a file device, otherwise returns FALSE."))
-
-;;;;;;
-;;; File classes
+;;; Class
 
 (def class* device/file (device/output)
   ((filename :type pathname))
-  (:documentation "A file device."))
-
-;;;;;;
-;;; File API implementation
-
-(def method file? (object)
-  (typep object 'device/file))
+  (:documentation "A file is an output device."))

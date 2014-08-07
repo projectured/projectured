@@ -11,6 +11,10 @@
 ;;;
 ;;; An editor is a way of changing the state of a document.
 
+(def special-variable *profile-printer* #f)
+
+(def special-variable *measure-printer* #f)
+
 (def generic make-editor (&key width height)
   (:documentation "Returns a new editor object. Purely functional.")
   (:method (&key &allow-other-keys)
@@ -25,10 +29,6 @@
 
 (def generic run-read-evaluate-print-loop (editor document projection)
   (:documentation "Runs read-evaluate-print loop of EDITOR on DOCUMENT using PROJECTION. The loop first prints DOCUMENT to the output devices of EDITOR. Next it reads an operation from the input devices of EDITOR. Finally it evaluates the result of read operation and starts over. Has side effects continuously on the state of EDITOR and the content of DOCUMENT while running."))
-
-(def special-variable *profile-printer* #f)
-
-(def special-variable *measure-printer* #f)
 
 ;;;;;;
 ;;; Editor classes
@@ -59,7 +59,7 @@
 (def method read-from-devices ((editor editor) document projection)
   (bind ((event-queue (event-queue-of editor))
          (gesture-queue (gesture-queue-of editor)))
-    (iter (when-bind event (read-event (remove-if-not 'input-device? (devices-of editor)))
+    (iter (when-bind event (read-event (remove-if-not (of-type 'device/input) (devices-of editor)))
             (push event (events-of event-queue))
             (when-bind gesture (read-gesture event-queue)
               (push gesture (gestures-of gesture-queue))
@@ -74,5 +74,5 @@
                                 (printer-iomap-of editor)
                                 (setf (printer-iomap-of editor) (apply-printer document projection)))
                             (setf (printer-iomap-of editor) (apply-printer document projection)))))
-    (iter (for device :in-sequence (remove-if-not 'output-device? (devices-of editor)))
+    (iter (for device :in-sequence (remove-if-not (of-type 'device/output) (devices-of editor)))
           (print-to-device (output-of printer-iomap) device))))
