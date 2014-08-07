@@ -184,8 +184,7 @@
        (with-input-from-file (input filename :element-type '(unsigned-byte 8))
          (hu.dwim.serializer:deserialize input)))
       ("json"
-       ;; TODO:
-       (make-text/text (list (make-text/string (read-file-into-string filename) :font *font/default* :font-color *color/default*))))
+       (json/load-document (read-file-into-string filename)))
       ("xml"
        ;; TODO:
        (make-text/text (list (make-text/string (read-file-into-string filename) :font *font/default* :font-color *color/default*))))

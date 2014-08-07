@@ -301,15 +301,15 @@
                                                                                                                  (the string (value-of (the json/nothing document)))))))))
                       ((gesture/keyboard/key-press #\{ :shift) ;; TODO: modifier
                        :domain "JSON" :description "Replaces the selected element with an empty object"
-                       :operation (make-operation/replace-target printer-input nil (make-document/json/object (make-sequence/sequence (list (json/nothing (:selection '((the string (subseq (the string document) 0 0))
-                                                                                                                                                                        (the string (value-of (the json/nothing document)))))))
-                                                                                                                                      :selection '((the string (subseq (the string document) 0 0))
-                                                                                                                                                   (the string (value-of (the json/nothing document)))
-                                                                                                                                                   (the json/nothing (elt (the sequence document) 0))))
-                                                                                                              :selection '((the string (subseq (the string document) 0 0))
-                                                                                                                           (the string (value-of (the json/nothing document)))
-                                                                                                                           (the json/nothing (elt (the sequence document) 0))
-                                                                                                                           (the sequence (entries-of (the json/object document)))))))
+                       :operation (make-operation/replace-target printer-input nil (make-json/object (make-sequence/sequence (list (json/nothing (:selection '((the string (subseq (the string document) 0 0))
+                                                                                                                                                               (the string (value-of (the json/nothing document)))))))
+                                                                                                                             :selection '((the string (subseq (the string document) 0 0))
+                                                                                                                                          (the string (value-of (the json/nothing document)))
+                                                                                                                                          (the json/nothing (elt (the sequence document) 0))))
+                                                                                                     :selection '((the string (subseq (the string document) 0 0))
+                                                                                                                  (the string (value-of (the json/nothing document)))
+                                                                                                                  (the json/nothing (elt (the sequence document) 0))
+                                                                                                                  (the sequence (entries-of (the json/object document)))))))
                       #+nil
                       ((gesture/keyboard/key-press #\,)
                        :domain "JSON" :description "Inserts a new element into an array or object"

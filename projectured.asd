@@ -8,7 +8,8 @@
   :defsystem-depends-on (:hu.dwim.asdf)
   :class "hu.dwim.asdf:hu.dwim.system"
   :description "A generic purpose projectional editor."
-  :depends-on (:hu.dwim.common
+  :depends-on (:cl-json
+               :hu.dwim.common
                :hu.dwim.computed-class+hu.dwim.defclass-star
                :hu.dwim.def
                :hu.dwim.logger

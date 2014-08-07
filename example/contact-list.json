@@ -1,6 +1,6 @@
-[{"name", "Levente Mészáros"
-  "sex", "male"
-  "born", 1975},
- {"name", "Attila Lendvai"
-  "sex", "male"
-  "born", 1978}]
+[{"name" : "Levente Mészáros",
+  "sex" : "male",
+  "born" : 1975},
+ {"name" : "Attila Lendvai",
+  "sex" : "male",
+  "born" : 1978}]
