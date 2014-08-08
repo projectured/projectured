@@ -131,6 +131,37 @@
 ;;;;;;
 ;;; Operation API implementation
 
+(def function operation/extend (printer-input path operation)
+  (labels ((recurse (operation)
+             (typecase operation
+               ;; TODO: base type for these?
+               ((or operation/quit operation/functional operation/save-document operation/load-document operation/widget/scroll-pane/scroll operation/widget/tabbed-pane/select-page) operation)
+               ;; TODO: base type for these ones with 1 reference?
+               (operation/replace-selection
+                (make-operation/replace-selection printer-input (append (selection-of operation) path)))
+               (operation/sequence/replace-element-range
+                (make-operation/sequence/replace-element-range printer-input (append (target-of operation) path) (replacement-of operation)))
+               (operation/number/replace-range
+                (make-operation/number/replace-range printer-input (append (target-of operation) path) (replacement-of operation)))
+               (operation/replace-target
+                (make-operation/replace-target printer-input (append (target-of operation) path) (replacement-of operation)))
+               (operation/focusing/replace-part
+                operation)
+               (operation/show-context-sensitive-help
+                (make-instance 'operation/show-context-sensitive-help
+                               :commands (iter (for command :in (commands-of operation))
+                                               (awhen (recurse (operation-of command))
+                                                 (collect (make-instance 'command
+                                                                         :gesture (gesture-of command)
+                                                                         :domain (domain-of command)
+                                                                         :description (description-of command)
+                                                                         :operation it))))))
+               (operation/compound
+                (bind ((operations (mapcar #'recurse (elements-of operation))))
+                  (unless (some 'null operations)
+                    (make-operation/compound operations)))))))
+    (recurse operation)))
+
 (def method run-operation ((operation operation/compound))
   (iter (for element :in-sequence (elements-of operation))
         (run-operation element)))
@@ -184,13 +215,14 @@
        (with-input-from-file (input filename :element-type '(unsigned-byte 8))
          (hu.dwim.serializer:deserialize input)))
       ("json"
-       (json/load-document (read-file-into-string filename)))
+       (with-input-from-file (input filename :element-type 'character)
+         (json/load-document input)))
       ("xml"
-       ;; TODO:
-       (make-text/text (list (make-text/string (read-file-into-string filename) :font *font/default* :font-color *color/default*))))
+       (with-input-from-file (input filename :element-type 'character)
+         (xml/load-document input)))
       ("html"
-       ;; TODO:
-       (make-text/text (list (make-text/string (read-file-into-string filename) :font *font/default* :font-color *color/default*))))
+       (with-input-from-file (input filename :element-type 'character)
+         (xml/load-document input)))
       ("txt"
        (make-text/text (list (make-text/string (read-file-into-string filename) :font *font/default* :font-color *color/default*)))))))
 

@@ -62,3 +62,26 @@
 
 (def function (setf xml/end-tag) (new-value element)
   (setf (name-of element) new-value))
+
+;;;;;;
+;;; API
+
+(def (function e) xml/load-document (input)
+  (bind ((seed (make-array 0 :adjustable #t :fill-pointer 0)))
+    (s-xml:start-parse-xml input
+                           (make-instance 's-xml:xml-parser-state
+                                          :seed (list seed)
+                                          :new-element-hook (lambda (name attributes seed)
+                                                              (declare (ignore name attributes))
+                                                              (cons (make-array 0 :adjustable #t :fill-pointer 0) seed))
+                                          :finish-element-hook (lambda (name attributes parent-seed seed)
+                                                                 (declare (ignore parent-seed))
+                                                                 (vector-push-extend (make-xml/element (string name)
+                                                                                                       (map 'vector (lambda (element) (make-xml/attribute (string (car element)) (string (cdr element)))) attributes)
+                                                                                                       (pop seed))
+                                                                                     (car seed))
+                                                                 seed)
+                                          :text-hook (lambda (string seed)
+                                                       (vector-push-extend (make-xml/text string) (car seed))
+                                                       seed)))
+    (first-elt seed)))

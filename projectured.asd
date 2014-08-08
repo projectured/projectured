@@ -16,7 +16,8 @@
                :hu.dwim.serializer
                :hu.dwim.syntax-sugar
                :hu.dwim.util
-               :parse-number)
+               :parse-number
+               :s-xml)
   :components ((:module "source"
                 :components ((:file "package")
                              (:module "util"
@@ -145,7 +146,8 @@
                                             :depends-on ("primitive" "higher-order")
                                             :components ((:file "t-to-common-lisp" :depends-on ("t-to-t"))
                                                          (:file "t-to-string" :depends-on ("t-to-t"))
-                                                         (:file "t-to-t")))))
+                                                         (:file "t-to-t")
+                                                         (:file "t-to-tree" :depends-on ("t-to-t"))))))
                              (:module "executable"
                               :depends-on ("projection")
                               :components ((:file "document")

@@ -71,7 +71,7 @@
 ;;; Printer
 
 (def printer document/document->t (projection recursion input input-reference)
-  (bind ((content-iomap (as (recurse-printer recursion (content-of input) `((content-of (the document/document input))
+  (bind ((content-iomap (as (recurse-printer recursion (content-of input) `((content-of (the document/document document))
                                                                             ,@(typed-reference (form-type input) input-reference))))))
     (make-iomap/compound projection recursion input input-reference (make-graphics/canvas (as (list (output-of (va content-iomap)))) (make-2d 0 0)) (as (list (va content-iomap))))))
 
@@ -162,7 +162,7 @@
                 :result result)))
 
 (def printer document/clipboard->t (projection recursion input input-reference)
-  (bind ((content-iomap (as (recurse-printer recursion (content-of input) `((content-of (the document/clipboard input))
+  (bind ((content-iomap (as (recurse-printer recursion (content-of input) `((content-of (the document/clipboard document))
                                                                             ,@(typed-reference (form-type input) input-reference))))))
     (make-iomap/compound projection recursion input input-reference (make-graphics/canvas (as (list (output-of (va content-iomap)))) (make-2d 0 0)) (as (list (va content-iomap))))))
 
@@ -179,41 +179,16 @@
                       ((gesture/keyboard/key-press :sdl-key-l :control)
                        :domain "Document" :description "Loads the previously saved document."
                        :operation (make-operation/load-document (content-of printer-input) (filename-of printer-input)))
+                      #+nil
                       ((gesture/keyboard/key-press :sdl-key-e :control)
                        :domain "Document" :description "Exports the currently edited document as text."
                        :operation (make-operation/export-document (content-of printer-input) (filename-of printer-input))))
-                    (labels ((recurse (operation)
-                               (typecase operation
-                                 (operation/quit operation)
-                                 (operation/functional operation)
-                                 (operation/replace-selection
-                                  (make-operation/replace-selection printer-input (append (selection-of operation) `((the ,(form-type (content-of printer-input)) (content-of (the document/document document)))))))
-                                 (operation/sequence/replace-element-range
-                                  (make-operation/sequence/replace-element-range printer-input (append (target-of operation) `((the ,(form-type (content-of printer-input)) (content-of (the document/document document))))) (replacement-of operation)))
-                                 (operation/number/replace-range
-                                  (make-operation/number/replace-range printer-input (append (target-of operation) `((the ,(form-type (content-of printer-input)) (content-of (the document/document document))))) (replacement-of operation)))
-                                 (operation/replace-target
-                                  (make-operation/replace-target printer-input (append (target-of operation) `((the ,(form-type (content-of printer-input)) (content-of (the document/document document))))) (replacement-of operation)))
-                                 (operation/focusing/replace-part
-                                  operation)
-                                 (operation/show-context-sensitive-help
-                                  (make-instance 'operation/show-context-sensitive-help
-                                                 :commands (iter (for command :in (commands-of operation))
-                                                                 (awhen (recurse (operation-of command))
-                                                                   (collect (make-instance 'command
-                                                                                           :gesture (gesture-of command)
-                                                                                           :domain (domain-of command)
-                                                                                           :description (description-of command)
-                                                                                           :operation it))))))
-                                 (operation/compound
-                                  (bind ((operations (mapcar #'recurse (elements-of operation))))
-                                    (unless (some 'null operations)
-                                      (make-operation/compound operations)))))))
-                      (bind ((content-command (recurse-reader recursion input (elt (child-iomaps-of printer-iomap) 0))))
-                        (make-command (gesture-of input)
-                                      (recurse (operation-of content-command))
-                                      :domain (domain-of content-command)
-                                      :description (description-of content-command))))
+                    (bind ((content-iomap (elt (child-iomaps-of printer-iomap) 0))
+                           (content-command (recurse-reader recursion input content-iomap)))
+                      (make-command (gesture-of input)
+                                    (operation/extend printer-input `((the ,(form-type (content-of printer-input)) (content-of (the document/document document)))) (operation-of content-command))
+                                    :domain (domain-of content-command)
+                                    :description (description-of content-command)))
                     (make-command/nothing (gesture-of input)))))
 
 (def reader document/nothing->tree/leaf (projection recursion input printer-iomap)
@@ -433,36 +408,10 @@
                        :domain "Document" :description "Pastes a new copy of the object from the clipboard to the selection"
                        :operation (when (slice-of printer-input)
                                     (make-operation/replace-target printer-input (selection-of printer-input) (deep-copy (slice-of printer-input))))))
-                    (labels ((recurse (operation)
-                               (typecase operation
-                                 (operation/quit operation)
-                                 (operation/functional operation)
-                                 (operation/replace-selection
-                                  (make-operation/replace-selection printer-input (append (selection-of operation) `((the ,(form-type (content-of printer-input)) (content-of (the document/clipboard document)))))))
-                                 (operation/sequence/replace-element-range
-                                  (make-operation/sequence/replace-element-range printer-input (append (target-of operation) `((the ,(form-type (content-of printer-input)) (content-of (the document/clipboard document))))) (replacement-of operation)))
-                                 (operation/number/replace-range
-                                  (make-operation/number/replace-range printer-input (append (target-of operation) `((the ,(form-type (content-of printer-input)) (content-of (the document/clipboard document))))) (replacement-of operation)))
-                                 (operation/replace-target
-                                  (make-operation/replace-target printer-input (append (target-of operation) `((the ,(form-type (content-of printer-input)) (content-of (the document/clipboard document))))) (replacement-of operation)))
-                                 (operation/focusing/replace-part
-                                  operation)
-                                 (operation/show-context-sensitive-help
-                                  (make-instance 'operation/show-context-sensitive-help
-                                                 :commands (iter (for command :in (commands-of operation))
-                                                                 (awhen (recurse (operation-of command))
-                                                                   (collect (make-instance 'command
-                                                                                           :gesture (gesture-of command)
-                                                                                           :domain (domain-of command)
-                                                                                           :description (description-of command)
-                                                                                           :operation it))))))
-                                 (operation/compound
-                                  (bind ((operations (mapcar #'recurse (elements-of operation))))
-                                    (unless (some 'null operations)
-                                      (make-operation/compound operations)))))))
-                      (bind ((content-command (recurse-reader recursion input (elt (child-iomaps-of printer-iomap) 0))))
-                        (make-command (gesture-of input)
-                                      (recurse (operation-of content-command))
-                                      :domain (domain-of content-command)
-                                      :description (description-of content-command))))
+                    (bind ((content-iomap (elt (child-iomaps-of printer-iomap) 0))
+                           (content-command (recurse-reader recursion input content-iomap)))
+                      (make-command (gesture-of input)
+                                    (operation/extend printer-input `((the ,(form-type (content-of printer-input)) (content-of (the document/clipboard document)))) (operation-of content-command))
+                                    :domain (domain-of content-command)
+                                    :description (description-of content-command)))
                     (make-command/nothing (gesture-of input)))))

@@ -29,6 +29,17 @@
 (def generic measure-text (text font)
   (:documentation "Measures the size of TEXT drawn with FONT."))
 
+(def method hu.dwim.serializer:write-object-slots ((class standard-class) (object style/font) context)
+  (bind ((class (class-of object))
+         (slots (closer-mop:class-slots class)))
+    (hu.dwim.serializer::write-variable-length-positive-integer (length slots) context)
+    (dolist (slot slots)
+      (unless (eq (ignore-errors (closer-mop:slot-definition-allocation slot)) :class)
+        (hu.dwim.serializer::serialize-symbol (closer-mop:slot-definition-name slot) context)
+        (if (closer-mop:slot-boundp-using-class class object slot)
+            (hu.dwim.serializer::serialize-element (if (eq (slot-definition-name slot) 'raw) nil (closer-mop:slot-value-using-class class object slot)) context)
+            (hu.dwim.serializer::write-unsigned-byte-8 hu.dwim.serializer::+unbound-slot-code+ context))))))
+
 ;;;;;;
 ;;; Definer
 

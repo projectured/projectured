@@ -17,7 +17,12 @@
 ;;; Construction
 
 (def function make-sequence/sequence (elements &key selection)
-  (make-instance 'sequence/sequence :elements elements :selection selection))
+  (make-instance 'sequence/sequence :elements (map 'vector (lambda (element)
+                                                             (if (hu.dwim.computed-class::computed-state-p element)
+                                                                 element
+                                                                 (as element)))
+                                                   elements)
+                 :selection selection))
 
 ;;;;;;
 ;;; Construction
@@ -65,6 +70,37 @@
 
 ;;;;;;
 ;;; Sequence operation API implementation
+
+(def method hu.dwim.serializer:write-object-slots ((class standard-class) (object sequence/sequence) context)
+  (bind ((class (class-of object))
+         (slots (closer-mop:class-slots class)))
+    (hu.dwim.serializer::write-variable-length-positive-integer (length slots) context)
+    (dolist (slot slots)
+      (unless (eq (ignore-errors (closer-mop:slot-definition-allocation slot)) :class)
+        (hu.dwim.serializer::serialize-symbol (closer-mop:slot-definition-name slot) context)
+        (if (closer-mop:slot-boundp-using-class class object slot)
+            (bind ((value (closer-mop:slot-value-using-class class object slot)))
+              (hu.dwim.serializer::serialize-element (if (eq (slot-definition-name slot) 'hu.dwim.computed-class::elements)
+                                                         (map 'vector (lambda (element) (if (hu.dwim.computed-class::computed-state-p element) (va element) element)) value)
+                                                         value)
+                                                     context))
+            (hu.dwim.serializer::write-unsigned-byte-8 hu.dwim.serializer::+unbound-slot-code+ context))))))
+
+(def method hu.dwim.serializer:read-object-slots ((class standard-class) (prototype sequence/sequence) context &key &allow-other-keys)
+  (bind ((object (allocate-instance class)))
+    (hu.dwim.serializer::announce-identity object context)
+    (iter (repeat (the fixnum (hu.dwim.serializer::read-variable-length-positive-integer context)))
+          (for slot-name = (hu.dwim.serializer::deserialize-symbol context))
+          (if (eq hu.dwim.serializer::+unbound-slot-code+ (hu.dwim.serializer::read-unsigned-byte-8 context))
+              (slot-makunbound object slot-name)
+              (bind ((value (progn
+                              (hu.dwim.serializer::unread-unsigned-byte-8 context)
+                              (hu.dwim.serializer::deserialize-element context))))
+                (setf (slot-value object slot-name)
+                      (if (eq slot-name 'hu.dwim.computed-class::elements)
+                          (map 'vector (lambda (element) (as element)) value)
+                          value)))))
+    object))
 
 ;; KLUDGE: TODO: this!
 (def function reference/flatten (reference &optional (result 'document))

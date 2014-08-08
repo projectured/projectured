@@ -61,6 +61,7 @@
 (def function make-initial-projection ()
   (sequential
     (nesting
+      (document/clipboard->t)
       (widget->graphics)
       (type-dispatching
         (widget/tooltip
@@ -86,22 +87,57 @@
                           (text/base (text->graphics)))))
                     (widget/scroll-pane
                       (nesting
-                       (widget->graphics)
-                       (document/document->t)
-                       (sequential
-                         (recursive
-                           (type-dispatching
-                             (book/base (book->tree))
-                             (xml/base (xml->tree))
-                             (json/base (json->tree))
-                             (document/base (document->t 'initial-factory))
-                             (text/text (preserving))))
-                         (recursive
-                           (type-dispatching
-                             (tree/base (tree->text))
-                             (text/text (preserving))))
-                         (word-wrapping 1075)
-                         (text->graphics)))))))
+                        (widget->graphics)
+                        (document/document->t)
+                        (sequential
+                          ;;(focusing '(or json/base xml/base book/base) nil)
+                          (recursive
+                            (type-dispatching
+                              (book/base (book->tree))
+                              (document/base (document->t 'test-factory))
+                              (text/text (preserving))
+                              (table/base (sequential
+                                            (recursive
+                                              (type-dispatching
+                                                (table/base (table->text))
+                                                (text/base (preserving))))
+                                            (text/text->tree/leaf)))
+                              (t
+                               (sequential
+                                 (recursive
+                                   (type-dispatching
+                                     (text/base (text/text->tree/leaf))
+                                     (book/base (book->tree))
+                                     (xml/base (xml->tree))
+                                     (json/base (json->tree))
+                                     (javascript/base (javascript->tree))
+                                     (css/base (css->tree))
+                                     (table/base (sequential
+                                                   (recursive
+                                                     (type-dispatching
+                                                       (table/base (table->text))
+                                                       (text/base (preserving))))
+                                                   (text/text->tree/leaf)))
+                                     (common-lisp/base (sequential
+                                                         (common-lisp->lisp-form)
+                                                         (lisp-form->tree)))
+                                     (lisp-form/base (lisp-form->tree))
+                                     (image/image (make-projection/image/image->tree/leaf))
+                                     (document/base (document->t 'test-factory))
+                                     (evaluator/evaluator (evaluator/evaluator->tree/node))
+                                     (t (preserving))))
+                                 (recursive
+                                   (type-dispatching
+                                     (tree/base (tree->text))
+                                     (text/text (preserving))))
+                                 (line-numbering)
+                                 (text/text->tree/leaf)))))
+                          (recursive
+                            (type-dispatching
+                              (tree/base (tree->text))
+                              (text/text (preserving))))
+                          (word-wrapping 1075)
+                          (text->graphics)))))))
               (widget/scroll-pane
                 (nesting
                   (widget->graphics)

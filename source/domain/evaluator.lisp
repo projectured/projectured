@@ -18,7 +18,10 @@
 ;;;;;;
 ;;; Construction
 
-(def function make-evaluator/evaluator (form &key on-demand (dynamic-environment-provider (compose 'make-common-lisp/constant 'funcall)))
+(def function evaluator/evaluate-in-default-dynamic-environment (function)
+  (make-common-lisp/constant (funcall function)))
+
+(def function make-evaluator/evaluator (form &key on-demand (dynamic-environment-provider 'evaluator/evaluate-in-default-dynamic-environment))
   (make-instance 'evaluator/evaluator
                  :form form :result nil
                  :on-demand on-demand :dynamic-environment-provider dynamic-environment-provider))

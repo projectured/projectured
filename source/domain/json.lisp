@@ -117,4 +117,4 @@
      :end-of-string (lambda () (make-json/string (cl-json::string-stream-accumulator-get))))
     (bind ((cl-json::*json-identifier-name-to-lisp* 'identity)
            (cl-json::*identifier-name-to-key* 'value-of))
-      (cl-json:decode-json-from-string input))))
+      (cl-json:decode-json input))))
