@@ -94,7 +94,7 @@
                           (recursive
                             (type-dispatching
                               (book/base (book->tree))
-                              (document/base (document->t 'test-factory))
+                              (document/base (document->t 'initial-factory))
                               (text/text (preserving))
                               (table/base (sequential
                                             (recursive
@@ -123,7 +123,7 @@
                                                          (lisp-form->tree)))
                                      (lisp-form/base (lisp-form->tree))
                                      (image/image (make-projection/image/image->tree/leaf))
-                                     (document/base (document->t 'test-factory))
+                                     (document/base (document->t 'initial-factory))
                                      (evaluator/evaluator (evaluator/evaluator->tree/node))
                                      (t (preserving))))
                                  (recursive

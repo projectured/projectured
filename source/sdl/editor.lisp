@@ -36,18 +36,18 @@
          (sdl-image:init-image :jpg :png :tif)
          (sdl:initialise-default-font (make-instance 'sdl:ttf-font-definition :size 18 :filename (resource-pathname "font/UbuntuMono-R.ttf")))
          (sdl:init-video)
-         (call-next-method))
+         (bind ((display (find-if (of-type 'device/display) (devices-of editor)))
+                (surface (sdl:window (width-of display) (height-of display) :double-buffer #t :title-caption "Projectional Editor")))
+           (setf (surface-of display) surface)
+           (call-next-method)))
     (sdl:quit-video)))
 
-(def method print-to-device :around (instance (display device/display/sdl))
-  (if sdl:*default-surface*
+(def method print-to-devices :around ((editor editor/sdl) document projection)
+  (bind ((display (find-if (of-type 'device/display) (devices-of editor))))
+    (sdl:with-surface ((surface-of display))
+      (sdl:fill-surface sdl:*white*)
       (call-next-method)
-      (bind ((surface (sdl:window (width-of display) (height-of display) :double-buffer #t :title-caption "Projectional Editor")))
-        (setf (surface-of display) surface)
-        (sdl:with-surface (surface)
-          (sdl:fill-surface sdl:*white*)
-          (call-next-method)
-          (sdl:update-display)))))
+      (sdl:update-display))))
 
 (def method print-to-device :around (instance (display device/file/sdl))
   (if sdl:*default-surface*
