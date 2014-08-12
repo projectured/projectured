@@ -486,6 +486,7 @@
                        :operation (make-instance 'operation/widget/scroll-pane/scroll
                                                  :scroll-pane (input-of printer-iomap)
                                                  :scroll-delta (make-2d -100 0))))
+                    (document/read-operation gesture)
                     (bind ((content-gesture (progn
                                               ;; KLUDGE: copy gesture
                                               (setf (location-of gesture) (- (location-of gesture) (scroll-position-of (input-of printer-iomap))))

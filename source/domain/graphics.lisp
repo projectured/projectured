@@ -104,13 +104,13 @@
    (fill-color :type style/color)))
 
 (def document graphics/circle (graphics/base)
-  ((center :type 2d)
+  ((location :type 2d)
    (radius :type number)
    (stroke-color :type style/color)
    (fill-color :type style/color)))
 
 (def document graphics/ellipse (graphics/base)
-  ((center :type 2d)
+  ((location :type 2d)
    (radius :type 2d)
    (stroke-color :type style/color)
    (fill-color :type style/color)))
@@ -127,13 +127,22 @@
    (image :type image/image)))
 
 (def document graphics/viewport (graphics/base)
-  ((content :type t)
-   (location :type 2d)
-   (size :type 2d)))
+  ((location :type 2d)
+   (size :type 2d)
+   (content :type t)))
 
 (def document graphics/canvas (graphics/base)
   ((location :type 2d)
    (elements :type sequence)))
+
+(def document graphics/strip (graphics/base)
+  ((location :type 2d)
+   (origin :type graphics/strip-element)))
+
+(def document graphics/strip-element (graphics/base)
+  ((content :type graphics/base)
+   (previous :type graphics/strip-element)
+   (next :type graphics/strip-element)))
 
 ;;;;;;
 ;;; Graphics document constructors
@@ -153,11 +162,11 @@
 (def function make-graphics/polygon (points &key stroke-color fill-color)
   (make-instance 'graphics/polygon :points points :stroke-color stroke-color :fill-color fill-color))
 
-(def function make-graphics/circle (center radius &key stroke-color fill-color)
-  (make-instance 'graphics/circle :center center :radius radius :stroke-color stroke-color :fill-color fill-color))
+(def function make-graphics/circle (location radius &key stroke-color fill-color)
+  (make-instance 'graphics/circle :location location :radius radius :stroke-color stroke-color :fill-color fill-color))
 
-(def function make-graphics/ellipse (center radius &key stroke-color fill-color)
-  (make-instance 'graphics/ellipse :center center :radius radius :stroke-color stroke-color :fill-color fill-color))
+(def function make-graphics/ellipse (location radius &key stroke-color fill-color)
+  (make-instance 'graphics/ellipse :location location :radius radius :stroke-color stroke-color :fill-color fill-color))
 
 (def function make-graphics/text (location text &key font font-color fill-color)
   (make-instance 'graphics/text :location location :text text :font font :font-color font-color :fill-color fill-color))
@@ -166,10 +175,16 @@
   (make-instance 'graphics/image :location location :image image))
 
 (def function make-graphics/viewport (content location size)
-  (make-instance 'graphics/viewport :content content :location location :size size))
+  (make-instance 'graphics/viewport :location location :content content :size size))
 
 (def function make-graphics/canvas (elements location)
-  (make-instance 'graphics/canvas :elements elements :location location))
+  (make-instance 'graphics/canvas :location location :elements elements))
+
+(def function make-graphics/strip (origin location)
+  (make-instance 'graphics/strip :location location :origin origin))
+
+(def function make-graphics/strip-element (content previous next)
+  (make-instance 'graphics/strip-element :content content :previous previous :next next))
 
 ;;;;;;
 ;;; Graphics API implementation
@@ -209,10 +224,10 @@
   (:method ((instance graphics/circle))
     (bind ((radius (radius-of instance))
            (size (* 2 radius)))
-      (make-rectangle (- (center-of instance) (make-2d radius radius)) (make-2d size size))))
+      (make-rectangle (- (location-of instance) (make-2d radius radius)) (make-2d size size))))
 
   (:method ((instance graphics/ellipse))
-    (make-rectangle (- (center-of instance) (radius-of instance)) (* 2 (radius-of instance))))
+    (make-rectangle (- (location-of instance) (radius-of instance)) (* 2 (radius-of instance))))
 
   (:method ((instance graphics/text))
     (make-rectangle (location-of instance) (measure-text (text-of instance) (font-of instance))))
@@ -247,10 +262,10 @@
                 (collect (+ point translation) :result-type 'vector))))
 
   (:method ((instance graphics/circle) translation)
-    (setf (center-of instance) (+ translation (center-of instance))))
+    (setf (location-of instance) (+ translation (location-of instance))))
 
   (:method ((instance graphics/ellipse) translation)
-    (setf (center-of instance) (+ translation (center-of instance))))
+    (setf (location-of instance) (+ translation (location-of instance))))
 
   (:method ((instance graphics/text) translation)
     (setf (location-of instance) (+ translation (location-of instance))))

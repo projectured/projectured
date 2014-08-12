@@ -106,7 +106,7 @@
                        :color (raw-of (stroke-color-of instance))))
 
 (def method print-to-device ((instance graphics/circle) (display device/sdl))
-  (bind ((center (+ *translation* (center-of instance)))
+  (bind ((center (+ *translation* (location-of instance)))
          (stroke-color (stroke-color-of instance))
          (fill-color (fill-color-of instance)))
     (when fill-color
@@ -121,7 +121,7 @@
                              :color (raw-of stroke-color)))))
 
 (def method print-to-device ((instance graphics/ellipse) (display device/sdl))
-  (bind ((center (+ *translation* (center-of instance)))
+  (bind ((center (+ *translation* (location-of instance)))
          (radius (radius-of instance))
          (stroke-color (stroke-color-of instance))
          (fill-color (fill-color-of instance)))
@@ -165,3 +165,24 @@
     (sdl:draw-surface-at-* (raw-of (image-of instance))
                            (round (2d-x location))
                            (round (2d-y location)))))
+
+(def method print-to-device ((instance graphics/strip) (device device/display/sdl))
+  (bind ((clipping (sdl:get-clip-rect))
+         (origin (origin-of instance))
+         (count 0))
+    (print-to-device origin device)
+    (rebind (*translation*)
+      (iter (for element :initially (previous-of origin) :then (previous-of element))
+            (while (and element (> (+ (2d-y (+ *translation* (location-of (content-of element)))) 20) (sdl:y clipping))))
+            (incf count)
+            (print-to-device element device)
+            (incf *translation* (location-of (content-of element)))))
+    (rebind (*translation*)
+      (iter (for element :initially (next-of origin) :then (next-of element))
+            (while (and element (< (2d-y (+ *translation* (location-of (content-of element)))) (sdl:y2 clipping))))
+            (incf count)
+            (print-to-device element device)
+            (incf *translation* (location-of (content-of element)))))))
+
+(def method print-to-device ((instance graphics/strip-element) (device device/display/sdl))
+  (print-to-device (content-of instance) device))

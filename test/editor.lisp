@@ -50,6 +50,12 @@
 (def test test/editor/graphics (&key wrap)
   (test/editor/read-eval-print-loop wrap (make-test-document/graphics) nil (make-test-projection/graphics->graphics)))
 
+(def test test/editor/strip (&key wrap)
+  (test/editor/read-eval-print-loop wrap (make-test-document/strip 1000 500) nil (widget->graphics)))
+
+(def test test/editor/strip/cached (&key wrap)
+  (test/editor/read-eval-print-loop wrap (make-test-document/strip 1000 500) nil (sequential (widget->graphics) (recursive (graphics->graphics)))))
+
 (def test test/editor/string (&key wrap)
   (test/editor/read-eval-print-loop wrap (make-test-document/string) nil (make-test-projection/string->graphics)))
 
