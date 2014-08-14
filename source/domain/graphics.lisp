@@ -135,15 +135,6 @@
   ((location :type 2d)
    (elements :type sequence)))
 
-(def document graphics/strip (graphics/base)
-  ((location :type 2d)
-   (origin :type graphics/strip-element)))
-
-(def document graphics/strip-element (graphics/base)
-  ((content :type graphics/base)
-   (previous :type graphics/strip-element)
-   (next :type graphics/strip-element)))
-
 ;;;;;;
 ;;; Graphics document constructors
 
@@ -179,12 +170,6 @@
 
 (def function make-graphics/canvas (elements location)
   (make-instance 'graphics/canvas :location location :elements elements))
-
-(def function make-graphics/strip (origin location)
-  (make-instance 'graphics/strip :location location :origin origin))
-
-(def function make-graphics/strip-element (content previous next)
-  (make-instance 'graphics/strip-element :content content :previous previous :next next))
 
 ;;;;;;
 ;;; Graphics API implementation

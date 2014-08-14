@@ -130,27 +130,20 @@
                         (make-2d 0 0)))
 
 
-;;;;;;
-;;; Strip
-
-(def function make-test-document/strip (element-count origin-index)
-  (bind ((strip (make-graphics/strip nil (make-2d 0 0)))
-         (elements (iter (for i :from 0 :below element-count)
-                         (collect (make-graphics/strip-element (make-graphics/canvas (list (make-graphics/text (make-2d 0 0) "Hello " :font *font/default* :font-color *color/default* :fill-color nil)
-                                                                                           (make-graphics/text (make-2d 100 0) "World " :font *font/default* :font-color *color/default* :fill-color nil)
-                                                                                           (make-graphics/text (make-2d 200 0) (write-to-string i) :font *font/default* :font-color *color/default* :fill-color nil))
-                                                                                     (make-2d 0 (cond ((< i origin-index) -20)
-                                                                                                      ((> i origin-index) 20)
-                                                                                                      (t 0))))
-                                                               nil
-                                                               nil))))
-         (origin (elt elements origin-index)))
-    (setf (origin-of strip) origin)
+(def function make-test-document/graphics/ll (element-count origin-index)
+  (bind ((elements (iter (for i :from 0 :below element-count)
+                         (collect (rebind (i)
+                                    (make-computed-ll (as (make-graphics/canvas (list (make-graphics/text (make-2d 0 0) "Hello " :font *font/default* :font-color *color/default* :fill-color nil)
+                                                                                      (make-graphics/text (make-2d 100 0) "World " :font *font/default* :font-color *color/default* :fill-color nil)
+                                                                                      (make-graphics/text (make-2d 200 0) (write-to-string i) :font *font/default* :font-color *color/default* :fill-color nil))
+                                                                                (make-2d 0 (cond ((< i origin-index) -20)
+                                                                                                 ((> i origin-index) 20)
+                                                                                                 (t 0)))))
+                                                      (as nil) (as nil) (as nil) (as nil)))))))
     (iter (for i :from 0 :below element-count)
-          (setf (previous-of (elt elements i)) (when (> i 0) (elt elements (1- i))))
-          (setf (next-of (elt elements i)) (when (< i element-count) (elt elements (1+ i)))))
-    (widget/scroll-pane (:location (make-2d 0 0) :size (make-2d 1280 720))
-      strip)))
+          (setf (previous-element-of (elt elements i)) (when (> i 0) (elt elements (1- i))))
+          (setf (next-element-of (elt elements i)) (when (< i element-count) (elt elements (1+ i)))))
+    (make-graphics/canvas (elt elements origin-index) (make-2d 0 0))))
 
 ;;;;;;
 ;;; String
@@ -176,6 +169,20 @@
 (def function make-test-document/text/empty ()
   (text/text ()
     (text/string "")))
+
+(def function make-test-document/text/ll (element-count origin-index)
+  (bind ((elements (iter (for i :from 0 :below element-count)
+                         (collect (rebind (i)
+                                    (make-computed-ll (as (text/line ()
+                                                            (text/string "Hello " :font *font/liberation/serif/regular/18* :font-color *color/solarized/blue*)
+                                                            (text/string "World ")
+                                                            (text/string (write-to-string i) :font *font/ubuntu/regular/18* :font-color *color/solarized/red*)))
+                                                      (as nil) (as nil) (as nil) (as nil)))
+                           :result-type 'vector))))
+    (iter (for i :from 0 :below element-count)
+          (setf (previous-element-of (elt elements i)) (when (> i 0) (elt elements (1- i))))
+          (setf (next-element-of (elt elements i)) (when (< i (1- element-count)) (elt elements (1+ i)))))
+    (make-text/text (elt elements origin-index))))
 
 ;;;;;;
 ;;; Widget

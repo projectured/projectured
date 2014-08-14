@@ -432,12 +432,15 @@
     (make-test-projection/string->output)))
 
 ;;;;;;
-;;; Styled string
+;;; Text
 
 (def function make-test-projection/text->graphics ()
   (sequential
     (line-numbering)
     (make-test-projection/text->output)))
+
+(def function make-test-projection/text->graphics/ll ()
+  (make-test-projection/text->output))
 
 ;;;;;;
 ;;; Text

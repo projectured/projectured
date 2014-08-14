@@ -13,8 +13,6 @@
   (type-dispatching
     (graphics/canvas (graphics/canvas->graphics/image))
     (graphics/viewport (graphics/viewport->graphics/image))
-    (graphics/strip (graphics/strip->graphics/image))
-    (graphics/strip-element (graphics/strip-element->graphics/image))
     (graphics/base (preserving))))
 
 (def macro graphics->graphics ()

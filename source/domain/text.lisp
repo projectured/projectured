@@ -6,7 +6,6 @@
 
 (in-package :projectured)
 
-
 ;;;;;;
 ;;; IO map
 
@@ -50,6 +49,9 @@
 (def document text/string (text/element)
   ((content :type string)))
 
+(def document text/line (text/base)
+  ((elements :type sequence)))
+
 (def document text/text (text/base)
   ((elements :type sequence)))
 
@@ -80,8 +82,11 @@
                  :fill-color fill-color
                  :line-color line-color))
 
+(def function make-text/line (elements &key projection selection)
+  (make-instance 'text/line :elements elements :projection projection :selection selection))
+
 (def function make-text/text (elements &key projection selection)
-  (make-instance 'text/text :elements (if (typep elements 'hu.dwim.computed-class::computed-state) elements (coerce elements 'vector)) :projection projection :selection selection))
+  (make-instance 'text/text :elements elements :projection projection :selection selection))
 
 ;;;;;;
 ;;; Construction
@@ -98,6 +103,9 @@
 (def macro text/newline (&key font font-color fill-color line-color)
   `(make-text/string "
 " :font ,(or font '*font/default*) :font-color ,(or font-color '*color/default*) :fill-color ,fill-color :line-color ,line-color))
+
+(def macro text/line ((&key projection selection) &body elements)
+  `(make-text/line (list ,@elements) :projection ,projection :selection ,selection))
 
 (def macro text/text ((&key projection selection) &body elements)
   `(make-text/text (list ,@elements) :projection ,projection :selection ,selection))

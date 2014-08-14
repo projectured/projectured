@@ -50,11 +50,8 @@
 (def test test/editor/graphics (&key wrap)
   (test/editor/read-eval-print-loop wrap (make-test-document/graphics) nil (make-test-projection/graphics->graphics)))
 
-(def test test/editor/strip (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/strip 1000 500) nil (widget->graphics)))
-
-(def test test/editor/strip/cached (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/strip 1000 500) nil (sequential (widget->graphics) (recursive (graphics->graphics)))))
+(def test test/editor/graphics/ll (&key wrap)
+  (test/editor/read-eval-print-loop wrap (make-test-document/graphics/ll 1000 500) nil (make-test-projection/graphics->graphics)))
 
 (def test test/editor/string (&key wrap)
   (test/editor/read-eval-print-loop wrap (make-test-document/string) nil (make-test-projection/string->graphics)))
@@ -74,11 +71,14 @@
 (def test test/editor/text (&key wrap (content (make-test-document/text)) (selection (make-test-selection/text/character)))
   (test/editor/read-eval-print-loop wrap content selection (make-test-projection/text->graphics)))
 
+(def test test/editor/text/ll (&key wrap)
+  (test/editor/read-eval-print-loop wrap (make-test-document/text/ll 1000 500) nil (make-test-projection/text->graphics/ll)))
+
 (def test test/editor/text/pos (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/text) '(the text/text (text/subseq (the text/text (content-of (the document document))) 2 2)) (make-test-projection/text->graphics)))
+  (test/editor/read-eval-print-loop wrap (make-test-document/text) '((the text/text (text/subseq (the text/text document) 2 2)) (the text/text (content-of (the document document)))) (make-test-projection/text->graphics)))
 
 (def test test/editor/text/elt (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/text) '(the text/text (text/subseq (the text/text (content-of (the document document))) 2 3)) (make-test-projection/text->graphics)))
+  (test/editor/read-eval-print-loop wrap (make-test-document/text) '((the text/text (text/subseq (the text/text document) 2 3)) (the text/text (content-of (the document document)))) (make-test-projection/text->graphics)))
 
 (def test test/editor/text/box (&key wrap)
   (test/editor/read-eval-print-loop wrap (make-test-document/text) '((the sequence-box (text/subbox (the text/text document) 5 18))) (make-test-projection/text->graphics)))
