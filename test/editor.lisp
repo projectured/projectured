@@ -72,7 +72,7 @@
   (test/editor/read-eval-print-loop wrap content selection (make-test-projection/text->graphics)))
 
 (def test test/editor/text/ll (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/text/ll 1000 500) nil (make-test-projection/text->graphics/ll)))
+  (test/editor/read-eval-print-loop wrap (make-test-document/text/ll 1000 500) nil (make-test-projection/text->output)))
 
 (def test test/editor/text/pos (&key wrap)
   (test/editor/read-eval-print-loop wrap (make-test-document/text) '((the text/text (text/subseq (the text/text document) 2 2)) (the text/text (content-of (the document document)))) (make-test-projection/text->graphics)))
@@ -97,6 +97,9 @@
 
 (def test test/editor/tree (&key wrap (content (make-test-document/tree)))
   (test/editor/read-eval-print-loop wrap content (make-test-selection/tree/character) (make-test-projection/tree->graphics)))
+
+(def test test/editor/tree/ll (&key wrap)
+  (test/editor/read-eval-print-loop wrap (make-test-document/tree/ll 10 5 2) nil (make-test-projection/tree->graphics)))
 
 (def test test/editor/tree/leaf (&key wrap)
   (test/editor/read-eval-print-loop wrap (make-test-document/tree/leaf) nil (make-test-projection/tree->graphics)))

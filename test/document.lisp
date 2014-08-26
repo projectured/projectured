@@ -363,6 +363,28 @@
       (text/text ()
         (text/string "nineth")))))
 
+(def function make-test-document/tree/ll (element-count origin-index depth)
+  (bind ((elements (iter (for i :from 0 :below element-count)
+                         (collect (if (zerop depth)
+                                      (rebind (i)
+                                        (make-computed-ll (as (tree/leaf (:opening-delimiter (text/text () (text/string "\"" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))
+                                                                                             :closing-delimiter (text/text () (text/string "\"" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))
+                                                                (text/text ()
+                                                                  (text/string "Hello " :font *font/liberation/serif/regular/18* :font-color *color/solarized/blue*)
+                                                                  (text/string "World ")
+                                                                  (text/string (write-to-string i) :font *font/ubuntu/regular/18* :font-color *color/solarized/red*))))
+                                                          (as nil) (as nil) (as nil) (as nil)))
+                                      (make-computed-ll (as (make-test-document/tree/ll element-count origin-index (1- depth)))
+                                                        (as nil) (as nil) (as nil) (as nil)))
+                           :result-type 'vector))))
+    (iter (for i :from 0 :below element-count)
+          (setf (previous-element-of (elt elements i)) (when (> i 0) (elt elements (1- i))))
+          (setf (next-element-of (elt elements i)) (when (< i (1- element-count)) (elt elements (1+ i)))))
+    (make-tree/node (elt elements origin-index)
+                    :opening-delimiter (text/text () (text/string "(" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))
+                    :closing-delimiter (text/text () (text/string ")" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))
+                    :separator (text/text () (text/string " " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))))
+
 ;;;;;;
 ;;; Graph
 
@@ -746,7 +768,7 @@
          (chart-script-path (make-adjustable-string "/script"))
          (trace-amounts (make-common-lisp/comment
                          (text/text ()
-                           (text/string "This part contains trace amounts of " :font projectured::*font/ubuntu/regular/18* :font-color *color/solarized/gray*)
+                           (text/string "This part contains trace amounts of " :font *font/ubuntu/regular/18* :font-color *color/solarized/gray*)
                            (image/image () (resource-pathname "image/lisp-flag.jpg")))))
          (chart-script (make-javascript/statement/top-level
                         (list (make-javascript/expression/method-invocation
@@ -957,7 +979,7 @@
         (book/paragraph ()
           (text/text ()
             (text/string "This example demonstrates mixing multiple different problem domains in the same document. The document contains" :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)
-            (text/string " Common Lisp, HTML, CSS, JavaScript, JSON, table, image and styled text" :font projectured::*font/ubuntu/italic/18* :font-color *color/solarized/violet*)
+            (text/string " Common Lisp, HTML, CSS, JavaScript, JSON, table, image and styled text" :font *font/ubuntu/italic/18* :font-color *color/solarized/violet*)
             (text/string " nested into each other. It describes a web service implemented as a single Common Lisp function that processes HTTP requests. When the function receives a request to the '" :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)
             (text/string chart-page-path :font *font/ubuntu/italic/18* :font-color *color/solarized/violet*)
             (text/string "' path it sends an HTML page in response. This page contains a pie chart that utilizes the Google Charts JavaScript API. When the browser displays the pie chart it sends another request to the '" :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)
@@ -967,7 +989,7 @@
             (image/image () (resource-pathname "image/pie.png"))
             (text/newline)
             (text/string "This example uses a compound projection that displays all used domains in their natural notation. Proper indentation and syntax highlight are automatically provided without inserting escape sequences that would make reading harder. Note that the edited document" :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)
-            (text/string " is not text" :font projectured::*font/ubuntu/italic/18* :font-color *color/solarized/violet*)
+            (text/string " is not text" :font *font/ubuntu/italic/18* :font-color *color/solarized/violet*)
             (text/string " even though it looks like. It's a complex domain specific data structure that precisely captures the intentions. The projections keep track of what is what to make navigation and editing possible." :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*))))
       (book/chapter (:title "Chart Page")
         (book/paragraph ()

@@ -115,6 +115,7 @@
                                  :selection output-selection)))
     (make-iomap 'iomap/tree/leaf->text/text :input input :output output :content-iomap content-iomap)))
 
+#+nil ;; TODO: delete old version
 (def printer tree/node->text/text (projection recursion input input-reference)
   (bind ((pack (as (bind ((child-iomaps nil)
                           (child-indentations nil)
@@ -214,6 +215,33 @@
                 :child-indentations (as (elt (va pack) 2))
                 :child-first-character-indices (as (elt (va pack) 3))
                 :child-last-character-indices (as (elt (va pack) 4)))))
+
+(def printer tree/node->text/text (projection recursion input input-reference)
+  (bind ((output (make-text/text (labels ((print-child (child)
+                                            (make-computed-ll (as (bind ((child-iomap (recurse-printer recursion (value-of child) nil))
+                                                                         (child-content (output-of child-iomap)))
+                                                                    (etypecase child-content
+                                                                      (text/line child-content)
+                                                                      (text/text (typecase (elements-of child-content)
+                                                                                   (computed-ll (value-of (elements-of child-content)))
+                                                                                   (sequence (make-text/line (elements-of child-content))))))))
+                                                              (as nil) (as nil)
+                                                              (as (aif (previous-element-of child)
+                                                                       (make-computed-ll (as (separator-of input))
+                                                                                         (as nil) (as nil)
+                                                                                         (as (print-child it))
+                                                                                         (as child))
+                                                                       (make-computed-ll (as (opening-delimiter-of input))
+                                                                                         (as nil) (as nil) (as nil) (as nil))))
+                                                              (as (aif (next-element-of child)
+                                                                       (make-computed-ll (as (separator-of input))
+                                                                                         (as nil) (as nil)
+                                                                                         (as child)
+                                                                                         (as (print-child it)))
+                                                                       (make-computed-ll (as (closing-delimiter-of input))
+                                                                                         (as nil) (as nil) (as nil) (as nil)))))))
+                                   (print-child (children-of input))))))
+    (make-iomap/object projection recursion input input-reference output)))
 
 ;;;;;;
 ;;; Reader
