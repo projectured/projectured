@@ -43,7 +43,7 @@
 ;;;;;;
 ;;; Definer
 
-(def (definer e :available-flags "e") font (name (filename size))
+(def (definer :available-flags "e") font (name (filename size))
   `(def special-variable ,name (make-style/font ,filename ,size)))
 
 ;;;;;;

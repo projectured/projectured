@@ -30,7 +30,7 @@
 ;;;;;;
 ;;; Definer
 
-(def (definer e :available-flags "e") color (name (red green blue))
+(def (definer :available-flags "e") color (name (red green blue))
   `(def special-variable ,name (make-style/color 255 ,red ,green ,blue)))
 
 ;;;;;;

@@ -31,7 +31,16 @@
       (computed-state-value computed-state)
       computed-state))
 
-(def (class* ea) sequence-box ()
+(def function ll (sequence)
+  (labels ((make (index previous next)
+             (make-computed-ll (as (elt sequence index))
+                               (as (when (> index 0)
+                                     (or previous (make (1- index) nil -self-))))
+                               (as (when (< index (1- (length sequence)))
+                                     (or next (make (1+ index) -self- nil)))))))
+    (make 0 nil nil)))
+
+(def class* sequence-box ()
   ((sequence :type sequence)
    (start :type integer)
    (end :type integer)))
@@ -121,7 +130,7 @@
                              (subseq string-2 0 (1+ index)))))
         (finally (return (subseq string-1 0 index)))))
 
-(def (class* ea) alternative-function ()
+(def class* alternative-function ()
   ((alternatives :type sequence)
    (selection :type positive-integer))
   (:metaclass funcallable-standard-class))

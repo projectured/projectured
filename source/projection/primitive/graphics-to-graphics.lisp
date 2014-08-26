@@ -41,7 +41,6 @@
     (if (typep elements 'computed-ll)
         (bind ((output (labels ((recurse (element)
                                   (make-computed-ll (as (output-of (recurse-printer recursion (hu.dwim.computed-class::value-of element) nil)))
-                                                    (as nil) (as nil)
                                                     (as (awhen (previous-element-of element) (recurse it)))
                                                     (as (awhen (next-element-of element) (recurse it))))))
                          (make-graphics/canvas (as (recurse elements)) (location-of input)))))

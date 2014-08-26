@@ -66,7 +66,7 @@
 ;;;;;;
 ;;; API
 
-(def (function e) xml/load-document (input)
+(def function xml/load-document (input)
   (bind ((seed (make-array 0 :adjustable #t :fill-pointer 0)))
     (s-xml:start-parse-xml input
                            (make-instance 's-xml:xml-parser-state
