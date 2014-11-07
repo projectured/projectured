@@ -323,7 +323,7 @@
                                (operation/show-context-sensitive-help
                                 (make-operation/compound (list (make-instance 'operation/widget/tooltip/move :tooltip tooltip :location (mouse-position))
                                                                (make-instance 'operation/widget/tooltip/replace-content :tooltip tooltip
-                                                                              :content (make-text/text (iter (for command :in (commands-of operation))
+                                                                              :content (text/make-text (iter (for command :in (commands-of operation))
                                                                                                              (unless (first-iteration-p)
                                                                                                                (collect (text/newline)))
                                                                                                              (appending (make-command-help-text command)))))

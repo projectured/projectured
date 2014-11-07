@@ -101,7 +101,7 @@
          (elements (nreverse
                     (prog1-bind elements nil
                       (flet ((write-character (character &optional (count 1))
-                               (push (make-text/string (make-string count :element-type 'character :initial-element character) :font *font/default* :font-color *color/solarized/gray*) elements)
+                               (push (text/make-string (make-string count :element-type 'character :initial-element character) :font *font/default* :font-color *color/solarized/gray*) elements)
                                (incf output-index count))
                              (write-element (element)
                                (push element elements)
@@ -127,7 +127,7 @@
                                           (finally
                                            (write-character #\U2524))))
                                 (write-character #\NewLine))
-                              (iter (with cell-text-lines = (make-array row-height :initial-element (make-text/text nil)))
+                              (iter (with cell-text-lines = (make-array row-height :initial-element (text/make-text nil)))
                                     (for column-index :from 0)
                                     (for cell :in-sequence (cells-of row))
                                     (for cell-iomap = (elt (elt cell-iomaps row-index) column-index))
@@ -145,9 +145,9 @@
                                                                   (bind ((lines (text/split content #\NewLine)))
                                                                     (if (< text-line-index (length lines))
                                                                         (bind ((line (elt lines text-line-index))
-                                                                               (padding (make-text/text (list (make-text/string (make-string-of-spaces (max 0 (- column-width (text/length line)))) :font *font/default* :font-color *color/default*)))))
+                                                                               (padding (text/make-text (list (text/make-string (make-string-of-spaces (max 0 (- column-width (text/length line)))) :font *font/default* :font-color *color/default*)))))
                                                                           (text/concatenate line padding))
-                                                                        (make-text/text (list (make-text/string (make-string-of-spaces column-width) :font *font/default* :font-color *color/default*))))))))
+                                                                        (text/make-text (list (text/make-string (make-string-of-spaces column-width) :font *font/default* :font-color *color/default*))))))))
                                     (finally
                                      (iter (for text-line-index :from 0)
                                            (for text-line :in-sequence cell-text-lines)
@@ -180,20 +180,20 @@
                                   (((the text/text (text/subseq (the text/text document) ?cell-character-index ?cell-character-index)))
                                    (bind ((character-index (table-character-index row-heights column-widths ?row-index ?column-index ?cell-character-index)))
                                      `((the text/text (text/subseq (the text/text document) ,character-index ,character-index)))))
-                                  (((the sequence-box (text/subbox (the text/text document) ?start-character-index ?end-character-index)))
-                                   `((the sequence-box (text/subbox (the text/text document)
-                                                                    ,(table-character-index row-heights column-widths ?row-index ?column-index ?start-character-index)
-                                                                    ,(table-character-index row-heights column-widths ?row-index ?column-index ?end-character-index))))))))
+                                  (((the text/text (text/subbox (the text/text document) ?start-character-index ?end-character-index)))
+                                   `((the text/text (text/subbox (the text/text document)
+                                                                 ,(table-character-index row-heights column-widths ?row-index ?column-index ?start-character-index)
+                                                                 ,(table-character-index row-heights column-widths ?row-index ?column-index ?end-character-index))))))))
                              (((the sequence (rows-of (the table/table document)))
                                (the table/row (elt (the sequence document) ?row-index))
                                (the sequence (cells-of (the table/row document)))
                                (the table/cell (elt (the sequence document) ?column-index)))
                               (bind ((cell-character-length (1- (* (elt row-heights ?row-index)
                                                                    (1+ (elt column-widths ?column-index))))))
-                                `((the sequence-box (text/subbox (the text/text document)
-                                                                 ,(table-character-index row-heights column-widths ?row-index ?column-index 0)
-                                                                 ,(table-character-index row-heights column-widths ?row-index ?column-index cell-character-length))))))))
-         (output (make-text/text elements :selection output-selection)))
+                                `((the text/text (text/subbox (the text/text document)
+                                                              ,(table-character-index row-heights column-widths ?row-index ?column-index 0)
+                                                              ,(table-character-index row-heights column-widths ?row-index ?column-index cell-character-length))))))))
+         (output (text/make-text elements :selection output-selection)))
     (make-iomap 'iomap/table/table->text
                 :projection projection :recursion recursion
                 :input input :output output

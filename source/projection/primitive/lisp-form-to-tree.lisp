@@ -95,7 +95,7 @@
   (bind ((content (content-of input))
          ;; TODO:
          (output (make-tree/node (list (output-of (recurse-printer recursion content input-reference)))
-                                 #+nil(make-text/string content :font *font/ubuntu/regular/18* :font-color *color/solarized/gray*)
+                                 #+nil(text/make-string content :font *font/ubuntu/regular/18* :font-color *color/solarized/gray*)
                                  :opening-delimiter (text/text () (text/string ";; " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))))
     (make-iomap/object projection recursion input input-reference output)))
 

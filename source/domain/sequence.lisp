@@ -13,15 +13,25 @@
 (def document sequence/sequence (computed-sequence)
   ())
 
+(def document sequence/ll (computed-ll)
+  ())
+
 ;;;;;;
 ;;; Construction
 
 (def function make-sequence/sequence (elements &key selection)
-  (make-instance 'sequence/sequence :elements (map 'vector (lambda (element)
-                                                             (if (hu.dwim.computed-class::computed-state-p element)
-                                                                 element
-                                                                 (as element)))
-                                                   elements)
+  (make-instance 'sequence/sequence
+                 :elements (map 'vector (lambda (element)
+                                          (if (hu.dwim.computed-class::computed-state-p element)
+                                              element
+                                              (as element)))
+                                elements)
+                 :selection selection))
+
+;; TODO: selection
+(def function make-sequence/ll (elements &key selection)
+  (make-instance 'sequence/ll
+                 :elements (ll elements)
                  :selection selection))
 
 ;;;;;;
@@ -131,9 +141,9 @@
                          (sequence (concatenate (form-type old-sequence)
                                                 (subseq old-sequence 0 start) (replacement-of operation) (subseq old-sequence end)))
                          (text/text (bind ((element (last-elt (elements-of old-sequence))))
-                                      (text/concatenate (text/substring* old-sequence 0 start)
-                                                        (make-text/text (list (make-text/string (replacement-of operation) :font (font-of element) :font-color (font-color-of element))))
-                                                        (text/substring* old-sequence end)))))))
+                                      (text/concatenate (text/subseq old-sequence 0 start)
+                                                        (text/make-text (list (text/make-string (replacement-of operation) :font (font-of element) :font-color (font-color-of element))))
+                                                        (text/subseq old-sequence end)))))))
     ;; KLUDGE: somewhat kludgie to keep the original identity of the string
     (cond ((and (arrayp old-sequence) (adjustable-array-p old-sequence))
            (progn
@@ -150,4 +160,4 @@
     ;; KLUDGE: can't do this in a separate operation
     (bind ((character-index (+ start (length (replacement-of operation)))))
       (run-operation (make-operation/replace-selection document `((the ,(form-type new-sequence) (,(if (typep old-sequence 'text/text) 'text/subseq 'subseq) (the ,(form-type old-sequence) document) ,character-index ,character-index))
-                                                                   ,@(rest (reverse reference))))))))
+                                                                  ,@(rest (reverse reference))))))))

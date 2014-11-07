@@ -28,7 +28,7 @@
 ;;; Construction
 
 (def function make-xml/element (name attributes children &key selection)
-  (make-instance 'xml/element :name name :attributes attributes :children children :selection selection))
+  (make-instance 'xml/element :name name :attributes attributes :children (ll children) :selection selection))
 
 (def function make-xml/attribute (name value &key selection)
   (make-instance 'xml/attribute :name name :value value :selection selection))

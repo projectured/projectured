@@ -503,7 +503,7 @@
 (def function make-test-projection/tree->graphics ()
   (sequential
     (make-test-projection/tree->text)
-    (line-numbering)
+;; TODO:    (line-numbering)
     (make-test-projection/text->output)))
 
 ;; TODO: factor
@@ -597,7 +597,7 @@
         (document/base (document->t 'test-factory))
         (xml/base (xml->tree))))
     (make-test-projection/tree->text)
-    (line-numbering)
+    ;; (line-numbering)
     (make-test-projection/text->output)))
 
 ;;;;;;
@@ -929,6 +929,20 @@
 ;;;;;;
 ;;; Demo
 
+(def function make-test-projection/demo->graphics ()
+  (sequential
+    (recursive
+      (type-dispatching
+        (book/base (book->tree))
+        (document/base (document->t 'test-factory))
+        (text/text (preserving))
+        (xml/base (xml->tree))
+        (json/base (json->tree))))
+    (make-test-projection/tree->text)
+    (word-wrapping 1280)
+    (make-test-projection/text->output)))
+
+#+nil
 (def function make-test-projection/demo->graphics ()
   (sequential
     (focusing '(or json/base xml/base book/base) nil)

@@ -60,7 +60,7 @@
                             (bind ((content (get-output-stream-string stream)))
                               (when (or force (not (string= content "")))
                                 (incf output-index)
-                                (list (make-text/string content :font font :font-color font-color :fill-color fill-color :line-color line-color))))))
+                                (list (text/make-string content :font font :font-color font-color :fill-color fill-color :line-color line-color))))))
                      (iter (with font-provider = (font-provider-of projection))
                            (with font-color-provider = (font-color-provider-of projection))
                            (with fill-color-provider = (fill-color-provider-of projection))
@@ -92,7 +92,7 @@
                             (return (if texts
                                         (append texts (next-text #f))
                                         (next-text #t)))))))
-         (output (make-text/text elements)))
+         (output (text/make-text elements)))
     (make-iomap/compound projection recursion input input-reference output
                           (list* (make-iomap/object projection recursion input input-reference output) (nreverse child-iomaps)))))
 

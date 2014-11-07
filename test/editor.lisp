@@ -71,8 +71,8 @@
 (def test test/editor/text (&key wrap (content (make-test-document/text)) (selection (make-test-selection/text/character)))
   (test/editor/read-eval-print-loop wrap content selection (make-test-projection/text->graphics)))
 
-(def test test/editor/text/ll (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/text/ll 1000 500) nil (make-test-projection/text->output)))
+(def test test/editor/text/ll (&key wrap (content (make-test-document/text/ll 1000 500)))
+  (test/editor/read-eval-print-loop wrap content nil (make-test-projection/text->output)))
 
 (def test test/editor/text/pos (&key wrap)
   (test/editor/read-eval-print-loop wrap (make-test-document/text) '((the text/text (text/subseq (the text/text document) 2 2)) (the text/text (content-of (the document document)))) (make-test-projection/text->graphics)))
@@ -81,7 +81,7 @@
   (test/editor/read-eval-print-loop wrap (make-test-document/text) '((the text/text (text/subseq (the text/text document) 2 3)) (the text/text (content-of (the document document)))) (make-test-projection/text->graphics)))
 
 (def test test/editor/text/box (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/text) '((the sequence-box (text/subbox (the text/text document) 5 18))) (make-test-projection/text->graphics)))
+  (test/editor/read-eval-print-loop wrap (make-test-document/text) '((the text/text (text/subbox (the text/text document) 5 18))) (make-test-projection/text->graphics)))
 
 (def test test/editor/widget (&key wrap)
   (test/editor/read-eval-print-loop wrap (make-test-document/widget/menu) nil (make-test-projection/widget->graphics)))
@@ -99,7 +99,7 @@
   (test/editor/read-eval-print-loop wrap content (make-test-selection/tree/character) (make-test-projection/tree->graphics)))
 
 (def test test/editor/tree/ll (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/tree/ll 10 5 2) nil (make-test-projection/tree->graphics)))
+  (test/editor/read-eval-print-loop wrap (make-test-document/tree/ll 200 100 3) nil (make-test-projection/tree->graphics)))
 
 (def test test/editor/tree/leaf (&key wrap)
   (test/editor/read-eval-print-loop wrap (make-test-document/tree/leaf) nil (make-test-projection/tree->graphics)))
@@ -133,6 +133,9 @@
 
 (def test test/editor/xml/empty (&key wrap)
   (test/editor/read-eval-print-loop wrap (make-test-document/xml/empty) nil (make-test-projection/xml->graphics)))
+
+(def test test/editor/xml/ll (&key wrap (content (make-test-document/xml/ll 200 100 3)))
+  (test/editor/read-eval-print-loop wrap content nil (make-test-projection/xml->graphics)))
 
 (def test test/editor/json (&key wrap (content (make-test-document/json)) (selection (make-test-selection/json/character-position)))
   (test/editor/read-eval-print-loop wrap content selection (make-test-projection/json->graphics)))

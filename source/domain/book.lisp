@@ -35,10 +35,10 @@
 ;;; Construction
 
 (def function make-book/book (elements &key (title "") authors selection)
-  (make-instance 'book/book :title title :authors authors :elements (make-sequence/sequence elements) :selection selection))
+  (make-instance 'book/book :title title :authors authors :elements (ll elements) :selection selection))
 
 (def function make-book/chapter (elements &key (title "") (expanded #t) selection)
-  (make-instance 'book/chapter :title title :expanded expanded :elements (make-sequence/sequence elements) :selection selection))
+  (make-instance 'book/chapter :title title :expanded expanded :elements (ll elements) :selection selection))
 
 (def function make-book/paragraph (content &key (alignment :left) selection)
   (make-instance 'book/paragraph :content content :alignment alignment :selection selection))

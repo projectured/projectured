@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; Projection API
 
-(def (definer e :available-flags "e") projection (name supers slots &rest options)
+(def (definer :available-flags "e") projection (name supers slots &rest options)
   (bind ((supers (if (or (eq name 'projection) (member 'projection supers))
                      supers
                      (append supers '(projection)))))

@@ -22,7 +22,8 @@
                 :components ((:file "package")
                              (:module "util"
                               :depends-on ("package")
-                              :components ((:file "util")))
+                              :components ((:file "util")
+                                           (:file "ll" :depends-on ("util"))))
                              (:module "device"
                               :depends-on ("util")
                               :components ((:file "display")
@@ -131,6 +132,7 @@
                                                          (:file "t-to-tree")
                                                          (:file "table-to-text")
                                                          (:file "text-to-graphics")
+                                                         (:file "text-to-text")
                                                          (:file "line-numbering")
                                                          (:file "test-to-common-lisp")
                                                          (:file "test-to-tree")

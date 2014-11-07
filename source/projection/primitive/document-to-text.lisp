@@ -10,7 +10,7 @@
 ;;; IO map
 
 (def iomap iomap/document/search->tree/node ()
-  ((result :type sequnce)))
+  ((result :type sequence)))
 
 ;;;;;;
 ;;; Projection

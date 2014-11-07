@@ -28,7 +28,7 @@
 ;;; Printer
 
 (def printer command->text (projection recursion input input-reference)
-  (bind ((output (make-text/text (make-command-help-text input))))
+  (bind ((output (text/make-text (make-command-help-text input))))
     (make-iomap/object projection recursion input input-reference output)))
 
 ;;;;;;

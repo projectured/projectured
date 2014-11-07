@@ -48,7 +48,7 @@
          (child-iomaps/string nil)
          (elements (prog1-bind elements nil
                      (labels ((write-character (character &optional (count 1))
-                                (push (make-text/string (make-string count :element-type 'character :initial-element character) :font *font/default* :font-color *color/solarized/gray*) elements))
+                                (push (text/make-text (make-string count :element-type 'character :initial-element character) :font *font/default* :font-color *color/solarized/gray*) elements))
                               (write-element (element)
                                 (push element elements))
                               (write-elements (text)
@@ -78,7 +78,7 @@
                                      (foreach #'write-element (elements-of line)))))
                        (when closing-delimiter
                          (write-elements closing-delimiter)))))
-         (output (make-text/text (nreverse elements))))
+         (output (text/make-text (nreverse elements))))
     (make-iomap/compound projection recursion input input-reference output
                          (append (list (make-iomap/object projection recursion input input-reference output))
                                  (nreverse child-iomaps/object)

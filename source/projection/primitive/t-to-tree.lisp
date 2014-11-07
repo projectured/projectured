@@ -137,7 +137,7 @@
                                               (for slot-iomap :in slot-iomaps)
                                               (collect (tree/leaf (:selection (butlast output-selection 2) :indentation 1)
                                                          (text/text (:selection (butlast output-selection 3))
-                                                           (make-text/string (symbol-name (slot-definition-name slot)) :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/blue*))))
+                                                           (text/make-string (symbol-name (slot-definition-name slot)) :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/blue*))))
                                               (when (slot-boundp-using-class class input slot)
                                                 (bind ((slot-iomap-output (output-of slot-iomap)))
                                                   (if (typep slot-iomap-output 'tree/base)

@@ -104,7 +104,7 @@
                 (warn "Unknown reference part ~A" input)
                 (list (text/string "Unknown reference part: " :font *font/default* :font-color *color/black*)
                       (text/string (write-to-string input) :font *font/default* :font-color *color/solarized/blue*))))))
-    (bind ((output (make-text/text (recurse input))))
+    (bind ((output (text/make-text (recurse input))))
       (make-iomap/object projection recursion input input-reference output))))
 
 ;;;;;;

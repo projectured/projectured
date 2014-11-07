@@ -49,6 +49,7 @@
 ;;;;;;
 ;;; Printer
 
+#+nil
 (def printer book/book->tree/node (projection recursion input input-reference)
   (bind ((element-iomaps (as (iter (for index :from 0)
                                    (for element :in-sequence (elements-of input))
@@ -127,6 +128,40 @@
                 :input input :output output
                 :element-iomaps element-iomaps)))
 
+(def printer book/book->tree/node (projection recursion input input-reference)
+  (bind ((authors (authors-of input))
+         (output (make-tree/node (as (append-ll (ll (list (ll (append (list (bind ((title (title-of input)))
+                                                                              (tree/leaf ()
+                                                                                (text/text ()
+                                                                                  (if (string= title "")
+                                                                                      (text/string "enter book title" :font *font/liberation/serif/bold/36* :font-color (color/lighten *color/solarized/red* 0.75))
+                                                                                      (text/string title :font *font/liberation/serif/bold/36* :font-color *color/solarized/red*))))))
+                                                                      (when authors
+                                                                        (list (make-tree/node (as (iter (for index :from 0)
+                                                                                                        (for author :in-sequence authors)
+                                                                                                        (for x = (tree/leaf ()
+                                                                                                                   (text/text ()
+                                                                                                                     (text/string author :font *font/liberation/serif/italic/14* :font-color *color/solarized/content/darker*))))
+                                                                                                        (collect x)))
+                                                                                              :opening-delimiter (text/text () (text/string "Written by " :font *font/liberation/serif/italic/14* :font-color *color/solarized/content/darker*))
+                                                                                              :separator (text/text () (text/string ", " :font *font/liberation/serif/italic/14* :font-color *color/solarized/content/darker*))
+                                                                                              :indentation 0)))))
+                                                          (labels ((print-element (element)
+                                                                     (bind ((element-iomap (recurse-printer recursion (value-of element) nil))
+                                                                            (element-output (output-of element-iomap)))
+                                                                       (setf (indentation-of element-output) 0)
+                                                                       (make-computed-ll (as element-output)
+                                                                                         (as (awhen (previous-element-of element)
+                                                                                               (print-element it)))
+                                                                                         (as (awhen (next-element-of element)
+                                                                                               (print-element it)))))))
+                                                            (print-element (elements-of input))))))))))
+    (make-iomap 'iomap/book/book->tree/node
+                :projection projection :recursion recursion
+                :input input :output output
+                :element-iomaps nil)))
+
+#+nil
 (def printer book/chapter->tree/node (projection recursion input input-reference)
   (bind ((element-iomaps (when (expanded-p input)
                            (iter (for index :from 0)
@@ -207,6 +242,60 @@
                 :projection projection :recursion recursion
                 :input input :output output
                 :element-iomaps element-iomaps
+                :numbering numbering)))
+
+(def printer book/chapter->tree/node (projection recursion input input-reference)
+  (bind ((numbering (pattern-case input-reference
+                      (((elt (the sequence document) ?chapter-element-index)
+                        (the sequence (elements-of (the book/chapter document)))
+                        (the book/chapter (elt (the sequence document) ?book-element-index))
+                        (the sequence (elements-of (the book/book document)))
+                        . ?rest)
+                       (string+ (write-to-string (1+ ?book-element-index)) "." (write-to-string (1+ ?chapter-element-index))))
+                      (((elt (the sequence document) ?index)
+                        (the sequence (elements-of (the book/book document)))
+                        . ?rest)
+                       (write-to-string (1+ ?index)))
+                      ;; KLUDGE: these handle the case when focusing
+                      (((elt (the sequence document) ?chapter-element-index-1)
+                        (the sequence (elements-of (the book/chapter document)))
+                        (the book/chapter (elt (the sequence document) ?chapter-element-index-2))
+                        (the sequence (elements-of (the book/chapter document)))
+                        . ?rest)
+                       (string+ "1." (write-to-string (1+ ?chapter-element-index-2)) "." (write-to-string (1+ ?chapter-element-index-1))))
+                      (((elt (the sequence document) ?index)
+                        (the sequence (elements-of (the book/chapter document)))
+                        . ?rest)
+                       (string+ "1." (write-to-string (1+ ?index))))
+                      (?a "1")))
+         (title-font (pattern-case input-reference
+                       (((elt (the sequence document) ?index)
+                         (the sequence (elements-of (the book/chapter document)))
+                         . ?rest)
+                        *font/liberation/serif/regular/24*)
+                       (?
+                        *font/liberation/serif/bold/30*)))
+         (output (make-tree/node (as (append-ll (ll (list (ll (list (bind ((title (title-of input)))
+                                                                      (tree/leaf ()
+                                                                        (text/text ()
+                                                                          (if (string= title "")
+                                                                              (text/string (string+ numbering " " "enter chapter title") :font title-font :font-color (color/lighten *color/solarized/blue* 0.75))
+                                                                              (text/string (string+ numbering " " (title-of input)) :font title-font :font-color *color/solarized/blue*)))))))
+                                                          (labels ((print-element (element)
+                                                                     (bind ((element-iomap (recurse-printer recursion (value-of element) nil))
+                                                                            (element-output (output-of element-iomap)))
+                                                                       (setf (indentation-of element-output) 0)
+                                                                       (make-computed-ll (as element-output)
+                                                                                         (as (awhen (previous-element-of element)
+                                                                                               (print-element it)))
+                                                                                         (as (awhen (next-element-of element)
+                                                                                               (print-element it)))))))
+                                                            (print-element (elements-of input)))))))
+                                 :expanded (expanded-p input))))
+    (make-iomap 'iomap/book/chapter->tree/node
+                :projection projection :recursion recursion
+                :input input :output output
+                :element-iomaps nil
                 :numbering numbering)))
 
 (def printer book/paragraph->tree/leaf (projection recursion input input-reference)

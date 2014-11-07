@@ -16,4 +16,5 @@
                              (:file "projection" :depends-on ("document"))
                              (:file "editor" :depends-on ("projection"))
                              (:file "selection" :depends-on ("package"))
-                             (:file "suite" :depends-on ("package"))))))
+                             (:file "suite" :depends-on ("package"))
+                             (:file "text" :depends-on ("suite"))))))

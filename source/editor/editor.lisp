@@ -51,7 +51,9 @@
                    (print-to-devices editor document projection)))
                 (*measure-printer*
                  (time
-                  (print-to-devices editor document projection)))
+                  (print (nth-value 1
+                                    (with-profiling-computation 'projectured
+                                      (print-to-devices editor document projection))))))
                 (t
                  (print-to-devices editor document projection)))
           (funcall (read-from-devices editor document projection)))))

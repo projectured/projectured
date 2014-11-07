@@ -224,7 +224,7 @@
        (with-input-from-file (input filename :element-type 'character)
          (xml/load-document input)))
       ("txt"
-       (make-text/text (list (make-text/string (read-file-into-string filename) :font *font/default* :font-color *color/default*)))))))
+       (text/make-text (list (text/make-string (read-file-into-string filename) :font *font/default* :font-color *color/default*)))))))
 
 (def function serialize-document (filename document)
   (bind ((extension (pathname-type filename)))

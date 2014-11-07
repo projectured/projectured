@@ -115,6 +115,7 @@
                              (text/string attribute-value :font *font/ubuntu/monospace/regular/18* :font-color attribute-value-color))))))))
     (make-iomap/object projection recursion input input-reference output)))
 
+#+nil
 (def printer xml/element->tree/node (projection recursion input input-reference)
   (bind ((deep-element (find-if (of-type 'xml/element) (children-of input)))
          (attribute-iomaps (iter (for attribute :in-sequence (attributes-of input))
@@ -211,6 +212,59 @@
                 :input input :output output
                 :attribute-iomaps attribute-iomaps
                 :child-iomaps child-iomaps)))
+
+(def printer xml/element->tree/node (projection recursion input input-reference)
+  (bind ((deep-element (find-if (of-type 'xml/element) (children-of input)))
+         (attribute-iomaps (iter (for attribute :in-sequence (attributes-of input))
+                                 (for attribute-index :from 0)
+                                 (collect (recurse-printer recursion attribute
+                                                           `((elt (the sequence document) ,attribute-index)
+                                                             (the sequence (attributes-of document))
+                                                             ,@(typed-reference (form-type input) input-reference))))))
+         (children (children-of input))
+         (output (as (bind ((input-name (name-of input))
+                            (element-name (if (zerop (length input-name))
+                                              "enter xml element name"
+                                              input-name))
+                            (element-name-color (if (zerop (length input-name))
+                                                    (color/lighten *color/solarized/blue* 0.75)
+                                                    *color/solarized/blue*)))
+                       (make-tree/node (append-ll (ll (append (list (ll (list (tree/leaf (:opening-delimiter (text/text () (text/string "<" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))
+                                                                                                             :closing-delimiter (unless attribute-iomaps
+                                                                                                                                  (text/text () (text/string (if children ">" "/>") :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))))
+                                                                                (text/text ()
+                                                                                  (text/string element-name :font *font/ubuntu/monospace/regular/18* :font-color element-name-color))))))
+                                                              (when attribute-iomaps
+                                                                (list (ll (list (make-tree/node (mapcar 'output-of attribute-iomaps)
+                                                                                                :opening-delimiter (text/text () (text/string "" :font *font/default* :font-color *color/default*))
+                                                                                                :closing-delimiter (text/text () (text/string (if children ">" "/>") :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))
+                                                                                                :separator (text/text () (text/string " " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))))))
+                                                              (when children
+                                                                (list (append-ll (ll (list (labels ((print-child (child-element)
+                                                                                                      (bind ((child-iomap (recurse-printer recursion (value-of child-element) nil))
+                                                                                                             (child-output (output-of child-iomap)))
+                                                                                                        (when deep-element
+                                                                                                          (setf (indentation-of child-output) 2))
+                                                                                                        (make-computed-ll (as child-output)
+                                                                                                                          (as (awhen (previous-element-of child-element)
+                                                                                                                                (print-child it)))
+                                                                                                                          (as (awhen (next-element-of child-element)
+                                                                                                                                (print-child it)))))))
+                                                                                             (print-child children))
+                                                                                           (ll (list (tree/leaf (:indentation (if deep-element 0 nil)
+                                                                                                                              :opening-delimiter (text/text () (text/string "</" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))
+                                                                                                                              :closing-delimiter (text/text () (text/string ">" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))
+                                                                                                       (text/text ()
+                                                                                                         (text/string element-name :font *font/ubuntu/monospace/regular/18* :font-color element-name-color)))))))))))
+                                                      (+ (if children 1 0) (if attribute-iomaps 1 0))))
+                                       :opening-delimiter (text/text () (text/string "" :font *font/default* :font-color *color/default*))
+                                       :closing-delimiter (text/text () (text/string "" :font *font/default* :font-color *color/default*))
+                                       :separator (text/text () (text/string " " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))))))
+    (make-iomap 'iomap/xml/element->tree/node
+                :projection projection :recursion recursion
+                :input input :output output
+                :attribute-iomaps nil
+                :child-iomaps nil)))
 
 ;;;;;;
 ;;; Reader
