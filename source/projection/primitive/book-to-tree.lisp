@@ -336,8 +336,8 @@
                              *color/solarized/gray*))
          (output-selection (as (unless file-exists?
                                  (pattern-case (reverse (selection-of input))
-                                   (((the image/image (content-of (the book/picture document)))
-                                     (the string (filename-of (the image/image document)))
+                                   (((the image/file (content-of (the book/picture document)))
+                                     (the string (filename-of (the image/file document)))
                                      (the string (subseq (the string document) ?start-character-index ?end-character-index)))
                                     `((the text/text (text/subseq (the text/text document) ,?start-character-index ,?end-character-index))
                                       (the text/text (content-of (the tree/leaf document)))))
@@ -750,8 +750,8 @@
                                                   (((the text/text (content-of (the tree/leaf document)))
                                                     (the text/text (text/subseq (the text/text document) ?start-character-index ?end-character-index)))
                                                    `((the string (subseq (the string document) ,?start-character-index ,?end-character-index))
-                                                     (the string (filename-of (the image/image document)))
-                                                     (the image/image (content-of (the book/picture document)))))
+                                                     (the string (filename-of (the image/file document)))
+                                                     (the image/file (content-of (the book/picture document)))))
                                                   (?a
                                                    (append (selection-of operation) `((the tree/leaf (printer-output (the book/picture document) ,projection ,recursion))))))
                                            (make-operation/replace-selection printer-input it)))
@@ -762,11 +762,11 @@
                                                    (if (zerop (length (namestring (filename-of (content-of printer-input)))))
                                                        (when (= ?start-character-index ?end-character-index)
                                                          `((the string (subseq (the string document) 0 0))
-                                                           (the string (filename-of (the image/image document)))
-                                                           (the image/image (content-of (the book/picture document)))))
+                                                           (the string (filename-of (the image/file document)))
+                                                           (the image/file (content-of (the book/picture document)))))
                                                        `((the string (subseq (the string document) ,?start-character-index ,?end-character-index))
-                                                         (the string (filename-of (the image/image document)))
-                                                         (the image/image (content-of (the book/picture document)))))))
+                                                         (the string (filename-of (the image/file document)))
+                                                         (the image/file (content-of (the book/picture document)))))))
                                            (make-operation/sequence/replace-element-range printer-input it (replacement-of operation))))
                                         (operation/show-context-sensitive-help
                                          (make-instance 'operation/show-context-sensitive-help

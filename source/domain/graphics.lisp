@@ -124,7 +124,7 @@
 
 (def document graphics/image (graphics/base)
   ((location :type 2d)
-   (image :type image/image)))
+   (image :type image/file)))
 
 (def document graphics/viewport (graphics/base)
   ((location :type 2d)

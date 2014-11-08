@@ -17,7 +17,7 @@
   (or (call-next-method)
       (setf (raw-of color) (sdl:color :r (red-of color) :g (green-of color) :b (blue-of color) :a (alpha-of color)))))
 
-(def method raw-of :around ((image image/image))
+(def method raw-of :around ((image image/file))
   (or (call-next-method)
       (bind ((filename (filename-of image)))
         (setf (raw-of image) (sdl-image:load-image (if (starts-with #\/ (namestring filename))

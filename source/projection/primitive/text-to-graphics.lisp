@@ -53,7 +53,7 @@
                           (maximize (2d-y (measure-text " " (font-of text-element)))))
                          (text/string
                           (maximize (2d-y (measure-text " " (font-of text-element)))))
-                         (image/image
+                         (image/file
                           (bind ((image (make-graphics/image (make-2d 0 0) text-element))
                                  (size (size-of (make-bounding-rectangle image))))
                             (maximize (2d-y size))))))

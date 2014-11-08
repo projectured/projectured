@@ -241,7 +241,7 @@
                                              (for bounding-rectangle = (make-bounding-rectangle (output-of selector-iomap)))
                                              (maximizing (2d-y (size-of bounding-rectangle)) :into height)
                                              (collect (make-graphics/image (- (+ x (location-of bounding-rectangle) (size-of bounding-rectangle)) (make-2d 0 23))
-                                                                           (image/image () (resource-pathname "image/close.png")))
+                                                                           (image/file () (resource-pathname "image/close.png")))
                                                :into result)
                                              (collect (make-graphics/rectangle (+ (location-of bounding-rectangle) x)
                                                                                (+ (size-of bounding-rectangle) 16)

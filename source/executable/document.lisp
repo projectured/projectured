@@ -30,7 +30,7 @@
          (trace-amounts (make-common-lisp/comment
                          (text/text ()
                            (text/string "This part contains trace amounts of " :font projectured::*font/ubuntu/regular/18* :font-color *color/solarized/gray*)
-                           (image/image () (resource-pathname "image/lisp-flag.jpg")))))
+                           (image/file () (resource-pathname "image/lisp-flag.jpg")))))
          (chart-script (make-javascript/statement/top-level
                         (list (make-javascript/expression/method-invocation
                                (make-javascript/expression/variable-reference "google")
@@ -245,7 +245,7 @@
               (text/string chart-data-path :font *font/ubuntu/italic/18* :font-color *color/solarized/violet*)
               (text/string "' path using JavaScript. For this request the web service returns another document in JSON format that provides the data for the pie chart. For all other unknown requests the web service sends an HTML error page. The following screenshot shows how the pie chart should look like." :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)
               (text/newline)
-              (image/image () (resource-pathname "image/pie.png"))
+              (image/file () (resource-pathname "image/pie.png"))
               (text/newline)
               (text/string "This example uses a compound projection that displays all used domains in their natural notation. Proper indentation and syntax highlight are automatically provided without inserting escape sequences that would make reading harder. Note that the edited document" :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)
               (text/string " is not text" :font projectured::*font/ubuntu/italic/18* :font-color *color/solarized/violet*)

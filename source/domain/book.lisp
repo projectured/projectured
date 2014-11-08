@@ -29,7 +29,7 @@
 (def document book/picture (book/base)
   ((title :type string)
    (alignment :type (member :left :center :right :justified))
-   (content :type image/image)))
+   (content :type image/file)))
 
 ;;;;;;
 ;;; Construction
