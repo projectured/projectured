@@ -31,14 +31,6 @@
       (computed-state-value computed-state)
       computed-state))
 
-(def class* sequence-box ()
-  ((sequence :type sequence)
-   (start :type integer)
-   (end :type integer)))
-
-(def function box (sequence start end)
-  (make-instance 'sequence-box :sequence sequence :start start :end end))
-
 (def function resource-pathname (name)
   (if (probe-file (asdf/component:component-pathname (asdf/system:find-system :projectured)))
       (asdf/system:system-relative-pathname :projectured name)
@@ -54,9 +46,6 @@
     (sequence/sequence 'sequence)
     (t (type-of form))))
 
-(def function boolean-to-string (value)
-  (if value "true" "false"))
-
 (def function object-class-name (object)
   (form-type object)
   #+nil
@@ -68,12 +57,6 @@
 (def function find-slot-reader (class slot)
   (bind ((direct-slot (some (lambda (super) (find-direct-slot super (slot-definition-name slot) :otherwise nil)) (class-precedence-list class))))
     (first (slot-definition-readers direct-slot))))
-
-(def function tree-search (tree element)
-  (or (equal tree element)
-      (when (listp tree)
-        (iter (for tree-element :in tree)
-              (thereis (tree-search tree-element element))))))
 
 (def function tree-replace (tree element replacement)
   (cond ((equal tree element)
@@ -121,16 +104,13 @@
                              (subseq string-2 0 (1+ index)))))
         (finally (return (subseq string-1 0 index)))))
 
-(def class* alternative-function ()
-  ((alternatives :type sequence)
-   (selection :type positive-integer))
-  (:metaclass funcallable-standard-class))
-
-(def function make-alternative-function (alternatives &optional (selection 0))
-  (bind ((instance (make-instance 'alternative-function :alternatives alternatives :selection selection)))
-    (set-funcallable-instance-function instance (lambda (&rest args)
-                                                  (apply (elt (alternatives-of instance) (selection-of instance)) args)))
-    instance))
+(def macro completion-prefix-switch (prefix &body cases)
+  `(switch (,prefix :test 'string=)
+     ,@cases
+     (t (values nil
+                (bind ((matching-prefixes (remove-if-not (curry 'starts-with-subseq ,prefix) (list ,@(mapcar 'first cases))))
+                       (common-prefix (reduce 'longest-common-prefix matching-prefixes :initial-value (first matching-prefixes))))
+                  (subseq common-prefix (min (length common-prefix) (length ,prefix))))))))
 
 (def function deep-copy (instance)
   (labels ((recurse (instance)
@@ -154,11 +134,3 @@
                           (setf (slot-value-using-class class copy slot) (recurse (slot-value-using-class class instance slot)))))
                   copy)))))
     (recurse instance)))
-
-(def macro completion-prefix-switch (prefix &body cases)
-  `(switch (,prefix :test 'string=)
-     ,@cases
-     (t (values nil
-                (bind ((matching-prefixes (remove-if-not (curry 'starts-with-subseq ,prefix) (list ,@(mapcar 'first cases))))
-                       (common-prefix (reduce 'longest-common-prefix matching-prefixes :initial-value (first matching-prefixes))))
-                  (subseq common-prefix (min (length common-prefix) (length ,prefix))))))))
