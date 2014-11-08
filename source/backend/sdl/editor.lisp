@@ -49,17 +49,6 @@
       (call-next-method)
       (sdl:update-display))))
 
-(def method print-to-device :around (instance (display device/file/sdl))
-  (if sdl:*default-surface*
-      (call-next-method)
-      (bind ((size (size-of (make-bounding-rectangle instance)))
-             (surface (sdl:create-surface (2d-x size) (2d-y size))))
-        (setf (surface-of display) surface)
-        (sdl:with-surface (surface)
-          (sdl:fill-surface sdl:*white*)
-          (call-next-method)
-          (sdl:save-image surface (filename-of display))))))
-
 ;; KLUDGE: what shall we dispatch on here? this is obviously wrong...
 (def method read-event ((devices sequence))
   (bind ((sdl:*sdl-event* (sdl:new-event)))

@@ -22,7 +22,7 @@
                                                          (:file "entry-point" :depends-on ("device"))
                                                          (:file "graphics")
                                                          (:file "package")
-                                                         (:file "projection" :depends-on ("device"))
+                                                         (:file "printer" :depends-on ("device"))
                                                          (:file "server" :depends-on ("package"))))))))))
 
 (defmethod perform :after ((o hu.dwim.asdf:develop-op) (c (eql (find-system :projectured.web))))

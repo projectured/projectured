@@ -11,6 +11,17 @@
 
 (def special-variable *translation* (make-2d 0 0))
 
+(def method print-to-device :around (instance (display device/file/sdl))
+  (if sdl:*default-surface*
+      (call-next-method)
+      (bind ((size (size-of (make-bounding-rectangle instance)))
+             (surface (sdl:create-surface (2d-x size) (2d-y size))))
+        (setf (surface-of display) surface)
+        (sdl:with-surface (surface)
+          (sdl:fill-surface sdl:*white*)
+          (call-next-method)
+          (sdl:save-image surface (filename-of display))))))
+
 (def method print-to-device ((instance graphics/canvas) (display device/sdl))
   (bind ((*translation* (+ *translation* (location-of instance)))
          (elements (elements-of instance)))

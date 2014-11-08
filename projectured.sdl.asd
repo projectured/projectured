@@ -19,4 +19,4 @@
                                             :components ((:file "device")
                                                          (:file "editor" :depends-on ("device"))
                                                          (:file "graphics")
-                                                         (:file "projection" :depends-on ("device"))))))))))
+                                                         (:file "printer" :depends-on ("device"))))))))))
