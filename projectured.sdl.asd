@@ -14,8 +14,9 @@
                :lispbuilder-sdl-ttf
                :projectured)
   :components ((:module "source"
-                :components ((:module "sdl"
-                              :components ((:file "device")
-                                           (:file "editor" :depends-on ("device"))
-                                           (:file "graphics")
-                                           (:file "projection" :depends-on ("device"))))))))
+                :components ((:module "backend"
+                              :components ((:module "sdl"
+                                            :components ((:file "device")
+                                                         (:file "editor" :depends-on ("device"))
+                                                         (:file "graphics")
+                                                         (:file "projection" :depends-on ("device"))))))))))

@@ -15,14 +15,15 @@
                :lispbuilder-sdl-ttf
                :projectured)
   :components ((:module "source"
-                :components ((:module "web"
-                              :components ((:file "device" :depends-on ("server"))
-                                           (:file "editor" :depends-on ("package"))
-                                           (:file "entry-point" :depends-on ("device"))
-                                           (:file "graphics")
-                                           (:file "package")
-                                           (:file "projection" :depends-on ("device"))
-                                           (:file "server" :depends-on ("package"))))))))
+                :components ((:module "backend"
+                              :components ((:module "web"
+                                            :components ((:file "device" :depends-on ("server"))
+                                                         (:file "editor" :depends-on ("package"))
+                                                         (:file "entry-point" :depends-on ("device"))
+                                                         (:file "graphics")
+                                                         (:file "package")
+                                                         (:file "projection" :depends-on ("device"))
+                                                         (:file "server" :depends-on ("package"))))))))))
 
 (defmethod perform :after ((o hu.dwim.asdf:develop-op) (c (eql (find-system :projectured.web))))
   (eval (let ((*package* (find-package :projectured)))

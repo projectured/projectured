@@ -12,8 +12,9 @@
   :depends-on (:projectured
                :swank)
   :components ((:module "source"
-                :components ((:module "slime"
-                              :components ((:file "device")
-                                           (:file "editor")
-                                           (:file "graphics")
-                                           (:file "projection" :depends-on ("device"))))))))
+                :components ((:module "backend"
+                              :components ((:module "slime"
+                                            :components ((:file "device")
+                                                         (:file "editor")
+                                                         (:file "graphics")
+                                                         (:file "projection" :depends-on ("device"))))))))))
