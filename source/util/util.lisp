@@ -154,3 +154,11 @@
                           (setf (slot-value-using-class class copy slot) (recurse (slot-value-using-class class instance slot)))))
                   copy)))))
     (recurse instance)))
+
+(def macro completion-prefix-switch (prefix &body cases)
+  `(switch (,prefix :test 'string=)
+     ,@cases
+     (t (values nil
+                (bind ((matching-prefixes (remove-if-not (curry 'starts-with-subseq ,prefix) (list ,@(mapcar 'first cases))))
+                       (common-prefix (reduce 'longest-common-prefix matching-prefixes :initial-value (first matching-prefixes))))
+                  (subseq common-prefix (min (length common-prefix) (length ,prefix))))))))

@@ -55,6 +55,7 @@
                               :components ((:file "book")
                                            (:file "boolean")
                                            (:file "css")
+                                           (:file "document")
                                            (:file "evaluator")
                                            (:file "file-system")
                                            (:file "graph")
