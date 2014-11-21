@@ -46,7 +46,7 @@
 ;;; Printer
 
 (def printer focusing (projection recursion input input-reference)
-  (bind ((output (funcall (part-evaluator-of projection) input)))
+  (bind ((output (as (funcall (part-evaluator-of projection) input))))
     (make-iomap/object projection recursion input input-reference output)))
 
 ;;;;;;

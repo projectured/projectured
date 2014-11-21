@@ -22,6 +22,10 @@
        (run-read-evaluate-print-loop editor
                                      (make-test-document/plain (make-test-document/document document))
                                      (make-test-projection/plain (make-test-projection/document projection))))
+      (:search
+       (run-read-evaluate-print-loop editor
+                                     (make-test-document/search document)
+                                     (make-test-projection/search projection)))
       (:document
        (run-read-evaluate-print-loop editor
                                      (make-test-document/document document)
@@ -73,6 +77,16 @@
 
 (def test test/editor/text/ll (&key wrap (content (make-test-document/text/ll 1000 500)))
   (test/editor/read-eval-print-loop wrap content nil (make-test-projection/text->output)))
+
+(def test test/editor/text/searching/ll (&key wrap (content (document/search (:selection '((the text/text (text/subseq (the text/text document) 0 0))
+                                                                                           (the text/text (content-of (the document/search document))))
+                                                                                         :search "0")
+                                                              (make-test-document/text/ll 1000 500))))
+  (test/editor/read-eval-print-loop wrap content nil (sequential
+                                                       (nesting
+                                                         (document/search->text/text)
+                                                         (preserving))
+                                                       (make-test-projection/text->output))))
 
 (def test test/editor/text/pos (&key wrap)
   (test/editor/read-eval-print-loop wrap (make-test-document/text) '((the text/text (text/subseq (the text/text document) 2 2)) (the text/text (content-of (the document document)))) (make-test-projection/text->graphics)))
@@ -220,3 +234,6 @@
 
 (def test test/editor/documentation (&key wrap (content (make-test-document/documentation)))
   (test/editor/read-eval-print-loop wrap content nil (make-test-projection/documentation->graphics)))
+
+(def test test/editor/workbench (&key wrap (content (make-test-document/workbench)))
+  (test/editor/read-eval-print-loop wrap content nil (make-test-projection/workbench->graphics)))

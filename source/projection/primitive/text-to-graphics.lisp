@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; IO map
 
-(def iomap iomap/text->graphics/line ()
+(def iomap iomap/text/text->graphics/canvas/line ()
   ((line-start-character-index :type integer)
    (line-end-character-index :type integer)
    (first-character-indices :type sequence)
@@ -17,32 +17,32 @@
    (graphics-element-indices :type sequence)
    (line-y :type number)))
 
-(def iomap iomap/text->graphics/text ()
+(def iomap iomap/text/text->graphics/canvas/text ()
   ((line-iomaps :type sequence)))
 
 ;;;;;;
 ;;; Projection
 
-;; TODO: rename text/text->graphics/canvas
-(def projection text->graphics ()
+;; TODO: rename text/text/text->graphics/canvas/canvas
+(def projection text/text->graphics/canvas ()
   ())
 
 ;;;;;;
 ;;; Construction
 
-(def function make-projection/text->graphics ()
-  (make-projection 'text->graphics))
+(def function make-projection/text/text->graphics/canvas ()
+  (make-projection 'text/text->graphics/canvas))
 
 ;;;;;;
 ;;; Construction
 
-(def macro text->graphics ()
-  `(make-projection/text->graphics))
+(def macro text/text->graphics/canvas ()
+  `(make-projection/text/text->graphics/canvas))
 
 ;;;;;;
 ;;; Printer
 
-(def printer text->graphics (projection recursion input input-reference)
+(def printer text/text->graphics/canvas (projection recursion input input-reference)
   (labels ((line-height (line-start-position line-end-position)
              (or (iter (for position :initially line-start-position :then (text/next-position input position))
                        (until (text/position= position line-end-position))
@@ -149,7 +149,7 @@
                                                (push character-index last-character-indices)
                                                (collect text)
                                                (incf x (2d-x size))))))
-               (make-iomap 'iomap/text->graphics/line
+               (make-iomap 'iomap/text/text->graphics/canvas/line
                            :projection projection :recursion recursion
                            :input input :output (make-graphics/canvas graphics-elements (make-2d 0 line-y))
                            :line-start-character-index line-start-character-index :line-end-character-index line-end-character-index
@@ -175,7 +175,7 @@
            (output (as (make-graphics/canvas (list (make-graphics/canvas (as (map-ll (va line-iomaps) 'output-of)) (make-2d 0 0))
                                                    (make-graphics/canvas (as (print-selection (va line-iomaps))) (make-2d 0 0)))
                                              (make-2d 0 0)))))
-      (make-iomap 'iomap/text->graphics/text
+      (make-iomap 'iomap/text/text->graphics/canvas/text
                   :projection projection :recursion recursion
                   :input input :input-reference input-reference :output output
                   :line-iomaps line-iomaps))))
@@ -183,7 +183,7 @@
 ;;;;;;
 ;;; Reader
 
-(def function text->graphics/read-backward (command printer-iomap)
+(def function text/text->graphics/canvas/read-backward (command printer-iomap)
   (bind ((operation (operation-of command)))
     (awhen (typecase operation
              (operation/replace-selection
@@ -192,8 +192,17 @@
                   (the string (text-of (the graphics/text document)))
                   (the graphics/text (elt (the sequence document) ?graphics-element-index))
                   (the sequence (elements-of (the graphics/canvas document)))
+                  (the graphics/canvas (elt (the sequence document) ?graphics-line-canvas-lindex))
+                  (the sequence (elements-of (the graphics/canvas document)))
                   . ?rest)
-                 (bind ((character-index (+ ?graphics-start-character-index (elt (first-character-indices-of printer-iomap) (position ?graphics-element-index (graphics-element-indices-of printer-iomap))))))
+                 (bind ((character-index (iter (with line-iomaps = (line-iomaps-of printer-iomap))
+                                               (for line-iomap-element :initially line-iomaps :then (if (< ?graphics-element-index (first-elt (graphics-element-indices-of (value-of line-iomaps))))
+                                                                                                        (previous-element-of line-iomap-element)
+                                                                                                        (next-element-of line-iomap-element)))
+                                               (for line-iomap = (value-of line-iomap-element))
+                                               (for position = (position ?graphics-element-index (graphics-element-indices-of line-iomap)))
+                                               (when position
+                                                 (return (+ ?graphics-start-character-index (line-start-character-index-of line-iomap) (elt (first-character-indices-of line-iomap) position)))))))
                    (make-operation/replace-selection (input-of printer-iomap) `((the text/text (text/subseq (the text/text document) ,character-index ,character-index))))))))
              (operation/describe
               (pattern-case (target-of operation)
@@ -210,11 +219,11 @@
                     :domain (domain-of command)
                     :description (description-of command)))))
 
-(def reader text->graphics (projection recursion input printer-iomap)
+(def reader text/text->graphics/canvas (projection recursion input printer-iomap)
   (declare (ignore projection recursion))
   (bind ((printer-input (input-of printer-iomap))
          (text-command (text/read-operation printer-input (gesture-of input)))
          (document-command (document/read-operation (gesture-of input)))
          (graphics-command (awhen (graphics/read-operation (output-of printer-iomap) (gesture-of input))
-                             (text->graphics/read-backward it printer-iomap))))
+                             (text/text->graphics/canvas/read-backward it printer-iomap))))
     (merge-commands text-command document-command graphics-command input)))

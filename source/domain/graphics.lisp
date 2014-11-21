@@ -96,7 +96,8 @@
    (fill-color :type style/color)))
 
 (def document graphics/rounded-rectangle (graphics/rectangle)
-  ((radius :type number)))
+  ((radius :type number)
+   (corners :type list)))
 
 (def document graphics/polygon (graphics/base)
   ((points :type sequence)
@@ -147,8 +148,8 @@
 (def function make-graphics/rectangle (location size &key stroke-color fill-color)
   (make-instance 'graphics/rectangle :location location :size size :stroke-color stroke-color :fill-color fill-color))
 
-(def function make-graphics/rounded-rectangle (location size radius &key stroke-color fill-color)
-  (make-instance 'graphics/rounded-rectangle :location location :size size :radius radius :stroke-color stroke-color :fill-color fill-color))
+(def function make-graphics/rounded-rectangle (location size radius &key corners stroke-color fill-color)
+  (make-instance 'graphics/rounded-rectangle :location location :size size :radius radius :corners corners :stroke-color stroke-color :fill-color fill-color))
 
 (def function make-graphics/polygon (points &key stroke-color fill-color)
   (make-instance 'graphics/polygon :points points :stroke-color stroke-color :fill-color fill-color))
@@ -295,9 +296,9 @@
     (not-yet-implemented)))
 
 (def methods make-reference
-  (:method :around ((instance graphics/base) location reference)
-    (when (rectangle-contains-point? (make-bounding-rectangle instance) location)
-      (call-next-method)))
+    (:method :around ((instance graphics/base) location reference)
+             (when (rectangle-contains-point? (make-bounding-rectangle instance) location)
+               (call-next-method)))
 
   (:method ((instance graphics/point) location reference)
     nil)
@@ -339,7 +340,7 @@
 
   (:method ((instance graphics/canvas) location reference)
     (iter (for index :from 0)
-          (for element :in (elements-of instance))
+          (for element :in-sequence (elements-of instance))
           (thereis (make-reference element (- location (location-of instance))
                                    `((elt (the sequence document) ,index)
                                      (the sequence (elements-of (the graphics/canvas document)))

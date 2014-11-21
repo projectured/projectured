@@ -19,9 +19,24 @@
     content))
 
 (def function make-test-document/plain (content)
-  (widget/shell ()
+  (widget/shell (:size (make-2d 1280 720))
     (widget/scroll-pane (:location (make-2d 0 0) :size (make-2d 1280 720) :margin (make-inset :all 5))
       content)))
+
+(def function make-test-document/search (content)
+  (bind ((document
+          (document/search ()
+            content)))
+    (widget/shell ()
+      (widget/composite (:location (make-2d 0 0))
+        (widget/scroll-pane (:location (make-2d 0 30) :size (make-2d 1280 690) :margin (make-inset :all 5))
+          document)
+        (widget/composite (:location (make-2d 0 0))
+          (widget/label (:location (make-2d 0 0) :margin (make-inset :all 5))
+            (text/text ()
+              (text/string "Search: " :font *font/ubuntu/regular/24*)))
+          (widget/composite (:location (make-2d 100 0))
+            document))))))
 
 (def function make-test-document/selection (content)
   (widget/split-pane ()
@@ -135,9 +150,7 @@
                                           (collect (make-graphics/canvas (list (make-graphics/text (make-2d 0 0) "Hello " :font *font/default* :font-color *color/default* :fill-color nil)
                                                                                (make-graphics/text (make-2d 100 0) "World " :font *font/default* :font-color *color/default* :fill-color nil)
                                                                                (make-graphics/text (make-2d 200 0) (write-to-string i) :font *font/default* :font-color *color/default* :fill-color nil))
-                                                                         (make-2d 0 (cond ((< i origin-index) -20)
-                                                                                          ((> i origin-index) 20)
-                                                                                          (t 0)))))))
+                                                                         (make-2d 0 (* (- i origin-index) 20))))))
                                 origin-index)
                         (make-2d 0 0)))
 
@@ -156,7 +169,7 @@
 (def function make-test-document/text ()
   (text/text ()
     (text/string "Hello" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/red*)
-    (text/spacing 10 :unit :space)
+    ;;(text/spacing 10 :unit :space)
     ;;(image/file () (resource-pathname "image/lisp-flag.jpg"))
     (text/string "World" :font *font/ubuntu/monospace/bold/18* :font-color *color/solarized/green*)
     (text/newline)
@@ -173,7 +186,7 @@
                                     (appending (list (text/string "Hello " :font *font/liberation/serif/regular/18* :font-color *color/solarized/blue*)
                                                      (text/string "World " :font-color *color/black*)
                                                      (text/string (write-to-string i) :font *font/ubuntu/regular/18* :font-color *color/solarized/red*)
-                                                     (text/string (string+ " " (make-string (mod i 10) :initial-element #\*)) :font *font/ubuntu/regular/18* :font-color *color/solarized/gray*)))))
+                                                     (text/string (string+ " " (make-string (1+ (mod i 10)) :initial-element #\*)) :font *font/ubuntu/regular/18* :font-color *color/solarized/gray*)))))
                           (* origin-index 4))
                   :selection '((the text/text (text/subseq (the text/text document) 0 0)))))
 
@@ -1173,6 +1186,26 @@
             (text/text ()
               (text/string "This projection allows selecting arbitrary document parts based on arbitrary criteria and editing the result." :font *font/ubuntu/regular/18* :font-color *color/solarized/content/darker*)))
           json-document)))))
+
+;;;;;;
+;;; Workbench
+
+(def function make-test-document/workbench ()
+  (workbench/workbench ()
+    (workbench/navigator ()
+      (make-file-system/pathname (resource-pathname "example/")))
+    (workbench/editor ()
+      #+nil
+      (workbench/document (:title "JSON")
+        (make-test-document/json))
+      (workbench/document (:title "Text")
+        (make-test-document/text))
+      (workbench/document (:title "Book")
+        (make-test-document/book))
+      (workbench/document (:title "XML")
+        (make-test-document/xml))
+      (workbench/document (:title "JSON")
+        (make-test-document/json)))))
 
 ;;;;;;
 ;;; Test

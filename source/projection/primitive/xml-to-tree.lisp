@@ -101,9 +101,7 @@
                             (attribute-value-color (if (zerop (length input-value))
                                                        (color/lighten *color/solarized/green* 0.75)
                                                        *color/solarized/green*)))
-                       (tree/node (:opening-delimiter (text/text () (text/string "" :font *font/default* :font-color *color/default*))
-                                   :closing-delimiter (text/text () (text/string "" :font *font/default* :font-color *color/default*))
-                                   :separator (text/text () (text/string "=" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))
+                       (tree/node (:separator (text/text () (text/string "=" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))
                                    :selection output-selection)
                          (tree/leaf (:selection (as (butlast (va output-selection) 2)))
                            (text/text (:selection (as (butlast (va output-selection) 3)))
@@ -236,7 +234,6 @@
                                                                                   (text/string element-name :font *font/ubuntu/monospace/regular/18* :font-color element-name-color))))))
                                                               (when attribute-iomaps
                                                                 (list (ll (list (make-tree/node (mapcar 'output-of attribute-iomaps)
-                                                                                                :opening-delimiter (text/text () (text/string "" :font *font/default* :font-color *color/default*))
                                                                                                 :closing-delimiter (text/text () (text/string (if children ">" "/>") :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))
                                                                                                 :separator (text/text () (text/string " " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))))))
                                                               (when children
@@ -257,8 +254,6 @@
                                                                                                        (text/text ()
                                                                                                          (text/string element-name :font *font/ubuntu/monospace/regular/18* :font-color element-name-color)))))))))))
                                                       (+ (if children 1 0) (if attribute-iomaps 1 0))))
-                                       :opening-delimiter (text/text () (text/string "" :font *font/default* :font-color *color/default*))
-                                       :closing-delimiter (text/text () (text/string "" :font *font/default* :font-color *color/default*))
                                        :separator (text/text () (text/string " " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))))))
     (make-iomap 'iomap/xml/element->tree/node
                 :projection projection :recursion recursion

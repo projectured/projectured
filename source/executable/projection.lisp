@@ -57,95 +57,51 @@
                                                   (the json/nothing (elt (the sequence document) 0))
                                                   (the sequence (entries-of (the json/object document))))))))
 
-
 (def function make-initial-projection ()
   (sequential
-    (nesting
-      (document/clipboard->t)
-      (widget->graphics)
+    (recursive
       (type-dispatching
-        (widget/tooltip
-          (nesting
-            (widget->graphics)
-            (sequential
-              (type-dispatching
-                (text/base (preserving))
-                (t (reference->text)))
-              (text->graphics))))
-        (widget/split-pane
-          (nesting
-            (widget->graphics)
-            (type-dispatching
-              (widget/tabbed-pane
-                (nesting
-                  (widget->graphics)
-                  (type-dispatching
-                    (widget/label
-                      (recursive
-                        (type-dispatching
-                          (widget/base (widget/label->graphics/canvas))
-                          (text/base (text->graphics)))))
-                    (widget/scroll-pane
-                      (nesting
-                        (widget->graphics)
-                        (document/document->t)
-                        (sequential
-                          ;;(focusing '(or json/base xml/base book/base) nil)
-                          (recursive
-                            (type-dispatching
-                              (book/base (book->tree))
-                              (document/base (document->t 'initial-factory))
-                              (text/text (preserving))
-                              (table/base (sequential
-                                            (recursive
-                                              (type-dispatching
-                                                (table/base (table->text))
-                                                (text/base (preserving))))
-                                            (text/text->tree/leaf)))
-                              (t
-                               (sequential
-                                 (recursive
-                                   (type-dispatching
-                                     (text/base (text/text->tree/leaf))
-                                     (book/base (book->tree))
-                                     (xml/base (xml->tree))
-                                     (json/base (json->tree))
-                                     (javascript/base (javascript->tree))
-                                     (css/base (css->tree))
-                                     (table/base (sequential
-                                                   (recursive
-                                                     (type-dispatching
-                                                       (table/base (table->text))
-                                                       (text/base (preserving))))
-                                                   (text/text->tree/leaf)))
-                                     (common-lisp/base (sequential
-                                                         (common-lisp->lisp-form)
-                                                         (lisp-form->tree)))
-                                     (lisp-form/base (lisp-form->tree))
-                                     (image/file (make-projection/image/file->tree/leaf))
-                                     (document/base (document->t 'initial-factory))
-                                     (evaluator/evaluator (evaluator/evaluator->tree/node))
-                                     (t (preserving))))
-                                 (recursive
-                                   (type-dispatching
-                                     (tree/base (tree->text))
-                                     (text/text (preserving))))
-                                 (line-numbering)
-                                 (text/text->tree/leaf)))))
-                          (recursive
-                            (type-dispatching
-                              (tree/base (tree->text))
-                              (text/text (preserving))))
-                          (word-wrapping 1075)
-                          (text->graphics)))))))
-              (widget/scroll-pane
-                (nesting
-                  (widget->graphics)
-                  (sequential
-                    (recursive (file-system->tree))
-                    (recursive (type-dispatching
-                                 (tree/base (tree->text))
-                                 (text/text (preserving))))
-                    (text->graphics)))))))))
+        (workbench/document
+            (nesting
+              (workbench->widget)
+              (sequential
+                #+nil
+                (focusing '(or book/base xml/base json/base text/base)
+                          '((the json/string (elt (the sequence document) 4))
+                            (the sequence (elements-of (the json/array document)))))
+                (sequential
+                  (recursive
+                    (type-dispatching
+                      (book/base (book->tree))
+                      (xml/base (xml->tree))
+                      (json/base (json->tree))
+                      (common-lisp/base (sequential
+                                          (common-lisp->lisp-form)
+                                          (lisp-form->tree)))
+                      (lisp-form/base (lisp-form->tree))
+                      (document/base (document->t 'initial-factory))
+                      (text/base (preserving))
+                      (tree/base (preserving))))
+                  (recursive
+                    (type-dispatching
+                      (tree/base (tree->text))
+                      (text/text (preserving))))
+                  #+nil (line-numbering) ;; TODO: somewhere?
+                  #+nil (word-wrapping 1075)))))
+        (workbench/base (workbench->widget))
+        (file-system/base (sequential
+                            (recursive (file-system->tree))
+                            (recursive (type-dispatching
+                                         (tree/base (tree->text))
+                                         (text/text (preserving))))))
+        (document/base (preserving))
+        (text/base (preserving))))
+    (recursive
+      (type-dispatching
+        (widget/base (widget->graphics))
+        (document/base (document->t 'initial-factory))
+        (text/text (text->graphics))))
+    ;; TODO: messes up white colors in graphics due to transparency
+    #+nil
     (recursive
       (graphics->graphics))))

@@ -19,6 +19,15 @@
   '(make-projection/graphics->graphics))
 
 ;;;;;;
+;;; Text
+
+(def function make-projection/text->graphics ()
+  (make-projection/text/text->graphics/canvas))
+
+(def macro text->graphics ()
+  '(make-projection/text/text->graphics/canvas))
+
+;;;;;;
 ;;; Widget
 
 (def function make-projection/document->t (factory)
@@ -26,7 +35,7 @@
     (document/document (document/document->t))
     (document/nothing (document/nothing->tree/leaf))
     (document/insertion (document/insertion->tree/leaf factory))
-    (document/search (document/search->tree/node nil))
+    (document/search (document/search->text/text))
     (document/clipboard (document/clipboard->t))))
 
 (def macro document->t (factory)
@@ -38,11 +47,13 @@
 (def function make-projection/widget->graphics ()
   (type-dispatching
     (widget/label (make-projection/widget/label->graphics/canvas))
+    (widget/text (make-projection/widget/text->graphics/canvas))
     (widget/tooltip (make-projection/widget/tooltip->graphics/canvas))
     (widget/menu (make-projection/widget/menu->graphics/canvas))
     (widget/menu-item (make-projection/widget/menu-item->graphics/canvas))
-    (widget/shell (make-projection/widget/shell->graphics/canvas))
     (widget/composite (make-projection/widget/composite->graphics/canvas))
+    (widget/shell (make-projection/widget/shell->graphics/canvas))
+    (widget/title-pane (make-projection/widget/title-pane->graphics/canvas))
     (widget/split-pane (make-projection/widget/split-pane->graphics/canvas))
     (widget/tabbed-pane (make-projection/widget/tabbed-pane->graphics/canvas))
     (widget/scroll-pane (make-projection/widget/scroll-pane->graphics/canvas))))
@@ -310,3 +321,16 @@
 
 (def macro test->tree ()
   '(make-projection/test->tree))
+
+;;;;;;
+;;; Workbench
+
+(def function make-projection/workbench->widget ()
+  (type-dispatching
+    (workbench/workbench (workbench/workbench->widget/shell))
+    (workbench/navigator (workbench/navigator->widget/scroll-pane))
+    (workbench/editor (workbench/editor->widget/tabbed-pane))
+    (workbench/document (workbench/document->widget/scroll-pane))))
+
+(def macro workbench->widget ()
+  '(make-projection/workbench->widget))

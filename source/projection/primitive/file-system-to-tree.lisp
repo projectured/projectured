@@ -47,7 +47,7 @@
          (output (tree/leaf (:selection output-selection)
                    (text/text (:selection (butlast output-selection 1))
                      ;; TODO: icon
-                     (image/file () (resource-pathname "image/file.png"))
+                     ;;(image/file () (resource-pathname "image/file.png"))
                      (text/string (file-namestring pathname) :font *font/ubuntu/regular/18* :font-color *color/solarized/blue*)))))
     (make-iomap/compound projection recursion input input-reference output nil)))
 
@@ -72,8 +72,8 @@
          (output (make-tree/node (list* (tree/leaf (:selection (butlast output-selection 2))
                                           (text/text ()
                                             ;; TODO: icon
-                                            (image/file () (resource-pathname "image/directory.png"))
-                                            (text/spacing 5 :unit :pixel)
+                                            ;;(image/file () (resource-pathname "image/directory.png"))
+                                            ;;(text/spacing 5 :unit :pixel)
                                             (text/string (last-elt (pathname-directory pathname)) :font *font/ubuntu/regular/18* :font-color *color/solarized/red*)))
                                         (mapcar 'output-of element-iomaps))
                                  :selection output-selection)))
@@ -111,7 +111,7 @@
                        :domain "File System" :description "Opens the selected file"
                        :operation (bind ((pathname (pathname-of printer-input))
                                          (document (deserialize-document pathname))
-                                         (open-target (open-target-of printer-input)))
+                                         (open-target #+nil(open-target-of printer-input)))
                                     (make-operation/functional (lambda ()
                                                                  (appendf (selector-element-pairs-of open-target)
                                                                           (list (list (widget/label (:location (make-2d 5 5) :margin (make-inset :all 5))

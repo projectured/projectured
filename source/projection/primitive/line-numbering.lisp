@@ -9,11 +9,8 @@
 ;;;;;;
 ;;; IO map
 
-(def iomap iomap/line-numbering (iomap/text)
-  ((input-reference :type reference)
-   (output-reference :type reference)
-   (line-number-length :type integer)
-   (line-start-indices :type sequence)))
+(def iomap iomap/line-numbering ()
+  ((line-number-length :type integer)))
 
 ;;;;;;
 ;;; Backward mapper

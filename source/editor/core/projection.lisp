@@ -13,9 +13,16 @@
   (bind ((supers (if (or (eq name 'projection) (member 'projection supers))
                      supers
                      (append supers '(projection)))))
-    `(progn
-       (def class* ,name ,supers ,slots ,@options)
-       ,@(when (getf -options- :export) `((export ',name))))))
+    (if *use-computed-class*
+        `(progn
+           (def computed-class* ,name ,supers
+             ,(iter (for slot :in slots)
+                    (collect (append slot (unless (find :computed-in slot) (list :computed-in 'projectured)))))
+             ,@options)
+           ,@(when (getf -options- :export) `((export ',name))))
+        `(progn
+           (def class* ,name ,supers ,slots ,@options)
+           ,@(when (getf -options- :export) `((export ',name)))))))
 
 (def function make-projection (name &rest args)
   (apply #'make-instance name

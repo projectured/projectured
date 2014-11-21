@@ -54,6 +54,44 @@
     (recursive
       (graphics->graphics))))
 
+(def function make-test-projection/search (projection)
+  (sequential
+    (nesting
+      (widget->graphics)
+      (type-dispatching
+        (widget/tooltip (nesting
+                          (widget->graphics)
+                          (sequential
+                            (type-dispatching
+                              (text/base (preserving))
+                              (t (reference->text)))
+                            (make-test-projection/text->output))))
+        (widget/composite (nesting
+                            (widget->graphics)
+                            (type-dispatching
+                              (widget/scroll-pane (nesting
+                                                    (widget->graphics)
+                                                    (sequential
+                                                      (nesting
+                                                        (document/search->text/text)
+                                                        projection)
+                                                      (make-test-projection/text->output))))
+                              (widget/composite (nesting
+                                                  (widget->graphics)
+                                                  (type-dispatching
+                                                    (widget/composite (nesting
+                                                                        (widget->graphics)
+                                                                        (sequential
+                                                                          (document/search->widget/text)
+                                                                          (nesting
+                                                                            (widget->graphics)
+                                                                            (text->graphics)))))
+                                                    (widget/base (nesting
+                                                                   (widget->graphics)
+                                                                   (text->graphics)))))))))))
+    (recursive
+      (graphics->graphics))))
+
 (def function make-test-projection/selection (projection)
   (nesting
     (widget->graphics)
@@ -436,7 +474,7 @@
 
 (def function make-test-projection/text->graphics ()
   (sequential
-    (line-numbering)
+    ;;(line-numbering)
     (make-test-projection/text->output)))
 
 (def function make-test-projection/text->graphics/ll ()
@@ -488,7 +526,7 @@
 (def function make-test-projection/table->graphics ()
   (sequential
     (make-test-projection/table->text)
-    (line-numbering)
+    ;;(line-numbering)
     (make-test-projection/text->output)))
 
 ;;;;;;
@@ -503,7 +541,7 @@
 (def function make-test-projection/tree->graphics ()
   (sequential
     (make-test-projection/tree->text)
-;; TODO:    (line-numbering)
+    ;; (line-numbering)
     (make-test-projection/text->output)))
 
 ;; TODO: factor
@@ -515,7 +553,7 @@
         (list (removing #\s 'find (lambda (element) (when (typep element 'tree/leaf) (content-of element)))))
         (t (copying))))
     (make-test-projection/tree->text)
-    (line-numbering)
+    ;; (line-numbering)
     (make-test-projection/text->output)))
 
 (def function make-test-projection/tree->graphics/sorting ()
@@ -526,7 +564,7 @@
         (list (sorting (lambda (element) (when (typep element 'tree/leaf) (content-of element))) 'string<))
         (t (copying))))
     (make-test-projection/tree->text)
-    (line-numbering)
+    ;; (line-numbering)
     (make-test-projection/text->output)))
 
 ;;;;;;
@@ -546,7 +584,7 @@
 (def function make-test-projection/state-machine->graphics ()
   (sequential
     (make-test-projection/state-machine->text)
-    (line-numbering)
+    ;; (line-numbering)
     (make-test-projection/text->output)))
 
 ;;;;;;
@@ -618,7 +656,7 @@
         (document/base (document->t 'test-factory))
         (json/base (json->tree))))
     (make-test-projection/tree->text)
-    (line-numbering)
+    ;; (line-numbering)
     (make-test-projection/text->output)))
 
 (def function make-test-projection/json->graphics/focusing ()
@@ -627,7 +665,7 @@
                            (the sequence (elements-of (the json/array document)))))
     (recursive (json->tree))
     (make-test-projection/tree->text)
-    (line-numbering)
+    ;; (line-numbering)
     (make-test-projection/text->output)))
 
 (def function make-test-projection/json->graphics/removing ()
@@ -645,7 +683,7 @@
         (t (copying))))
     (recursive (json->tree))
     (make-test-projection/tree->text)
-    (line-numbering)
+    ;; (line-numbering)
     (make-test-projection/text->output)))
 
 (def function make-test-projection/json->graphics/reversing ()
@@ -663,7 +701,7 @@
         (t (copying))))
     (recursive (json->tree))
     (make-test-projection/tree->text)
-    (line-numbering)
+    ;; (line-numbering)
     (make-test-projection/text->output)))
 
 (def function make-test-projection/json->graphics/sorting ()
@@ -693,17 +731,24 @@
       (t (copying))))
   (recursive (json->tree))
   (make-test-projection/tree->text)
-  (line-numbering)
+  ;; (line-numbering)
   (make-test-projection/text->output)))
 
 ;;;;;;
 ;;; File system
 
+(def function make-test-projection/file-system->tree ()
+  (recursive (file-system->tree)))
+
+(def function make-test-projection/file-system->text ()
+  (sequential
+    (make-test-projection/file-system->tree)
+    (make-test-projection/tree->text)))
+
 (def function make-test-projection/file-system->graphics ()
   (sequential
-    (recursive (file-system->tree))
-    (make-test-projection/tree->text)
-    (line-numbering)
+    (make-test-projection/file-system->text)
+    ;; (line-numbering)
     (make-test-projection/text->output)))
 
 ;;;;;;
@@ -720,7 +765,7 @@
 (def function make-test-projection/java->graphics ()
   (sequential
     (make-test-projection/java->text)
-    (line-numbering)
+    ;; (line-numbering)
     (make-test-projection/text->output)))
 
 ;;;;;;
@@ -737,7 +782,7 @@
 (def function make-test-projection/javascript->graphics ()
   (sequential
     (make-test-projection/javascript->text)
-    (line-numbering)
+    ;; (line-numbering)
     (make-test-projection/text->output)))
 
 ;;;;;;
@@ -754,7 +799,7 @@
 (def function make-test-projection/lisp-form->graphics ()
   (sequential
     (make-test-projection/lisp-form->text)
-    (line-numbering)
+    ;; (line-numbering)
     (make-test-projection/text->output)))
 
 ;;;;;;
@@ -772,7 +817,7 @@
 (def function make-test-projection/common-lisp->graphics ()
   (sequential
     (make-test-projection/common-lisp->text)
-    (line-numbering)
+    ;; (line-numbering)
     (make-test-projection/text->output)))
 
 (def function make-test-projection/common-lisp/inliner->graphics ()
@@ -782,7 +827,7 @@
         (common-lisp/application (inliner))
         (t (copying))))
     (make-test-projection/common-lisp->text)
-    (line-numbering)
+    ;; (line-numbering)
     (make-test-projection/text->output)))
 
 (def function make-test-projection/common-lisp->graphics/test ()
@@ -808,7 +853,7 @@
                                          (lisp-form/base (lisp-form->tree))
                                          (t (copying))))
                             (make-test-projection/tree->text)
-                            (line-numbering)
+                            ;; (line-numbering)
                             (text/text->tree/leaf)))
         (document/base (document->t 'test-factory))
         (text/text (preserving))
@@ -884,7 +929,7 @@
   (sequential
     (recursive (t->tree :slot-provider 'test-slot-provider ))
     (make-test-projection/tree->text)
-    (line-numbering)
+    ;; (line-numbering)
     (make-test-projection/text->output)))
 
 (def function make-test-projection/t->text/table ()
@@ -902,7 +947,7 @@
       (type-dispatching
         (table/base (table->text))
         (t (preserving))))
-    (line-numbering)
+    ;; (line-numbering)
     (make-test-projection/text->output)))
 
 ;;;;;;
@@ -923,7 +968,7 @@
       (type-dispatching
         (table/base (table->text))
         (t (preserving))))
-    (line-numbering)
+    ;; (line-numbering)
     (make-test-projection/text->output)))
 
 ;;;;;;
@@ -983,7 +1028,7 @@
                (t (preserving))))
            (make-test-projection/tree->text)
            ;; TODO: slow due to text/split
-           (line-numbering)
+           ;; (line-numbering)
            (text/text->tree/leaf)))))
     (make-test-projection/tree->text)
     ;; TODO: this is slow due to text/find
@@ -1025,3 +1070,41 @@
         (document/base (document->t 'test-factory))))
     (make-test-projection/tree->text)
     (make-test-projection/text->output)))
+
+;;;;;;
+;;; Workbench
+
+;; TODO: JavaScript, Common Lisp, Lisp Form, XML, JSON, Book, Table, Tree, Text, Graphics
+;; TODO: Nothing, Insertion, Clipboard, Search, Highlight, Focus, Collapse/Expand, Generic
+;; TODO: Save, Load, Scroll
+(def function make-test-projection/workbench->graphics ()
+  (sequential
+    (recursive
+      (type-dispatching
+        (workbench/document
+          (nesting
+            (workbench->widget)
+            (sequential
+              #+nil
+              (focusing '(or book/base xml/base json/base text/base)
+                        '((the json/string (elt (the sequence document) 4))
+                          (the sequence (elements-of (the json/array document)))))
+              (recursive
+                (type-dispatching
+                  (book/base (make-test-projection/book->text))
+                  (xml/base (make-test-projection/xml->text))
+                  (json/base (make-test-projection/json->text))
+                  (text/base (preserving)))))))
+        (workbench/base (workbench->widget))
+        (file-system/base (make-test-projection/file-system->text))
+        (document/base (preserving))
+        (text/base (preserving))))
+    (recursive
+      (type-dispatching
+        (widget/base (widget->graphics))
+        (document/base (document->t nil))
+        (text/text (text->graphics))))
+    ;; TODO: messes up graphics
+    #+nil
+    (recursive
+      (graphics->graphics))))

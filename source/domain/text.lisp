@@ -188,12 +188,10 @@
 
 (def function text/previous-character (text position)
   (bind ((element (text/position-element position))
-         (index (text/position-index position)))
+         (index (text/position-index position))
+         (string (content-of (text/element text element))))
     (if (> index 0)
-        (elt (content-of (if (integerp element)
-                             (elt (elements-of text) element)
-                             (value-of element)))
-             (1- index))
+        (elt string (1- index))
         (if (integerp element)
             (unless (zerop element)
               (last-elt (content-of (elt (elements-of text) (1- element)))))
@@ -203,11 +201,9 @@
 (def function text/next-character (text position)
   (bind ((element (text/position-element position))
          (index (text/position-index position))
-         (string (content-of (if (integerp element)
-                                 (elt (elements-of text) element)
-                                 (value-of element)))))
-    (when (< index (length string))
-      (elt string index))))
+         (string (content-of (text/element text element))))
+    (if (< index (length string))
+        (elt string index))))
 
 (def function text/first-element (text)
   (bind ((elements (elements-of text)))
@@ -283,11 +279,10 @@
                    (unless (zerop (length string))
                      (list (text/string string :font (font-of end-element) :font-color (font-color-of end-element) :fill-color (fill-color-of end-element) :line-color (line-color-of end-element))))))))))
 
-;; TODO: rename and/or merge with text/substring*
-(def function text/subseq (text start-character-index &optional (end-character-index (text/length text)))
+(def function text/subseq (text start-character-index &optional (end-character-index (text/length text (text/origin-position text) (text/last-position text))))
   (text/substring text
-                  (text/relative-position text (text/first-position text) start-character-index)
-                  (text/relative-position text (text/first-position text) end-character-index)))
+                  (text/relative-position text (text/origin-position text) start-character-index)
+                  (text/relative-position text (text/origin-position text) end-character-index)))
 
 (def function text/find (text start-position test &key (direction :forward))
   (iter (for position :initially start-position :then (ecase direction
@@ -397,6 +392,14 @@
                (length (content-of element)))
               (t 0))))
      character-index))
+
+(def function text/style (text &key font font-color fill-color line-color)
+  (text/make-text (iter (for element :in (elements-of text))
+                        (collect (text/string (content-of element)
+                                              :font (or font (font-of element))
+                                              :font-color (or font-color (font-color-of element))
+                                              :fill-color (or fill-color (fill-color-of element))
+                                              :line-color (or line-color (line-color-of element)))))))
 
 ;; TODO: move and rename
 (def function make-command-help-text (command)

@@ -26,7 +26,8 @@
       projection))
 
 (def function call-printer (projection recursion input input-reference #+nil reader-iomap)
-  (funcall (printer-of projection) projection recursion input input-reference #+nil reader-iomap))
+  (aprog1 (funcall (printer-of projection) projection recursion input input-reference #+nil reader-iomap)
+    (assert it)))
 
 (def function recurse-printer (recursion input input-reference #+nil reader-iomap)
   (assert (not (eq 'the (first (first input-reference)))))

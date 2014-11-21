@@ -37,7 +37,7 @@
          (sdl:initialise-default-font (make-instance 'sdl:ttf-font-definition :size 18 :filename (resource-pathname "font/UbuntuMono-R.ttf")))
          (sdl:init-video)
          (bind ((display (find-if (of-type 'device/display) (devices-of editor)))
-                (surface (sdl:window (width-of display) (height-of display) :double-buffer #t :title-caption "Projectional Editor")))
+                (surface (sdl:window (width-of display) (height-of display) :flags sdl-cffi::sdl-no-frame :double-buffer #t :title-caption "Projectional Editor")))
            (setf (surface-of display) surface)
            (call-next-method)))
     (sdl:quit-video)))

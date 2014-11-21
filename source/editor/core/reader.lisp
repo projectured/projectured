@@ -27,7 +27,8 @@
         projection)))
 
 (def function call-reader (projection recursion input #+nil input-reference printer-iomap)
-  (funcall (reader-of projection) projection recursion input #+nil input-reference printer-iomap))
+  (aprog1 (funcall (reader-of projection) projection recursion input #+nil input-reference printer-iomap)
+    (assert it)))
 
 (def function recurse-reader (recursion input #+nil input-reference printer-iomap)
   #+nil(assert (not (eq 'the (first (first input-reference)))))

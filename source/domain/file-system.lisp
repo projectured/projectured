@@ -13,8 +13,7 @@
   ())
 
 (def document file-system/file (file-system/base)
-  ((pathname :type string)
-   (open-target :type widget/base)))
+  ((pathname :type string)))
 
 (def document file-system/directory (file-system/base)
   ((pathname :type string)
@@ -23,8 +22,8 @@
 ;;;;;;
 ;;; Construction
 
-(def function make-file-system/file (pathname open-target)
-  (make-instance 'file-system/file :pathname pathname :open-target open-target))
+(def function make-file-system/file (pathname)
+  (make-instance 'file-system/file :pathname pathname))
 
 (def function make-file-system/directory (pathname elements)
   (make-instance 'file-system/directory :pathname pathname :elements elements))
@@ -32,8 +31,8 @@
 ;;;;;;
 ;;; Construction
 
-(def macro file-system/file (pathname open-target)
-  `(make-file-system/file ,pathname ,open-target))
+(def macro file-system/file (pathname)
+  `(make-file-system/file ,pathname))
 
 (def macro file-system/directory (pathname &body elements)
   `(make-file-system/directory ,pathname (list ,@elements)))
@@ -41,9 +40,9 @@
 ;;;;;;
 ;;; API
 
-(def function make-file-system/pathname (pathname open-target)
+(def function make-file-system/pathname (pathname)
   (if (uiop/pathname::directory-pathname-p pathname)
       (make-file-system/directory pathname
                                   (iter (for file :in-sequence (directory (merge-pathnames pathname "*.*")))
-                                        (collect (make-file-system/pathname file open-target))))
-      (make-file-system/file pathname open-target)))
+                                        (collect (make-file-system/pathname file))))
+      (make-file-system/file pathname)))

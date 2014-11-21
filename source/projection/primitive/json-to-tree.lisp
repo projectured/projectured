@@ -220,8 +220,6 @@
                                           `((the ,(form-type (output-of (va value-iomap))) (elt (the sequence document) 1))
                                             (the sequence (children-of (the tree/node document)))))))))
          (output (as (tree/node (:separator (text/text () (text/string " : " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))
-                                 :opening-delimiter (text/text () (text/string "" :font *font/default* :font-color *color/default*))
-                                 :closing-delimiter (text/text () (text/string "" :font *font/default* :font-color *color/default*))
                                  :selection output-selection)
                        (tree/leaf (:opening-delimiter (text/text () (text/string "\"" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))
                                    :closing-delimiter (text/text () (text/string "\"" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))
