@@ -20,25 +20,20 @@
        (def function ,function-name ,arguments ,@forms)
        (setf (find-reader ',name) ',function-name))))
 
-(def function reader-projection (projection printer-iomap)
-  (bind ((input (input-of printer-iomap)))
-    (or (when (typep input 'document)
-          (projection-of input))
-        projection)))
-
 (def function call-reader (projection recursion input #+nil input-reference printer-iomap)
-  (aprog1 (funcall (reader-of projection) projection recursion input #+nil input-reference printer-iomap)
-    (assert it)))
+  (declare (type projection projection recursion)
+           (type command input))
+  (the command (funcall (reader-of projection) projection recursion input #+nil input-reference printer-iomap)))
 
 (def function recurse-reader (recursion input #+nil input-reference printer-iomap)
   #+nil(assert (not (eq 'the (first (first input-reference)))))
-  (call-reader (reader-projection recursion printer-iomap) recursion input #+nil input-reference printer-iomap))
+  (call-reader recursion recursion input #+nil input-reference printer-iomap))
 
 (def function apply-reader (input projection printer-iomap &optional (recursion (make-projection/preserving)))
-  (call-reader (reader-projection projection printer-iomap) recursion input #+nil nil printer-iomap))
+  (call-reader projection recursion input #+nil nil printer-iomap))
 
 (def function reader-output (input projection printer-iomap &optional (recursion (make-projection/preserving)))
-  (output-of (call-reader (reader-projection projection printer-iomap) recursion input #+nil nil printer-iomap)))
+  (output-of (call-reader projection recursion input #+nil nil printer-iomap)))
 
 ;;;;;;
 ;;; Reader API implementation

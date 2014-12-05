@@ -155,7 +155,7 @@
                                    (the string (subseq (the string document) ?index ?index)))
                                   `((the text/text (text/subseq (the text/text document) ,?index ,?index))
                                     (the text/text (content-of (the tree/leaf document))))))))
-         (text-content (as (text/text (:projection (preserving) :selection (as (butlast (va output-selection))))
+         (text-content (as (text/text (:selection (as (butlast (va output-selection))))
                              (text/string (value-of input) :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/green*))))
          (output (as (tree/leaf (:opening-delimiter (text/text () (text/string "\"" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))
                                  :closing-delimiter (text/text () (text/string "\"" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))

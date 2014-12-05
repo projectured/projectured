@@ -61,8 +61,8 @@
                  :fill-color fill-color
                  :line-color line-color))
 
-(def function text/make-text (elements &key projection selection)
-  (make-instance 'text/text :elements elements :projection projection :selection selection))
+(def function text/make-text (elements &key selection)
+  (make-instance 'text/text :elements elements :selection selection))
 
 ;;;;;;
 ;;; Construction
@@ -80,8 +80,8 @@
   `(text/make-string "
 " :font ,(or font '*font/default*) :font-color ,(or font-color '*color/default*) :fill-color ,fill-color :line-color ,line-color))
 
-(def macro text/text ((&key projection selection) &body elements)
-  `(text/make-text (list ,@elements) :projection ,projection :selection ,selection))
+(def macro text/text ((&key selection) &body elements)
+  `(text/make-text (list ,@elements) :selection ,selection))
 
 ;;;;;;
 ;;; Text API
@@ -363,7 +363,6 @@
                                            (setf last-string-element nil)
                                            element))
                               :result-type vector)))
-                  :projection (projection-of text)
                   :selection (selection-of text)))
 
 (def function text/element-index (text index)

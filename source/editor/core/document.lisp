@@ -28,8 +28,7 @@
 ;;; Data structure
 
 (def document document ()
-  ((selection nil :type selection)
-   (projection nil :type projection)))
+  ((selection nil :type selection)))
 
 ;;;;;;
 ;;; API implementation
