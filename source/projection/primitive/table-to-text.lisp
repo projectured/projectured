@@ -239,7 +239,7 @@
   (declare (ignore projection))
   (bind ((printer-input (input-of printer-iomap))
          (selection (selection-of printer-input))
-         (text-selection? (text-reference? selection))
+         (text-selection? (text/reference? selection))
          (cell-selection? (cell-reference? selection)))
     (merge-commands (gesture-case (gesture-of input)
                       ((gesture/keyboard/key-press :sdl-key-p :control)

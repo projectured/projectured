@@ -9,11 +9,6 @@
 ;;;;;;
 ;;; Projection
 
-(def suite* (test/projection :in test))
-
-(def test test/projection/apply-printer (document projection)
-  (finishes (apply-printer document projection)))
-
 (def function make-test-projection/document (projection)
   (nesting
     (document->t nil)
@@ -602,7 +597,7 @@
 (def function make-test-projection/book->graphics ()
   (sequential
     (make-test-projection/book->text)
-    (word-wrapping 1280)
+    ;; (word-wrapping 1280)
     (make-test-projection/text->output)))
 
 (def function make-test-projection/book->graphics/sorting ()

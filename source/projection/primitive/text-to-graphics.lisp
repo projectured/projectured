@@ -9,6 +9,9 @@
 ;;;;;;
 ;;; IO map
 
+(def iomap iomap/text/text->graphics/canvas/text ()
+  ((line-iomaps :type sequence)))
+
 (def iomap iomap/text/text->graphics/canvas/line ()
   ((line-start-character-index :type integer)
    (line-end-character-index :type integer)
@@ -17,13 +20,9 @@
    (graphics-element-indices :type sequence)
    (line-y :type number)))
 
-(def iomap iomap/text/text->graphics/canvas/text ()
-  ((line-iomaps :type sequence)))
-
 ;;;;;;
 ;;; Projection
 
-;; TODO: rename text/text/text->graphics/canvas/canvas
 (def projection text/text->graphics/canvas ()
   ())
 
@@ -54,9 +53,9 @@
                          (text/string
                           (maximize (2d-y (measure-text " " (font-of text-element)))))
                          (image/file
-                          (bind ((image (make-graphics/image (make-2d 0 0) text-element))
-                                 (size (size-of (make-bounding-rectangle image))))
-                            (maximize (2d-y size))))))
+                             (bind ((image (make-graphics/image (make-2d 0 0) text-element))
+                                    (size (size-of (make-bounding-rectangle image))))
+                               (maximize (2d-y size))))))
                  (2d-y (measure-text " " (font-of (text/element input (text/position-element line-start-position)))))))
            (graphics-character-index (line-iomap character-index)
              (iter (for index :from 0)
@@ -70,6 +69,7 @@
                 (iter (for line-iomap-element :initially line-iomaps :then (if (< ?character-index 0)
                                                                                (previous-element-of line-iomap-element)
                                                                                (next-element-of line-iomap-element)))
+                      (while line-iomap-element)
                       (for line-iomap = (value-of line-iomap-element))
                       (for line-start-character-index = (line-start-character-index-of line-iomap))
                       (for line-end-character-index = (line-end-character-index-of line-iomap))
@@ -169,9 +169,9 @@
                                  (as (awhen (text/next-position input line-end-position)
                                        (awhen (text/next-position input it)
                                          (print-containing-line it (1+ line-end-character-index) nil (+ line-y line-height)))))))))
-    (bind ((origin-position (text/origin-position input))
-           (origin-line-character-index (text/length input (text/line-start-position input origin-position) origin-position))
-           (line-iomaps (as (print-containing-line origin-position (- origin-line-character-index) nil 0)))
+    (bind ((line-iomaps (as (bind ((origin-position (text/origin-position input))
+                                   (origin-line-character-index (text/length input (text/line-start-position input origin-position) origin-position)))
+                              (print-containing-line origin-position (- origin-line-character-index) nil 0))))
            (output (as (make-graphics/canvas (list (make-graphics/canvas (as (map-ll (va line-iomaps) 'output-of)) (make-2d 0 0))
                                                    (make-graphics/canvas (as (print-selection (va line-iomaps))) (make-2d 0 0)))
                                              (make-2d 0 0)))))

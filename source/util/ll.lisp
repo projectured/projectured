@@ -58,6 +58,18 @@
                                          (recurse it -self- nil)))))))
     (recurse sequence nil nil)))
 
+(def function map-ll* (sequence function)
+  (check-ll sequence)
+  (labels ((recurse (element previous-element next-element index)
+             (make-computed-ll (as (funcall function (value-of element) index))
+                               (as (or previous-element
+                                       (awhen (previous-element-of element)
+                                         (recurse it nil -self- (1- index)))))
+                               (as (or next-element
+                                       (awhen (next-element-of element)
+                                         (recurse it -self- nil (1+ index))))))))
+    (recurse sequence nil nil 0)))
+
 
 (def function subseq-ll (sequence start end)
   (check-ll sequence)

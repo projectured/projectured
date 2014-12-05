@@ -72,8 +72,8 @@
 (def test test/editor/string/sorting (&key wrap)
   (test/editor/read-eval-print-loop wrap (make-test-document/string) nil (make-test-projection/string->graphics/sorting)))
 
-(def test test/editor/text (&key wrap (content (make-test-document/text)) (selection (make-test-selection/text/character)))
-  (test/editor/read-eval-print-loop wrap content selection (make-test-projection/text->graphics)))
+(def test test/editor/text (&key wrap (content (make-test-document/text)))
+  (test/editor/read-eval-print-loop wrap content nil (make-test-projection/text->graphics)))
 
 (def test test/editor/text/ll (&key wrap (content (make-test-document/text/ll 1000 500)))
   (test/editor/read-eval-print-loop wrap content nil (make-test-projection/text->output)))
@@ -104,13 +104,13 @@
   (test/editor/read-eval-print-loop wrap (make-test-document/list) nil (make-test-projection/list->graphics)))
 
 (def test test/editor/table (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/table) (make-test-selection/table/character) (make-test-projection/table->graphics)))
+  (test/editor/read-eval-print-loop wrap (make-test-document/table) nil (make-test-projection/table->graphics)))
 
 (def test test/editor/table/nested (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/table/nested) (make-test-selection/table/character/nested) (make-test-projection/table->graphics)))
+  (test/editor/read-eval-print-loop wrap (make-test-document/table/nested) nil (make-test-projection/table->graphics)))
 
 (def test test/editor/tree (&key wrap (content (make-test-document/tree)))
-  (test/editor/read-eval-print-loop wrap content (make-test-selection/tree/character) (make-test-projection/tree->graphics)))
+  (test/editor/read-eval-print-loop wrap content nil (make-test-projection/tree->graphics)))
 
 (def test test/editor/tree/ll (&key wrap)
   (test/editor/read-eval-print-loop wrap (make-test-document/tree/ll 200 100 3) nil (make-test-projection/tree->graphics)))
@@ -151,20 +151,20 @@
 (def test test/editor/xml/ll (&key wrap (content (make-test-document/xml/ll 200 100 3)))
   (test/editor/read-eval-print-loop wrap content nil (make-test-projection/xml->graphics)))
 
-(def test test/editor/json (&key wrap (content (make-test-document/json)) (selection (make-test-selection/json/character-position)))
-  (test/editor/read-eval-print-loop wrap content selection (make-test-projection/json->graphics)))
+(def test test/editor/json (&key wrap (content (make-test-document/json)))
+  (test/editor/read-eval-print-loop wrap content nil (make-test-projection/json->graphics)))
 
 (def test test/editor/json/focusing (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/json) (make-test-selection/json/character-position) (make-test-projection/json->graphics/focusing)))
+  (test/editor/read-eval-print-loop wrap (make-test-document/json) nil (make-test-projection/json->graphics/focusing)))
 
 (def test test/editor/json/removing (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/json) (make-test-selection/json/character-position) (make-test-projection/json->graphics/removing)))
+  (test/editor/read-eval-print-loop wrap (make-test-document/json) nil (make-test-projection/json->graphics/removing)))
 
 (def test test/editor/json/reversing (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/json) (make-test-selection/json/character-position) (make-test-projection/json->graphics/reversing)))
+  (test/editor/read-eval-print-loop wrap (make-test-document/json) nil (make-test-projection/json->graphics/reversing)))
 
 (def test test/editor/json/sorting (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/json) (make-test-selection/json/character-position) (make-test-projection/json->graphics/sorting)))
+  (test/editor/read-eval-print-loop wrap (make-test-document/json) nil (make-test-projection/json->graphics/sorting)))
 
 (def test test/editor/file-system (&key wrap)
   (test/editor/read-eval-print-loop wrap (make-test-document/file-system) nil (make-test-projection/file-system->graphics)))

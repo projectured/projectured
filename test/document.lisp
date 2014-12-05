@@ -369,13 +369,17 @@
       (text/text ()
         (text/string "nineth")))))
 
-(def function make-test-document/tree/ll (element-count origin-index depth)
+(def function make-test-document/tree/ll (element-count origin-index depth &key include-delimiters)
   (labels ((recurse (depth path)
              (if (zerop depth)
                  (tree/leaf (:indentation 2
-                             :opening-delimiter (text/text () (text/string "\"" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))
-                             :closing-delimiter (text/text () (text/string "\"" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))
-                   (text/text ()
+                             :opening-delimiter (when include-delimiters
+                                                  (text/text () (text/string "\"" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))
+                             :closing-delimiter (when include-delimiters
+                                                  (text/text () (text/string "\"" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))
+                             :selection '((the text/text (text/subseq (the text/text document) 0 0))
+                                          (the text/text (content-of (the tree/leaf document)))))
+                   (text/text (:selection '((the text/text (text/subseq (the text/text document) 0 0))))
                      (text/string (format nil "Hello World ~{~A.~}" (reverse path)) :font *font/liberation/serif/regular/18* :font-color *color/solarized/content/darker*)))
                  (bind ((elements (list* (make-computed-ll (as (tree/leaf ()
                                                                  (text/text ()
@@ -383,15 +387,21 @@
                                                            (as nil) (as nil))
                                          (iter (for i :from 0 :below element-count)
                                                (collect (rebind (i) (make-computed-ll (as (recurse (1- depth) (cons (1+ i) path)))
-                                                                                      (as nil) (as nil))))))))
+                                                                                      (as nil) (as nil)))))))
+                        (origin-element (elt elements origin-index)))
                    (iter (for i :from 0 :below (length elements))
                          (setf (previous-element-of (elt elements i)) (when (> i 0) (elt elements (1- i))))
                          (setf (next-element-of (elt elements i)) (when (< i (1- (length elements))) (elt elements (1+ i)))))
-                   (make-tree/node (elt elements origin-index)
-                                   :opening-delimiter (text/text () (text/string "(" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))
-                                   :closing-delimiter (text/text () (text/string ")" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))
+                   (make-tree/node origin-element
+                                   :opening-delimiter (when include-delimiters
+                                                        (text/text () (text/string "(" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))
+                                   :closing-delimiter (when include-delimiters
+                                                        (text/text () (text/string ")" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))
                                    :separator (text/text () (text/string " " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))
-                                   :indentation 2)))))
+                                   :indentation 2
+                                   :selection (append (selection-of (value-of origin-element))
+                                                      `((the ,(form-type (value-of origin-element)) (elt (the sequence document) ,origin-index))
+                                                        (the sequence (children-of (the tree/node document))))))))))
     (recurse depth nil)))
 
 ;;;;;;
@@ -1206,56 +1216,3 @@
         (make-test-document/xml))
       (workbench/document (:title "JSON")
         (make-test-document/json)))))
-
-;;;;;;
-;;; Test
-
-(def suite* (test/content :in test))
-
-(def test test/content/print-document (document)
-  (finishes (print-document document (make-string-output-stream))))
-
-(def test test/content/graphics ()
-  (test/content/print-document (make-test-document/graphics)))
-
-(def test test/content/string ()
-  (test/content/print-document (make-test-document/string)))
-
-(def test test/content/text ()
-  (test/content/print-document (make-test-document/text)))
-
-(def test test/content/list ()
-  (test/content/print-document (make-test-document/list)))
-
-(def test test/content/table ()
-  (test/content/print-document (make-test-document/table)))
-
-(def test test/content/tree ()
-  (test/content/print-document (make-test-document/tree)))
-
-(def test test/content/book ()
-  (test/content/print-document (make-test-document/book)))
-
-(def test test/content/xml ()
-  (test/content/print-document (make-test-document/xml)))
-
-(def test test/content/json ()
-  (test/content/print-document (make-test-document/json)))
-
-(def test test/content/java ()
-  (test/content/print-document (make-test-document/java)))
-
-(def test test/content/javascript ()
-  (test/content/print-document (make-test-document/javascript)))
-
-(def test test/content/lisp-form ()
-  (test/content/print-document (make-test-document/lisp-form)))
-
-(def test test/content/common-lisp ()
-  (test/content/print-document (make-test-document/common-lisp)))
-
-(def test test/content/evaluator ()
-  (test/content/print-document (make-test-document/evaluator)))
-
-(def test test/content/test ()
-  (test/content/print-document (make-test-document/test)))

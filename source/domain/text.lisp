@@ -255,6 +255,7 @@
 ;; TODO: optimize
 (def function text/length (text &optional (start-position (text/first-position text)) (end-position (text/last-position text)))
   (iter (for position :initially start-position :then (text/next-position text position))
+        (while position)
         (until (text/position= position end-position))
         (summing 1)))
 
@@ -347,6 +348,11 @@
   (setf (elements-of text) (concatenate 'vector (elements-of text) (elements-of other)))
   text)
 
+(def function text/reference? (reference)
+  (pattern-case reference
+    (((the text/text (text/subseq (the text/text document) ?b ?a)) . ?rest)
+     #t)))
+
 (def function text/consolidate (text)
   (text/make-text (iter (with last-string-element = nil)
                         (for element :in-sequence (elements-of text))
@@ -364,33 +370,6 @@
                                            element))
                               :result-type vector)))
                   :selection (selection-of text)))
-
-(def function text/element-index (text index)
-  (iter (for element-index :from 0)
-        (for element :in-sequence (elements-of text))
-        (typecase element
-          (text/string (decf index (length (content-of element)))))
-        (when (<= index 0)
-          (return element-index))))
-
-(def function text/character-index (text index)
-  (iter (for element :in-sequence (elements-of text))
-        (typecase element
-          (text/string
-           (for length = (length (content-of element)))
-           (if (<= index length)
-               (return index)
-               (decf index length))))))
-
-(def function text/index (text element-index character-index)
-  (+ (iter (for index :from 0 :below element-index)
-           (for element :in-sequence (elements-of text))
-           (summing
-            (typecase element
-              (text/string
-               (length (content-of element)))
-              (t 0))))
-     character-index))
 
 (def function text/style (text &key font font-color fill-color line-color)
   (text/make-text (iter (for element :in (elements-of text))
@@ -509,9 +488,11 @@
         ((gesture/keyboard/key-press :sdl-key-down)
          :domain "Text" :description "Moves the selection one line down"
          :operation (text/read-replace-selection-operation text :sdl-key-down))
+        #+nil
         ((gesture/keyboard/key-press :sdl-key-pageup)
          :domain "Text" :description "Moves the selection one page up"
          :operation (text/read-replace-selection-operation text :sdl-key-pageup))
+        #+nil
         ((gesture/keyboard/key-press :sdl-key-pagedown)
          :domain "Text" :description "Moves the selection one page down"
          :operation (text/read-replace-selection-operation text :sdl-key-pagedown))
@@ -537,9 +518,10 @@
          :domain "Text" :description "Deletes the word following the selection"
          :operation (pattern-case (selection-of text)
                       (((the text/text (text/subseq (the text/text document) ?b ?b)))
-                       (bind (((:values element-index character-index) (text/find text (text/element-index text ?b) (text/character-index text ?b) (lambda (c) (not (alphanumericp c))))))
-                         (when-bind index (text/index text element-index character-index)
-                           (make-operation/sequence/replace-element-range text `((the text/text (text/subseq (the text/text document) ,?b ,index))) ""))))))
+                       (bind ((start-position (text/relative-position text (text/origin-position text) ?b))
+                              (end-position (text/find text start-position (lambda (c) (not (alphanumericp c))))))
+                         (when end-position
+                           (make-operation/sequence/replace-element-range text `((the text/text (text/subseq (the text/text document) ,?b ,(text/length text start-position end-position)))) ""))))))
         ((gesture/keyboard/key-press :sdl-key-backspace)
          :domain "Text" :description "Deletes the character preceding the selection"
          :operation (pattern-case (selection-of text)

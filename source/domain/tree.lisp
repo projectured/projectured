@@ -33,14 +33,14 @@
                  :indentation indentation
                  :selection selection))
 
-(def function make-tree/node (children &key opening-delimiter closing-delimiter separator indentation (expanded #t) selection)
+(def function make-tree/node (children &key (expanded #t) separator opening-delimiter closing-delimiter indentation selection)
   (make-instance 'tree/node
                  :children children
+                 :expanded expanded
+                 :separator separator
                  :opening-delimiter opening-delimiter
                  :closing-delimiter closing-delimiter
-                 :separator separator
                  :indentation indentation
-                 :expanded expanded
                  :selection selection))
 
 ;;;;;;
@@ -53,7 +53,7 @@
                    :indentation ,indentation
                    :selection ,selection))
 
-(def macro tree/node ((&key opening-delimiter closing-delimiter separator indentation selection) &body children)
+(def macro tree/node ((&key separator opening-delimiter closing-delimiter indentation selection) &body children)
   `(make-tree/node (list ,@children)
                    :opening-delimiter ,opening-delimiter
                    :closing-delimiter ,closing-delimiter
@@ -82,3 +82,8 @@
 
 (def method run-operation ((operation operation/tree/toggle-expanded))
   (notf (expanded-p (eval-reference (document-of operation) (reference/flatten (reverse (target-of operation)))))))
+
+(def function tree/reference? (reference)
+  (pattern-case reference
+    (((the ?type (?if (subtypep ?type 'tree/base)) ?a) . ?rest)
+     #t)))

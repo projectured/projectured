@@ -92,6 +92,7 @@
                        :domain "Document" :description "Pastes the object from the clipboard to the selection"
                        :operation (if (slice-of printer-input)
                                       (make-operation/replace-target printer-input (selection-of printer-input) (slice-of printer-input))
+                                      #+nil
                                       (make-operation/sequence/replace-element-range printer-input (selection-of printer-input)
                                                                                      (with-output-to-string (stream)
                                                                                        (sb-ext:run-program "/usr/bin/xclip" (list "-o") :output stream)))))

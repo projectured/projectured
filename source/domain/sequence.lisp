@@ -141,9 +141,14 @@
                          (sequence (concatenate (form-type old-sequence)
                                                 (subseq old-sequence 0 start) (replacement-of operation) (subseq old-sequence end)))
                          (text/text (bind ((element (last-elt (elements-of old-sequence))))
-                                      (text/concatenate (text/subseq old-sequence 0 start)
-                                                        (text/make-text (list (text/make-string (replacement-of operation) :font (font-of element) :font-color (font-color-of element))))
-                                                        (text/subseq old-sequence end)))))))
+                                      ;; TODO: move guards into concatenate?
+                                      (apply #'text/concatenate
+                                             (append (unless (= start 0)
+                                                       (list (text/subseq old-sequence 0 start)))
+                                                     (unless (zerop (length (replacement-of operation)))
+                                                       (list (text/make-text (list (text/make-string (replacement-of operation) :font (font-of element) :font-color (font-color-of element))))))
+                                                     (unless (= end (text/length old-sequence))
+                                                       (list (text/subseq old-sequence end))))))))))
     ;; KLUDGE: somewhat kludgie to keep the original identity of the string
     (cond ((and (arrayp old-sequence) (adjustable-array-p old-sequence))
            (progn
