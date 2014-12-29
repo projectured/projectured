@@ -49,5 +49,5 @@
 ;;; Reader
 
 (def reader parallel (projection recursion input printer-iomap)
-  (declare (ignore projection recursion input printer-iomap))
-  nil)
+  (declare (ignore projection recursion printer-iomap))
+  input)

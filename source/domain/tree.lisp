@@ -10,8 +10,8 @@
 ;;; Document
 
 (def document tree/base ()
-  ((opening-delimiter :type string)
-   (closing-delimiter :type string)
+  ((opening-delimiter :type text/text)
+   (closing-delimiter :type text/text)
    (indentation :type integer)))
 
 (def document tree/leaf (tree/base)
@@ -19,7 +19,7 @@
 
 (def document tree/node (tree/base)
   ((expanded :type boolean)
-   (separator :type string)
+   (separator :type text/text)
    (children :type sequence)))
 
 ;;;;;;

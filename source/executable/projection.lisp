@@ -100,8 +100,4 @@
       (type-dispatching
         (widget/base (widget->graphics))
         (document/base (document->t 'initial-factory))
-        (text/text (text->graphics))))
-    ;; TODO: messes up white colors in graphics due to transparency
-    #+nil
-    (recursive
-      (graphics->graphics))))
+        (text/text (text->graphics))))))

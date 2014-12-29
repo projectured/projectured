@@ -88,7 +88,7 @@
                                                                                                          (for match-position = (text/relative-position line first-position match-index))
                                                                                                          (unless (= index match-index)
                                                                                                            (appending (elements-of (text/substring line position match-position))))
-                                                                                                         (appending (elements-of (text/style (text/substring line match-position (text/relative-position line match-position (length search-string))) :line-color *color/solarized/background/lighter*))))
+                                                                                                         (appending (elements-of (text/replace-style (text/substring line match-position (text/relative-position line match-position (length search-string))) :line-color *color/solarized/background/lighter*))))
                                                                                                    (list (text/newline))))
                                                                                :input-first-character-index line-start-character-index
                                                                                :output-first-character-index output-character-index

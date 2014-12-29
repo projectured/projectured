@@ -168,7 +168,7 @@
 (def function make-widget/split-pane (orientation elements &rest args &key margin margin-color border border-color padding padding-color selection)
   (declare (ignore margin margin-color border border-color padding padding-color selection))
   (apply #'make-instance 'widget/split-pane
-         :orientation orientation
+         :orientation (or orientation :horizontal)
          :elements elements
          :sizes nil
          args))
@@ -235,7 +235,7 @@
 
 (def macro widget/split-pane ((&rest args &key orientation margin margin-color border border-color padding padding-color fill-color selection) &body elements)
   (declare (ignore margin margin-color border border-color padding padding-color fill-color selection))
-  `(make-widget/split-pane ,orientation (list ,@elements) ,@args))
+  `(make-widget/split-pane ,orientation (list ,@elements) ,@(remove-from-plist args :orientation)))
 
 (def macro widget/tabbed-pane ((&rest args &key margin margin-color border border-color padding padding-color fill-color selection) &body selector-element-pairs)
   (declare (ignore margin margin-color border border-color padding padding-color fill-color selection))

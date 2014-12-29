@@ -131,7 +131,7 @@
 (def printer book/book->tree/node (projection recursion input input-reference)
   (bind ((authors (authors-of input))
          (element-iomaps (as (map-ll* (elements-of input) (lambda (element index)
-                                                            (bind ((element-iomap (recurse-printer recursion element
+                                                            (bind ((element-iomap (recurse-printer recursion (value-of element)
                                                                                                    `((elt (the sequence document) ,index)
                                                                                                      (the sequence (elements-of (the book/book document)))
                                                                                                      ,@(typed-reference (form-type input) input-reference))))
@@ -289,7 +289,7 @@
 
 (def printer book/chapter->tree/node (projection recursion input input-reference)
   (bind ((element-iomaps (as (map-ll* (elements-of input) (lambda (element index)
-                                                            (bind ((element-iomap (recurse-printer recursion element
+                                                            (bind ((element-iomap (recurse-printer recursion (value-of element)
                                                                                                    `((elt (the sequence document) ,index)
                                                                                                      (the sequence (elements-of (the book/chapter document)))
                                                                                                      ,@(typed-reference (form-type input) input-reference))))

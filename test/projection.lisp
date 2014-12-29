@@ -16,76 +16,67 @@
     projection))
 
 (def function make-test-projection/shell (projection)
-  (sequential
-    (nesting
-      (widget->graphics)
-      (type-dispatching
-        (widget/tooltip (nesting
-                          (widget->graphics)
-                          (sequential
-                            (type-dispatching
-                              (text/base (preserving))
-                              (t (reference->text)))
-                            (make-test-projection/text->output))))
-        (t projection)))
-    (recursive
-      (graphics->graphics))))
+  (nesting
+    (widget->graphics)
+    (type-dispatching
+      (widget/tooltip (nesting
+                        (widget->graphics)
+                        (sequential
+                          (type-dispatching
+                            (text/base (preserving))
+                            (t (reference->text)))
+                          (make-test-projection/text->output))))
+      (t projection))))
 
 (def function make-test-projection/plain (projection)
-  (sequential
-    (nesting
-      (widget->graphics)
-      (type-dispatching
-        (widget/tooltip (nesting
-                          (widget->graphics)
-                          (sequential
-                            (type-dispatching
-                              (text/base (preserving))
-                              (t (reference->text)))
-                            (make-test-projection/text->output))))
-        (widget/scroll-pane (nesting
-                              (widget->graphics)
-                              projection))))
-    (recursive
-      (graphics->graphics))))
+  (nesting
+    (widget->graphics)
+    (type-dispatching
+      (widget/tooltip (nesting
+                        (widget->graphics)
+                        (sequential
+                          (type-dispatching
+                            (text/base (preserving))
+                            (t (reference->text)))
+                          (make-test-projection/text->output))))
+      (widget/scroll-pane (nesting
+                            (widget->graphics)
+                            projection)))))
 
 (def function make-test-projection/search (projection)
-  (sequential
-    (nesting
-      (widget->graphics)
-      (type-dispatching
-        (widget/tooltip (nesting
+  (nesting
+    (widget->graphics)
+    (type-dispatching
+      (widget/tooltip (nesting
+                        (widget->graphics)
+                        (sequential
+                          (type-dispatching
+                            (text/base (preserving))
+                            (t (reference->text)))
+                          (make-test-projection/text->output))))
+      (widget/composite (nesting
                           (widget->graphics)
-                          (sequential
-                            (type-dispatching
-                              (text/base (preserving))
-                              (t (reference->text)))
-                            (make-test-projection/text->output))))
-        (widget/composite (nesting
-                            (widget->graphics)
-                            (type-dispatching
-                              (widget/scroll-pane (nesting
-                                                    (widget->graphics)
-                                                    (sequential
-                                                      (nesting
-                                                        (document/search->text/text)
-                                                        projection)
-                                                      (make-test-projection/text->output))))
-                              (widget/composite (nesting
+                          (type-dispatching
+                            (widget/scroll-pane (nesting
                                                   (widget->graphics)
-                                                  (type-dispatching
-                                                    (widget/composite (nesting
-                                                                        (widget->graphics)
-                                                                        (sequential
-                                                                          (document/search->widget/text)
-                                                                          (nesting
-                                                                            (widget->graphics)
-                                                                            (text->graphics)))))
-                                                    (widget/base (nesting
-                                                                   (widget->graphics)
-                                                                   (text->graphics)))))))))))
-    (recursive
-      (graphics->graphics))))
+                                                  (sequential
+                                                    (nesting
+                                                      (document/search->text/text)
+                                                      projection)
+                                                    (make-test-projection/text->output))))
+                            (widget/composite (nesting
+                                                (widget->graphics)
+                                                (type-dispatching
+                                                  (widget/composite (nesting
+                                                                      (widget->graphics)
+                                                                      (sequential
+                                                                        (document/search->widget/text)
+                                                                        (nesting
+                                                                          (widget->graphics)
+                                                                          (text->graphics)))))
+                                                  (widget/base (nesting
+                                                                 (widget->graphics)
+                                                                 (text->graphics))))))))))))
 
 (def function make-test-projection/selection (projection)
   (nesting
@@ -400,10 +391,10 @@
                                                                                       ,@(typed-reference (form-type input) input-reference)))))
          (output (make-graphics/canvas (list* (output-of content-iomap)
                                               (when last-commands-iomap
-                                                (list (make-graphics/rectangle (make-2d 0 650) (make-2d 1280 68)
-                                                                               :stroke-color *color/black*
-                                                                               :fill-color *color/pastel-yellow*)
-                                                      (make-graphics/canvas (list (output-of last-commands-iomap)) (make-2d 5 655)))))
+                                                (list (make-graphics/rounded-rectangle (make-2d 0 651) (make-2d 1280 68)
+                                                                                       9
+                                                                                       :fill-color (color/lighten *color/solarized/yellow* 0.75))
+                                                      (make-graphics/canvas (list (output-of last-commands-iomap)) (make-2d 5 656)))))
                                        (make-2d 0 0))))
     (make-iomap/compound projection recursion input input-reference output (list content-iomap))))
 
@@ -1098,8 +1089,4 @@
       (type-dispatching
         (widget/base (widget->graphics))
         (document/base (document->t nil))
-        (text/text (text->graphics))))
-    ;; TODO: messes up graphics
-    #+nil
-    (recursive
-      (graphics->graphics))))
+        (text/text (text->graphics))))))

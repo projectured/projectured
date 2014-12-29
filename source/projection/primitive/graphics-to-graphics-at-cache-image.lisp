@@ -9,34 +9,35 @@
 ;;;;;;
 ;;; Projection
 
-(def projection graphics/canvas->graphics/image ()
-  ((threshold 2 :type number)))
+(def projection graphics/canvas->graphics/image@cache-graphics ()
+  ((debug :type boolean)
+   (threshold 2 :type number)))
 
-(def projection graphics/viewport->graphics/image ()
-  ())
-
-;;;;;;
-;;; Construction
-
-(def function make-projection/graphics/canvas->graphics/image ()
-  (make-projection 'graphics/canvas->graphics/image))
-
-(def function make-projection/graphics/viewport->graphics/image ()
-  (make-projection 'graphics/viewport->graphics/image))
+(def projection graphics/viewport->graphics/image@cache-graphics ()
+  ((debug :type boolean)))
 
 ;;;;;;
 ;;; Construction
 
-(def macro graphics/canvas->graphics/image ()
-  '(make-projection/graphics/canvas->graphics/image))
+(def function make-projection/graphics/canvas->graphics/image@cache-graphics (&key debug)
+  (make-projection 'graphics/canvas->graphics/image@cache-graphics :debug debug))
 
-(def macro graphics/viewport->graphics/image ()
-  '(make-projection/graphics/viewport->graphics/image))
+(def function make-projection/graphics/viewport->graphics/image@cache-graphics (&key debug)
+  (make-projection 'graphics/viewport->graphics/image@cache-graphics :debug debug))
+
+;;;;;;
+;;; Construction
+
+(def macro graphics/canvas->graphics/image@cache-graphics (&key debug)
+  `(make-projection/graphics/canvas->graphics/image@cache-graphics :debug ,debug))
+
+(def macro graphics/viewport->graphics/image@cache-graphics (&key debug)
+  `(make-projection/graphics/viewport->graphics/image@cache-graphics :debug ,debug))
 
 ;;;;;;
 ;;; Printer
 
-(def printer graphics/canvas->graphics/image (projection recursion input input-reference)
+(def printer graphics/canvas->graphics/image@cache-graphics (projection recursion input input-reference)
   (bind ((elements (elements-of input)))
     (if (typep elements 'computed-ll)
         (bind ((output (labels ((recurse (element)
@@ -62,11 +63,14 @@
                                                                                  (sdl:fill-surface sdl:*white*)
                                                                                  (print-to-device (make-graphics/canvas elements (location-of input))
                                                                                                   (make-device/display/sdl (2d-x size) (2d-y size)))
+                                                                                 (when (debug-p projection)
+                                                                                   (sdl:draw-aa-line-* 0 0 (2d-x size) (1-(2d-y size)) :color (raw-of *color/solarized/gray*))
+                                                                                   (sdl:draw-aa-line-* 0 (1- (2d-y size)) (2d-x size) 0 :color (raw-of *color/solarized/gray*)))
                                                                                  sdl:*default-surface*))))))
                                (make-graphics/canvas elements (as (location-of input)))))))
           (make-iomap/compound projection recursion input input-reference output element-iomaps)))))
 
-(def printer graphics/viewport->graphics/image (projection recursion input input-reference)
+(def printer graphics/viewport->graphics/image@cache-graphics (projection recursion input input-reference)
   (bind ((content-iomap (as (recurse-printer recursion (content-of input) nil)))
          (output (as (if t ;; TODO: conditional
                          (make-graphics/viewport (output-of (va content-iomap)) (location-of input) (size-of input))
@@ -79,16 +83,19 @@
                                                                                                   (sdl:fill-surface sdl:*white*)
                                                                                                   (print-to-device (make-graphics/viewport (output-of (va content-iomap)) (make-2d 0 0) (size-of input))
                                                                                                                    (make-device/display/sdl (2d-x size) (2d-y size)))
+                                                                                                  (when (debug-p projection)
+                                                                                                    (sdl:draw-aa-line-* 0 0 (2d-x size) (1-(2d-y size)) :color (raw-of *color/solarized/gray*))
+                                                                                                    (sdl:draw-aa-line-* 0 (1- (2d-y size)) (2d-x size) 0 :color (raw-of *color/solarized/gray*)))
                                                                                                   sdl:*default-surface*)))))))))
     (make-iomap/compound projection recursion input input-reference output (as (list (va content-iomap))))))
 
 ;;;;;;
 ;;; Reader
 
-(def reader graphics/canvas->graphics/image (projection recursion input printer-iomap)
+(def reader graphics/canvas->graphics/image@cache-graphics (projection recursion input printer-iomap)
   (declare (ignore projection recursion printer-iomap))
   input)
 
-(def reader graphics/viewport->graphics/image (projection recursion input printer-iomap)
+(def reader graphics/viewport->graphics/image@cache-graphics (projection recursion input printer-iomap)
   (declare (ignore projection recursion printer-iomap))
   input)

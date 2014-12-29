@@ -9,14 +9,23 @@
 ;;;;;;
 ;;; Graphics
 
-(def function make-projection/graphics->graphics ()
+(def function make-projection/graphics->graphics@cache-graphics (&key debug)
   (type-dispatching
-    (graphics/canvas (graphics/canvas->graphics/image))
-    (graphics/viewport (graphics/viewport->graphics/image))
+    (graphics/canvas (graphics/canvas->graphics/image@cache-graphics :debug debug))
+    (graphics/viewport (graphics/viewport->graphics/image@cache-graphics :debug debug))
     (graphics/base (preserving))))
 
-(def macro graphics->graphics ()
-  '(make-projection/graphics->graphics))
+(def macro graphics->graphics@cache-graphics (&key debug)
+  `(make-projection/graphics->graphics@cache-graphics :debug ,debug))
+
+(def function make-projection/graphics->graphics@mark-changes ()
+  (type-dispatching
+    (graphics/canvas (graphics/canvas->graphics/canvas@mark-changes))
+    (graphics/viewport (graphics/viewport->graphics/viewport@mark-changes))
+    (graphics/base (preserving))))
+
+(def macro graphics->graphics@mark-changes ()
+  '(make-projection/graphics->graphics@mark-changes))
 
 ;;;;;;
 ;;; Text
@@ -328,7 +337,8 @@
 (def function make-projection/workbench->widget ()
   (type-dispatching
     (workbench/workbench (workbench/workbench->widget/shell))
-    (workbench/navigator (workbench/navigator->widget/scroll-pane))
+    (workbench/navigator (workbench/navigator->widget/title-pane))
+    (workbench/console (workbench/console->widget/title-pane))
     (workbench/editor (workbench/editor->widget/tabbed-pane))
     (workbench/document (workbench/document->widget/scroll-pane))))
 

@@ -44,8 +44,6 @@
          (closing-delimiter (closing-delimiter-of projection))
          (separator (separator-of projection))
          (indentation (indentation-of projection))
-         (child-iomaps/object nil)
-         (child-iomaps/string nil)
          (elements (prog1-bind elements nil
                      (labels ((write-character (character &optional (count 1))
                                 (push (text/make-text (make-string count :element-type 'character :initial-element character) :font *font/default* :font-color *color/solarized/gray*) elements))
@@ -79,10 +77,7 @@
                        (when closing-delimiter
                          (write-elements closing-delimiter)))))
          (output (text/make-text (nreverse elements))))
-    (make-iomap/compound projection recursion input input-reference output
-                         (append (list (make-iomap/object projection recursion input input-reference output))
-                                 (nreverse child-iomaps/object)
-                                 (sort child-iomaps/string '< :key 'output-offset-of)))))
+    (make-iomap/object projection recursion input input-reference output)))
 
 ;;;;;;
 ;;; Reader

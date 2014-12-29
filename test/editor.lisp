@@ -11,229 +11,177 @@
 
 (def suite* (test/editor :in test))
 
-(def test test/editor/read-eval-print-loop (wrap document selection projection)
-  (bind ((editor (make-editor :filename "/tmp/projectured.bmp")))
-    (ecase wrap
-      ((nil)
-       (run-read-evaluate-print-loop editor
-                                     document
-                                     projection))
-      (:plain
-       (run-read-evaluate-print-loop editor
-                                     (make-test-document/plain (make-test-document/document document))
-                                     (make-test-projection/plain (make-test-projection/document projection))))
-      (:search
-       (run-read-evaluate-print-loop editor
-                                     (make-test-document/search document)
-                                     (make-test-projection/search projection)))
-      (:document
-       (run-read-evaluate-print-loop editor
-                                     (make-test-document/document document)
-                                     (make-test-projection/document projection)))
-      (:debug
-       (run-read-evaluate-print-loop editor
-                                     (make-test-document/shell (make-test-document/debug (make-test-document/document document)))
-                                     (make-test-projection/shell (make-test-projection/debug (make-test-projection/document projection)))))
-      (:selection
-       (run-read-evaluate-print-loop editor
-                                     (make-test-document/shell (make-test-document/debug (make-test-document/selection (make-test-document/document document))))
-                                     (make-test-projection/shell (make-test-projection/debug (make-test-projection/selection (make-test-projection/document projection))))))
-      (:generic
-       (run-read-evaluate-print-loop editor
-                                     (make-test-document/shell (make-test-document/debug (make-test-document/generic (make-test-document/document document))))
-                                     (make-test-projection/shell (make-test-projection/debug (make-test-projection/generic (make-test-projection/document projection))))))
-      (:reflection
-       (run-read-evaluate-print-loop editor
-                                     (make-test-document/reflection document projection)
-                                     (make-test-projection/reflection projection)))
-      (:ide
-       (run-read-evaluate-print-loop editor
-                                     (make-test-document/ide document)
-                                     (make-test-projection/ide projection))))))
+(def test test/editor/read-eval-print-loop (&key document projection wrap cache-graphics display-gestures display-selection mark-cached-graphics mark-graphics-changes)
+  (bind ((editor (make-editor :filename "/tmp/projectured.bmp"))
+         (document (ecase wrap
+                     ((nil)
+                      document)
+                     (:plain
+                      (make-test-document/plain (make-test-document/document document)))
+                     (:search
+                      (make-test-document/search document))
+                     (:document
+                      (make-test-document/document document))
+                     (:debug
+                      (make-test-document/shell (make-test-document/debug (make-test-document/document document))))
+                     (:selection
+                      (make-test-document/shell (make-test-document/debug (make-test-document/selection (make-test-document/document document)))))
+                     (:generic
+                      (make-test-document/shell (make-test-document/debug (make-test-document/generic (make-test-document/document document)))))
+                     (:reflection
+                      (make-test-document/reflection document projection))
+                     (:ide
+                      (make-test-document/ide document))))
+         (projections (append (list (ecase wrap
+                                      ((nil)
+                                       projection)
+                                      (:plain
+                                       (make-test-projection/plain (make-test-projection/document projection)))
+                                      (:search
+                                       (make-test-projection/search projection))
+                                      (:document
+                                       (make-test-projection/document projection))
+                                      (:debug
+                                       (make-test-projection/shell (make-test-projection/debug (make-test-projection/document projection))))
+                                      (:selection
+                                       (make-test-projection/shell (make-test-projection/debug (make-test-projection/selection (make-test-projection/document projection)))))
+                                      (:generic
+                                       (make-test-projection/shell (make-test-projection/debug (make-test-projection/generic (make-test-projection/document projection)))))
+                                      (:reflection
+                                       (make-test-projection/reflection projection))
+                                      (:ide
+                                       (make-test-projection/ide projection))))
+                              (when mark-graphics-changes
+                                (list (recursive
+                                        (graphics->graphics@mark-changes))))
+                              (when cache-graphics
+                                (list (recursive
+                                        (graphics->graphics@cache-graphics :debug mark-cached-graphics))))))
+         (projection (if (= 1 (length projections))
+                         (first projections)
+                         (make-projection/sequential projections))))
+    (run-read-evaluate-print-loop editor document projection)))
 
-(def test test/editor/graphics (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/graphics) nil (make-test-projection/graphics->graphics)))
+(def definer editor (name document projection)
+  `(def test ,name (&rest args &key (document ,document) (projection ,projection) &allow-other-keys)
+     (apply #'test/editor/read-eval-print-loop :document document :projection projection args)))
 
-(def test test/editor/graphics/ll (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/graphics/ll 1000 500) nil (make-test-projection/graphics->graphics)))
+(def editor test/editor/graphics (make-test-document/graphics) (make-test-projection/graphics->graphics))
 
-(def test test/editor/string (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/string) nil (make-test-projection/string->graphics)))
+(def editor test/editor/graphics/ll (make-test-document/graphics/ll 1000 500) (make-test-projection/graphics->graphics))
 
-(def test test/editor/string/empty (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/string/empty) nil (make-test-projection/string->graphics)))
+(def editor test/editor/string (make-test-document/string) (make-test-projection/string->graphics))
 
-(def test test/editor/string/delimited (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/string) nil (make-test-projection/string->graphics/delimited)))
+(def editor test/editor/string/empty (make-test-document/string/empty) (make-test-projection/string->graphics))
 
-(def test test/editor/string/removing (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/string) nil (make-test-projection/string->graphics/removing)))
+(def editor test/editor/string/delimited (make-test-document/string) (make-test-projection/string->graphics/delimited))
 
-(def test test/editor/string/sorting (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/string) nil (make-test-projection/string->graphics/sorting)))
+(def editor test/editor/string/removing (make-test-document/string) (make-test-projection/string->graphics/removing))
 
-(def test test/editor/text (&key wrap (content (make-test-document/text)))
-  (test/editor/read-eval-print-loop wrap content nil (make-test-projection/text->graphics)))
+(def editor test/editor/string/sorting (make-test-document/string) (make-test-projection/string->graphics/sorting))
 
-(def test test/editor/text/ll (&key wrap (content (make-test-document/text/ll 1000 500)))
-  (test/editor/read-eval-print-loop wrap content nil (make-test-projection/text->output)))
+(def editor test/editor/text (make-test-document/text) (make-test-projection/text->graphics))
 
-(def test test/editor/text/searching/ll (&key wrap (content (document/search (:selection '((the text/text (text/subseq (the text/text document) 0 0))
-                                                                                           (the text/text (content-of (the document/search document))))
-                                                                                         :search "0")
-                                                              (make-test-document/text/ll 1000 500))))
-  (test/editor/read-eval-print-loop wrap content nil (sequential
-                                                       (nesting
-                                                         (document/search->text/text)
-                                                         (preserving))
-                                                       (make-test-projection/text->output))))
+(def editor test/editor/text/ll (make-test-document/text/ll 1000 500) (make-test-projection/text->output))
 
-(def test test/editor/text/pos (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/text) '((the text/text (text/subseq (the text/text document) 2 2)) (the text/text (content-of (the document document)))) (make-test-projection/text->graphics)))
+(def editor test/editor/text/searching/ll (document/search (:selection '((the text/text (text/subseq (the text/text document) 0 0))
+                                                                         (the text/text (content-of (the document/search document))))
+                                                                       :search "0")
+                                            (make-test-document/text/ll 1000 500))
+  (sequential
+    (nesting
+      (document/search->text/text)
+      (preserving))
+    (make-test-projection/text->output)))
 
-(def test test/editor/text/elt (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/text) '((the text/text (text/subseq (the text/text document) 2 3)) (the text/text (content-of (the document document)))) (make-test-projection/text->graphics)))
+(def editor test/editor/widget (make-test-document/widget/menu) (make-test-projection/widget->graphics))
 
-(def test test/editor/text/box (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/text) '((the text/text (text/subbox (the text/text document) 5 18))) (make-test-projection/text->graphics)))
+(def editor test/editor/list (make-test-document/list) (make-test-projection/list->graphics))
 
-(def test test/editor/widget (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/widget/menu) nil (make-test-projection/widget->graphics)))
+(def editor test/editor/table (make-test-document/table) (make-test-projection/table->graphics))
 
-(def test test/editor/list (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/list) nil (make-test-projection/list->graphics)))
+(def editor test/editor/table/nested (make-test-document/table/nested) (make-test-projection/table->graphics))
 
-(def test test/editor/table (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/table) nil (make-test-projection/table->graphics)))
+(def editor test/editor/tree (make-test-document/tree) (make-test-projection/tree->graphics))
 
-(def test test/editor/table/nested (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/table/nested) nil (make-test-projection/table->graphics)))
+(def editor test/editor/tree/ll (make-test-document/tree/ll 200 100 2) (make-test-projection/tree->graphics))
 
-(def test test/editor/tree (&key wrap (content (make-test-document/tree)))
-  (test/editor/read-eval-print-loop wrap content nil (make-test-projection/tree->graphics)))
+(def editor test/editor/tree/leaf (make-test-document/tree/leaf) (make-test-projection/tree->graphics))
 
-(def test test/editor/tree/ll (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/tree/ll 200 100 3) nil (make-test-projection/tree->graphics)))
+(def editor test/editor/tree/node (make-test-document/tree/node) (make-test-projection/tree->graphics))
 
-(def test test/editor/tree/leaf (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/tree/leaf) nil (make-test-projection/tree->graphics)))
+(def editor test/editor/tree/empty (make-test-document/tree/empty) (make-test-projection/tree->graphics))
 
-(def test test/editor/tree/node (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/tree/node) nil (make-test-projection/tree->graphics)))
+(def editor test/editor/tree/removing (make-test-document/tree) (make-test-projection/tree->graphics/removing))
 
-(def test test/editor/tree/empty (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/tree/empty) nil (make-test-projection/tree->graphics)))
+(def editor test/editor/tree/sorting (make-test-document/tree) (make-test-projection/tree->graphics/sorting))
 
-(def test test/editor/tree/removing (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/tree) nil (make-test-projection/tree->graphics/removing)))
+(def editor test/editor/graph (make-test-document/graph) (make-test-projection/graph->graphics))
 
-(def test test/editor/tree/sorting (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/tree) nil (make-test-projection/tree->graphics/sorting)))
+(def editor test/editor/state-machine (make-test-document/state-machine) (make-test-projection/state-machine->graphics))
 
-(def test test/editor/graph (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/graph) nil (make-test-projection/graph->graphics)))
+(def editor test/editor/book (make-test-document/book) (make-test-projection/book->graphics))
 
-(def test test/editor/state-machine (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/state-machine) nil (make-test-projection/state-machine->graphics)))
+(def editor test/editor/book/sorting (make-test-document/book) (make-test-projection/book->graphics/sorting))
 
-(def test test/editor/book (&key wrap (content (make-test-document/book)))
-  (test/editor/read-eval-print-loop wrap content nil (make-test-projection/book->graphics)))
+(def editor test/editor/xml (make-test-document/xml) (make-test-projection/xml->graphics))
 
-(def test test/editor/book/sorting (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/book) nil (make-test-projection/book->graphics/sorting)))
+(def editor test/editor/xml/empty (make-test-document/xml/empty) (make-test-projection/xml->graphics))
 
-(def test test/editor/xml (&key wrap (content (make-test-document/xml)))
-  (test/editor/read-eval-print-loop wrap content nil (make-test-projection/xml->graphics)))
+(def editor test/editor/xml/ll (make-test-document/xml/ll 200 100 3) (make-test-projection/xml->graphics))
 
-(def test test/editor/xml/empty (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/xml/empty) nil (make-test-projection/xml->graphics)))
+(def editor test/editor/json (make-test-document/json) (make-test-projection/json->graphics))
 
-(def test test/editor/xml/ll (&key wrap (content (make-test-document/xml/ll 200 100 3)))
-  (test/editor/read-eval-print-loop wrap content nil (make-test-projection/xml->graphics)))
+(def editor test/editor/json/focusing (make-test-document/json) (make-test-projection/json->graphics/focusing))
 
-(def test test/editor/json (&key wrap (content (make-test-document/json)))
-  (test/editor/read-eval-print-loop wrap content nil (make-test-projection/json->graphics)))
+(def editor test/editor/json/removing (make-test-document/json) (make-test-projection/json->graphics/removing))
 
-(def test test/editor/json/focusing (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/json) nil (make-test-projection/json->graphics/focusing)))
+(def editor test/editor/json/reversing (make-test-document/json) (make-test-projection/json->graphics/reversing))
 
-(def test test/editor/json/removing (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/json) nil (make-test-projection/json->graphics/removing)))
+(def editor test/editor/json/sorting (make-test-document/json) (make-test-projection/json->graphics/sorting))
 
-(def test test/editor/json/reversing (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/json) nil (make-test-projection/json->graphics/reversing)))
+(def editor test/editor/file-system (make-test-document/file-system) (make-test-projection/file-system->graphics))
 
-(def test test/editor/json/sorting (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/json) nil (make-test-projection/json->graphics/sorting)))
+(def editor test/editor/java (make-test-document/java) (make-test-projection/java->graphics))
 
-(def test test/editor/file-system (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/file-system) nil (make-test-projection/file-system->graphics)))
+(def editor test/editor/javascript (make-test-document/javascript) (make-test-projection/javascript->graphics))
 
-(def test test/editor/java (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/java) nil (make-test-projection/java->graphics)))
+(def editor test/editor/lisp-form (make-test-document/lisp-form) (make-test-projection/lisp-form->graphics))
 
-(def test test/editor/javascript (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/javascript) nil (make-test-projection/javascript->graphics)))
+(def editor test/editor/common-lisp (make-test-document/common-lisp) (make-test-projection/common-lisp->graphics))
 
-(def test test/editor/lisp-form (&key wrap (content (make-test-document/lisp-form)))
-  (test/editor/read-eval-print-loop wrap content nil (make-test-projection/lisp-form->graphics)))
+(def editor test/editor/common-lisp/inliner (make-test-document/common-lisp) (make-test-projection/common-lisp/inliner->graphics))
 
-(def test test/editor/common-lisp (&key wrap (content (make-test-document/common-lisp)))
-  (test/editor/read-eval-print-loop wrap content nil (make-test-projection/common-lisp->graphics)))
+(def editor test/editor/common-lisp/test (make-test-document/common-lisp/test) (make-test-projection/common-lisp->graphics/test))
 
-(def test test/editor/common-lisp/inliner (&key wrap (content (make-test-document/common-lisp)))
-  (test/editor/read-eval-print-loop wrap content nil (make-test-projection/common-lisp/inliner->graphics)))
+(def editor test/editor/common-lisp/search (make-test-document/common-lisp/search) (make-test-projection/common-lisp->graphics/search))
 
-(def test test/editor/common-lisp/test (&key wrap (content (make-test-document/common-lisp/test)))
-  (test/editor/read-eval-print-loop wrap content nil (make-test-projection/common-lisp->graphics/test)))
+(def editor test/editor/common-lisp/split (make-test-document/common-lisp/split) (make-test-projection/common-lisp->graphics/split))
 
-(def test test/editor/common-lisp/search (&key wrap (content (make-test-document/common-lisp/search)))
-  (test/editor/read-eval-print-loop wrap content nil (make-test-projection/common-lisp->graphics/search)))
+(def editor test/editor/evaluator (make-test-document/evaluator) (make-test-projection/evaluator))
 
-(def test test/editor/common-lisp/split (&key wrap (content (make-test-document/common-lisp/split)))
-  (test/editor/read-eval-print-loop wrap content nil (make-test-projection/common-lisp->graphics/split)))
+(def editor test/editor/t/null (make-test-document/t/null) (make-test-projection/t->graphics/table))
 
-(def test test/editor/evaluator (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/evaluator) nil (make-test-projection/evaluator)))
+(def editor test/editor/t/cons (make-test-document/t/cons) (make-test-projection/t->graphics/table))
 
-(def test test/editor/t (content &key wrap selection)
-  (test/editor/read-eval-print-loop wrap content selection (make-test-projection/t->graphics/table)))
+(def editor test/editor/t/object (make-test-document/t/object) (make-test-projection/t->graphics/table))
 
-(def test test/editor/t/null (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/t/null) nil (make-test-projection/t->graphics/table)))
+(def editor test/editor/t/object/nested (make-test-document/t/object/nested) (make-test-projection/t->graphics/table))
 
-(def test test/editor/t/cons (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/t/cons) nil (make-test-projection/t->graphics/table)))
+(def editor test/editor/t/text (make-test-document/text) (make-test-projection/t->graphics/table))
 
-(def test test/editor/t/object (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/t/object) nil (make-test-projection/t->graphics/table)))
+(def editor test/editor/t/tree (make-test-document/tree) (make-test-projection/t->graphics/table))
 
-(def test test/editor/t/object/nested (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/t/object/nested) nil (make-test-projection/t->graphics/table)))
+(def editor test/editor/t/xml (make-test-document/xml) (make-test-projection/t->graphics/tree))
 
-(def test test/editor/t/text (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/text) nil (make-test-projection/t->graphics/table)))
+(def editor test/editor/t/json (make-test-document/json) (make-test-projection/t->graphics/tree))
 
-(def test test/editor/t/tree (&key wrap (content (make-test-document/tree)))
-  (test/editor/read-eval-print-loop wrap content nil (make-test-projection/t->graphics/table)))
+(def editor test/editor/inspector/object (make-test-document/inspector/object) (make-test-projection/inspector->graphics))
 
-(def test test/editor/t/xml (&key wrap (content (make-test-document/xml)))
-  (test/editor/read-eval-print-loop wrap content nil (make-test-projection/t->graphics/tree)))
+(def editor test/editor/inspector/object/nested (make-test-document/inspector/object/nested) (make-test-projection/inspector->graphics))
 
-(def test test/editor/t/json (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/json) nil (make-test-projection/t->graphics/tree)))
+(def editor test/editor/demo (make-test-document/demo) (make-test-projection/demo->graphics))
 
-(def test test/editor/inspector/object (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/inspector/object) nil (make-test-projection/inspector->graphics)))
+(def editor test/editor/documentation (make-test-document/documentation) (make-test-projection/documentation->graphics))
 
-(def test test/editor/inspector/object/nested (&key wrap)
-  (test/editor/read-eval-print-loop wrap (make-test-document/inspector/object/nested) nil (make-test-projection/inspector->graphics)))
-
-(def test test/editor/demo (&key wrap (content (make-test-document/demo)))
-  (test/editor/read-eval-print-loop wrap content nil (make-test-projection/demo->graphics)))
-
-(def test test/editor/documentation (&key wrap (content (make-test-document/documentation)))
-  (test/editor/read-eval-print-loop wrap content nil (make-test-projection/documentation->graphics)))
-
-(def test test/editor/workbench (&key wrap (content (make-test-document/workbench)))
-  (test/editor/read-eval-print-loop wrap content nil (make-test-projection/workbench->graphics)))
+(def editor test/editor/workbench (make-test-document/workbench) (make-test-projection/workbench->graphics))

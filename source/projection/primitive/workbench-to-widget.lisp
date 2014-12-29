@@ -12,7 +12,10 @@
 (def projection workbench/workbench->widget/shell ()
   ())
 
-(def projection workbench/navigator->widget/scroll-pane ()
+(def projection workbench/navigator->widget/title-pane ()
+  ())
+
+(def projection workbench/console->widget/title-pane ()
   ())
 
 (def projection workbench/editor->widget/tabbed-pane ()
@@ -27,8 +30,11 @@
 (def function make-projection/workbench/workbench->widget/shell ()
   (make-projection 'workbench/workbench->widget/shell))
 
-(def function make-projection/workbench/navigator->widget/scroll-pane ()
-  (make-projection 'workbench/navigator->widget/scroll-pane))
+(def function make-projection/workbench/navigator->widget/title-pane ()
+  (make-projection 'workbench/navigator->widget/title-pane))
+
+(def function make-projection/workbench/console->widget/title-pane ()
+  (make-projection 'workbench/console->widget/title-pane))
 
 (def function make-projection/workbench/editor->widget/tabbed-pane ()
   (make-projection 'workbench/editor->widget/tabbed-pane))
@@ -42,8 +48,11 @@
 (def macro workbench/workbench->widget/shell ()
   '(make-projection/workbench/workbench->widget/shell))
 
-(def macro workbench/navigator->widget/scroll-pane ()
-  '(make-projection/workbench/navigator->widget/scroll-pane))
+(def macro workbench/navigator->widget/title-pane ()
+  '(make-projection/workbench/navigator->widget/title-pane))
+
+(def macro workbench/console->widget/title-pane ()
+  '(make-projection/workbench/console->widget/title-pane))
 
 (def macro workbench/editor->widget/tabbed-pane ()
   '(make-projection/workbench/editor->widget/tabbed-pane))
@@ -57,17 +66,22 @@
 (def printer workbench/workbench->widget/shell (projection recursion input input-reference)
   (bind ((navigator-iomap (recurse-printer recursion (navigator-of input) `((navigator-of (the workbench/workbench document))
                                                                             ,@(typed-reference (form-type input) input-reference))))
+         (console-iomap (recurse-printer recursion (console-of input) `((console-of (the workbench/workbench document))
+                                                                        ,@(typed-reference (form-type input) input-reference))))
          (editor-iomap (recurse-printer recursion (editor-of input) `((editor-of (the workbench/workbench document))
                                                                       ,@(typed-reference (form-type input) input-reference))))
          (output (widget/shell (:border (make-inset :all 5)
                                 :border-color *color/gray191*)
-                   (widget/split-pane (:selection '((the workbench/editor (elt (the sequence document) 1))
+                   (widget/split-pane (:selection '((the widget/split-pane (elt (the sequence document) 1))
                                                     (the sequence (elements-of (the widget/split-pane document)))))
                      (output-of navigator-iomap)
-                     (output-of editor-iomap)))))
-    (make-iomap/compound projection recursion input input-reference output (list navigator-iomap editor-iomap))))
+                     (widget/split-pane (:orientation :vertical :selection '((the widget/tabbed-pane (elt (the sequence document) 0))
+                                                                             (the sequence (elements-of (the widget/split-pane document)))))
+                       (output-of editor-iomap)
+                       (output-of console-iomap))))))
+    (make-iomap/compound projection recursion input input-reference output (list navigator-iomap console-iomap editor-iomap))))
 
-(def printer workbench/navigator->widget/scroll-pane (projection recursion input input-reference)
+(def printer workbench/navigator->widget/title-pane (projection recursion input input-reference)
   (bind ((folder-iomaps (iter (for index :from 0)
                               (for folder :in-sequence (folders-of input))
                               (collect (recurse-printer recursion folder `((elt (the sequence document) ,index)
@@ -77,11 +91,24 @@
                                      :title-fill-color *color/solarized/content/lighter*
                                      :border (make-inset :all 5)
                                      :border-color *color/solarized/content/lighter*)
-                   (widget/scroll-pane (:size (make-2d 224 661)
+                   (widget/scroll-pane (:size (make-2d 224 659)
                                         :padding (make-inset :all 5)
                                         :padding-color *color/white*)
                      (make-widget/composite (make-2d 0 0) (mapcar 'output-of folder-iomaps))))))
     (make-iomap/compound projection recursion input input-reference output folder-iomaps)))
+
+(def printer workbench/console->widget/title-pane (projection recursion input input-reference)
+  (bind ((content-iomap (recurse-printer recursion (content-of input) `((content-of (the workbench/document document))
+                                                                        ,@(typed-reference (form-type input) input-reference))))
+         (output (widget/title-pane (:title (text/text () (text/string "Console" :font *font/ubuntu/regular/18*))
+                                     :title-fill-color *color/solarized/content/lighter*
+                                     :border (make-inset :all 5)
+                                     :border-color *color/solarized/content/lighter*)
+                   (widget/scroll-pane (:size (make-2d 1000 141)
+                                        :padding (make-inset :all 5)
+                                        :padding-color *color/white*)
+                     (output-of content-iomap)))))
+    (make-iomap/compound projection recursion input input-reference output (list content-iomap))))
 
 (def printer workbench/editor->widget/tabbed-pane (projection recursion input input-reference)
   (bind ((document-iomaps (iter (for index :from 0)
@@ -101,7 +128,7 @@
 (def printer workbench/document->widget/scroll-pane (projection recursion input input-reference)
   (bind ((content-iomap (recurse-printer recursion (content-of input) `((content-of (the workbench/document document))
                                                                         ,@(typed-reference (form-type input) input-reference))))
-         (output (widget/scroll-pane (:size (make-2d 1000 661)
+         (output (widget/scroll-pane (:size (make-2d 1000 461)
                                       :padding (make-inset :all 5)
                                       :padding-color *color/white*)
                    (output-of content-iomap))))
@@ -114,7 +141,11 @@
   (declare (ignore projection))
   (recurse-reader recursion input (elt (child-iomaps-of printer-iomap) 1)))
 
-(def reader workbench/navigator->widget/scroll-pane (projection recursion input printer-iomap)
+(def reader workbench/navigator->widget/title-pane (projection recursion input printer-iomap)
+  (declare (ignore projection))
+  (recurse-reader recursion input (elt (child-iomaps-of printer-iomap) 0)))
+
+(def reader workbench/console->widget/title-pane (projection recursion input printer-iomap)
   (declare (ignore projection))
   (recurse-reader recursion input (elt (child-iomaps-of printer-iomap) 0)))
 

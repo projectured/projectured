@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; Document
 
-;; TODO: rename?
+;; TODO: rename to document/sequence?
 (def document sequence/sequence (computed-sequence)
   ())
 
@@ -123,8 +123,6 @@
           (pattern-case (target-of operation)
             (((the string (subseq (the ?type (?if (subtypep ?type 'string)) ?a) ?b ?c)) . ?rest)
              (values `(,@(reverse ?rest) (the string ,?a)) ?b ?c))
-            (((the text/text (text/subseq (the text/text ?a) ?b ?c)) . ?rest)
-             (values `(,@(reverse ?rest) (the text/text ,?a)) ?b ?c))
             (((the sequence (subseq (the ?type (?if (subtypep ?type 'sequence)) ?a) ?b ?c)) . ?rest)
              (values `(,@(reverse ?rest) (the sequence ,?a)) ?b ?c))
             (?a
@@ -139,29 +137,14 @@
                                                                                  (subseq (hu.dwim.computed-class::elements-of old-sequence) end))
                                                                     :selection (selection-of old-sequence)))
                          (sequence (concatenate (form-type old-sequence)
-                                                (subseq old-sequence 0 start) (replacement-of operation) (subseq old-sequence end)))
-                         (text/text (bind ((element (last-elt (elements-of old-sequence))))
-                                      ;; TODO: move guards into concatenate?
-                                      (apply #'text/concatenate
-                                             (append (unless (= start 0)
-                                                       (list (text/subseq old-sequence 0 start)))
-                                                     (unless (zerop (length (replacement-of operation)))
-                                                       (list (text/make-text (list (text/make-string (replacement-of operation) :font (font-of element) :font-color (font-color-of element))))))
-                                                     (unless (= end (text/length old-sequence))
-                                                       (list (text/subseq old-sequence end))))))))))
+                                                (subseq old-sequence 0 start) (replacement-of operation) (subseq old-sequence end))))))
     ;; KLUDGE: somewhat kludgie to keep the original identity of the string
     (cond ((and (arrayp old-sequence) (adjustable-array-p old-sequence))
            (progn
              (adjust-array old-sequence (length new-sequence))
              (replace old-sequence new-sequence)))
-          ((typep old-sequence 'text/text)
-           (setf (elements-of old-sequence) (elements-of new-sequence)))
           (t
            (setf (eval-reference document flat-reference) new-sequence)))
-    #+nil
-    (when *use-computed-class*
-      ;; KLUDGE: forece recomputation
-      (invalidate-computed-slot (document-of operation) 'content))
     ;; KLUDGE: can't do this in a separate operation
     (bind ((character-index (+ start (length (replacement-of operation)))))
       (run-operation (make-operation/replace-selection document `((the ,(form-type new-sequence) (,(if (typep old-sequence 'text/text) 'text/subseq 'subseq) (the ,(form-type old-sequence) document) ,character-index ,character-index))

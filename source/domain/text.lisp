@@ -18,12 +18,12 @@
    (fill-color :type style/color)
    (line-color :type style/color)))
 
+(def document text/newline (text/element)
+  ((content (string #\NewLine) :type string :allocation :class :computed-in nil)))
+
 (def document text/spacing (text/element)
   ((size :type number)
    (unit :type (member :pixel :space))))
-
-(def document text/character (text/element)
-  ((content :type character)))
 
 (def document text/string (text/element)
   ((content :type string)))
@@ -34,19 +34,13 @@
 ;;;;;;
 ;;; Construction
 
+(def function text/make-newline ()
+  (make-instance 'text/newline))
+
 (def function text/make-spacing (size &key font font-color fill-color line-color (unit :pixel))
   (make-instance 'text/spacing
                  :size size
                  :unit unit
-                 :font font
-                 :font-color font-color
-                 :fill-color fill-color
-                 :line-color line-color))
-
-(def function text/make-character (content &key font font-color fill-color line-color)
-  (check-type content character)
-  (make-instance 'text/character
-                 :content content
                  :font font
                  :font-color font-color
                  :fill-color fill-color
@@ -67,116 +61,165 @@
 ;;;;;;
 ;;; Construction
 
+(def macro text/newline ()
+  '(text/make-newline))
+
 (def macro text/spacing (size &key font font-color fill-color line-color unit)
   `(text/make-spacing ,size :unit ,unit :font ,(or font '*font/default*) :font-color ,font-color :fill-color ,fill-color :line-color ,line-color))
 
-(def macro text/character (content &key font font-color fill-color line-color)
-  `(text/make-character ,content :font ,(or font '*font/default*) :font-color ,font-color :fill-color ,fill-color :line-color ,line-color))
-
 (def macro text/string (content &key font font-color fill-color line-color)
   `(text/make-string ,content :font ,(or font '*font/default*) :font-color ,(or font-color '*color/default*) :fill-color ,fill-color :line-color ,line-color))
-
-(def macro text/newline (&key font font-color fill-color line-color)
-  `(text/make-string "
-" :font ,(or font '*font/default*) :font-color ,(or font-color '*color/default*) :fill-color ,fill-color :line-color ,line-color))
 
 (def macro text/text ((&key selection) &body elements)
   `(text/make-text (list ,@elements) :selection ,selection))
 
 ;;;;;;
+;;; Operation
+
+(def operation operation/text/base ()
+  ())
+
+(def operation operation/text/replace-range (operation/text/base)
+  ((document :type text/text)
+   (selection :type reference)
+   (replacement :type text/text)))
+
+;;;;;;
+;;; Construction
+
+(def function make-operation/text/replace-range (document selection replacement)
+  (make-instance 'operation/text/replace-range
+                 :document document
+                 :selection selection
+                 :replacement replacement))
+
+;;;;;;
 ;;; Text API
 
-(def function text/make-position (element index)
-  (cons element index))
-
-(def (function io) text/position-element (position)
-  (car position))
-
-(def (function io) text/position-index (position)
-  (cdr position))
+(def structure (text/position (:constructor text/make-position))
+  (element nil :type (or null non-negative-integer computed-ll))
+  (index nil :type (or null integer))
+  (distance nil :type (or null integer)))
 
 (def function text/position= (position-1 position-2)
-  (and (eql (text/position-element position-1)
-            (text/position-element position-2))
-       (= (text/position-index position-1)
-          (text/position-index position-2))))
+  (or (bind ((distance-1 (text/position-distance position-1))
+             (distance-2 (text/position-distance position-2)))
+        (and distance-1 distance-2 (= distance-1 distance-2)))
+      (bind ((element-1 (text/position-element position-1))
+             (element-2 (text/position-element position-2))
+             (index-1 (text/position-index position-1))
+             (index-2 (text/position-index position-2)))
+        (and (and element-1 element-2
+                  (eql (text/position-element position-1)
+                       (text/position-element position-2)))
+             (and index-1 index-2
+                  (= (text/position-index position-1)
+                     (text/position-index position-2)))))))
 
 (def function text/origin-position (text)
   (bind ((elements (elements-of text)))
     (etypecase elements
       (null nil)
-      (computed-ll (text/make-position elements 0))
-      (sequence (text/make-position 0 0)))))
+      (computed-ll (text/make-position :element elements :index 0 :distance 0))
+      (sequence (text/make-position :element 0 :index 0 :distance 0)))))
 
 (def function text/first-position (text)
   (bind ((elements (elements-of text)))
     (etypecase elements
       (null nil)
-      (computed-ll (text/make-position (first-element elements) 0))
-      (sequence (text/make-position 0 0)))))
+      (computed-ll (text/make-position :element (first-element elements) :index 0 :distance nil))
+      (sequence (text/make-position :element 0 :index 0 :distance 0)))))
 
 (def function text/last-position (text)
   (bind ((elements (elements-of text)))
     (etypecase elements
       (null nil)
       (computed-ll (bind ((last-element (last-element elements)))
-                     (text/make-position last-element (length (content-of (value-of last-element))))))
+                     (text/make-position :element last-element :index (length (content-of (value-of last-element))) :distance nil)))
       (sequence (bind ((last-element (last-elt elements)))
-                  (text/make-position (1- (length elements)) (length (content-of last-element))))))))
+                  (text/make-position :element (1- (length elements)) :index (length (content-of last-element)) :distance nil))))))
 
 (def function text/previous-position (text position)
   (bind ((element (text/position-element position))
-         (index (text/position-index position)))
-    (if (integerp element)
-        (if (zerop index)
-            (unless (zerop element)
-              (text/make-position (1- element) (1- (length (content-of (elt (elements-of text) (1- element)))))))
-            (text/make-position element (1- index)))
-        (if (zerop index)
-            (awhen (previous-element-of element)
-              (text/make-position it (1- (length (content-of (value-of it))))))
-            (text/make-position element (1- index))))))
+         (index (text/position-index position))
+         (distance (awhen (text/position-distance position) (1- it))))
+    (etypecase element
+      (integer
+       (if (zerop index)
+           (when (not (zerop element))
+             (text/normalize-position text (text/make-position :element (1- element) :index (1- (length (content-of (elt (elements-of text) (1- element))))) :distance distance)))
+           (text/make-position :element element :index (1- index) :distance distance)))
+      (computed-ll
+       (if (zerop index)
+           (awhen (previous-element-of element)
+             (text/normalize-position text (text/make-position :element it :index (1- (length (content-of (value-of it)))) :distance distance)))
+           (text/make-position :element element :index (1- index) :distance distance))))))
 
 (def function text/next-position (text position)
   (bind ((element (text/position-element position))
-         (index (text/position-index position)))
-    (if (integerp element)
-        (bind ((elements (elements-of text))
-               (element-length (length (content-of (elt elements element)))))
-          (if (< index (1- element-length))
-              (text/make-position element (1+ index))
-              (if (= element (1- (length elements)))
-                  (if (< index element-length)
-                      (text/make-position element (1+ index)))
-                  (text/make-position (1+ element) 0))))
-        (bind ((element-length (length (content-of (value-of element)))))
-          (if (< index (1- element-length))
-              (text/make-position element (1+ index))
-              (aif (next-element-of element)
-                   (text/make-position it 0)
-                   (if (< index element-length)
-                       (text/make-position element (1+ index)))))))))
+         (index (text/position-index position))
+         (distance (awhen (text/position-distance position) (1+ it))))
+    (etypecase element
+      (integer
+       (bind ((elements (elements-of text))
+              (element-length (length (content-of (elt elements element)))))
+         (if (< index (1- element-length))
+             (text/make-position :element element :index (1+ index) :distance distance)
+             (if (not (= element (1- (length elements))))
+                 (text/normalize-position text (text/make-position :element (1+ element) :index 0 :distance distance))
+                 (when (< index element-length)
+                   (text/make-position :element element :index (1+ index) :distance distance))))))
+      (computed-ll
+       (bind ((element-length (length (content-of (value-of element)))))
+         (if (< index (1- element-length))
+             (text/make-position :element element :index (1+ index) :distance distance)
+             (aif (next-element-of element)
+                  (text/normalize-position text (text/make-position :element it :index 0 :distance distance))
+                  (when (< index element-length)
+                    (text/make-position :element element :index (1+ index) :distance distance)))))))))
 
 (def function text/sibling-position (text position direction)
   (ecase direction
     (:backward (text/previous-position text position))
     (:forward (text/next-position text position))))
 
+(def function text/normalize-position (text position)
+  (bind ((element (text/position-element position))
+         (index (text/position-index position))
+         (distance (text/position-distance position)))
+    (etypecase element
+      (integer
+       (bind ((elements (elements-of text))
+              (element-length (length (content-of (elt elements element)))))
+         (cond ((>= index element-length)
+                (text/normalize-position text (text/make-position :element (1+ element) :index (- index element-length) :distance distance)))
+               ((< index 0)
+                (text/normalize-position text (text/make-position :element (1- element) :index (+ index (length (content-of (elt elements (1- element))))) :distance distance)))
+               (t position))))
+      (computed-ll
+       (bind ((element-length (length (content-of (value-of element)))))
+         (cond ((>= index element-length)
+                (text/normalize-position text (text/make-position :element (next-element-of element) :index (- index element-length) :distance distance)))
+               ((< index 0)
+                (text/normalize-position text (text/make-position :element (previous-element-of element) :index (+ index (length (content-of (value-of (previous-element-of element))))) :distance distance)))
+               (t position)))))))
+
 (def function text/line-start-position (text start-position)
-  (iter (for position :initially start-position :then (text/previous-position text position))
-        (while position)
-        (for character = (text/previous-character text position))
-        (while character)
-        (until (char= character #\NewLine))
-        (finally (return position))))
+  (iter (for element :initially (text/position-element start-position) :then (text/previous-element text element))
+        (for previous-element :previous element)
+        (unless element
+          (return (text/make-position :element previous-element :index 0 :distance nil)))
+        (when (and (not (eql element (text/position-element start-position)))
+                   (text/newline? (text/element text element)))
+          (return (text/make-position :element previous-element :index 0 :distance nil)))))
 
 (def function text/line-end-position (text start-position)
-  (iter (for position :initially start-position :then (text/next-position text position))
-        (while position)
-        (for character = (text/next-character text position))
-        (while character)
-        (until (char= character #\NewLine))
-        (finally (return position))))
+  (iter (for element :initially (text/position-element start-position) :then (text/next-element text element))
+        (for previous-element :previous element)
+        (when (not element)
+          (return (text/make-position :element previous-element :index (length (content-of (text/element text previous-element))) :distance nil)))
+        (when (text/newline? (text/element text element))
+          (return (text/make-position :element element :index 0 :distance nil)))))
 
 (def function text/relative-position (text start-position distance)
   (iter (repeat (abs distance))
@@ -215,9 +258,10 @@
   (bind ((elements (elements-of text)))
     (if (typep elements 'computed-ll)
         (last-element elements)
-        (1- (length (last-elt elements))))))
+        (1- (length elements)))))
 
 (def function text/previous-element (text element)
+  (declare (ignore text))
   (if (integerp element)
       (when (> element 0)
         (1- element))
@@ -245,12 +289,13 @@
   (not-yet-implemented))
 
 (def function text/empty? (text)
-  (emptyp (elements-of text)))
+  (bind ((elements (elements-of text)))
+    (or (emptyp elements)
+        (and (= (length elements) 1)
+             (emptyp (content-of (first-elt elements)))))))
 
 (def function text/newline? (element)
-  (and (typep element 'text/string)
-       (string= (content-of element) "
-")))
+  (typep element 'text/newline))
 
 ;; TODO: optimize
 (def function text/length (text &optional (start-position (text/first-position text)) (end-position (text/last-position text)))
@@ -304,42 +349,34 @@
             (funcall 'count character (content-of element)))
            (t 0)))))
 
+(def function text/count-lines (text)
+  (1+ (iter (for element :in-sequence (elements-of text))
+            (when (typep element 'text/newline)
+              (summing 1)))))
+
 (def function text/as-string (text)
   (with-output-to-string (stream)
     (iter (for element :in-sequence (elements-of text))
           (typecase element
+            (text/newline
+             (terpri stream))
             (text/string
              (write-string (content-of element) stream))))))
 
 (def function text/split (text split-character)
-  (iter (with elements = (elements-of text))
-        (with start-element-index = 0)
-        (with start-character-index = 0)
-        (for (values end-element-index end-character-index) = (text/find text start-element-index start-character-index (lambda (character) (char= character split-character))))
-        (collect (text/substring text start-element-index start-character-index end-element-index end-character-index))
-        (while (< end-element-index (length elements)))
-        (setf (values start-element-index start-character-index) (text/next-index text end-element-index end-character-index))
-        (while (< start-element-index (length elements)))))
+  (iter (for start-position :initially (text/first-position text) :then (text/next-position text end-position))
+        (while start-position)
+        (for end-position = (text/find text start-position (lambda (character) (char= character split-character))))
+        (collect (text/substring text start-position (or end-position (text/last-position text))))
+        (while end-position)))
 
 (def function text/map-split (text split-character function)
-  (bind ((elements (elements-of text)))
-    (unless (zerop (length elements))
-      (iter (with start-element-index = 0)
-            (with start-character-index = 0)
-            (for (values end-element-index end-character-index) = (text/find text start-element-index start-character-index (lambda (character) (char= character split-character))))
-            (funcall function start-element-index start-character-index end-element-index end-character-index)
-            (while (< end-element-index (length elements)))
-            (setf (values start-element-index start-character-index) (text/next-index text end-element-index end-character-index))
-            (while (< start-element-index (length elements)))))))
-
-(def function text/next-index (text element-index character-index)
-  (bind ((element (elt (elements-of text) element-index)))
-    (typecase element
-      (text/string
-       (if (< (1+ character-index) (length (content-of element)))
-           (values element-index (1+ character-index))
-           (values (1+ element-index) 0)))
-      (t (values (1+ element-index) 0)))))
+  (iter (for start-position :initially (text/first-position text) :then (text/next-position text end-position))
+        (while start-position)
+        (for end-position = (text/find text start-position (lambda (character) (char= character split-character))))
+        (funcall function start-position (or end-position (text/last-position text)))
+        (collect (text/substring text start-position (or end-position (text/last-position text))))
+        (while end-position)))
 
 (def function text/concatenate (&rest texts)
   (text/make-text (apply #'concatenate 'vector (mapcar #'elements-of texts))))
@@ -371,7 +408,7 @@
                               :result-type vector)))
                   :selection (selection-of text)))
 
-(def function text/style (text &key font font-color fill-color line-color)
+(def function text/replace-style (text &key font font-color fill-color line-color)
   (text/make-text (iter (for element :in (elements-of text))
                         (collect (text/string (content-of element)
                                               :font (or font (font-of element))
@@ -438,12 +475,10 @@
                   (if (eq modifier :control)
                       (text/last-position text)
                       line-end-position))
-                 (:sdl-key-pageup
-                  ;; TODO:
-                  (not-yet-implemented))
-                 (:sdl-key-pagedown
-                  ;; TODO:
-                  (not-yet-implemented)))))
+                 #+nil
+                 (:sdl-key-pageup)
+                 #+nil
+                 (:sdl-key-pagedown))))
             (?a
              (case key
                (:sdl-key-home
@@ -454,6 +489,7 @@
                   (text/last-position text))))))))
     (when new-position
       ;; KLUDGE:
+      #+nil
       (when (and (and (eq modifier :control)
                       (member key '(:sdl-key-home :sdl-key-end)))
                  (typep (text/position-element new-position) 'computed-ll))
@@ -461,6 +497,7 @@
       (bind ((new-character-index (iter (with origin-position = (text/origin-position text))
                                         (for backward-position :initially origin-position :then (when backward-position (text/previous-position text backward-position)))
                                         (for forward-position :initially origin-position :then (when forward-position (text/next-position text forward-position)))
+                                        (while (or backward-position forward-position))
                                         (when (and backward-position (text/position= backward-position new-position))
                                           (return (- distance)))
                                         (when (and forward-position (text/position= forward-position new-position))
@@ -503,17 +540,17 @@
          :domain "Text" :description "Moves the selection to the end of the line"
          :operation (text/read-replace-selection-operation text :sdl-key-end))
         ((gesture/keyboard/key-press :sdl-key-home :control)
-         :domain "Text" :description "Moves the selection to the beginning of the text"
+         :domain "Text" :description "Moves the selection to the beginning of the first line"
          :operation (text/read-replace-selection-operation text :sdl-key-home :control))
         ((gesture/keyboard/key-press :sdl-key-end :control)
-         :domain "Text" :description "Moves the selection to the end of the text"
+         :domain "Text" :description "Moves the selection to the end of the last line"
          :operation (text/read-replace-selection-operation text :sdl-key-end :control))
         ((gesture/keyboard/key-press :sdl-key-delete)
          :domain "Text" :description "Deletes the character following the selection"
          :operation (pattern-case (selection-of text)
                       (((the text/text (text/subseq (the text/text document) ?b ?b)))
                        (when (< ?b (text/length text))
-                         (make-operation/sequence/replace-element-range text `((the text/text (text/subseq (the text/text document) ,?b ,(1+ ?b)))) "")))))
+                         (make-operation/text/replace-range text `((the text/text (text/subseq (the text/text document) ,?b ,(1+ ?b)))) "")))))
         ((gesture/keyboard/key-press :sdl-key-delete :control)
          :domain "Text" :description "Deletes the word following the selection"
          :operation (pattern-case (selection-of text)
@@ -521,13 +558,12 @@
                        (bind ((start-position (text/relative-position text (text/origin-position text) ?b))
                               (end-position (text/find text start-position (lambda (c) (not (alphanumericp c))))))
                          (when end-position
-                           (make-operation/sequence/replace-element-range text `((the text/text (text/subseq (the text/text document) ,?b ,(text/length text start-position end-position)))) ""))))))
+                           (make-operation/text/replace-range text `((the text/text (text/subseq (the text/text document) ,?b ,(text/length text start-position end-position)))) ""))))))
         ((gesture/keyboard/key-press :sdl-key-backspace)
          :domain "Text" :description "Deletes the character preceding the selection"
          :operation (pattern-case (selection-of text)
                       (((the text/text (text/subseq (the text/text document) ?b ?b)))
-                       (when (> ?b 0)
-                         (make-operation/sequence/replace-element-range text `((the text/text (text/subseq (the text/text document) ,(1- ?b) ,?b))) ""))))))
+                       (make-operation/text/replace-range text `((the text/text (text/subseq (the text/text document) ,(1- ?b) ,?b))) "")))))
       ;; TODO: move into gesture-case
       (cond ((and (typep gesture 'gesture/keyboard/key-press)
                   (null (set-difference (modifiers-of gesture) '(:shift)))
@@ -541,6 +577,29 @@
                (pattern-case (selection-of text)
                  (((the text/text (text/subseq (the text/text document) ?b ?b)) . ?rest)
                   (make-command gesture
-                                (make-operation/sequence/replace-element-range text (selection-of text) replacement)
+                                (make-operation/text/replace-range text (selection-of text) replacement)
                                 :domain "Text"
                                 :description "Inserts a new character at the selection"))))))))
+
+(def method run-operation ((operation operation/text/replace-range))
+  (bind ((document (document-of operation))
+         (selection (selection-of operation))
+         (replacement (replacement-of operation)))
+    (pattern-case selection
+      (((the text/text (text/subseq (the text/text document) ?start-character-index ?end-character-index)) . ?rest)
+       (bind ((text-reference (reference/flatten (reverse ?rest)))
+              (text (eval-reference document text-reference))
+              (origin-position (text/origin-position text))
+              (start-position (text/relative-position text origin-position ?start-character-index))
+              (end-position (text/relative-position text origin-position ?end-character-index))
+              (start-element (text/element text (text/position-element start-position)))
+              (start-content (content-of start-element))
+              (new-character-index (if (>= ?start-character-index 0)
+                                       (+ ?start-character-index (length replacement))
+                                       ?end-character-index)))
+         (setf (content-of start-element)
+               (concatenate (form-type start-content)
+                            (subseq start-content 0 (text/position-index start-position))
+                            replacement
+                            (subseq start-content (+ (text/position-index start-position) (text/length text start-position end-position)))))
+         (set-selection document `((the text/text (text/subseq (the text/text document) ,new-character-index ,new-character-index)) ,@?rest)))))))
