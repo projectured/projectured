@@ -139,6 +139,12 @@
       (sequence (bind ((last-element (last-elt elements)))
                   (text/make-position :element (1- (length elements)) :index (length (content-of last-element)) :distance nil))))))
 
+(def function text/first-position? (text position)
+  (not (text/previous-position text position)))
+
+(def function text/last-position? (text position)
+  (not (text/next-position text position)))
+
 (def function text/previous-position (text position)
   (bind ((element (text/position-element position))
          (index (text/position-index position))
@@ -341,17 +347,20 @@
         (until (and character (funcall test character)))
         (finally (return position))))
 
-(def function text/count (text character)
-  (iter (for element :in-sequence (elements-of text))
-        (summing
-         (typecase element
-           (text/string
-            (funcall 'count character (content-of element)))
-           (t 0)))))
+(def function text/count (text character &optional (start-position (text/first-position text)) (end-position (text/last-position text)) )
+  (iter (for position :initially start-position :then (text/next-position text position))
+        (while position)
+        (until (text/position= position end-position))
+        (when (if (char= character #\NewLine)
+                  (and (typep (text/element text (text/position-element position)) 'text/newline)
+                       (= 0 (text/position-index position)))
+                  (char= character (text/next-character text position)))
+          (summing 1))))
 
 (def function text/count-lines (text)
-  (1+ (iter (for element :in-sequence (elements-of text))
-            (when (typep element 'text/newline)
+  (1+ (iter (for element :initially (text/first-element text) :then (text/next-element text element))
+            (while element)
+            (when (typep (text/element text element) 'text/newline)
               (summing 1)))))
 
 (def function text/as-string (text)

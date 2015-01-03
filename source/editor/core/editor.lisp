@@ -67,7 +67,7 @@
               (push gesture (gestures-of gesture-queue))
               (when-bind operation (operation-of (apply-reader (make-command gesture nil :domain "Default" :description "Does nothing") projection (printer-iomap-of editor)))
                 (return (lambda ()
-                          (editor.debug "Redoing ~A" operation)
+                          (editor.debug "Running ~A" operation)
                           (run-operation operation)))))))))
 
 (def method print-to-devices ((editor editor) document projection)

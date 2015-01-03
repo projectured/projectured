@@ -552,6 +552,12 @@
                  (json/number () 42)
                  (json/string () "Hello World"))))))
 
+(def function make-test-document/json/ll ()
+  (make-json/array (ll (iter (for i :from 0 :to 100)
+                             (collect (json/object ()
+                                        ("name" (json/string () (format nil "User ~A" i)))
+                                        ("sex" (json/string () (if (evenp i) "male" "female")))))))))
+
 ;;;;;;
 ;;; File system
 

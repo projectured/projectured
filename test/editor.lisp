@@ -104,7 +104,7 @@
 
 (def editor test/editor/tree (make-test-document/tree) (make-test-projection/tree->graphics))
 
-(def editor test/editor/tree/ll (make-test-document/tree/ll 200 100 2) (make-test-projection/tree->graphics))
+(def editor test/editor/tree/ll (make-test-document/tree/ll 10 5 2) (make-test-projection/tree->graphics))
 
 (def editor test/editor/tree/leaf (make-test-document/tree/leaf) (make-test-projection/tree->graphics))
 

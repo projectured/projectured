@@ -12,7 +12,7 @@
 ;;; An operation represents a change in domain data, selections or any other editor state.
 
 (def generic run-operation (operation)
-  (:documentation "Redoes all side effects of OPERATION. Has side effects."))
+  (:documentation "Runs all side effects of OPERATION. Has side effects."))
 
 (def (definer :available-flags "e") operation (name supers slots &rest options)
   `(def class* ,name ,supers ,slots ,@options))

@@ -274,7 +274,7 @@
    (scroll-delta :type 2d)))
 
 ;;;;;;
-;;; Redo
+;;; Run
 
 (def method run-operation ((operation operation/widget/hide))
   (setf (visible-p (widget-of operation)) #f))

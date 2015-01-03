@@ -521,8 +521,8 @@
                                                                                 (the string (value-of (the json/string document)))))
                                                                              (?a
                                                                               (append (selection-of operation) `((the tree/leaf (printer-output (the json/string document) ,projection ,recursion))))))))
-                                        (operation/sequence/replace-element-range
-                                         (awhen (pattern-case (target-of operation)
+                                        (operation/text/replace-range
+                                         (awhen (pattern-case (selection-of operation)
                                                   (((the text/text (text/subseq (the text/text document) ?start-index ?end-index))
                                                     (the text/text (content-of (the tree/leaf document))))
                                                    `((the string (subseq (the string document) ,?start-index ,?end-index))
@@ -680,13 +680,13 @@
                                                                                           (the sequence (elements-of (the json/array document)))))))
                                                                              (?a
                                                                               (append (selection-of operation) `((the tree/node (printer-output (the json/array document) ,projection ,recursion))))))))
-                                        (operation/sequence/replace-element-range
-                                         (pattern-case (reverse (target-of operation))
+                                        (operation/text/replace-range
+                                         (pattern-case (reverse (selection-of operation))
                                            (((the sequence (children-of (the tree/node document)))
                                              (the ?child-type (elt (the sequence document) ?child-index))
                                              . ?rest)
                                             (bind ((child (elt (elements-of printer-input) ?child-index))
-                                                   (input-operation (make-operation/sequence/replace-element-range child (reverse ?rest) (replacement-of operation)))
+                                                   (input-operation (make-operation/text/replace-range child (reverse ?rest) (replacement-of operation)))
                                                    (output-operation (operation-of (recurse-reader recursion (make-command (gesture-of input) input-operation :domain (domain-of input) :description (description-of input)) (elt (child-iomaps-of printer-iomap) ?child-index)))))
                                               (typecase output-operation
                                                 (operation/sequence/replace-element-range
@@ -794,8 +794,8 @@
                                                                                         `((the ,(form-type value) (value-of (the json/object-entry document)))))))
                                                                              (?a
                                                                               (append (selection-of operation) `((the tree/node (printer-output (the json/object-entry document) ,projection ,recursion))))))))
-                                        (operation/sequence/replace-element-range
-                                         (pattern-case (reverse (target-of operation))
+                                        (operation/text/replace-range
+                                         (pattern-case (reverse (selection-of operation))
                                            (((the sequence (children-of (the tree/node document)))
                                              (the tree/leaf (elt (the sequence document) 0))
                                              (the text/text (content-of (the tree/leaf document)))
@@ -807,7 +807,7 @@
                                            (((the sequence (children-of (the tree/node document)))
                                              (the ?child-type (elt (the sequence document) ?child-index))
                                              . ?rest)
-                                            (bind ((input-operation (make-operation/sequence/replace-element-range value (reverse ?rest) (replacement-of operation)))
+                                            (bind ((input-operation (make-operation/text/replace-range value (reverse ?rest) (replacement-of operation)))
                                                    (output-operation (operation-of (recurse-reader recursion (make-command (gesture-of input) input-operation :domain (domain-of input) :description (description-of input)) (elt (child-iomaps-of printer-iomap) 0)))))
                                               (typecase output-operation
                                                 (operation/sequence/replace-element-range
@@ -928,13 +928,13 @@
                                                                                           (the sequence (entries-of (the json/object document)))))))
                                                                              (?a
                                                                               (append (selection-of operation) `((the tree/node (printer-output (the json/object document) ,projection ,recursion))))))))
-                                        (operation/sequence/replace-element-range
-                                         (pattern-case (reverse (target-of operation))
+                                        (operation/text/replace-range
+                                         (pattern-case (reverse (selection-of operation))
                                            (((the sequence (children-of (the tree/node document)))
                                              (the ?child-type (elt (the sequence document) ?child-index))
                                              . ?rest)
                                             (bind ((entry (elt (entries-of printer-input) ?child-index))
-                                                   (input-operation (make-operation/sequence/replace-element-range entry (reverse ?rest) (replacement-of operation)))
+                                                   (input-operation (make-operation/text/replace-range entry (reverse ?rest) (replacement-of operation)))
                                                    (output-operation (operation-of (recurse-reader recursion (make-command (gesture-of input) input-operation :domain (domain-of input) :description (description-of input)) (elt (child-iomaps-of printer-iomap) ?child-index)))))
                                               (typecase output-operation
                                                 (operation/sequence/replace-element-range

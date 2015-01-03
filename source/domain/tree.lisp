@@ -78,7 +78,7 @@
   (make-instance 'operation/tree/toggle-expanded :document document :target target))
 
 ;;;;;;
-;;; Redo
+;;; Run
 
 (def method run-operation ((operation operation/tree/toggle-expanded))
   (notf (expanded-p (eval-reference (document-of operation) (reference/flatten (reverse (target-of operation)))))))
