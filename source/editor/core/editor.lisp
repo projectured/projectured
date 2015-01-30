@@ -11,10 +11,6 @@
 ;;;
 ;;; An editor is a way of changing the state of a document.
 
-(def special-variable *profile-printer* #f)
-
-(def special-variable *measure-printer* #f)
-
 (def generic make-editor (&key width height)
   (:documentation "Returns a new editor object. Purely functional.")
   (:method (&key &allow-other-keys)
@@ -27,7 +23,7 @@
 (def generic print-to-devices (editor document projection)
   (:documentation "Prints DOCUMENT to the output devices of EDITOR using PROJECTION. Has side effects on the state of the output devices of EDITOR."))
 
-(def generic run-read-evaluate-print-loop (editor document projection)
+(def generic run-read-evaluate-print-loop (editor document projection &key profile profile-reader profile-evaluator profile-printer)
   (:documentation "Runs read-evaluate-print loop of EDITOR on DOCUMENT using PROJECTION. The loop first prints DOCUMENT to the output devices of EDITOR. Next it reads an operation from the input devices of EDITOR. Finally it evaluates the result of read operation and starts over. Has side effects continuously on the state of EDITOR and the content of DOCUMENT while running."))
 
 ;;;;;;
@@ -44,37 +40,38 @@
 ;;;;;;
 ;;; Editor API implementation
 
-(def method run-read-evaluate-print-loop ((editor editor) document projection)
+(def method run-read-evaluate-print-loop ((editor editor) document projection &key profile (profile-reader profile) (profile-evaluator profile) (profile-printer profile))
   (catch :quit-editor
-    (iter (cond (*profile-printer*
-                 (with-profiling ()
-                   (print-to-devices editor document projection)))
-                (*measure-printer*
-                 (time
-                  (print (nth-value 1
-                                    (with-profiling-computation 'projectured
-                                      (print-to-devices editor document projection))))))
-                (t
-                 (print-to-devices editor document projection)))
-          (funcall (read-from-devices editor document projection)))))
+    (iter (with-measuring (:printer profile-printer)
+            (editor.debug "Printing ~A to output devices" document)
+            (print-to-devices editor document projection))
+          (for operation = (with-measuring (:reader profile-reader)
+                             (editor.debug "Reading from input devices for ~A" document)
+                             (read-from-devices editor document projection)))
+          (with-measuring (:evaluator profile-evaluator)
+            (editor.debug "Evaluating ~A on ~A" operation document)
+            (run-operation operation)))))
 
 (def method read-from-devices ((editor editor) document projection)
   (bind ((event-queue (event-queue-of editor))
-         (gesture-queue (gesture-queue-of editor)))
-    (iter (when-bind event (read-event (remove-if-not (of-type 'device/input) (devices-of editor)))
-            (push event (events-of event-queue))
-            (when-bind gesture (read-gesture event-queue)
-              (push gesture (gestures-of gesture-queue))
-              (when-bind operation (operation-of (apply-reader (make-command gesture nil :domain "Default" :description "Does nothing") projection (printer-iomap-of editor)))
-                (return (lambda ()
-                          (editor.debug "Running ~A" operation)
-                          (run-operation operation)))))))))
+         (gesture-queue (gesture-queue-of editor))
+         (input-devices (remove-if-not (of-type 'device/input) (devices-of editor))))
+    (if input-devices
+        (iter (when-bind event (read-event input-devices)
+                (push event (events-of event-queue))
+                (when-bind gesture (read-gesture event-queue)
+                  (push gesture (gestures-of gesture-queue))
+                  (when-bind operation (operation-of (apply-reader (make-command gesture nil :domain "Default" :description "Does nothing") projection (printer-iomap-of editor)))
+                    (return operation)))))
+        (make-operation/quit))))
 
 (def method print-to-devices ((editor editor) document projection)
-  (bind ((printer-iomap (if *use-computed-class*
+  (bind ((output-devices (remove-if-not (of-type 'device/output) (devices-of editor)))
+         (printer-iomap (if *use-computed-class*
                             (if (slot-boundp editor 'printer-iomap)
                                 (printer-iomap-of editor)
                                 (setf (printer-iomap-of editor) (apply-printer document projection)))
                             (setf (printer-iomap-of editor) (apply-printer document projection)))))
-    (iter (for device :in-sequence (remove-if-not (of-type 'device/output) (devices-of editor)))
-          (print-to-device (output-of printer-iomap) device))))
+    (when output-devices
+      (iter (for device :in-sequence output-devices)
+            (print-to-device (output-of printer-iomap) device)))))

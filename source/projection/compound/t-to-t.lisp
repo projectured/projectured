@@ -75,10 +75,11 @@
 
 (def function make-projection/book->tree ()
   (type-dispatching
-    (book/book (make-projection/book/book->tree/node))
-    (book/chapter (make-projection/book/chapter->tree/node))
-    (book/paragraph (make-projection/book/paragraph->tree/leaf))
-    (book/picture (make-projection/book/picture->tree/leaf))))
+    (book/book (book/book->tree/node))
+    (book/chapter (book/chapter->tree/node))
+    (book/paragraph (book/paragraph->tree/leaf))
+    (book/list (book/list->tree/node))
+    (book/picture (book/picture->tree/leaf))))
 
 (def macro book->tree ()
   '(make-projection/book->tree))

@@ -44,13 +44,14 @@
 ;;; Printer
 
 (def printer sequential (projection recursion input input-reference)
-  (iter (for output :initially input :then (output-of element-iomap))
-        (for element :in (elements-of projection))
-        (for element-input-reference :initially input-reference :then element-output-reference)
-        (for element-output-reference = `((printer-output (the ,(form-type output) document) ,element ,recursion) ,@(typed-reference (form-type output) element-input-reference)))
-        (for element-iomap = (call-printer element recursion output element-input-reference))
-        (collect element-iomap :into element-iomaps)
-        (finally (return (make-iomap/sequential projection recursion input input-reference output element-iomaps)))))
+  (bind ((element-iomaps (as (iter (for output :initially input :then (output-of element-iomap))
+                                   (for element :in (elements-of projection))
+                                   (for element-input-reference :initially input-reference :then element-output-reference)
+                                   (for element-output-reference = `((printer-output (the ,(form-type output) document) ,element ,recursion) ,@(typed-reference (form-type output) element-input-reference)))
+                                   (for element-iomap = (call-printer element recursion output element-input-reference))
+                                   (collect element-iomap :into element-iomaps)
+                                   (finally (return element-iomaps))))))
+    (make-iomap/sequential projection recursion input input-reference (as (output-of (last-elt (va element-iomaps)))) element-iomaps)))
 
 ;;;;;;
 ;;; Reader

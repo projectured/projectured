@@ -139,7 +139,8 @@
 
 (def reader workbench/workbench->widget/shell (projection recursion input printer-iomap)
   (declare (ignore projection))
-  (recurse-reader recursion input (elt (child-iomaps-of printer-iomap) 1)))
+  ;; TODO: check selection
+  (recurse-reader recursion input (elt (child-iomaps-of printer-iomap) 2)))
 
 (def reader workbench/navigator->widget/title-pane (projection recursion input printer-iomap)
   (declare (ignore projection))

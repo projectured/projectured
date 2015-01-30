@@ -139,13 +139,15 @@
                                                          `((the text/text (text/subseq (the text/text document) ,it ,it))
                                                            (the text/text (content-of (the document/search document)))))))
                                                (make-operation/replace-selection printer-input it)))
-                                            (operation/sequence/replace-element-range
-                                             (awhen (pattern-case (target-of operation)
+                                            (operation/text/replace-range
+                                             (awhen (pattern-case (selection-of operation)
                                                       (((the text/text (text/subseq (the text/text document) ?start-index ?end-index)))
-                                                       (awhen (document/search->text/text/map-backward (line-iomaps-of printer-iomap) ?start-index)
-                                                         `((the text/text (text/subseq (the text/text document) ,it ,it))
-                                                           (the text/text (content-of (the document/search document)))))))
-                                               (make-operation/sequence/replace-element-range printer-input it (replacement-of operation))))
+                                                       (bind ((start-index (document/search->text/text/map-backward (line-iomaps-of printer-iomap) ?start-index))
+                                                              (end-index (document/search->text/text/map-backward (line-iomaps-of printer-iomap) ?end-index)))
+                                                         (when (and start-index end-index)
+                                                           `((the text/text (text/subseq (the text/text document) ,start-index ,end-index))
+                                                             (the text/text (content-of (the document/search document))))))))
+                                               (make-operation/text/replace-range printer-input it (replacement-of operation))))
                                             (operation/compound
                                              (bind ((operations (mapcar #'recurse (elements-of operation))))
                                                (unless (some 'null operations)

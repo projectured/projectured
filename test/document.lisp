@@ -170,7 +170,7 @@
   (text/text ()
     (text/string "First" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/red*)
     ;;(text/spacing 10 :unit :space)
-    ;;(image/file () (resource-pathname "image/lisp-flag.jpg"))
+    (image/file () (resource-pathname "image/lisp-flag.jpg"))
     (text/string "line" :font *font/ubuntu/monospace/bold/18* :font-color *color/solarized/green*)
     (text/newline)
     (text/string "Second" :font *font/ubuntu/bold/24* :font-color *color/solarized/blue*)
@@ -447,15 +447,22 @@
   (book/book (:title "")))
 
 (def function make-test-document/book ()
-  (book/book (:title "Lorem ipsum" :authors (list "me"))
+  (book/book (:title "Lorem ipsum" :author "me")
     (book/chapter (:title "Chapter 1")
       (book/paragraph ()
         (text/text ()
-          (text/string "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras eu nunc nibh. Cras imperdiet faucibus tortor ac dictum. Aliquam sit amet justo nec ligula lobortis ornare. Aenean a odio id dolor adipiscing interdum. Maecenas nec nisl neque. Suspendisse interdum rutrum neque, in volutpat orci varius in. Praesent a ipsum ac erat pulvinar adipiscing quis sit amet magna. Etiam semper vulputate mi ac interdum. Nunc a tortor non purus fringilla aliquam."))))
+          (text/string "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras eu nunc nibh. Cras imperdiet faucibus tortor ac dictum. Aliquam sit amet justo nec ligula lobortis ornare. Aenean a odio id dolor adipiscing interdum. Maecenas nec nisl neque. Suspendisse interdum rutrum neque, in volutpat orci varius in. Praesent a ipsum ac erat pulvinar adipiscing quis sit amet magna. Etiam semper vulputate mi ac interdum. Nunc a tortor non purus fringilla aliquam." :font *font/liberation/serif/regular/24* :font-color *color/solarized/content/darker*)))
+      (book/list ()
+        (book/paragraph ()
+          (text/text ()
+            (text/string "first" :font *font/liberation/serif/regular/24* :font-color *color/solarized/content/darker*)))
+        (book/paragraph ()
+          (text/text ()
+            (text/string "second" :font *font/liberation/serif/regular/24* :font-color *color/solarized/content/darker*)))))
     (book/chapter (:title "Chapter 2")
       (book/paragraph ()
         (text/text ()
-          (text/string "Morbi scelerisque, felis a viverra pharetra, arcu enim aliquet urna, mollis suscipit felis elit in neque. Aenean vel tempus nulla. Vestibulum magna nisi, cursus vel auctor eu, suscipit sit amet purus. Donec ligula purus, pulvinar id tristique ut, suscipit ornare diam. Maecenas sed justo turpis. Vivamus eu scelerisque dui. Pellentesque mollis rutrum est ac tempus. Sed venenatis, erat id elementum semper, nisl tortor malesuada orci, ac venenatis elit ipsum non augue. Praesent blandit purus est, id venenatis eros. Phasellus non dui dolor. Duis magna erat, pulvinar sed aliquam vitae, porta vel quam."))))))
+          (text/string "Morbi scelerisque, felis a viverra pharetra, arcu enim aliquet urna, mollis suscipit felis elit in neque. Aenean vel tempus nulla. Vestibulum magna nisi, cursus vel auctor eu, suscipit sit amet purus. Donec ligula purus, pulvinar id tristique ut, suscipit ornare diam. Maecenas sed justo turpis. Vivamus eu scelerisque dui. Pellentesque mollis rutrum est ac tempus. Sed venenatis, erat id elementum semper, nisl tortor malesuada orci, ac venenatis elit ipsum non augue. Praesent blandit purus est, id venenatis eros. Phasellus non dui dolor. Duis magna erat, pulvinar sed aliquam vitae, porta vel quam." :font *font/liberation/serif/regular/24* :font-color *color/solarized/content/darker*))))))
 
 ;;;;;;
 ;;; XML
@@ -557,6 +564,14 @@
                              (collect (json/object ()
                                         ("name" (json/string () (format nil "User ~A" i)))
                                         ("sex" (json/string () (if (evenp i) "male" "female")))))))))
+
+;;;;;;
+;;; CSS
+
+(def function make-test-document/css ()
+  (css/rule ("h1")
+    (css/attribute () "color" "#DC322F")
+    (css/attribute () "text-align" "center")))
 
 ;;;;;;
 ;;; File system
@@ -1023,10 +1038,12 @@
                                                                                                                                                                                             error-page)))))))
                                                                       :allow-other-keys #f
                                                                       :documentation nil)))
-    (book/book (:title "A Web Service Demo" :authors (list "Levente Mészáros"))
+    (book/book (:title "A Web Service Demo" :author "Levente Mészáros")
+      #+nil
       (book/chapter (:title "Introduction to ProjecturEd")
         (book/paragraph ()
           (make-test-document/introduction)))
+      #+nil
       (book/chapter (:title "Problem Description")
         (book/paragraph ()
           (text/text ()
@@ -1111,7 +1128,7 @@
 (def function make-test-document/documentation ()
   (bind ((json-document (make-test-document/json))
          (xml-document (make-test-document/xml)))
-    (book/book (:title "ProjecturEd, the Projectional Editor" :authors (list "Levente Mészáros"))
+    (book/book (:title "ProjecturEd, the Projectional Editor" :author "Levente Mészáros")
       (book/chapter (:title "Introduction")
         (book/paragraph ()
           (make-test-document/introduction)))

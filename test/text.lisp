@@ -32,11 +32,11 @@
   (is (not (text/previous-position *test/text/empty* (text/origin-position *test/text/empty*))))
   (is (not (text/next-position *test/text/empty* (text/origin-position *test/text/empty*)))))
 
-(def test text/text/first-position (&optional (text *test/text/two-lines*))
+(def test test/text/first-position (&optional (text *test/text/two-lines*))
   (is (text/first-position text))
   (is (not (text/previous-position text (text/first-position text)))))
 
-(def test text/text/last-position (&optional (text *test/text/two-lines*))
+(def test test/text/last-position (&optional (text *test/text/two-lines*))
   (is (text/last-position text))
   (is (not (text/next-position text (text/last-position text)))))
 

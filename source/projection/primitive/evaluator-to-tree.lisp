@@ -91,12 +91,12 @@
                                  (operation/functional operation)
                                  (operation/replace-selection
                                   (make-operation/replace-selection printer-input (append (selection-of operation) (last (selection-of printer-input)))))
-                                 (operation/sequence/replace-element-range
-                                  (make-operation/sequence/replace-element-range printer-input (append (target-of operation) (last (selection-of printer-input))) (replacement-of operation)))
+                                 (operation/sequence/replace-range
+                                  (make-operation/sequence/replace-range printer-input (append (selection-of operation) (last (selection-of printer-input))) (replacement-of operation)))
                                  (operation/number/replace-range
-                                  (make-operation/number/replace-range printer-input (append (target-of operation) (last (selection-of printer-input))) (replacement-of operation)))
+                                  (make-operation/number/replace-range printer-input (append (selection-of operation) (last (selection-of printer-input))) (replacement-of operation)))
                                  (operation/replace-target
-                                  (make-operation/replace-target printer-input (append (target-of operation) (last (selection-of printer-input))) (replacement-of operation)))
+                                  (make-operation/replace-target printer-input (append (selection-of operation) (last (selection-of printer-input))) (replacement-of operation)))
                                  (operation/compound
                                   (bind ((operations (mapcar #'recurse (elements-of operation))))
                                     (unless (some 'null operations)
@@ -129,7 +129,7 @@
                                                   (?a
                                                    (append (selection-of operation) `((the tree/node (printer-output (the evaluator/evaluator document) ,projection ,recursion))))))
                                            (make-operation/replace-selection printer-input it)))
-                                        (operation/sequence/replace-element-range)
+                                        (operation/sequence/replace-range)
                                         (operation/compound
                                          (bind ((operations (mapcar #'recurse (elements-of operation))))
                                            (unless (some 'null operations)

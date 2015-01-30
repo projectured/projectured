@@ -9,39 +9,25 @@
 ;;;;;;
 ;;; Document
 
-;; TODO: rename to document/sequence?
-(def document sequence/sequence (computed-sequence)
-  ())
-
-(def document sequence/ll (computed-ll)
+(def document document/sequence (computed-sequence)
   ())
 
 ;;;;;;
 ;;; Construction
 
-(def function make-sequence/sequence (elements &key selection)
-  (make-instance 'sequence/sequence
-                 :elements (map 'vector (lambda (element)
-                                          (if (hu.dwim.computed-class::computed-state-p element)
-                                              element
-                                              (as element)))
-                                elements)
-                 :selection selection))
-
-;; TODO: selection
-(def function make-sequence/ll (elements &key selection)
-  (make-instance 'sequence/ll
-                 :elements (ll elements)
+(def function make-document/sequence (elements &key selection)
+  (make-instance 'document/sequence
+                 :elements elements
                  :selection selection))
 
 ;;;;;;
 ;;; Construction
 
-(def macro sequence/sequence ((&key selection) &body elements)
-  `(make-sequence/sequence (list ,@elements) :selection ,selection))
+(def macro document/sequence ((&key selection) &body elements)
+  `(make-document/sequence (list-ll ,@elements) :selection ,selection))
 
-(def method sb-sequence:make-sequence-like ((instance sequence/sequence) length &key (initial-element nil initial-element?) initial-contents)
-  (make-instance 'sequence/sequence
+(def method sb-sequence:make-sequence-like ((instance document/sequence) length &key (initial-element nil initial-element?) initial-contents)
+  (make-instance 'document/sequence
                  :elements (if initial-element?
                                (make-array (list length) :initial-element initial-element)
                                (make-array (list length) :initial-contents (append initial-contents (make-list (- length (length initial-contents))))))
@@ -64,24 +50,24 @@
 ;;;;;;
 ;;; Sequence operation classes
 
-(def operation operation/sequence/replace-element-range (operation)
+(def operation operation/sequence/replace-range ()
   ((document :type t)
-   (target :type reference)
+   (selection :type reference)
    (replacement :type sequence)))
 
 ;;;;;;
 ;;; Sequence operation constructors
 
-(def function make-operation/sequence/replace-element-range (document target replacement)
-  (make-instance 'operation/sequence/replace-element-range
+(def function make-operation/sequence/replace-range (document selection replacement)
+  (make-instance 'operation/sequence/replace-range
                  :document document
-                 :target target
+                 :selection selection
                  :replacement replacement))
 
 ;;;;;;
 ;;; Sequence operation API implementation
 
-(def method hu.dwim.serializer:write-object-slots ((class standard-class) (object sequence/sequence) context)
+(def method hu.dwim.serializer:write-object-slots ((class standard-class) (object document/sequence) context)
   (bind ((class (class-of object))
          (slots (closer-mop:class-slots class)))
     (hu.dwim.serializer::write-variable-length-positive-integer (length slots) context)
@@ -96,7 +82,7 @@
                                                      context))
             (hu.dwim.serializer::write-unsigned-byte-8 hu.dwim.serializer::+unbound-slot-code+ context))))))
 
-(def method hu.dwim.serializer:read-object-slots ((class standard-class) (prototype sequence/sequence) context &key &allow-other-keys)
+(def method hu.dwim.serializer:read-object-slots ((class standard-class) (prototype document/sequence) context &key &allow-other-keys)
   (bind ((object (allocate-instance class)))
     (hu.dwim.serializer::announce-identity object context)
     (iter (repeat (the fixnum (hu.dwim.serializer::read-variable-length-positive-integer context)))
@@ -118,9 +104,9 @@
       (reference/flatten (rest reference) (tree-replace (car reference) 'document result))
       result))
 
-(def method run-operation ((operation operation/sequence/replace-element-range))
+(def method run-operation ((operation operation/sequence/replace-range))
   (bind (((:values reference start end)
-          (pattern-case (target-of operation)
+          (pattern-case (selection-of operation)
             (((the string (subseq (the ?type (?if (subtypep ?type 'string)) ?a) ?b ?c)) . ?rest)
              (values `(,@(reverse ?rest) (the string ,?a)) ?b ?c))
             (((the sequence (subseq (the ?type (?if (subtypep ?type 'sequence)) ?a) ?b ?c)) . ?rest)
@@ -131,13 +117,16 @@
          (flat-reference (reference/flatten reference))
          (old-sequence (eval-reference document flat-reference))
          (new-sequence (etypecase old-sequence
-                         (sequence/sequence (make-sequence/sequence (concatenate 'vector
+                         (document/sequence (make-document/sequence (concatenate 'vector
                                                                                  (subseq (hu.dwim.computed-class::elements-of old-sequence) 0 start)
-                                                                                 (hu.dwim.computed-class::elements-of (replacement-of operation))
+                                                                                 (replacement-of operation)
                                                                                  (subseq (hu.dwim.computed-class::elements-of old-sequence) end))
                                                                     :selection (selection-of old-sequence)))
                          (sequence (concatenate (form-type old-sequence)
                                                 (subseq old-sequence 0 start) (replacement-of operation) (subseq old-sequence end))))))
+    ;; KLUDGE: to make sure we always end up with a computed-ll sequence
+    (unless (typep new-sequence 'string)
+      (setf new-sequence (ll new-sequence)))
     ;; KLUDGE: somewhat kludgie to keep the original identity of the string
     (cond ((and (arrayp old-sequence) (adjustable-array-p old-sequence))
            (progn
@@ -146,6 +135,13 @@
           (t
            (setf (eval-reference document flat-reference) new-sequence)))
     ;; KLUDGE: can't do this in a separate operation
-    (bind ((character-index (+ start (length (replacement-of operation)))))
-      (run-operation (make-operation/replace-selection document `((the ,(form-type new-sequence) (,(if (typep old-sequence 'text/text) 'text/subseq 'subseq) (the ,(form-type old-sequence) document) ,character-index ,character-index))
-                                                                  ,@(rest (reverse reference))))))))
+    (bind ((index (+ start (length (replacement-of operation)))))
+      (run-operation (make-operation/replace-selection document
+                                                       (if (eq 'sequence (form-type new-sequence))
+                                                           (when (<= 0 start (1- (length new-sequence)))
+                                                             (bind ((type (form-type (elt new-sequence start))))
+                                                               `(#+nil (the ,type document) ;; TODO: to make delete from sequence work, but breaks insertion
+                                                                 (the ,type (elt (the ,(form-type old-sequence) document) ,start))
+                                                                 ,@(rest (reverse reference)))))
+                                                           `((the ,(form-type new-sequence) (subseq (the ,(form-type old-sequence) document) ,index ,index))
+                                                             ,@(rest (reverse reference)))))))))

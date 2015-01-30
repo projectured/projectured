@@ -251,7 +251,7 @@
 ;;;;;;
 ;;; Operation data structure
 
-(def operation operation/widget/hide (operation)
+(def operation operation/widget/hide ()
   ((widget :type widget/base)))
 
 (def operation operation/widget/show (operation)

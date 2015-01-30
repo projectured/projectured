@@ -248,13 +248,13 @@
                                                                      (bind ((newline-count (count-if (lambda (index) (< index ?character-index)) (newline-insertion-indices-of printer-iomap)))
                                                                             (character-index (- ?character-index newline-count)))
                                                                        `((the text/text (text/subseq (the text/text document) ,character-index ,character-index))))))))
-                               (operation/sequence/replace-element-range
-                                (awhen (pattern-case (target-of operation)
+                               (operation/sequence/replace-range
+                                (awhen (pattern-case (selection-of operation)
                                          (((the text/text (text/subseq (the text/text document) ?start-character-index ?end-character-index)))
                                           (bind ((start-newline-count (count-if (lambda (index) (< index ?start-character-index)) (newline-insertion-indices-of printer-iomap)))
                                                  (end-newline-count (count-if (lambda (index) (< index ?end-character-index)) (newline-insertion-indices-of printer-iomap))))
                                             `((the text/text (text/subseq (the text/text document) ,(- ?start-character-index start-newline-count) ,(- ?end-character-index end-newline-count)))))))
-                                  (make-operation/sequence/replace-element-range (input-of printer-iomap) it (replacement-of operation))))
+                                  (make-operation/sequence/replace-range (input-of printer-iomap) it (replacement-of operation))))
                                (operation/show-context-sensitive-help
                                 (make-instance 'operation/show-context-sensitive-help
                                                :commands (iter (for command :in (commands-of operation))

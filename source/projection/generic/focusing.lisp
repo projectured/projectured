@@ -72,40 +72,6 @@
 (def reader focusing (projection recursion input printer-iomap)
   (declare (ignore recursion))
   (merge-commands (focusing/read-command projection input printer-iomap)
-                  (awhen (labels ((recurse (operation)
-                                    (typecase operation
-                                      (operation/quit operation)
-                                      (operation/functional operation)
-                                      (operation/replace-selection
-                                       (make-operation/replace-selection (input-of printer-iomap)
-                                                                         (append (selection-of operation) (part-of projection))))
-                                      (operation/sequence/replace-element-range
-                                       (make-operation/sequence/replace-element-range (input-of printer-iomap)
-                                                                                      (append (target-of operation) (part-of projection))
-                                                                                      (replacement-of operation)))
-                                      (operation/number/replace-range
-                                       (make-operation/number/replace-range (input-of printer-iomap)
-                                                                            (append (target-of operation) (part-of projection))
-                                                                            (replacement-of operation)))
-                                      (operation/replace-target
-                                       (make-operation/replace-target (input-of printer-iomap)
-                                                                      (append (target-of operation) (part-of projection))
-                                                                      (replacement-of operation)))
-                                      (operation/show-context-sensitive-help
-                                       (make-instance 'operation/show-context-sensitive-help
-                                                      :commands (iter (for command :in (commands-of operation))
-                                                                      (awhen (recurse (operation-of command))
-                                                                        (collect (make-instance 'command
-                                                                                                :gesture (gesture-of command)
-                                                                                                :domain (domain-of command)
-                                                                                                :description (description-of command)
-                                                                                                :operation it))))))
-                                      (operation/compound
-                                       (bind ((operations (mapcar #'recurse (elements-of operation))))
-                                         (unless (some 'null operations)
-                                           (make-operation/compound operations)))))))
-                           (recurse (operation-of input)))
-                    (make-command (gesture-of input) it
-                                  :domain (domain-of input)
-                                  :description (description-of input)))
+                  (awhen (operation/extend (input-of printer-iomap) (part-of projection) (operation-of input))
+                    (make-command/clone input it))
                   (make-command/nothing (gesture-of input))))

@@ -115,21 +115,21 @@
                                                   (?a
                                                    (append (selection-of operation) `((the common-lisp/application (printer-output (the test/check document) ,projection ,recursion))))))
                                            (make-operation/replace-selection printer-input it)))
-                                        (operation/sequence/replace-element-range
-                                         (awhen (pattern-case (reverse (target-of operation))
+                                        (operation/sequence/replace-range
+                                         (awhen (pattern-case (reverse (selection-of operation))
                                                   (((the sequence (arguments-of (the common-lisp/application document)))
                                                     (the tree/node (elt (the sequence document) 0))
                                                     (the sequence (children-of (the tree/node document)))
                                                     (the ?type (elt (the sequence document) 1))
                                                     . ?rest)
                                                    (bind ((content (content-of printer-input))
-                                                          (input-operation (make-operation/sequence/replace-element-range (content-of printer-input) (reverse ?rest) (replacement-of operation)))
+                                                          (input-operation (make-operation/sequence/replace-range (content-of printer-input) (reverse ?rest) (replacement-of operation)))
                                                           (output-operation (operation-of (recurse-reader recursion (make-command (gesture-of input) input-operation :domain (domain-of input) :description (description-of input)) (elt (child-iomaps-of printer-iomap) 0)))))
-                                                     (append (target-of output-operation)
+                                                     (append (selection-of output-operation)
                                                              `((the ,(form-type content) (content-of (the test/check document))))))))
-                                           (make-operation/sequence/replace-element-range printer-input it (replacement-of operation))))
+                                           (make-operation/sequence/replace-range printer-input it (replacement-of operation))))
                                         (operation/number/replace-range
-                                         (awhen (pattern-case (reverse (target-of operation))
+                                         (awhen (pattern-case (reverse (selection-of operation))
                                                   (((the sequence (arguments-of (the common-lisp/application document)))
                                                     (the tree/node (elt (the sequence document) 0))
                                                     (the sequence (children-of (the tree/node document)))
@@ -138,7 +138,7 @@
                                                    (bind ((content (content-of printer-input))
                                                           (input-operation (make-operation/number/replace-range (content-of printer-input) (reverse ?rest) (replacement-of operation)))
                                                           (output-operation (operation-of (recurse-reader recursion (make-command (gesture-of input) input-operation :domain (domain-of input) :description (description-of input)) (elt (child-iomaps-of printer-iomap) 0)))))
-                                                     (append (target-of output-operation)
+                                                     (append (selection-of output-operation)
                                                              `((the ,(form-type content) (content-of (the test/check document))))))))
                                            (make-operation/number/replace-range printer-input it (replacement-of operation))))
                                         (operation/compound

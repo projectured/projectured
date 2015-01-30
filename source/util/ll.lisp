@@ -8,7 +8,7 @@
 
 (def special-variable *check-ll* nil)
 
-;; TODO: rename to list-ll?
+;; TODO: rename to coerce-ll?
 (def function ll (sequence &optional (index 0))
   (if (typep sequence 'computed-ll)
       sequence
@@ -20,6 +20,19 @@
                                      (as (when (< index (1- (length sequence)))
                                            (or next (make (1+ index) -self- nil)))))))
           (elt-ll (make 0 nil nil) index)))))
+
+(def function make-ll (length &key (initial-element nil initial-element?) initial-contents)
+  (if initial-element?
+      (ll (make-list length :initial-element initial-element))
+      (list-ll initial-contents)))
+
+(def function list-ll (&rest args)
+  (ll args))
+
+(def method sb-sequence:make-sequence-like ((sequence computed-ll) length &key (initial-element nil initial-element?) initial-contents)
+  (ll (if initial-element?
+          (make-list length :initial-element initial-element)
+          (concatenate 'list initial-contents (make-list (- length (length initial-contents)))))))
 
 ;; TODO: rename to last-elt-ll?
 (def function last-element (sequence)
@@ -90,21 +103,22 @@
   (when sequences
     (labels ((recurse (sequence sequence-element previous-sequence-element next-sequence-element previous-element next-element)
                (check-ll sequence)
-               (make-computed-ll (as (value-of sequence))
-                                 (as (or previous-element
-                                         (aif (previous-element-of sequence)
-                                              (recurse it sequence-element previous-sequence-element next-sequence-element nil -self-)
-                                              (when previous-sequence-element
-                                                (recurse (last-element (value-of previous-sequence-element)) previous-sequence-element
-                                                         (previous-element-of previous-sequence-element) sequence-element
-                                                         nil -self-)))))
-                                 (as (or next-element
-                                         (aif (next-element-of sequence)
-                                              (recurse it sequence-element previous-sequence-element next-sequence-element -self- nil)
-                                              (when next-sequence-element
-                                                (recurse (first-element (value-of next-sequence-element)) next-sequence-element
-                                                         sequence-element (next-element-of next-sequence-element)
-                                                         -self- nil))))))))
+               (when sequence
+                 (make-computed-ll (as (value-of sequence))
+                                   (as (or previous-element
+                                           (aif (previous-element-of sequence)
+                                                (recurse it sequence-element previous-sequence-element next-sequence-element nil -self-)
+                                                (when previous-sequence-element
+                                                  (recurse (last-element (value-of previous-sequence-element)) previous-sequence-element
+                                                           (previous-element-of previous-sequence-element) sequence-element
+                                                           nil -self-)))))
+                                   (as (or next-element
+                                           (aif (next-element-of sequence)
+                                                (recurse it sequence-element previous-sequence-element next-sequence-element -self- nil)
+                                                (when next-sequence-element
+                                                  (recurse (first-element (value-of next-sequence-element)) next-sequence-element
+                                                           sequence-element (next-element-of next-sequence-element)
+                                                           -self- nil)))))))))
       (recurse (value-of sequences) sequences (previous-element-of sequences) (next-element-of sequences) nil nil))))
 
 (def function separate-elements-ll (sequence separator)

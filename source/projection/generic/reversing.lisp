@@ -33,12 +33,12 @@
                                (collect (recurse-printer recursion element `((elt (the sequence document) ,index)
                                                                              ,@(typed-reference (form-type input) input-reference))))))
          (output (etypecase input
-                   (sequence/sequence
+                   (document/sequence
                        (bind ((output-selection (pattern-case (reverse (selection-of input))
                                                   (((the ?element-type (elt (the sequence document) ?element-index))
                                                     . ?rest)
                                                    (append (reverse ?rest) `((the ,?element-type (elt (the sequence document) ,(- (length (elements-of input)) ?element-index 1)))))))))
-                         (make-sequence/sequence (reverse (mapcar 'output-of element-iomaps)) :selection output-selection)))
+                         (make-document/sequence (reverse (mapcar 'output-of element-iomaps)) :selection output-selection)))
                    (sequence (reverse (mapcar 'output-of element-iomaps))))))
     (make-iomap/object projection recursion input input-reference output)))
 
@@ -53,20 +53,22 @@
                         (operation/quit operation)
                         (operation/functional operation)
                         (operation/replace-selection
-                         (awhen (when (typep printer-input 'sequence/sequence)
+                         (awhen (when (typep printer-input 'document/sequence)
                                   (pattern-case (reverse (selection-of operation))
                                     (((the ?element-type (elt (the sequence document) ?element-index)) . ?rest)
                                      (append (reverse ?rest) `((the ,?element-type (elt (the sequence document) ,(- (length (elements-of printer-input)) ?element-index 1))))))))
                            (make-operation/replace-selection printer-input it)))
-                        (operation/sequence/replace-element-range
-                         (awhen (when (typep printer-input 'sequence/sequence)
-                                  (pattern-case (reverse (target-of operation))
+                        (operation/sequence/replace-range
+                         (awhen (when (typep printer-input 'document/sequence)
+                                  (pattern-case (reverse (selection-of operation))
                                     (((the ?element-type (elt (the sequence document) ?element-index)) . ?rest)
                                      (append (reverse ?rest) `((the ,?element-type (elt (the sequence document) ,(- (length (elements-of printer-input)) ?element-index 1))))))))
-                           (make-operation/sequence/replace-element-range printer-input it (replacement-of operation))))
+                           (make-operation/sequence/replace-range printer-input it (replacement-of operation))))
                         (operation/compound
                          (bind ((operations (mapcar #'recurse (elements-of operation))))
                            (unless (some 'null operations)
                              (make-operation/compound operations)))))))
              (recurse (operation-of input)))
-      (make-command (gesture-of input) it))))
+      (make-command (gesture-of input) it
+                    :domain (domain-of input)
+                    :description (description-of input)))))

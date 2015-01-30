@@ -121,11 +121,11 @@
                       (operation/replace-selection
                        (awhen (map-backward/line-numbering printer-iomap (selection-of operation))
                          (make-operation/replace-selection (input-of printer-iomap) it)))
-                      (operation/sequence/replace-element-range
-                       (awhen (map-backward/line-numbering printer-iomap (target-of operation))
-                         (make-operation/sequence/replace-element-range (input-of printer-iomap) it (replacement-of operation))))
+                      (operation/sequence/replace-range
+                       (awhen (map-backward/line-numbering printer-iomap (selection-of operation))
+                         (make-operation/sequence/replace-range (input-of printer-iomap) it (replacement-of operation))))
                       (operation/describe
-                       (make-instance 'operation/describe :target (map-backward/line-numbering printer-iomap (target-of operation))))
+                       (make-operation/describe (map-backward/line-numbering printer-iomap (selection-of operation))))
                       (operation/show-context-sensitive-help
                        (make-instance 'operation/show-context-sensitive-help
                                       :commands (iter (for command :in (commands-of operation))

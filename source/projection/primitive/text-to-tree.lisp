@@ -52,12 +52,12 @@
                                                                              (((the text/text (text/subseq (the text/text document) ?character-index ?character-index))
                                                                                (the text/text (content-of (the tree/leaf document))))
                                                                               `((the text/text (text/subseq (the text/text document) ,?character-index ,?character-index)))))))
-                                        (operation/sequence/replace-element-range
-                                         (awhen (pattern-case (target-of operation)
+                                        (operation/sequence/replace-range
+                                         (awhen (pattern-case (selection-of operation)
                                                   (((the text/text (text/subseq (the text/text document) ?start-character-index ?end-character-index))
                                                     (the text/text (content-of (the tree/leaf document))))
                                                    `((the text/text (text/subseq (the text/text document) ,?start-character-index ,?end-character-index)))))
-                                           (make-operation/sequence/replace-element-range printer-input it (replacement-of operation))))
+                                           (make-operation/sequence/replace-range printer-input it (replacement-of operation))))
                                         (operation/compound
                                          (bind ((operations (mapcar #'recurse (elements-of operation))))
                                            (unless (some 'null operations)

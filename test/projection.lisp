@@ -294,7 +294,14 @@
                                            (the string (title-of (the book/chapter document)))))))
     ("paragraph" (book/paragraph (:selection '((the text/text (text/subseq (the text/text document) 0 0))
                                                (the text/text (content-of (the book/paragraph document)))))
-                   (text/text () (text/string "" :font *font/liberation/serif/regular/24* :font-color (color/darken *color/solarized/blue* 0.5)))))
+                   (text/text () (text/string "" :font *font/liberation/sans/regular/24* :font-color *color/solarized/content/darker*))))
+    ("list" (book/list (:selection '((the text/text (text/subseq (the text/text document) 0 0))
+                                     (the text/text (content-of (the book/paragraph document)))
+                                     (the book/paragraph (elt (the sequence document) 0))
+                                     (the sequence (elements-of (the book/list document)))))
+              (book/paragraph (:selection '((the text/text (text/subseq (the text/text document) 0 0))
+                                            (the text/text (content-of (the book/paragraph document)))))
+                (text/text () (text/string "" :font *font/liberation/sans/regular/24* :font-color *color/solarized/content/darker*)))))
     ("picture" (book/picture (:selection '((the string (subseq (the string document) 0 0))
                                            (the string (filename-of (the image/file document)))
                                            (the image/file (content-of (the book/picture document)))))
@@ -302,6 +309,8 @@
     ("text" (text/text (:selection '((the text/text (text/subseq (the text/text document) 0 0)))) (text/string "")))
     ;; TODO:
     ("image" (image/file () (resource-pathname "image/lisp-boxed-alien.jpg")))
+    ("tree node" (tree/node ()))
+    ("tree leaf" (tree/leaf () (text/text () (text/string ""))))
     ("table" (table/table ()
                (table/row ()
                  (table/cell ()
@@ -332,7 +341,7 @@
     ("json object entry" (json/object-entry (:selection '((the string (subseq (the string document) 0 0))
                                                           (the string (key-of (the json/object-entry document))))) ""
                                                           (json/nothing ())))
-    ("json object" (make-json/object (make-sequence/sequence (list (json/nothing (:selection '((the string (subseq (the string document) 0 0))
+    ("json object" (make-json/object (make-document/sequence (list (json/nothing (:selection '((the string (subseq (the string document) 0 0))
                                                                                                (the string (value-of (the json/nothing document)))))))
                                                              :selection '((the string (subseq (the string document) 0 0))
                                                                           (the string (value-of (the json/nothing document)))
@@ -576,6 +585,14 @@
 ;;;;;;
 ;;; Book
 
+(def function make-test-projection/book->book ()
+  (recursive
+    (type-dispatching
+      (book/book (copying))
+      (book/chapter (book/chapter->book/chapter))
+      (sequence (copying))
+      (t (preserving)))))
+
 (def function make-test-projection/book->text ()
   (sequential
     (recursive
@@ -587,6 +604,7 @@
 
 (def function make-test-projection/book->graphics ()
   (sequential
+    (make-test-projection/book->book)
     (make-test-projection/book->text)
     ;; (word-wrapping 1280)
     (make-test-projection/text->output)))
@@ -596,11 +614,19 @@
     (nesting
       (copying)
       (type-dispatching
-        (sequence/sequence (sorting 'title-of 'string>))
+        (document/sequence (sorting 'title-of 'string>))
         (t (preserving)))
       (preserving))
     (make-test-projection/book->text)
-    (word-wrapping 1280)
+    ;;(word-wrapping 1280)
+    (make-test-projection/text->output)))
+
+(def function make-test-projection/book->graphics/focusing ()
+  (sequential
+    (make-test-projection/book->book)
+    (focusing 'book/base nil)
+    (make-test-projection/book->text)
+    ;;(word-wrapping 1280)
     (make-test-projection/text->output)))
 
 ;;;;;;
@@ -627,6 +653,25 @@
 ;;;;;;
 ;;; JSON
 
+(def function make-test-projection/json->tree ()
+  (recursive
+    (type-dispatching
+      (document/base (document->t 'test-factory))
+      (json/base (json->tree)))))
+
+(def function make-test-projection/json->tree/alternative ()
+  (recursive
+    (reference-dispatching
+      (alternative
+        (type-dispatching
+          (json/base (json->tree))
+          (t (t->tree :slot-provider 'test-slot-provider)))
+        (t->tree :slot-provider 'test-slot-provider)
+        (recursive
+          (json->tree))
+        (recursive
+          (t->tree :slot-provider 'test-slot-provider))))))
+
 (def function make-test-projection/json->text ()
   (sequential
     (recursive
@@ -645,6 +690,13 @@
     ;; (line-numbering)
     (make-test-projection/text->output)))
 
+(def function make-test-projection/json->graphics/alternative ()
+  (sequential
+    (make-test-projection/json->tree/alternative)
+    (make-test-projection/tree->text)
+    ;; (line-numbering)
+    (make-test-projection/text->output)))
+
 (def function make-test-projection/json->graphics/focusing ()
   (sequential
     (focusing 'json/base '((the json/string (elt (the sequence document) 4))
@@ -659,7 +711,7 @@
     (nesting
       (copying)
       (type-dispatching
-        (sequence/sequence (removing 'json/boolean 'eq 'object-class-name))
+        (document/sequence (removing 'json/boolean 'eq 'object-class-name))
         (t (preserving)))
       (preserving))
     #+nil
@@ -677,7 +729,7 @@
     (nesting
       (copying)
       (type-dispatching
-        (sequence/sequence (reversing))
+        (document/sequence (reversing))
         (t (preserving)))
       (preserving))
     #+nil
@@ -699,7 +751,7 @@
           (nesting
             (copying)
             (type-dispatching
-              (sequence/sequence (sorting 'key-of 'string<))
+              (document/sequence (sorting 'key-of 'string<))
               (t (preserving)))))
         (t (copying))))
     (nesting
@@ -707,7 +759,7 @@
       (copying)
       (copying)
       (type-dispatching
-        (sequence/sequence (sorting 'key-of 'string<))
+        (document/sequence (sorting 'key-of 'string<))
         (t (preserving)))
       (preserving))
     #+nil
@@ -719,6 +771,22 @@
   (make-test-projection/tree->text)
   ;; (line-numbering)
   (make-test-projection/text->output)))
+
+;;;;;;
+;;; CSS
+
+(def function make-test-projection/css->tree ()
+  (recursive (css->tree)))
+
+(def function make-test-projection/css->text ()
+  (sequential
+    (make-test-projection/css->tree)
+    (make-test-projection/tree->text)))
+
+(def function make-test-projection/css->graphics ()
+  (sequential
+    (make-test-projection/css->text)
+    (make-test-projection/text->output)))
 
 ;;;;;;
 ;;; File system
@@ -904,7 +972,7 @@
 ;;; T
 
 (def function test-slot-provider (instance)
-  (remove-if (lambda (slot) (member (slot-definition-name slot) '(raw projection selection font font-color stroke-color fill-color line-color))) (class-slots (class-of instance))))
+  (remove-if (lambda (slot) (member (slot-definition-name slot) '(raw selection font font-color stroke-color fill-color line-color))) (class-slots (class-of instance))))
 
 (def function make-test-projection/t->text/tree ()
   (sequential
@@ -913,7 +981,7 @@
 
 (def function make-test-projection/t->graphics/tree ()
   (sequential
-    (recursive (t->tree :slot-provider 'test-slot-provider ))
+    (recursive (t->tree :slot-provider 'test-slot-provider))
     (make-test-projection/tree->text)
     ;; (line-numbering)
     (make-test-projection/text->output)))
@@ -962,6 +1030,7 @@
 
 (def function make-test-projection/demo->graphics ()
   (sequential
+    (make-test-projection/book->book)
     (recursive
       (type-dispatching
         (book/base (book->tree))
@@ -970,7 +1039,7 @@
         (xml/base (xml->tree))
         (json/base (json->tree))))
     (make-test-projection/tree->text)
-    (word-wrapping 1280)
+    ;; (word-wrapping 1280)
     (make-test-projection/text->output)))
 
 #+nil

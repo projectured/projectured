@@ -11,7 +11,7 @@
 
 (def suite* (test/editor :in test))
 
-(def test test/editor/read-eval-print-loop (&key document projection wrap cache-graphics display-gestures display-selection mark-cached-graphics mark-graphics-changes)
+(def test test/editor/read-eval-print-loop (&key document projection wrap cache-graphics display-gestures display-selection mark-cached-graphics mark-graphics-changes profile (profile-reader profile) (profile-evaluator profile) (profile-printer profile))
   (bind ((editor (make-editor :filename "/tmp/projectured.bmp"))
          (document (ecase wrap
                      ((nil)
@@ -60,7 +60,7 @@
          (projection (if (= 1 (length projections))
                          (first projections)
                          (make-projection/sequential projections))))
-    (run-read-evaluate-print-loop editor document projection)))
+    (run-read-evaluate-print-loop editor document projection :profile-reader profile-reader :profile-evaluator profile-evaluator :profile-printer profile-printer)))
 
 (def definer editor (name document projection)
   `(def test ,name (&rest args &key (document ,document) (projection ,projection) &allow-other-keys)
@@ -124,6 +124,8 @@
 
 (def editor test/editor/book/sorting (make-test-document/book) (make-test-projection/book->graphics/sorting))
 
+(def editor test/editor/book/focusing (make-test-document/book) (make-test-projection/book->graphics/focusing))
+
 (def editor test/editor/xml (make-test-document/xml) (make-test-projection/xml->graphics))
 
 (def editor test/editor/xml/empty (make-test-document/xml/empty) (make-test-projection/xml->graphics))
@@ -132,6 +134,8 @@
 
 (def editor test/editor/json (make-test-document/json) (make-test-projection/json->graphics))
 
+(def editor test/editor/json/alternative (make-test-document/json) (make-test-projection/json->graphics/alternative))
+
 (def editor test/editor/json/focusing (make-test-document/json) (make-test-projection/json->graphics/focusing))
 
 (def editor test/editor/json/removing (make-test-document/json) (make-test-projection/json->graphics/removing))
@@ -139,6 +143,8 @@
 (def editor test/editor/json/reversing (make-test-document/json) (make-test-projection/json->graphics/reversing))
 
 (def editor test/editor/json/sorting (make-test-document/json) (make-test-projection/json->graphics/sorting))
+
+(def editor test/editor/css (make-test-document/css) (make-test-projection/css->graphics))
 
 (def editor test/editor/file-system (make-test-document/file-system) (make-test-projection/file-system->graphics))
 

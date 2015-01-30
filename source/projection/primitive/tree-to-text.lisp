@@ -42,7 +42,9 @@
                  (output (output-of (content-iomap-of child-iomap))))
             (when (or (text/first-position? indented-child indented-line-start-position)
                       (<= line-indentation indented-line-character-index))
-              (bind ((indented-line-count (text/count indented-child #\NewLine indented-origin-position indented-character-position))
+              (bind ((indented-line-count (if (< indented-character-index 0)
+                                              (text/count indented-child #\NewLine indented-character-position indented-origin-position)
+                                              (text/count indented-child #\NewLine indented-origin-position indented-character-position)))
                      (origin-relative-character-index (- indented-character-index (* indented-line-count line-indentation))))
                 (when (text/relative-position output (text/origin-position output) origin-relative-character-index)
                   (return (values index origin-relative-character-index)))))))))
@@ -53,7 +55,9 @@
          (origin-character-index (origin-character-index-of child-iomap))
          (origin-position (text/origin-position output))
          (character-position (text/relative-position output origin-position origin-relative-character-index))
-         (line-count (text/count output #\NewLine origin-position character-position))
+         (line-count (if (< origin-relative-character-index 0)
+                         (text/count output #\NewLine character-position origin-position)
+                         (text/count output #\NewLine origin-position character-position)))
          (indented-character-index (+ origin-relative-character-index (* line-count line-indentation))))
     (+ origin-character-index indented-character-index)))
 
@@ -91,6 +95,10 @@
   (bind ((content-reference `(((content-of (the ,(form-type input) document))) ,@(typed-reference (form-type input) input-reference)))
          (content-iomap (as (recurse-printer recursion (content-of input) content-reference)))
          (output-selection (as (pattern-case (reverse (selection-of input))
+                                 (((the tree/leaf document))
+                                  (bind ((start-index (aif (opening-delimiter-of input) (- (text/length it)) 0))
+                                         (end-index (+ (text/length (output-of (va content-iomap))) (aif (closing-delimiter-of input) (text/length it) 0))))
+                                    `((the text/text (text/subbox (the text/text document) ,start-index ,end-index)))))
                                  (((the ?content-type (content-of (the tree/leaf document))) . ?rest)
                                   (selection-of (output-of (va content-iomap))))
                                  (((the text/text (opening-delimiter-of (the tree/leaf document)))
@@ -124,7 +132,7 @@
 (def printer tree/node->text/text (projection recursion input input-reference)
   (bind ((child-iomaps (as (map-ll* (ll (children-of input))
                                     (lambda (child index)
-                                      (bind ((child-reference `((elt-ll (the sequence document) ,index)
+                                      (bind ((child-reference `((elt (the sequence document) ,index)
                                                                 (the sequence (children-of (the tree/node document)))
                                                                 ,@(typed-reference (form-type input) input-reference))))
                                         (recurse-printer recursion (value-of child) child-reference))))))
@@ -132,8 +140,7 @@
                                            (bind ((child-iomap (value-of element))
                                                   (child-input (input-of child-iomap))
                                                   (child-output (output-of child-iomap))
-                                                  (child-line-count (text/count-lines child-output))
-                                                  (child-length (text/length child-output))
+                                                  (child-length (as (text/length child-output)))
                                                   (separator-length (aif (separator-of input) (text/length it) 0))
                                                   (last-line-length (iter (for current-element :initially (previous-element-of element) :then (previous-element-of current-element))
                                                                           (while current-element)
@@ -145,22 +152,21 @@
                                                                           (summing separator-length :into result)
                                                                           (awhen (indentation-of (input-of (value-of current-element)))
                                                                             (return (+ result it)))
-                                                                          (finally (return result))))
+                                                                          (finally (return (+ result (aif (opening-delimiter-of input) (text/length it) 0))))))
                                                   (indentation (indentation-of child-input))
                                                   (line-indentation (or indentation last-line-length))
-                                                  (indentation-length (if indentation
-                                                                          (* child-line-count (1+ indentation))
-                                                                          (* (1- child-line-count) line-indentation))))
+                                                  (indentation-length (as (bind ((child-line-count (text/count-lines child-output)))
+                                                                            (+ (* line-indentation (1- child-line-count))
+                                                                               (if indentation (1+ indentation) 0))))))
                                              (make-computed-ll (as (bind ((indented-child (as (text/make-text (append-ll (map-ll* (ll (elements-of child-output))
                                                                                                                                   (lambda (child-element-element index)
                                                                                                                                     (declare (ignore index))
                                                                                                                                     (bind ((child-element (value-of child-element-element)))
                                                                                                                                       (if (and indentation
                                                                                                                                                (not (previous-element-of child-element-element)))
-                                                                                                                                          (ll (list (text/newline)
-                                                                                                                                                    (text/string (make-string-of-spaces indentation))
-                                                                                                                                                    child-element)
-                                                                                                                                              2)
+                                                                                                                                          (if (zerop indentation)
+                                                                                                                                              (ll (list (text/newline) child-element) 1)
+                                                                                                                                              (ll (list (text/newline) (text/string (make-string-of-spaces indentation)) child-element) 2))
                                                                                                                                           (if (and (not (zerop line-indentation))
                                                                                                                                                    (text/newline? child-element)
                                                                                                                                                    (previous-element-of child-element-element))
@@ -181,12 +187,12 @@
                                                                                                                 (and child-origin-character-index
                                                                                                                      (- child-origin-character-index (va indented-child-origin-preceding-length)))
                                                                                                                 (and child-last-character-index
-                                                                                                                     (- child-last-character-index child-length indentation-length))))
+                                                                                                                     (- child-last-character-index (va child-length) (va indentation-length)))))
                                                                                  :last-character-index (as (or child-last-character-index
                                                                                                                (and child-origin-character-index
                                                                                                                     (+ child-origin-character-index (va indented-child-origin-following-length)))
                                                                                                                (and child-first-character-index
-                                                                                                                    (+ child-first-character-index child-length indentation-length)))))))
+                                                                                                                    (+ child-first-character-index (va child-length) (va indentation-length))))))))
                                                                (as (or previous-element
                                                                        (awhen (previous-element-of element)
                                                                          (recurse it nil -self- nil nil (- (first-character-index-of (value-of -self-)) separator-length)))))
@@ -198,19 +204,25 @@
          (output-elements (as (bind ((output-delimiters? (output-delimiters-p projection))
                                      (opening-delimiter (opening-delimiter-of input))
                                      (closing-delimiter (closing-delimiter-of input)))
-                                (concatenate-ll (if (and output-delimiters? opening-delimiter) 1 0)
-                                                (when (and output-delimiters? opening-delimiter) (elements-of opening-delimiter))
-                                                (append-ll (bind ((indented-children (map-ll (va node-child-iomaps)
-                                                                                             (lambda (node-child-iomap)
-                                                                                               #+nil (format t "~%~S ~A ~A ~A" (text/as-string (indented-child-of node-child-iomap)) (first-character-index-of node-child-iomap) (origin-character-index-of node-child-iomap) (last-character-index-of node-child-iomap))
-                                                                                               (elements-of (indented-child-of node-child-iomap))))))
-                                                             (aif (separator-of input)
-                                                                  (separate-elements-ll indented-children (ll (elements-of it)))
-                                                                  indented-children)))
-                                                (when (and output-delimiters? closing-delimiter) (elements-of closing-delimiter))))))
+                                (if (va node-child-iomaps)
+                                    (concatenate-ll (if (and output-delimiters? opening-delimiter) 1 0)
+                                                    (when (and output-delimiters? opening-delimiter) (elements-of opening-delimiter))
+                                                    (append-ll (bind ((indented-children (map-ll (va node-child-iomaps)
+                                                                                                 (lambda (node-child-iomap)
+                                                                                                   ;; DEBUG: (format t "~%~S ~A ~A ~A" (text/as-string (indented-child-of node-child-iomap)) (first-character-index-of node-child-iomap) (origin-character-index-of node-child-iomap) (last-character-index-of node-child-iomap))
+                                                                                                   (elements-of (indented-child-of node-child-iomap))))))
+                                                                 (aif (separator-of input)
+                                                                      (separate-elements-ll indented-children (ll (elements-of it)))
+                                                                      indented-children)))
+                                                    (when (and output-delimiters? closing-delimiter) (elements-of closing-delimiter)))
+                                    (list (text/string ""))))))
          (output-selection (as (pattern-case (reverse (selection-of input))
                                  (((the tree/node document))
-                                  `((the text/text (text/subbox (the text/text document) 0 ,(text/length (text/make-text output-elements))))))
+                                  (bind ((text (text/make-text output-elements))
+                                         (origin-position (text/origin-position text))
+                                         (start-index (- (text/length text (text/first-position text) origin-position)))
+                                         (end-index (text/length text origin-position (text/last-position text))))
+                                    `((the text/text (text/subbox (the text/text document) ,start-index ,end-index)))))
                                  (((the text/text (printer-output (the tree/node document) ?projection ?recursion)) . ?rest)
                                   (when (and (eq projection ?projection) (eq recursion ?recursion))
                                     (reverse ?rest)))
@@ -242,7 +254,34 @@
          (selection (selection-of printer-input))
          (text-selection? (text/reference? selection))
          (tree-selection? (tree/reference? selection)))
-    (merge-commands (awhen (labels ((recurse (operation)
+    (merge-commands (pattern-case (reverse (selection-of printer-input))
+                      (((the ?content-type (content-of (the tree/leaf document))) . ?rest)
+                       (bind ((content-iomap (content-iomap-of printer-iomap))
+                              (output-operation (operation-of (recurse-reader recursion (make-command/nothing gesture) content-iomap))))
+                         (awhen (operation/extend printer-input `((the ,?content-type (content-of (the tree/leaf document)))) output-operation)
+                           (make-command/clone input it)))))
+                    (gesture-case gesture
+                      ((gesture/keyboard/key-press :sdl-key-space :control)
+                       :domain "Tree" :description "Turn the selection into a text selection"
+                       :operation (when tree-selection?
+                                    (make-operation/replace-selection printer-input (if (opening-delimiter-of printer-input)
+                                                                                        `((the text/text (text/subseq (the text/text document) 0 0))
+                                                                                          (the text/text (opening-delimiter-of (the tree/leaf document))))
+                                                                                        `((the text/text (text/subseq (the text/text document) 0 0))
+                                                                                          (the text/text (content-of (the tree/leaf document))))))))
+                      ((gesture/keyboard/key-press :sdl-key-space :control)
+                       :domain "Tree" :description "Turn the selection into a tree selection"
+                       :operation (when text-selection?
+                                    (make-operation/replace-selection printer-input '((the tree/leaf document)))))
+                      ((gesture/keyboard/key-press :sdl-key-d :control)
+                       :domain "Tree" :description "Toggles visibility of delimiters"
+                       :operation (make-operation/functional (lambda () (setf (output-delimiters-p projection) (not (output-delimiters-p projection))))))
+                      ((gesture/keyboard/key-press :sdl-key-home :alt)
+                       :domain "Tree" :description "Moves the selection to the root node"
+                       :operation (bind ((new-selection `((the tree/leaf document))))
+                                    (unless (equal new-selection selection)
+                                      (make-operation/replace-selection printer-input new-selection)))))
+                    (awhen (labels ((recurse (operation)
                                       (typecase operation
                                         (operation/quit operation)
                                         (operation/functional operation)
@@ -280,45 +319,39 @@
                                                          (when (typep content-operation 'operation/text/replace-range)
                                                            `(,@(selection-of content-operation) (the ,(form-type (content-of printer-input)) (content-of (the tree/leaf document))))))))))
                                            (make-operation/text/replace-range printer-input it (replacement-of operation))))
+                                        (operation/describe
+                                         (awhen (pattern-case (selection-of operation)
+                                                  (((the text/text (text/subseq (the text/text document) ?character-index ?character-index)))
+                                                   (bind ((content-output (output-of content-iomap))
+                                                          (content-output-origin-position (text/origin-position content-output))
+                                                          (content-output-position (text/relative-position content-output content-output-origin-position ?character-index)))
+                                                     (if content-output-position
+                                                         (bind ((content-command (recurse-reader recursion input content-iomap))
+                                                                (content-operation (operation-of content-command)))
+                                                           (when (typep content-operation 'operation/describe)
+                                                             `(,@(selection-of content-operation) (the ,(form-type (content-of printer-input)) (content-of (the tree/leaf document))))))
+                                                         (if (< ?character-index 0)
+                                                             (bind ((distance (+ ?character-index
+                                                                                 (text/length (opening-delimiter-of printer-input))
+                                                                                 (text/length content-output (text/first-position content-output) content-output-origin-position))))
+                                                               `((the text/text (text/subseq (the text/text document) ,distance ,distance))
+                                                                 (the text/text (opening-delimiter-of (the tree/leaf document)))))
+                                                             (bind ((distance (- ?character-index (text/length content-output content-output-origin-position (text/last-position content-output)))))
+                                                               `((the text/text (text/subseq (the text/text document) ,distance ,distance))
+                                                                 (the text/text (closing-delimiter-of (the tree/leaf document))))))))))
+                                           (make-operation/describe it)))
                                         (operation/show-context-sensitive-help
                                          (make-instance 'operation/show-context-sensitive-help
                                                         :commands (iter (for command :in (commands-of operation))
                                                                         (awhen (recurse (operation-of command))
-                                                                          (collect (make-instance 'command
-                                                                                                  :gesture (gesture-of command)
-                                                                                                  :domain (domain-of command)
-                                                                                                  :description (description-of command)
-                                                                                                  :operation it))))))
+                                                                          (collect (make-command/clone command it))))))
                                         (operation/compound
                                          (bind ((child-operations (mapcar #'recurse (elements-of operation))))
                                            (unless (some 'null child-operations)
                                              (make-operation/compound child-operations)))))))
                              (recurse (operation-of input)))
-                      (make-command gesture it
-                                    :domain (domain-of input)
-                                    :description (description-of input)))
-                    (gesture-case (gesture-of input)
-                      ((gesture/keyboard/key-press :sdl-key-space :control)
-                       :domain "Tree" :description "Turn the selection into a text selection"
-                       :operation (when tree-selection?
-                                    (make-operation/replace-selection printer-input (if (opening-delimiter-of printer-input)
-                                                                                        `((the text/text (text/subseq (the text/text document) 0 0))
-                                                                                          (the text/text (opening-delimiter-of (the tree/leaf document))))
-                                                                                        `((the text/text (text/subseq (the text/text document) 0 0))
-                                                                                          (the text/text (content-of (the tree/leaf document))))))))
-                      ((gesture/keyboard/key-press :sdl-key-space :control)
-                       :domain "Tree" :description "Turn the selection into a tree selection"
-                       :operation (when text-selection?
-                                    (make-operation/replace-selection printer-input '((the tree/leaf document)))))
-                      ((gesture/keyboard/key-press :sdl-key-d :control)
-                       :domain "Tree" :description "Toggles visibility of delimiters"
-                       :operation (make-operation/functional (lambda () (setf (output-delimiters-p projection) (not (output-delimiters-p projection))))))
-                      ((gesture/keyboard/key-press :sdl-key-home :alt)
-                       :domain "Tree" :description "Moves the selection to the root node"
-                       :operation (bind ((new-selection `((the tree/leaf document))))
-                                    (unless (equal new-selection selection)
-                                      (make-operation/replace-selection printer-input new-selection)))))
-                    (make-command/nothing (gesture-of input)))))
+                      (make-command/clone input it))
+                    (make-command/nothing gesture))))
 
 (def reader tree/node->text/text (projection recursion input printer-iomap)
   (bind ((gesture (gesture-of input))
@@ -326,32 +359,37 @@
          (selection (selection-of printer-input))
          (text-selection? (text/reference? selection))
          (tree-selection? (tree/reference? selection)))
-    (merge-commands (gesture-case (gesture-of input)
+    (merge-commands (pattern-case (reverse (selection-of printer-input))
+                      (((the sequence (children-of (the tree/node document)))
+                        (the ?element-type (elt (the sequence document) ?element-index)) . ?rest)
+                       (bind ((child-iomap (content-iomap-of (elt (child-iomaps-of printer-iomap) ?element-index)))
+                              (output-operation (operation-of (recurse-reader recursion (make-command/nothing (gesture-of input)) child-iomap))))
+                         (awhen (operation/extend printer-input `((the ,?element-type (elt (the sequence document) ,?element-index))
+                                                                  (the sequence (children-of (the tree/node document))))
+                                                  output-operation)
+                           (make-command/clone input it)))))
+                    (gesture-case (gesture-of input)
                       ((gesture/keyboard/key-press :sdl-key-space :control)
                        :domain "Tree" :description "Turn the selection into a text position selection"
                        :operation (when tree-selection?
-                                    #+nil
-                                    (when-bind node-reference (find-tree-node-reference selection)
-                                      (bind ((node (eval-reference printer-input (reference/flatten (reverse node-reference)))))
-                                        (make-operation/replace-selection printer-input `((the text/text (text/subseq (the text/text document) 0 0))
-                                                                                          (the text/text (,(if (opening-delimiter-of node) 'opening-delimiter-of 'content-of) (the ,(form-type node) document)))
-                                                                                          ,@(rest selection)))))))
+                                    (make-operation/replace-selection printer-input (if (opening-delimiter-of printer-input)
+                                                                                        `((the text/text (text/subseq (the text/text document) 0 0))
+                                                                                          (the text/text (opening-delimiter-of (the tree/node document))))
+                                                                                        `((the text/text (text/subseq (the text/text document) 0 0))
+                                                                                          (the text/text (printer-output (the tree/node document) ,projection ,recursion)))))))
                       ((gesture/keyboard/key-press :sdl-key-space :control)
                        :domain "Tree" :description "Turn the selection into a tree node selection"
                        :operation (when text-selection?
-                                    #+nil
-                                    (when-bind node-reference (find-tree-node-reference selection)
-                                      (bind ((node (eval-reference printer-input (reference/flatten (reverse node-reference)))))
-                                        (make-operation/replace-selection printer-input `((the ,(form-type node) document) ,@node-reference))))))
+                                    (pattern-case selection
+                                      (((the text/text (text/subseq (the text/text document) ?start-index ?end-index))
+                                        (the text/text (printer-output (the tree/node document) ?projection ?recursion)))
+                                       (make-operation/replace-selection printer-input '((the tree/node document)))))))
                       ((gesture/keyboard/key-press :sdl-key-d :control)
                        :domain "Tree" :description "Toggles visibility of delimiters"
                        :operation (make-operation/functional (lambda () (setf (output-delimiters-p projection) (not (output-delimiters-p projection))))))
                       ((gesture/keyboard/key-press :sdl-key-tab :control)
                        :domain "Tree" :description "Expands or collapses the selected ndoe"
-                       :operation (progn
-                                    #+nil
-                                    (awhen (find-tree-node-parent-reference (find-tree-node-reference selection))
-                                      (make-operation/tree/toggle-expanded printer-input it))))
+                       :operation (make-operation/tree/toggle-expanded printer-input '((the tree/node document))))
                       ((gesture/keyboard/key-press :sdl-key-home :alt)
                        :domain "Tree" :description "Moves the selection to the root node"
                        :operation (bind ((new-selection '((the tree/node document))))
@@ -360,91 +398,81 @@
                       ((gesture/keyboard/key-press :sdl-key-up)
                        :domain "Tree" :description "Moves the selection to the parent node"
                        :operation (when tree-selection?
-                                    #+nil
-                                    (make-operation/replace-selection printer-input `((the tree/node document) ,@(find-tree-node-parent-reference (find-tree-node-reference selection))))))
+                                    (pattern-case selection
+                                      (((the ?child-type document)
+                                        (the ?child-type (elt (the sequence document) ?child-index))
+                                        (the sequence (children-of (the tree/node document))))
+                                       (make-operation/replace-selection printer-input '((the tree/node document)))))))
                       ((gesture/keyboard/key-press :sdl-key-down)
                        :domain "Tree" :description "Moves the selection to the first child node"
                        :operation (when tree-selection?
-                                    #+nil
-                                    (when-bind node-reference (find-tree-node-reference selection)
-                                      (bind ((node (eval-reference printer-input (reference/flatten (reverse node-reference)))))
-                                        (when (and (typep node 'tree/node)
-                                                   (> (length (children-of node)) 0))
-                                          (bind ((first-child (elt (children-of node) 0)))
-                                            (make-operation/replace-selection printer-input `((the ,(form-type first-child) document)
-                                                                                              (the ,(form-type first-child) (elt (the sequence document) 0))
-                                                                                              (the sequence (children-of (the tree/node document)))
-                                                                                              ,@(rest node-reference)))))))))
+                                    (pattern-case selection
+                                      (((the tree/node document))
+                                       (bind ((child-type (type-of (elt (children-of printer-input) 0))))
+                                         (make-operation/replace-selection printer-input `((the ,child-type document)
+                                                                                           (the ,child-type (elt (the sequence document) 0))
+                                                                                           (the sequence (children-of (the tree/node document))))))))))
                       ((gesture/keyboard/key-press :sdl-key-home)
                        :domain "Tree" :description "Moves the selection to the first sibling node"
                        :operation (when tree-selection?
-                                    #+nil
-                                    (when-bind node-reference (find-tree-node-reference selection)
-                                      (pattern-case node-reference
-                                        (((the ?type (?if (subtypep ?type 'tree/base)) document)
-                                          (the ?type (?if (subtypep ?type 'tree/base)) (elt (the sequence document) ?b))
-                                          (the sequence (children-of (the tree/node document)))
-                                          . ?rest)
-                                         (bind ((parent-node (eval-reference printer-input (reference/flatten (reverse ?rest))))
-                                                (type (type-of (elt (children-of parent-node) 0))))
-                                           (make-operation/replace-selection printer-input `((the ,type document)
-                                                                                             (the ,type (elt (the sequence document) 0))
-                                                                                             (the sequence (children-of (the tree/node document)))
-                                                                                             ,@?rest))))))))
+                                    (pattern-case selection
+                                      (((the ?child-type document)
+                                        (the ?child-type (elt (the sequence document) ?child-index))
+                                        (the sequence (children-of (the tree/node document))))
+                                       (bind ((child-type (type-of (elt (children-of printer-input) 0))))
+                                         (make-operation/replace-selection printer-input `((the ,child-type document)
+                                                                                           (the ,child-type (elt (the sequence document) 0))
+                                                                                           (the sequence (children-of (the tree/node document))))))))))
                       ((gesture/keyboard/key-press :sdl-key-end)
                        :domain "Tree" :description "Moves the selection to the last sibling node"
                        :operation (when tree-selection?
-                                    #+nil
-                                    (when-bind node-reference (find-tree-node-reference selection)
-                                      (pattern-case node-reference
-                                        (((the ?type (?if (subtypep ?type 'tree/base)) document)
-                                          (the ?type (?if (subtypep ?type 'tree/base)) (elt (the sequence document) ?b))
-                                          (the sequence (children-of (the tree/node document)))
-                                          . ?rest)
-                                         (bind ((parent-node (eval-reference printer-input (reference/flatten (reverse ?rest)))))
-                                           (bind ((index (1- (length (children-of parent-node))))
-                                                  (type (type-of (elt (children-of parent-node) index))))
-                                             (make-operation/replace-selection printer-input `((the ,type document)
-                                                                                               (the ,type (elt (the sequence document) ,index))
-                                                                                               (the sequence (children-of (the tree/node document)))
-                                                                                               ,@?rest)))))))))
+                                    (pattern-case selection
+                                      (((the ?child-type document)
+                                        (the ?child-type (elt (the sequence document) ?child-index))
+                                        (the sequence (children-of (the tree/node document))))
+                                       (bind ((index (1- (length (children-of printer-input))))
+                                              (child-type (type-of (elt (children-of printer-input) index))))
+                                         (make-operation/replace-selection printer-input `((the ,child-type document)
+                                                                                           (the ,child-type (elt (the sequence document) ,index))
+                                                                                           (the sequence (children-of (the tree/node document))))))))))
                       ((gesture/keyboard/key-press :sdl-key-left)
                        :domain "Tree" :description "Moves the selection to the preceding sibling node"
                        :operation (when tree-selection?
-                                    #+nil
-                                    (when-bind node-reference (find-tree-node-reference selection)
-                                      (pattern-case node-reference
-                                        (((the ?type (?if (subtypep ?type 'tree/base)) document)
-                                          (the ?type (?if (subtypep ?type 'tree/base)) (elt (the sequence document) ?b))
-                                          (the sequence (children-of (the tree/node document)))
-                                          . ?rest)
-                                         (when (> ?b 0)
-                                           (bind ((parent-node (eval-reference printer-input (reference/flatten (reverse ?rest))))
-                                                  (type (type-of (elt (children-of parent-node) (1- ?b)))))
-                                             (make-operation/replace-selection printer-input `((the ,type document)
-                                                                                               (the ,type (elt (the sequence document) ,(1- ?b)))
-                                                                                               (the sequence (children-of (the tree/node document)))
-                                                                                               ,@?rest)))))))))
+                                    (pattern-case selection
+                                      (((the ?child-type document)
+                                        (the ?child-type (elt (the sequence document) ?child-index))
+                                        (the sequence (children-of (the tree/node document))))
+                                       (when (> ?child-index 0)
+                                         (bind ((child-type (type-of (elt (children-of printer-input) (1- ?child-index)))))
+                                           (make-operation/replace-selection printer-input `((the ,child-type document)
+                                                                                             (the ,child-type (elt (the sequence document) ,(1- ?child-index)))
+                                                                                             (the sequence (children-of (the tree/node document)))))))))))
                       ((gesture/keyboard/key-press :sdl-key-right)
                        :domain "Tree" :description "Moves the selection to the following sibling node"
                        :operation (when tree-selection?
-                                    #+nil
-                                    (when-bind node-reference (find-tree-node-reference selection)
-                                      (pattern-case node-reference
-                                        (((the ?type (?if (subtypep ?type 'tree/base)) document)
-                                          (the ?type (?if (subtypep ?type 'tree/base)) (elt (the sequence document) ?b))
-                                          (the sequence (children-of (the tree/node document)))
-                                          . ?rest)
-                                         (bind ((parent-node (eval-reference printer-input (reference/flatten (reverse ?rest)))))
-                                           (when (< ?b (1- (length (children-of parent-node))))
-                                             (bind ((type (type-of (elt (children-of parent-node) (1+ ?b)))))
-                                               (make-operation/replace-selection printer-input `((the ,type document)
-                                                                                                 (the ,type (elt (the sequence document) ,(1+ ?b)))
-                                                                                                 (the sequence (children-of (the tree/node document)))
-                                                                                                 ,@?rest))))))))))
+                                    (pattern-case selection
+                                      (((the ?child-type document)
+                                        (the ?child-type (elt (the sequence document) ?child-index))
+                                        (the sequence (children-of (the tree/node document))))
+                                       (when (< ?child-index (1- (length (children-of printer-input))))
+                                         (bind ((child-type (type-of (elt (children-of printer-input) (1+ ?child-index)))))
+                                           (make-operation/replace-selection printer-input `((the ,child-type document)
+                                                                                             (the ,child-type (elt (the sequence document) ,(1+ ?child-index)))
+                                                                                             (the sequence (children-of (the tree/node document)))))))))))
                       ((gesture/keyboard/key-press :sdl-key-up :alt)
                        :domain "Tree" :description "Moves the selection to the first character of the parent node"
                        :operation (when text-selection?
+                                    (pattern-case selection
+                                      (((the text/text (text/subseq (the text/text document) 0 0))
+                                        (the text/text (printer-output (the tree/node document) ?projection ?recursion))
+                                        (the tree/node (elt (the sequence document) ?child-index))
+                                        (the sequence (children-of (the tree/node document))))
+                                       (make-operation/replace-selection printer-input `((the text/text (text/subseq (the text/text document) 0 0))
+                                                                                         (the text/text (printer-output (the tree/node document) ,projection ,recursion)))))
+                                      (((the text/text (text/subseq (the text/text document) ?start-index ?end-index))
+                                        (the text/text (printer-output (the tree/node document) ?projection ?recursion)))
+                                       (make-operation/replace-selection printer-input `((the text/text (text/subseq (the text/text document) 0 0))
+                                                                                         (the text/text (printer-output (the tree/node document) ,projection ,recursion))))))
                                     #+nil
                                     (when-bind node-reference (find-tree-node-parent-reference (find-tree-node-reference selection))
                                       (make-operation/replace-selection printer-input `((the text/text (text/subseq (the text/text document) 0 0))
@@ -498,13 +526,7 @@
                                                (make-operation/replace-selection printer-input
                                                                                  (ecase type
                                                                                    (tree/leaf `(the text/text (text/subseq (the text/text (content-of (the ,type (elt (the sequence (children-of (the tree/node ,?a))) ,(1+ ?b))))) 0 0)))
-                                                                                   (tree/node `(the text/text (text/subseq (the text/text (opening-delimiter-of (the ,type (elt (the sequence (children-of (the tree/node ,?a))) ,(1+ ?b))))) 0 0)))))))))))))
-                      #+nil
-                      ((gesture/keyboard/key-press :sdl-key-delete)
-                       :domain "Tree" :description "Deletes the tree node"
-                       :operation (when tree-selection?
-                                    ;; TODO:
-                                    (make-operation/replace input nil (document/nothing)))))
+                                                                                   (tree/node `(the text/text (text/subseq (the text/text (opening-delimiter-of (the ,type (elt (the sequence (children-of (the tree/node ,?a))) ,(1+ ?b))))) 0 0))))))))))))))
                     (awhen (labels ((recurse (operation)
                                       (typecase operation
                                         (operation/quit operation)
@@ -543,6 +565,23 @@
                                                                    `((the ,(form-type child) (elt (the sequence document) ,start-child-index))
                                                                      (the sequence (children-of (the tree/node document)))))))))))
                                            (make-operation/text/replace-range printer-input it (replacement-of operation))))
+                                        (operation/describe
+                                         (awhen (pattern-case (selection-of operation)
+                                                  (((the text/text (text/subseq (the text/text document) ?parent-character-index ?parent-character-index)) . ?rest)
+                                                   (bind (((:values child-index child-character-index) (find-child-character-index printer-iomap ?parent-character-index)))
+                                                     (if child-index
+                                                         (bind ((child-iomap (content-iomap-of (elt (child-iomaps-of printer-iomap) child-index)))
+                                                                (child (input-of child-iomap))
+                                                                (input-child-operation (make-operation/describe `((the text/text (text/subseq (the text/text document) ,child-character-index ,child-character-index)))))
+                                                                (input-child-command (make-command nil input-child-operation :domain (domain-of input) :description (description-of input)))
+                                                                (output-child-command (recurse-reader recursion input-child-command child-iomap))
+                                                                (output-child-operation (operation-of output-child-command)))
+                                                           (when (typep output-child-operation 'operation/describe)
+                                                             (append (selection-of output-child-operation)
+                                                                     `((the ,(form-type child) (elt (the sequence document) ,child-index))
+                                                                       (the sequence (children-of (the tree/node document)))))))
+                                                         (append (selection-of operation) `((the text/text (printer-output (the tree/node document) ,projection ,recursion))))))))
+                                           (make-operation/describe it)))
                                         (operation/show-context-sensitive-help
                                          (make-instance 'operation/show-context-sensitive-help
                                                         :commands (iter (for command :in (commands-of operation))

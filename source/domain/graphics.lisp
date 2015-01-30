@@ -134,6 +134,7 @@
 
 (def document graphics/canvas (graphics/base)
   ((location :type 2d)
+   (orientation :type (member nil :horizontal :vertical))
    (elements :type sequence)))
 
 ;;;;;;
@@ -349,15 +350,15 @@
 ;;;;;;
 ;;; Graphics operation classes
 
-(def operation operation/graphics/translate-location (operation)
+(def operation operation/graphics/translate-location ()
   ((selection :type selection/single)
    (translation :type 2d)))
 
-(def operation operation/graphics/scale-size (operation)
+(def operation operation/graphics/scale-size ()
   ((selection :type selection/single)
    (scale :type 2d)))
 
-(def operation operation/graphics/rotate-clockwise (operation)
+(def operation operation/graphics/rotate-clockwise ()
   ((selection :type selection/single)
    (rotation :type number)))
 
@@ -381,13 +382,9 @@
     ((make-instance 'gesture/mouse/button/click :button :button-left :modifiers nil)
      :domain "Graphics" :description "Moves the selection to where the mouse is pointing at"
      :operation (make-operation/replace-selection graphics (make-reference graphics (location-of gesture) nil)))
-    ;; KLUDGE: for tree selection
-    ((make-instance 'gesture/mouse/button/click :button :button-left :modifiers (list :control))
-     :domain "Graphics" :description "Moves the selection to where the mouse is pointing at"
-     :operation (make-operation/replace-selection graphics (make-reference graphics (location-of gesture) nil)))
-    ((gesture/keyboard/key-press :sdl-key-d :control)
+    ((gesture/keyboard/key-press :sdl-key-i :control)
      :domain "Graphics" :description "Describes what the mouse is pointing at"
-     :operation (make-instance 'operation/describe :target (make-reference graphics (location-of gesture) nil)))))
+     :operation (make-operation/describe (make-reference graphics (location-of gesture) nil)))))
 
 (def method run-operation ((operation operation/graphics/translate-location))
   (translate-location (target-of (selection-of operation)) (translation-of operation)))

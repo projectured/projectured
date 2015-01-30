@@ -45,57 +45,57 @@
 ;;;;;;
 ;;; Construction
 
-(def function make-json/nothing (&key projection selection)
+(def function make-json/nothing (&key selection)
   (make-instance 'json/nothing :selection selection))
 
-(def function make-json/null (&key projection selection)
+(def function make-json/null (&key selection)
   (make-instance 'json/null :selection selection))
 
-(def function make-json/boolean (value &key projection selection)
+(def function make-json/boolean (value &key selection)
   (make-instance 'json/boolean :value value :selection selection))
 
-(def function make-json/number (value &key projection selection)
+(def function make-json/number (value &key selection)
   (make-instance 'json/number :value value :selection selection))
 
-(def function make-json/string (value &key projection selection)
+(def function make-json/string (value &key selection)
   (make-instance 'json/string :value value :selection selection))
 
-(def function make-json/array (elements &key projection selection)
-  (make-instance 'json/array :elements (make-sequence/sequence elements :selection (butlast selection)) :selection selection))
+(def function make-json/array (elements &key selection)
+  (make-instance 'json/array :elements (make-document/sequence elements :selection (butlast selection)) :selection selection))
 
-(def function make-json/object-entry (key value &key projection selection)
+(def function make-json/object-entry (key value &key selection)
   (make-instance 'json/object-entry :key key :value value :selection selection))
 
-(def function make-json/object (entries &key projection selection)
-  (make-instance 'json/object :entries (coerce entries 'sequence/sequence) :selection selection))
+(def function make-json/object (entries &key selection)
+  (make-instance 'json/object :entries (make-document/sequence entries) :selection selection))
 
 ;;;;;;
 ;;; Construction
 
-(def macro json/nothing ((&key selection projection))
+(def macro json/nothing ((&key selection))
   `(make-json/nothing :selection ,selection))
 
-(def macro json/null ((&key selection projection))
+(def macro json/null ((&key selection))
   `(make-json/null :selection ,selection))
 
-(def macro json/boolean ((&key selection projection) &body value)
+(def macro json/boolean ((&key selection) &body value)
   `(make-json/boolean ,(first value) :selection ,selection))
 
-(def macro json/number ((&key selection projection) &body value)
+(def macro json/number ((&key selection) &body value)
   `(make-json/number ,(first value) :selection ,selection))
 
-(def macro json/string ((&key selection projection) &body value)
+(def macro json/string ((&key selection) &body value)
   `(make-json/string ,(first value) :selection ,selection))
 
-(def macro json/array ((&key selection projection) &body elements)
-  `(make-json/array (list ,@elements) :selection ,selection))
+(def macro json/array ((&key selection) &body elements)
+  `(make-json/array (list-ll ,@elements) :selection ,selection))
 
-(def macro json/object-entry ((&key selection projection) key value)
+(def macro json/object-entry ((&key selection) key value)
   `(make-json/object-entry ,key ,value :selection ,selection))
 
-(def macro json/object ((&key selection projection) &body key-value-pairs)
-  `(make-json/object (list ,@(iter (for (key value) :in key-value-pairs)
-                                   (collect `(make-json/object-entry ,key ,value))))
+(def macro json/object ((&key selection) &body key-value-pairs)
+  `(make-json/object (list-ll ,@(iter (for (key value) :in key-value-pairs)
+                                      (collect `(make-json/object-entry ,key ,value))))
                      :selection ,selection))
 
 ;;;;;;

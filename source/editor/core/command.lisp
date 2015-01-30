@@ -28,6 +28,9 @@
 (def function make-command/nothing (gesture)
   (make-command gesture nil :domain "Default" :description "Does nothing"))
 
+(def function make-command/clone (command &optional operation)
+  (make-command (gesture-of command) operation :domain (domain-of command) :description (description-of command)))
+
 ;;;;;;
 ;;; API
 

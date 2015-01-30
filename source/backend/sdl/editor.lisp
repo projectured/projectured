@@ -15,39 +15,44 @@
 ;;;;;;
 ;;; Construction
 
-(def method make-editor (&key (width 1280) (height 720) (filename #P"/tmp/projectured.bmp"))
+(def method make-editor (&key (width 1280) (height 720) (filename nil))
   (declare (ignorable filename))
   (make-instance 'editor/sdl
-                 :devices (list (make-instance 'device/mouse)
-                                (make-instance 'device/keyboard)
-                                (make-device/display/sdl width height)
-                                #+nil
-                                (make-device/file/sdl filename))
+                 :devices (append (list (make-instance 'device/mouse)
+                                        (make-instance 'device/keyboard)
+                                        (make-device/display/sdl width height))
+                                  (when filename
+                                    (list (make-device/file/sdl filename))))
                  :event-queue (make-instance 'event-queue :events nil)
                  :gesture-queue (make-instance 'gesture-queue :gestures nil)))
 
 ;;;;;;
 ;;; API
 
-(def method run-read-evaluate-print-loop ((editor editor/sdl) document projection)
+(def method run-read-evaluate-print-loop ((editor editor/sdl) document projection &key profile profile-reader profile-evaluator profile-printer)
   (unwind-protect
        (progn
          (sdl:init-sdl)
          (sdl-image:init-image :jpg :png :tif)
          (sdl:initialise-default-font (make-instance 'sdl:ttf-font-definition :size 18 :filename (resource-pathname "font/UbuntuMono-R.ttf")))
          (sdl:init-video)
-         (bind ((display (find-if (of-type 'device/display) (devices-of editor)))
-                (surface (sdl:window (width-of display) (height-of display) :flags sdl-cffi::sdl-no-frame :double-buffer #t :title-caption "Projectional Editor")))
-           (setf (surface-of display) surface)
-           (call-next-method)))
+         (bind ((display (find-if (of-type 'device/display) (devices-of editor))))
+           (if display
+               (bind ((surface (sdl:window (width-of display) (height-of display) :flags sdl-cffi::sdl-no-frame :double-buffer #t :title-caption "Projectional Editor")))
+                 (setf (surface-of display) surface)
+                 (call-next-method))
+               (call-next-method))))
     (sdl:quit-video)))
 
 (def method print-to-devices :around ((editor editor/sdl) document projection)
   (bind ((display (find-if (of-type 'device/display) (devices-of editor))))
-    (sdl:with-surface ((surface-of display))
-      (sdl:fill-surface sdl:*white*)
-      (call-next-method)
-      (sdl:update-display))))
+    (if display
+        (sdl:with-surface ((surface-of display))
+          (sdl:fill-surface sdl:*white*)
+          (call-next-method)
+          (when sdl:*default-display*
+            (sdl:update-display)))
+        (call-next-method))))
 
 ;; KLUDGE: what shall we dispatch on here? this is obviously wrong...
 (def method read-event ((devices sequence))

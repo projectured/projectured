@@ -184,7 +184,7 @@
                                                                   (the string (object-class-label (the sequence document)))))
                                                              (1 `((the string (subseq (the string document) ,?character-index ,?character-index))
                                                                   (the string (object-class-symbol-name (the sequence document)))))))))))
-                 (operation/sequence/replace-element-range)
+                 (operation/sequence/replace-range)
                  (operation/describe)
                  (operation/compound
                   (bind ((child-operations (mapcar #'recurse (elements-of operation))))

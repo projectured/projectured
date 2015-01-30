@@ -145,7 +145,7 @@
   (bind ((printer-input (input-of printer-iomap)))
     (merge-commands (gesture-case (gesture-of input)
                       ((gesture/keyboard/key-press :sdl-key-insert)
-                       :domain "Document" :description "Starts an object insertion"
+                       :domain "Document" :description "Starts an insertion into the document"
                        :operation (make-operation/compound (list (make-operation/replace-target printer-input nil (document/insertion))
                                                                  (make-operation/replace-selection printer-input `((the string (subseq (the string document) 0 0))
                                                                                                                    (the string (value-of (the document/insertion document)))))))))
@@ -188,7 +188,7 @@
                        :operation (bind (((:values nil completion) (funcall (factory-of projection) (value-of printer-input)))
                                          (end (length (value-of printer-input))))
                                     (values (when completion
-                                              (make-operation/sequence/replace-element-range printer-input `((the string (subseq (the string document) ,end ,end))
+                                              (make-operation/sequence/replace-range printer-input `((the string (subseq (the string document) ,end ,end))
                                                                                                              (the string (value-of (the document/insertion document)))) completion))
                                             #t)))
                       ((gesture/keyboard/key-press :sdl-key-return)
@@ -232,16 +232,16 @@
                                                                                                (bind ((character-index (- ?character-index suffix-start-index)))
                                                                                                  `((the string (subseq (the string document) ,character-index ,character-index))
                                                                                                    (the string (suffix-of (the document/insertion document))))))))))))
-                                               (operation/sequence/replace-element-range
+                                               (operation/text/replace-range
                                                 (awhen (bind ((value-start-index (length (prefix-of printer-input)))
                                                               (value-end-index (+ value-start-index (length (value-of printer-input)))))
-                                                         (pattern-case (target-of operation)
+                                                         (pattern-case (selection-of operation)
                                                            (((the text/text (text/subseq (the text/text document) ?start-character-index ?end-character-index))
                                                              (the text/text (content-of (the tree/leaf document))))
                                                             (when (and (<= value-start-index ?start-character-index value-end-index) (<= value-start-index ?end-character-index value-end-index))
                                                               `((the string (subseq (the string document) ,(- ?start-character-index value-start-index) ,(- ?end-character-index value-start-index)))
                                                                 (the string (value-of (the document/insertion document))))))))
-                                                  (make-operation/sequence/replace-element-range printer-input it (replacement-of operation))))
+                                                  (make-operation/sequence/replace-range printer-input it (replacement-of operation))))
                                                (operation/show-context-sensitive-help
                                                 (make-instance 'operation/show-context-sensitive-help
                                                                :commands (iter (for command :in (commands-of operation))
@@ -286,8 +286,8 @@
                                                   (?a
                                                    (append (selection-of operation) `((the tree/node (printer-output (the document/search document) ,projection ,recursion))))))
                                            (make-operation/replace-selection printer-input it)))
-                                        (operation/sequence/replace-element-range
-                                         (awhen (pattern-case (reverse (target-of operation))
+                                        (operation/sequence/replace-range
+                                         (awhen (pattern-case (reverse (selection-of operation))
                                                   (((the sequence (children-of (the tree/node document)))
                                                     (the tree/leaf (elt (the sequence document) 0))
                                                     (the text/text (content-of (the tree/leaf document)))
@@ -306,9 +306,9 @@
                                                           (content (content-of printer-input))
                                                           (reference (elt (result-of printer-iomap) index)))
                                                      (append (reverse ?rest) reference `((the ,(form-type content) (content-of (the document/search document))))))))
-                                           (make-operation/sequence/replace-element-range printer-input it (replacement-of operation))))
+                                           (make-operation/sequence/replace-range printer-input it (replacement-of operation))))
                                         (operation/number/replace-range
-                                         (awhen (pattern-case (reverse (target-of operation))
+                                         (awhen (pattern-case (reverse (selection-of operation))
                                                   (((the sequence (children-of (the tree/node document)))
                                                     (the tree/node (elt (the sequence document) ?index))
                                                     (the sequence (children-of (the tree/node document)))

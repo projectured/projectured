@@ -22,9 +22,9 @@
 
 (def function call-printer (projection recursion input input-reference #+nil reader-iomap)
   (declare (type projection projection recursion)
-           (type document input)
+           (type t input)
            (type reference input-reference))
-  (the document (funcall (printer-of projection) projection recursion input input-reference #+nil reader-iomap)))
+  (the t (funcall (printer-of projection) projection recursion input input-reference #+nil reader-iomap)))
 
 (def function recurse-printer (recursion input input-reference #+nil reader-iomap)
   (call-printer recursion recursion input input-reference #+nil reader-iomap))

@@ -13,6 +13,7 @@
   :components ((:module "test"
                 :components ((:file "document" :depends-on ("suite"))
                              (:file "package")
+                             (:file "printer" :depends-on ("suite"))
                              (:file "projection" :depends-on ("document"))
                              (:file "editor" :depends-on ("projection"))
                              (:file "selection" :depends-on ("package"))

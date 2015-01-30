@@ -85,7 +85,7 @@
                                     (make-operation/compound (list (make-operation/replace-target printer-input `((the ,(form-type slice) (slice-of (the document/clipboard document)))) slice)
                                                                    (make-operation/replace-target printer-input (selection-of printer-input) (document/nothing))))))
                       ((gesture/keyboard/key-press :sdl-key-n :control)
-                       :domain "Document" :description "Notes selected object into the clipboard"
+                       :domain "Document" :description "Notes the selected object into the clipboard"
                        :operation (bind ((slice (eval-reference printer-input (reference/flatten (reverse (selection-of printer-input))))))
                                     (make-operation/replace-target printer-input `((the ,(form-type slice) (slice-of (the document/clipboard document)))) slice)))
                       ((gesture/keyboard/key-press :sdl-key-v :control)
@@ -93,7 +93,7 @@
                        :operation (if (slice-of printer-input)
                                       (make-operation/replace-target printer-input (selection-of printer-input) (slice-of printer-input))
                                       #+nil
-                                      (make-operation/sequence/replace-element-range printer-input (selection-of printer-input)
+                                      (make-operation/sequence/replace-range printer-input (selection-of printer-input)
                                                                                      (with-output-to-string (stream)
                                                                                        (sb-ext:run-program "/usr/bin/xclip" (list "-o") :output stream)))))
                       ((gesture/keyboard/key-press :sdl-key-v '(:shift :control))

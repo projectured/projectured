@@ -43,7 +43,8 @@
     (number 'number)
     (string 'string)
     (vector 'vector)
-    (sequence/sequence 'sequence)
+    (computed-ll 'sequence)
+    (document/sequence 'sequence)
     (t (type-of form))))
 
 (def function object-class-name (object)
@@ -117,8 +118,8 @@
              (etypecase instance
                ((or number string symbol pathname function sb-sys:system-area-pointer)
                 instance)
-               (sequence/sequence
-                (make-sequence/sequence (iter (for element :in-sequence instance)
+               (document/sequence
+                (make-document/sequence (iter (for element :in-sequence instance)
                                               (collect (recurse element)))
                                         :selection (recurse (selection-of instance))))
                (sequence
@@ -134,3 +135,19 @@
                           (setf (slot-value-using-class class copy slot) (recurse (slot-value-using-class class instance slot)))))
                   copy)))))
     (recurse instance)))
+
+(def macro with-measuring ((name type) &body forms)
+  `(case ,type
+     (:profile
+      (with-profiling ()
+        ,@forms))
+     (:measure
+      (format t "MEASURING ~A~%" ,name)
+      (time
+       (bind (((:values result counter)
+               (with-profiling-computation 'projectured
+                 ,@forms)))
+         (print counter)
+         result)))
+     (t
+      ,@forms)))

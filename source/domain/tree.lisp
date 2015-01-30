@@ -54,7 +54,7 @@
                    :selection ,selection))
 
 (def macro tree/node ((&key separator opening-delimiter closing-delimiter indentation selection) &body children)
-  `(make-tree/node (list ,@children)
+  `(make-tree/node (list-ll ,@children)
                    :opening-delimiter ,opening-delimiter
                    :closing-delimiter ,closing-delimiter
                    :separator ,separator
@@ -64,24 +64,24 @@
 ;;;;;;
 ;;; Operation
 
-(def operation operation/tree (operation)
+(def operation operation/tree ()
   ())
 
 (def operation operation/tree/toggle-expanded (operation/tree)
   ((document :type document)
-   (target :type reference)))
+   (selection :type reference)))
 
 ;;;;;;
 ;;; Construction
 
-(def function make-operation/tree/toggle-expanded (document target)
-  (make-instance 'operation/tree/toggle-expanded :document document :target target))
+(def function make-operation/tree/toggle-expanded (document selection)
+  (make-instance 'operation/tree/toggle-expanded :document document :selection selection))
 
 ;;;;;;
 ;;; Run
 
 (def method run-operation ((operation operation/tree/toggle-expanded))
-  (notf (expanded-p (eval-reference (document-of operation) (reference/flatten (reverse (target-of operation)))))))
+  (notf (expanded-p (eval-reference (document-of operation) (reference/flatten (reverse (selection-of operation)))))))
 
 (def function tree/reference? (reference)
   (pattern-case reference

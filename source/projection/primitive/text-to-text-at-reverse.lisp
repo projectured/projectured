@@ -59,12 +59,12 @@
                                                    (bind ((length (text/length printer-input)))
                                                      `((the text/text (text/subseq (the text/text document) ,(- length ?end-index) ,(- length ?start-index)))))))
                                            (make-operation/replace-selection (input-of printer-iomap) it)))
-                                        (operation/sequence/replace-element-range
-                                         (awhen (pattern-case (target-of operation)
+                                        (operation/sequence/replace-range
+                                         (awhen (pattern-case (selection-of operation)
                                                   (((the text/text (text/subseq (the text/text document) ?start-index ?end-index)))
                                                    (bind ((length (text/length printer-input)))
                                                      `((the text/text (text/subseq (the text/text document) ,(- length ?end-index) ,(- length ?start-index)))))))
-                                           (make-operation/sequence/replace-element-range (input-of printer-iomap) it (replacement-of operation))))
+                                           (make-operation/sequence/replace-range (input-of printer-iomap) it (replacement-of operation))))
                                         (operation/show-context-sensitive-help
                                          (make-instance 'operation/show-context-sensitive-help
                                                         :commands (iter (for command :in (commands-of operation))

@@ -100,7 +100,8 @@
                                                          (:file "type-dispatching")))
                                            (:module "primitive"
                                             :depends-on ("generic")
-                                            :components ((:file "book-to-tree")
+                                            :components ((:file "book-to-book")
+                                                         (:file "book-to-tree")
                                                          (:file "css-to-common-lisp")
                                                          (:file "css-to-tree")
                                                          (:file "command-to-text")

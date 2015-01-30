@@ -524,15 +524,15 @@
                                                   (?a
                                                    (append (selection-of operation) `((the lisp-form/string (printer-output (the common-lisp/constant document) ,projection ,recursion))))))
                                            (make-operation/replace-selection printer-input it)))
-                                        (operation/sequence/replace-element-range
-                                         (awhen (pattern-case (reverse (target-of operation))
+                                        (operation/sequence/replace-range
+                                         (awhen (pattern-case (reverse (selection-of operation))
                                                   (((the string (value-of (the lisp-form/string document)))
                                                     (the string (subseq (the string document) ?start-index ?end-index)))
                                                    `((the string (subseq (the string document) ,?start-index ,?end-index))
                                                      (the string (value-of (the common-lisp/constant document))))))
-                                           (make-operation/sequence/replace-element-range printer-input it (replacement-of operation))))
+                                           (make-operation/sequence/replace-range printer-input it (replacement-of operation))))
                                         (operation/number/replace-range
-                                         (awhen (pattern-case (reverse (target-of operation))
+                                         (awhen (pattern-case (reverse (selection-of operation))
                                                   (((the number (value-of (the lisp-form/number document)))
                                                     (the string (write-to-string (the number document)))
                                                     (the string (subseq (the string document) ?start-index ?end-index)))
@@ -568,15 +568,15 @@
                                                   (?a
                                                    (append (selection-of operation) `((the lisp-form/symbol (printer-output (the common-lisp/variable-reference document) ,projection ,recursion))))))
                                            (make-operation/replace-selection printer-input it)))
-                                        (operation/sequence/replace-element-range
-                                         (awhen (pattern-case (reverse (target-of operation))
+                                        (operation/sequence/replace-range
+                                         (awhen (pattern-case (reverse (selection-of operation))
                                                   (((the string (name-of (the lisp-form/symbol document)))
                                                     (the string (subseq (the string document) ?start-index ?end-index)))
                                                    `((the string (subseq (the string document) ,?start-index ,?end-index))
                                                      (the string (name-of (the lisp-form/symbol document)))
                                                      (the lisp-form/symbol (name-of (the ,(form-type variable) document)))
                                                      (the ,(form-type variable) (variable-of (the common-lisp/variable-reference document))))))
-                                           (make-operation/sequence/replace-element-range printer-input it (replacement-of operation))))
+                                           (make-operation/sequence/replace-range printer-input it (replacement-of operation))))
                                         (operation/compound
                                          (bind ((operations (mapcar #'recurse (elements-of operation))))
                                            (unless (some 'null operations)
@@ -605,15 +605,15 @@
                                                   (?a
                                                    (append (selection-of operation) `((the lisp-form/symbol (printer-output (the common-lisp/function-reference document) ,projection ,recursion))))))
                                            (make-operation/replace-selection printer-input it)))
-                                        (operation/sequence/replace-element-range
-                                         (awhen (pattern-case (reverse (target-of operation))
+                                        (operation/sequence/replace-range
+                                         (awhen (pattern-case (reverse (selection-of operation))
                                                   (((the string (name-of (the lisp-form/symbol document)))
                                                     (the string (subseq (the string document) ?start-index ?end-index)))
                                                    `((the string (subseq (the string document) ,?start-index ,?end-index))
                                                      (the string (name-of (the lisp-form/symbol document)))
                                                      (the lisp-form/symbol (name-of (the ,(form-type function) document)))
                                                      (the ,(form-type function) (function-of (the common-lisp/function-reference document))))))
-                                           (make-operation/sequence/replace-element-range printer-input it (replacement-of operation))))
+                                           (make-operation/sequence/replace-range printer-input it (replacement-of operation))))
                                         (operation/compound
                                          (bind ((operations (mapcar #'recurse (elements-of operation))))
                                            (unless (some 'null operations)
@@ -648,8 +648,8 @@
                                                   (?a
                                                    (append (selection-of operation) `((the lisp-form/list (printer-output (the common-lisp/if document) ,projection ,recursion))))))
                                            (make-operation/replace-selection printer-input it)))
-                                        (operation/sequence/replace-element-range
-                                         (awhen (pattern-case (reverse (target-of operation))
+                                        (operation/sequence/replace-range
+                                         (awhen (pattern-case (reverse (selection-of operation))
                                                   (((the sequence (elements-of (the lisp-form/list document)))
                                                     (the ?type (elt (the sequence document) ?index (?if (> ?index 0))))
                                                     . ?rest)
@@ -658,13 +658,13 @@
                                                                          (2 'then-of)
                                                                          (3 'else-of)))
                                                           (slot-value (funcall slot-reader printer-input)))
-                                                     (bind ((input-operation (make-operation/sequence/replace-element-range slot-value (reverse ?rest) (replacement-of operation)))
+                                                     (bind ((input-operation (make-operation/sequence/replace-range slot-value (reverse ?rest) (replacement-of operation)))
                                                             (output-operation (operation-of (recurse-reader recursion (make-command (gesture-of input) input-operation :domain (domain-of input) :description (description-of input)) (elt (child-iomaps-of printer-iomap) (1- ?index))))))
-                                                       (append (target-of output-operation)
+                                                       (append (selection-of output-operation)
                                                                `((the ,(form-type slot-value) (,slot-reader (the common-lisp/if document)))))))))
-                                           (make-operation/sequence/replace-element-range printer-input it (replacement-of operation))))
+                                           (make-operation/sequence/replace-range printer-input it (replacement-of operation))))
                                         (operation/number/replace-range
-                                         (awhen (pattern-case (reverse (target-of operation))
+                                         (awhen (pattern-case (reverse (selection-of operation))
                                                   (((the sequence (elements-of (the lisp-form/list document)))
                                                     (the ?type (elt (the sequence document) ?index (?if (> ?index 0))))
                                                     . ?rest)
@@ -675,7 +675,7 @@
                                                           (slot-value (funcall slot-reader printer-input)))
                                                      (bind ((input-operation (make-operation/number/replace-range slot-value (reverse ?rest) (replacement-of operation)))
                                                             (output-operation (operation-of (recurse-reader recursion (make-command (gesture-of input) input-operation :domain (domain-of input) :description (description-of input)) (elt (child-iomaps-of printer-iomap) (1- ?index))))))
-                                                       (append (target-of output-operation)
+                                                       (append (selection-of output-operation)
                                                                `((the ,(form-type slot-value) (,slot-reader (the common-lisp/if document)))))))))
                                            (make-operation/number/replace-range printer-input it (replacement-of operation))))
                                         (operation/compound
@@ -700,12 +700,12 @@
                                  (operation/functional operation)
                                  (operation/replace-selection
                                   (make-operation/replace-selection printer-input (append (selection-of operation) (last (selection-of printer-input) 2))))
-                                 (operation/sequence/replace-element-range
-                                  (make-operation/sequence/replace-element-range printer-input (append (target-of operation) (last (selection-of printer-input) 2)) (replacement-of operation)))
+                                 (operation/sequence/replace-range
+                                  (make-operation/sequence/replace-range printer-input (append (selection-of operation) (last (selection-of printer-input) 2)) (replacement-of operation)))
                                  (operation/number/replace-range
-                                  (make-operation/number/replace-range printer-input (append (target-of operation) (last (selection-of printer-input) 2)) (replacement-of operation)))
+                                  (make-operation/number/replace-range printer-input (append (selection-of operation) (last (selection-of printer-input) 2)) (replacement-of operation)))
                                  (operation/replace-target
-                                  (make-operation/replace-target printer-input (append (target-of operation) (last (selection-of printer-input) 2)) (replacement-of operation)))
+                                  (make-operation/replace-target printer-input (append (selection-of operation) (last (selection-of printer-input) 2)) (replacement-of operation)))
                                  (operation/compound
                                   (bind ((operations (mapcar #'recurse (elements-of operation))))
                                     (unless (some 'null operations)
@@ -723,9 +723,9 @@
                                            :description (description-of content-command)))))))
                     (gesture-case (gesture-of input)
                       ((gesture/keyboard/key-press :sdl-key-insert)
-                       :domain "Common lisp" :description "Starts an object insertion into the elements of the form"
+                       :domain "Common lisp" :description "Starts an insertion into the elements of the form"
                        :operation (bind ((body-length (length (body-of printer-input))))
-                                    (make-operation/compound (list (make-operation/sequence/replace-element-range printer-input `((the sequence (subseq (the sequence document) ,body-length ,body-length))
+                                    (make-operation/compound (list (make-operation/sequence/replace-range printer-input `((the sequence (subseq (the sequence document) ,body-length ,body-length))
                                                                                                                                   (the sequence (body-of (the common-lisp/progn document)))) (list (document/insertion)))
                                                                    (make-operation/replace-selection printer-input `((the string (subseq (the string document) 0 0))
                                                                                                                      (the string (value-of (the document/insertion document)))
@@ -750,22 +750,22 @@
                                                   (?a
                                                    (append (selection-of operation) `((the lisp-form/list (printer-output (the common-lisp/progn document) ,projection ,recursion))))))
                                            (make-operation/replace-selection printer-input it)))
-                                        (operation/sequence/replace-element-range
-                                         (awhen (pattern-case (reverse (target-of operation))
+                                        (operation/sequence/replace-range
+                                         (awhen (pattern-case (reverse (selection-of operation))
                                                   (((the sequence (elements-of (the lisp-form/list document)))
                                                     (the ?type (elt (the sequence document) ?index (?if (> ?index 0))))
                                                     . ?rest)
                                                    (bind ((element-index (1- ?index))
                                                           (element (elt (body-of printer-input) element-index))
-                                                          (input-operation (make-operation/sequence/replace-element-range element (reverse ?rest) (replacement-of operation)))
+                                                          (input-operation (make-operation/sequence/replace-range element (reverse ?rest) (replacement-of operation)))
                                                           (output-operation (operation-of (recurse-reader recursion (make-command (gesture-of input) input-operation :domain (domain-of input) :description (description-of input)) (elt (child-iomaps-of printer-iomap) element-index)))))
-                                                     (when (typep output-operation 'operation/sequence/replace-element-range)
-                                                       (append (target-of output-operation)
+                                                     (when (typep output-operation 'operation/sequence/replace-range)
+                                                       (append (selection-of output-operation)
                                                                `((the ,(form-type element) (elt (the sequence document) ,element-index))
                                                                  (the sequence (body-of (the common-lisp/progn document)))))))))
-                                           (make-operation/sequence/replace-element-range printer-input it (replacement-of operation))))
+                                           (make-operation/sequence/replace-range printer-input it (replacement-of operation))))
                                         (operation/number/replace-range
-                                         (awhen (pattern-case (reverse (target-of operation))
+                                         (awhen (pattern-case (reverse (selection-of operation))
                                                   (((the sequence (elements-of (the lisp-form/list document)))
                                                     (the ?type (elt (the sequence document) ?index))
                                                     . ?rest)
@@ -774,7 +774,7 @@
                                                           (input-operation (make-operation/number/replace-range element (reverse ?rest) (replacement-of operation)))
                                                           (output-operation (operation-of (recurse-reader recursion (make-command (gesture-of input) input-operation :domain (domain-of input) :description (description-of input)) (elt (child-iomaps-of printer-iomap) element-index)))))
                                                      (when (typep output-operation 'operation/number/replace-range)
-                                                       (append (target-of output-operation)
+                                                       (append (selection-of output-operation)
                                                                `((the ,(form-type element) (elt (the sequence document) ,element-index))
                                                                  (the sequence (body-of (the common-lisp/progn document)))))))))
                                            (make-operation/number/replace-range printer-input it (replacement-of operation))))
@@ -831,8 +831,8 @@
                                                   (?a
                                                    (append (selection-of operation) `((the lisp-form/list (printer-output (the common-lisp/application document) ,projection ,recursion))))))
                                            (make-operation/replace-selection printer-input it)))
-                                        (operation/sequence/replace-element-range
-                                         (awhen (pattern-case (reverse (target-of operation))
+                                        (operation/sequence/replace-range
+                                         (awhen (pattern-case (reverse (selection-of operation))
                                                   (((the sequence (elements-of (the lisp-form/list document)))
                                                     (the lisp-form/symbol (elt (the sequence document) 0))
                                                     (the string (name-of (the lisp-form/symbol document)))
@@ -855,14 +855,14 @@
                                                                  (the lisp-form/symbol (operator-of (the common-lisp/application document)))))
                                                        (bind ((argument-index (1- ?index))
                                                               (argument (elt (arguments-of printer-input) argument-index))
-                                                              (input-operation (make-operation/sequence/replace-element-range argument (reverse ?rest) (replacement-of operation)))
+                                                              (input-operation (make-operation/sequence/replace-range argument (reverse ?rest) (replacement-of operation)))
                                                               (output-operation (operation-of (recurse-reader recursion (make-command (gesture-of input) input-operation :domain (domain-of input) :description (description-of input)) (elt (child-iomaps-of printer-iomap) argument-index)))))
-                                                         (append (target-of output-operation)
+                                                         (append (selection-of output-operation)
                                                                  `((the ,(form-type argument) (elt (the sequence document) ,argument-index))
                                                                    (the sequence (arguments-of (the common-lisp/application document)))))))))
-                                           (make-operation/sequence/replace-element-range printer-input it (replacement-of operation))))
+                                           (make-operation/sequence/replace-range printer-input it (replacement-of operation))))
                                         (operation/number/replace-range
-                                         (awhen (pattern-case (reverse (target-of operation))
+                                         (awhen (pattern-case (reverse (selection-of operation))
                                                   (((the sequence (elements-of (the lisp-form/list document)))
                                                     (the ?type (elt (the sequence document) ?index))
                                                     . ?rest)
@@ -870,7 +870,7 @@
                                                           (argument (elt (arguments-of printer-input) argument-index))
                                                           (input-operation (make-operation/number/replace-range argument (reverse ?rest) (replacement-of operation)))
                                                           (output-operation (operation-of (recurse-reader recursion (make-command (gesture-of input) input-operation :domain (domain-of input) :description (description-of input)) (elt (child-iomaps-of printer-iomap) argument-index)))))
-                                                     (append (target-of output-operation)
+                                                     (append (selection-of output-operation)
                                                              `((the ,(form-type argument) (elt (the sequence document) ,argument-index))
                                                                (the sequence (arguments-of (the common-lisp/application document))))))))
                                            (make-operation/number/replace-range printer-input it (replacement-of operation))))
@@ -884,9 +884,9 @@
                                     :description (description-of input)))
                     (gesture-case (gesture-of input)
                       ((gesture/keyboard/key-press :sdl-key-insert)
-                       :domain "Common lisp" :description "Starts an object insertion into the arguments of the application"
+                       :domain "Common lisp" :description "Starts an insertion into the arguments of the application"
                        :operation (bind ((argument-length (length (arguments-of printer-input))))
-                                    (make-operation/compound (list (make-operation/sequence/replace-element-range printer-input `((the sequence (subseq (the sequence document) ,argument-length ,argument-length))
+                                    (make-operation/compound (list (make-operation/sequence/replace-range printer-input `((the sequence (subseq (the sequence document) ,argument-length ,argument-length))
                                                                                                                                   (the sequence (arguments-of (the common-lisp/function-definition document)))) (list (document/insertion)))
                                                                    (make-operation/replace-selection printer-input `((the string (subseq (the string document) 0 0))
                                                                                                                      (the string (value-of (the document/insertion document)))
@@ -902,12 +902,12 @@
                                  (operation/functional operation)
                                  (operation/replace-selection
                                   (make-operation/replace-selection printer-input (append (selection-of operation) (last (selection-of printer-input) 2))))
-                                 (operation/sequence/replace-element-range
-                                  (make-operation/sequence/replace-element-range printer-input (append (target-of operation) (last (selection-of printer-input) 2)) (replacement-of operation)))
+                                 (operation/sequence/replace-range
+                                  (make-operation/sequence/replace-range printer-input (append (selection-of operation) (last (selection-of printer-input) 2)) (replacement-of operation)))
                                  (operation/number/replace-range
-                                  (make-operation/number/replace-range printer-input (append (target-of operation) (last (selection-of printer-input) 2)) (replacement-of operation)))
+                                  (make-operation/number/replace-range printer-input (append (selection-of operation) (last (selection-of printer-input) 2)) (replacement-of operation)))
                                  (operation/replace-target
-                                  (make-operation/replace-target printer-input (append (target-of operation) (last (selection-of printer-input) 2)) (replacement-of operation)))
+                                  (make-operation/replace-target printer-input (append (selection-of operation) (last (selection-of printer-input) 2)) (replacement-of operation)))
                                  (operation/compound
                                   (bind ((operations (mapcar #'recurse (elements-of operation))))
                                     (unless (some 'null operations)
@@ -966,12 +966,12 @@
                                  (operation/functional operation)
                                  (operation/replace-selection
                                   (make-operation/replace-selection printer-input (append (selection-of operation) (last (selection-of printer-input) 2))))
-                                 (operation/sequence/replace-element-range
-                                  (make-operation/sequence/replace-element-range printer-input (append (target-of operation) (last (selection-of printer-input) 2)) (replacement-of operation)))
+                                 (operation/sequence/replace-range
+                                  (make-operation/sequence/replace-range printer-input (append (selection-of operation) (last (selection-of printer-input) 2)) (replacement-of operation)))
                                  (operation/number/replace-range
-                                  (make-operation/number/replace-range printer-input (append (target-of operation) (last (selection-of printer-input) 2)) (replacement-of operation)))
+                                  (make-operation/number/replace-range printer-input (append (selection-of operation) (last (selection-of printer-input) 2)) (replacement-of operation)))
                                  (operation/replace-target
-                                  (make-operation/replace-target printer-input (append (target-of operation) (last (selection-of printer-input) 2)) (replacement-of operation)))
+                                  (make-operation/replace-target printer-input (append (selection-of operation) (last (selection-of printer-input) 2)) (replacement-of operation)))
                                  (operation/compound
                                   (bind ((operations (mapcar #'recurse (elements-of operation))))
                                     (unless (some 'null operations)
@@ -989,9 +989,9 @@
                                            :description (description-of content-command)))))))
                     (gesture-case (gesture-of input)
                       ((gesture/keyboard/key-press :sdl-key-insert)
-                       :domain "Common lisp" :description "Starts an object insertion into the body of the function definition"
+                       :domain "Common lisp" :description "Starts an insertion into the body of the function definition"
                        :operation (bind ((body-length (length (body-of printer-input))))
-                                    (make-operation/compound (list (make-operation/sequence/replace-element-range printer-input `((the sequence (subseq (the sequence document) ,body-length ,body-length))
+                                    (make-operation/compound (list (make-operation/sequence/replace-range printer-input `((the sequence (subseq (the sequence document) ,body-length ,body-length))
                                                                                                                                   (the sequence (body-of (the common-lisp/function-definition document)))) (list (document/insertion)))
                                                                    (make-operation/replace-selection printer-input `((the string (subseq (the string document) 0 0))
                                                                                                                      (the string (value-of (the document/insertion document)))
@@ -1045,8 +1045,8 @@
                                                   (?a
                                                    (append (selection-of operation) `((the lisp-form/list (printer-output (the common-lisp/function-definition document) ,projection ,recursion))))))
                                            (make-operation/replace-selection printer-input it)))
-                                        (operation/sequence/replace-element-range
-                                         (awhen (pattern-case (reverse (target-of operation))
+                                        (operation/sequence/replace-range
+                                         (awhen (pattern-case (reverse (selection-of operation))
                                                   (((the sequence (elements-of (the lisp-form/list document)))
                                                     (the lisp-form/symbol (elt (the sequence document) 1))
                                                     (the string (name-of (the lisp-form/symbol document)))
@@ -1066,16 +1066,16 @@
                                                    (cond ((>= ?element-index 4)
                                                           (bind ((element-index (- ?element-index 4))
                                                                  (element (elt (body-of printer-input) element-index))
-                                                                 (input-operation (make-operation/sequence/replace-element-range element (reverse ?rest) (replacement-of operation)))
+                                                                 (input-operation (make-operation/sequence/replace-range element (reverse ?rest) (replacement-of operation)))
                                                                  (iomap-index (+ (length (bindings-of printer-input)) element-index))
                                                                  (output-operation (operation-of (recurse-reader recursion (make-command (gesture-of input) input-operation :domain (domain-of input) :description (description-of input)) (elt (child-iomaps-of printer-iomap) iomap-index)))))
-                                                            (when (typep output-operation 'operation/sequence/replace-element-range)
-                                                              (append (target-of output-operation)
+                                                            (when (typep output-operation 'operation/sequence/replace-range)
+                                                              (append (selection-of output-operation)
                                                                       `((the ,(form-type element) (elt (the sequence document) ,element-index))
                                                                         (the sequence (body-of (the common-lisp/function-definition document)))))))))))
-                                           (make-operation/sequence/replace-element-range printer-input it (replacement-of operation))))
+                                           (make-operation/sequence/replace-range printer-input it (replacement-of operation))))
                                         (operation/number/replace-range
-                                         (awhen (pattern-case (reverse (target-of operation))
+                                         (awhen (pattern-case (reverse (selection-of operation))
                                                   (((the sequence (elements-of (the lisp-form/list document)))
                                                     (the lisp-form/list (elt (the sequence document) ?element-index))
                                                     . ?rest)
@@ -1086,7 +1086,7 @@
                                                                  (iomap-index (+ (length (bindings-of printer-input)) element-index))
                                                                  (output-operation (operation-of (recurse-reader recursion (make-command (gesture-of input) input-operation :domain (domain-of input) :description (description-of input)) (elt (child-iomaps-of printer-iomap) iomap-index)))))
                                                             (when (typep output-operation 'operation/number/replace-range)
-                                                              (append (target-of output-operation)
+                                                              (append (selection-of output-operation)
                                                                       `((the ,(form-type element) (elt (the sequence document) ,element-index))
                                                                         (the sequence (body-of (the common-lisp/function-definition document)))))))))))
                                            (make-operation/number/replace-range printer-input it (replacement-of operation))))

@@ -23,18 +23,18 @@
 ;;;;;;
 ;;; Number operation classes
 
-(def operation operation/number/replace-range (operation)
+(def operation operation/number/replace-range ()
   ((document :type document)
-   (target :type reference)
+   (selection :type reference)
    (replacement :type sequence)))
 
 ;;;;;;
 ;;; Number operation constructors
 
-(def function make-operation/number/replace-range (document target replacement)
+(def function make-operation/number/replace-range (document selection replacement)
   (make-instance 'operation/number/replace-range
                  :document document
-                 :target target
+                 :selection selection
                  :replacement replacement))
 
 ;;;;;;
@@ -42,17 +42,20 @@
 
 (def method run-operation ((operation operation/number/replace-range))
   (bind (((:values reference start end)
-          (pattern-case (target-of operation)
+          (pattern-case (selection-of operation)
             (((the string (subseq (the string document) ?b ?c))
               (the string (write-to-string (the number document)))
               . ?rest)
              (values `(,@(reverse ?rest) (the sequence document)) ?b ?c)))))
     (bind ((document (document-of operation))
            (flat-reference (reference/flatten reference))
-           (old-sequence (write-to-string (eval-reference document flat-reference)))
+           (old-sequence (aif (eval-reference document flat-reference)
+                              (write-to-string it)
+                              ""))
            (new-sequence (concatenate (form-type old-sequence)
                                       (subseq old-sequence 0 start) (replacement-of operation) (subseq old-sequence end))))
-      (setf (eval-reference document flat-reference) (parse-number:parse-number new-sequence))
+      (setf (eval-reference document flat-reference) (unless (string= new-sequence "")
+                                                       (parse-number:parse-number new-sequence)))
       #+nil
       (when *use-computed-class*
         ;; KLUDGE: forece recomputation
@@ -60,5 +63,5 @@
       ;; KLUDGE: can't do this in a separate operation
       (bind ((character-index (+ start (length (replacement-of operation)))))
         (run-operation (make-operation/replace-selection document `((the string (subseq (the string document) ,character-index ,character-index))
-                                                                     (the string (write-to-string (the number document)))
-                                                                     ,@(rest (reverse reference)))))))))
+                                                                    (the string (write-to-string (the number document)))
+                                                                    ,@(rest (reverse reference)))))))))

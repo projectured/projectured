@@ -23,18 +23,18 @@
 ;;;;;;
 ;;; Object operation classes
 
-(def operation operation/object/replace-place-value (operation)
-  ((target :type reference)
+(def operation operation/object/replace-place-value ()
+  ((selection :type reference)
    (replacement :type t)))
 
 ;;;;;;
 ;;; Object operation constructors
 
-(def function make-operation/object/replace-place-value (target replacement)
-  (make-instance 'operation/object/replace-place-value :target target :replacement replacement))
+(def function make-operation/object/replace-place-value (selection replacement)
+  (make-instance 'operation/object/replace-place-value :selection selection :replacement replacement))
 
 ;;;;;;
 ;;; Object operation API implementation
 
 (def method run-operation ((operation operation/object/replace-place-value))
-  (setf (eval-reference document (target-of operation)) (replacement-of operation)))
+  (setf (eval-reference document (selection-of operation)) (replacement-of operation)))

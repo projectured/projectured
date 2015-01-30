@@ -63,6 +63,10 @@
 (def font *font/ubuntu/monospace/italic/14* ("font/UbuntuMono-RI.ttf" 14))
 (def font *font/ubuntu/monospace/bold/14* ("font/UbuntuMono-B.ttf" 14))
 
+(def font *font/ubuntu/monospace/regular/16* ("font/UbuntuMono-R.ttf" 16))
+(def font *font/ubuntu/monospace/italic/16* ("font/UbuntuMono-RI.ttf" 16))
+(def font *font/ubuntu/monospace/bold/16* ("font/UbuntuMono-B.ttf" 16))
+
 (def font *font/ubuntu/monospace/regular/18* ("font/UbuntuMono-R.ttf" 18))
 (def font *font/ubuntu/monospace/italic/18* ("font/UbuntuMono-RI.ttf" 18))
 (def font *font/ubuntu/monospace/bold/18* ("font/UbuntuMono-B.ttf" 18))
@@ -74,9 +78,21 @@
 (def font *font/ubuntu/italic/14* ("font/Ubuntu-RI.ttf" 14))
 (def font *font/ubuntu/bold/14* ("font/Ubuntu-B.ttf" 14))
 
+(def font *font/ubuntu/regular/16* ("font/Ubuntu-R.ttf" 16))
+(def font *font/ubuntu/italic/16* ("font/Ubuntu-RI.ttf" 16))
+(def font *font/ubuntu/bold/16* ("font/Ubuntu-B.ttf" 16))
+
 (def font *font/ubuntu/regular/18* ("font/Ubuntu-R.ttf" 18))
 (def font *font/ubuntu/italic/18* ("font/Ubuntu-RI.ttf" 18))
 (def font *font/ubuntu/bold/18* ("font/Ubuntu-B.ttf" 18))
+
+(def font *font/ubuntu/regular/20* ("font/Ubuntu-R.ttf" 20))
+(def font *font/ubuntu/italic/20* ("font/Ubuntu-RI.ttf" 20))
+(def font *font/ubuntu/bold/20* ("font/Ubuntu-B.ttf" 20))
+
+(def font *font/ubuntu/regular/22* ("font/Ubuntu-R.ttf" 22))
+(def font *font/ubuntu/italic/22* ("font/Ubuntu-RI.ttf" 22))
+(def font *font/ubuntu/bold/22* ("font/Ubuntu-B.ttf" 22))
 
 (def font *font/ubuntu/regular/24* ("font/Ubuntu-R.ttf" 24))
 (def font *font/ubuntu/italic/24* ("font/Ubuntu-RI.ttf" 24))
@@ -87,15 +103,62 @@
 (def font *font/ubuntu/bold/36* ("font/Ubuntu-B.ttf" 36))
 
 ;;;;;;
+;;; Liberation sans
+
+(def font *font/liberation/sans/regular/14* ("font/LiberationSans-Regular.ttf" 14))
+(def font *font/liberation/sans/italic/14* ("font/LiberationSans-Italic.ttf" 14))
+(def font *font/liberation/sans/bold/14* ("font/LiberationSans-Bold.ttf" 14))
+
+(def font *font/liberation/sans/regular/16* ("font/LiberationSans-Regular.ttf" 16))
+(def font *font/liberation/sans/italic/16* ("font/LiberationSans-Italic.ttf" 16))
+(def font *font/liberation/sans/bold/16* ("font/LiberationSans-Bold.ttf" 16))
+
+(def font *font/liberation/sans/regular/18* ("font/LiberationSans-Regular.ttf" 18))
+(def font *font/liberation/sans/italic/18* ("font/LiberationSans-Italic.ttf" 18))
+(def font *font/liberation/sans/bold/18* ("font/LiberationSans-Bold.ttf" 18))
+
+(def font *font/liberation/sans/regular/20* ("font/LiberationSans-Regular.ttf" 20))
+(def font *font/liberation/sans/italic/20* ("font/LiberationSans-Italic.ttf" 20))
+(def font *font/liberation/sans/bold/20* ("font/LiberationSans-Bold.ttf" 20))
+
+(def font *font/liberation/sans/regular/22* ("font/LiberationSans-Regular.ttf" 22))
+(def font *font/liberation/sans/italic/22* ("font/LiberationSans-Italic.ttf" 22))
+(def font *font/liberation/sans/bold/22* ("font/LiberationSans-Bold.ttf" 22))
+
+(def font *font/liberation/sans/regular/24* ("font/LiberationSans-Regular.ttf" 24))
+(def font *font/liberation/sans/italic/24* ("font/LiberationSans-Italic.ttf" 24))
+(def font *font/liberation/sans/bold/24* ("font/LiberationSans-Bold.ttf" 24))
+
+(def font *font/liberation/sans/regular/30* ("font/LiberationSans-Regular.ttf" 30))
+(def font *font/liberation/sans/italic/30* ("font/LiberationSans-Italic.ttf" 30))
+(def font *font/liberation/sans/bold/30* ("font/LiberationSans-Bold.ttf" 30))
+
+(def font *font/liberation/sans/regular/36* ("font/LiberationSans-Regular.ttf" 36))
+(def font *font/liberation/sans/italic/36* ("font/LiberationSans-Italic.ttf" 36))
+(def font *font/liberation/sans/bold/36* ("font/LiberationSans-Bold.ttf" 36))
+
+;;;;;;
 ;;; Liberation serif
 
 (def font *font/liberation/serif/regular/14* ("font/LiberationSerif-Regular.ttf" 14))
 (def font *font/liberation/serif/italic/14* ("font/LiberationSerif-Italic.ttf" 14))
 (def font *font/liberation/serif/bold/14* ("font/LiberationSerif-Bold.ttf" 14))
 
+(def font *font/liberation/serif/regular/16* ("font/LiberationSerif-Regular.ttf" 16))
+(def font *font/liberation/serif/italic/16* ("font/LiberationSerif-Italic.ttf" 16))
+(def font *font/liberation/serif/bold/16* ("font/LiberationSerif-Bold.ttf" 16))
+
 (def font *font/liberation/serif/regular/18* ("font/LiberationSerif-Regular.ttf" 18))
 (def font *font/liberation/serif/italic/18* ("font/LiberationSerif-Italic.ttf" 18))
 (def font *font/liberation/serif/bold/18* ("font/LiberationSerif-Bold.ttf" 18))
+
+(def font *font/liberation/serif/regular/20* ("font/LiberationSerif-Regular.ttf" 20))
+(def font *font/liberation/serif/italic/20* ("font/LiberationSerif-Italic.ttf" 20))
+(def font *font/liberation/serif/bold/20* ("font/LiberationSerif-Bold.ttf" 20))
+
+(def font *font/liberation/serif/regular/22* ("font/LiberationSerif-Regular.ttf" 22))
+(def font *font/liberation/serif/italic/22* ("font/LiberationSerif-Italic.ttf" 22))
+(def font *font/liberation/serif/bold/22* ("font/LiberationSerif-Bold.ttf" 22))
 
 (def font *font/liberation/serif/regular/24* ("font/LiberationSerif-Regular.ttf" 24))
 (def font *font/liberation/serif/italic/24* ("font/LiberationSerif-Italic.ttf" 24))
@@ -108,3 +171,7 @@
 (def font *font/liberation/serif/regular/36* ("font/LiberationSerif-Regular.ttf" 36))
 (def font *font/liberation/serif/italic/36* ("font/LiberationSerif-Italic.ttf" 36))
 (def font *font/liberation/serif/bold/36* ("font/LiberationSerif-Bold.ttf" 36))
+
+(def font *font/liberation/serif/regular/42* ("font/LiberationSerif-Regular.ttf" 42))
+(def font *font/liberation/serif/italic/42* ("font/LiberationSerif-Italic.ttf" 42))
+(def font *font/liberation/serif/bold/42* ("font/LiberationSerif-Bold.ttf" 42))

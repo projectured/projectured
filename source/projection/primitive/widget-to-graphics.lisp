@@ -441,17 +441,18 @@
                                              (typecase operation
                                                (operation/quit operation)
                                                (operation/functional operation)
+                                               (operation/select-next-alternative operation)
                                                (operation/save-document operation)
                                                (operation/load-document operation)
                                                (operation/widget/tabbed-pane/select-page operation)
                                                (operation/replace-selection
                                                 (make-operation/replace-selection printer-input (append (selection-of operation) `((the ,(form-type (content-of printer-input)) (content-of (the widget/shell document)))))))
-                                               (operation/sequence/replace-element-range
-                                                (make-operation/sequence/replace-element-range printer-input (append (target-of operation) `((the ,(form-type (content-of printer-input)) (content-of (the widget/shell document))))) (replacement-of operation)))
+                                               (operation/sequence/replace-range
+                                                (make-operation/sequence/replace-range printer-input (append (selection-of operation) `((the ,(form-type (content-of printer-input)) (content-of (the widget/shell document))))) (replacement-of operation)))
                                                (operation/number/replace-range
-                                                (make-operation/number/replace-range printer-input (append (target-of operation) `((the ,(form-type (content-of printer-input)) (content-of (the widget/shell document))))) (replacement-of operation)))
+                                                (make-operation/number/replace-range printer-input (append (selection-of operation) `((the ,(form-type (content-of printer-input)) (content-of (the widget/shell document))))) (replacement-of operation)))
                                                (operation/replace-target
-                                                (make-operation/replace-target printer-input (append (target-of operation) `((the ,(form-type (content-of printer-input)) (content-of (the widget/shell document))))) (replacement-of operation)))
+                                                (make-operation/replace-target printer-input (append (selection-of operation) `((the ,(form-type (content-of printer-input)) (content-of (the widget/shell document))))) (replacement-of operation)))
                                                (operation/focusing/replace-part
                                                 operation)
                                                (operation/show-context-sensitive-help
@@ -464,7 +465,7 @@
                                                                                (make-instance 'operation/widget/show :widget tooltip))))
                                                (operation/describe
                                                 (make-operation/compound (list (make-instance 'operation/widget/tooltip/move :tooltip tooltip :location (mouse-position))
-                                                                               (make-instance 'operation/widget/tooltip/replace-content :tooltip tooltip :content (target-of operation))
+                                                                               (make-instance 'operation/widget/tooltip/replace-content :tooltip tooltip :content (selection-of operation))
                                                                                (make-instance 'operation/widget/show :widget tooltip))))
                                                (operation/compound
                                                 (bind ((child-operations (mapcar #'recurse (elements-of operation))))
@@ -510,7 +511,7 @@
                                   (gesture (gesture-of input))
                                   (child-gesture (progn
                                                    ;; KLUDGE: copy gesture
-                                                   (setf (location-of gesture) (- (location-of gesture) (location-of (elt (elements-of (output-of printer-iomap)) ?index))))
+                                                   (setf (location-of gesture) (- (location-of gesture) (widget/content-top-left element) (location-of (elt (elements-of (output-of printer-iomap)) ?index))))
                                                    gesture))
                                   (child-input (make-command child-gesture
                                                              (operation-of input)

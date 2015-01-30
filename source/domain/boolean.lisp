@@ -23,7 +23,7 @@
 ;;;;;;
 ;;; Boolean operation classes
 
-(def operation operation/boolean/negate (operation)
+(def operation operation/boolean/negate ()
   ((selection :type selection)))
 
 ;;;;;;
