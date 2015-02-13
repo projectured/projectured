@@ -163,7 +163,7 @@
 
 (def function make-projection/json->tree ()
   (type-dispatching
-    (json/nothing (make-projection/json/nothing->tree/leaf))
+    (json/insertion (make-projection/json/insertion->tree/leaf))
     (json/null (make-projection/json/null->tree/leaf))
     (json/boolean (make-projection/json/boolean->tree/leaf))
     (json/number (make-projection/json/number->tree/leaf))
@@ -274,6 +274,7 @@
 
 (def function make-projection/lisp-form->tree ()
   (type-dispatching
+    (lisp-form/insertion (make-projection/lisp-form/insertion->tree/leaf))
     (lisp-form/comment (make-projection/lisp-form/comment->tree/node))
     (lisp-form/number (make-projection/lisp-form/number->tree/leaf))
     (lisp-form/symbol (make-projection/lisp-form/symbol->tree/leaf))
@@ -302,6 +303,7 @@
 
 (def function make-projection/common-lisp->lisp-form ()
   (type-dispatching
+    (common-lisp/insertion (make-projection/common-lisp/insertion->lisp-form/insertion))
     (common-lisp/constant (make-projection/common-lisp/constant->lisp-form/string))
     (common-lisp/variable-reference (make-projection/common-lisp/variable-reference->lisp-form/symbol))
     (common-lisp/function-reference (make-projection/common-lisp/function-reference->lisp-form/symbol))
@@ -314,7 +316,7 @@
     (common-lisp/special-variable-definition (make-projection/common-lisp/special-variable-definition->lisp-form/list))
     (common-lisp/function-definition (make-projection/common-lisp/function-definition->lisp-form/list))
     (common-lisp/lambda-function (make-projection/common-lisp/lambda-function->lisp-form/list))
-    (common-lisp/function-argument (make-projection/common-lisp/function-argument->lisp-form/string))
+    (common-lisp/function-argument (make-projection/common-lisp/function-argument->lisp-form/symbol))
     (common-lisp/comment (make-projection/common-lisp/comment->lisp-form/comment))
     (common-lisp/top-level (make-projection/common-lisp/top-level->lisp-form/top-level))))
 

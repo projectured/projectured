@@ -165,9 +165,9 @@
     (etypecase elements
       (null nil)
       (computed-ll (bind ((last-element (last-element elements)))
-                     (text/make-position :element last-element :index (length (content-of (value-of last-element))) :distance nil)))
+                     (text/make-position :element last-element :index (text/element-length (value-of last-element)) :distance nil)))
       (sequence (bind ((last-element (last-elt elements)))
-                  (text/make-position :element (1- (length elements)) :index (length (content-of last-element)) :distance nil))))))
+                  (text/make-position :element (1- (length elements)) :index (text/element-length last-element) :distance nil))))))
 
 (def function text/first-position? (text position)
   (not (text/previous-position text position)))
@@ -298,27 +298,29 @@
         (finally (return position))))
 
 (def function text/previous-character (text position)
-  (bind ((position (text/normalize-position text position))
-         (element (text/position-element position))
-         (index (text/position-index position))
-         (string (content-of (text/element text element))))
-    (if (> index 0)
-        (elt string (1- index))
-        (etypecase element
-          (integer
-           (unless (zerop element)
-             (last-elt (content-of (elt (elements-of text) (1- element))))))
-          (computed-ll
-           (awhen (previous-element-of element)
-             (last-elt (content-of (value-of it)))))))))
+  (bind ((normalized-position (text/normalize-backward text position)))
+    (when normalized-position
+      (bind ((element (text/position-element normalized-position))
+             (index (text/position-index normalized-position))
+             (string (text/element-content (text/element text element))))
+        (if (> index 0)
+            (elt string (1- index))
+            (etypecase element
+              (integer
+               (unless (zerop element)
+                 (last-elt (content-of (elt (elements-of text) (1- element))))))
+              (computed-ll
+               (awhen (previous-element-of element)
+                 (last-elt (text/element-content (value-of it)))))))))))
 
 (def function text/next-character (text position)
-  (bind ((position (text/normalize-position text position))
-         (element (text/position-element position))
-         (index (text/position-index position))
-         (string (content-of (text/element text element))))
-    (if (< index (length string))
-        (elt string index))))
+  (bind ((normalized-position (text/normalize-forward text position)))
+    (when normalized-position
+      (bind ((element (text/position-element normalized-position))
+             (index (text/position-index normalized-position))
+             (string (content-of (text/element text element))))
+        (when (< index (length string))
+          (elt string index))))))
 
 (def function text/sibling-character (text position direction)
   (ecase direction
@@ -357,15 +359,20 @@
     (:backward (text/previous-element text element))
     (:forward (text/next-element text element))))
 
+;; TODO: rename?
 (def function text/element (text element)
   (etypecase element
     (integer (elt (elements-of text) element))
     (computed-ll (value-of element))))
 
-(def function text/element-length (element)
+(def function text/element-content (element)
   (if (typep element 'text/string)
-      (length (content-of element))
-      1))
+      (content-of element)
+      (list nil)))
+
+;; TODO: remove and inline?
+(def function text/element-length (element)
+  (length (text/element-content element)))
 
 ;; TODO: what is this?
 (def function text/subbox (text start-position end-position)
@@ -403,32 +410,41 @@
 
 ;; TODO: optimize
 (def function text/length (text &optional (start-position (text/first-position text)) (end-position (text/last-position text)))
-  (iter (with end-position = (text/normalize-position text end-position))
-        (for position :initially start-position :then (text/next-position text position))
-        (while position)
-        (until (text/position= position end-position))
-        (summing 1)))
+  (etypecase (elements-of text)
+    (null 0)
+    (sequence
+     (iter (with end-position = (text/normalize-position text end-position))
+           (for position :initially start-position :then (text/next-position text position))
+           (while position)
+           (until (text/position= position end-position))
+           (summing 1)))))
 
 (def function text/substring (text start-position end-position)
   (bind ((start-element (text/element text (text/position-element start-position)))
          (end-element (text/element text (text/position-element end-position))))
     (if (eq start-element end-element)
         (text/text ()
-          (text/string (subseq (content-of start-element) (text/position-index start-position) (text/position-index end-position))
-                       :font (font-of start-element)
-                       :font-color (font-color-of start-element)
-                       :fill-color (fill-color-of start-element)
-                       :line-color (line-color-of start-element)))
+          (typecase start-element
+            (text/string (text/string (subseq (content-of start-element) (text/position-index start-position) (text/position-index end-position))
+                                      :font (font-of start-element)
+                                      :font-color (font-color-of start-element)
+                                      :fill-color (fill-color-of start-element)
+                                      :line-color (line-color-of start-element)))
+            (t start-element)))
         (text/make-text
-         (append (bind ((string (subseq (content-of start-element) (text/position-index start-position) (length (content-of start-element)))))
+         (append (bind ((string (subseq (text/element-content start-element) (text/position-index start-position) (text/element-length start-element))))
                    (unless (zerop (length string))
-                     (list (text/string string :font (font-of start-element) :font-color (font-color-of start-element) :fill-color (fill-color-of start-element) :line-color (line-color-of start-element)))))
+                     (list (typecase start-element
+                             (text/string (text/string string :font (font-of start-element) :font-color (font-color-of start-element) :fill-color (fill-color-of start-element) :line-color (line-color-of start-element)))
+                             (t start-element)))))
                  (iter (for element :initially (text/next-element text (text/position-element start-position)) :then (text/next-element text element))
                        (until (eq element (text/position-element end-position)))
                        (collect (text/element text element)))
-                 (bind ((string (subseq (content-of end-element) 0 (text/position-index end-position))))
+                 (bind ((string (subseq (text/element-content end-element) 0 (text/position-index end-position))))
                    (unless (zerop (length string))
-                     (list (text/string string :font (font-of end-element) :font-color (font-color-of end-element) :fill-color (fill-color-of end-element) :line-color (line-color-of end-element))))))))))
+                     (list (typecase end-element
+                             (text/string (text/string string :font (font-of end-element) :font-color (font-color-of end-element) :fill-color (fill-color-of end-element) :line-color (line-color-of end-element)))
+                             (t end-element))))))))))
 
 (def function text/subseq (text start-character-index &optional (end-character-index (text/length text (text/origin-position text) (text/last-position text))))
   (text/substring text
@@ -452,10 +468,12 @@
           (summing 1))))
 
 (def function text/count-lines (text)
-  (1+ (iter (for element :initially (text/first-element text) :then (text/next-element text element))
-            (while element)
-            (when (typep (text/element text element) 'text/newline)
-              (summing 1)))))
+  (etypecase (elements-of text)
+    (null 1)
+    (sequence (1+ (iter (for element :initially (text/first-element text) :then (text/next-element text element))
+                        (while element)
+                        (when (typep (text/element text element) 'text/newline)
+                          (summing 1)))))))
 
 (def function text/as-string (text)
   (with-output-to-string (stream)

@@ -101,7 +101,9 @@
          (elements (nreverse
                     (prog1-bind elements nil
                       (flet ((write-character (character &optional (count 1))
-                               (push (text/make-string (make-string count :element-type 'character :initial-element character) :font *font/default* :font-color *color/solarized/gray*) elements)
+                               (push (if (char= #\NewLine character)
+                                         (text/newline :font *font/default*)
+                                         (text/make-string (make-string count :element-type 'character :initial-element character) :font *font/default* :font-color *color/solarized/gray*)) elements)
                                (incf output-index count))
                              (write-element (element)
                                (push element elements)
@@ -313,13 +315,13 @@
 #+nil
 (merge-commands (gesture-case latest-gesture
                   ((gesture/keyboard/key-press :sdl-key-space :control)
-                   :domain "Table" :description "Turn the selection into a text selection"
+                   :domain "Table" :description "Turns the selection into a text selection"
                    :operation (when cell-selection?
                                 (make-operation/replace-selection input `((the text/text (text/subseq (the text/text document) 0 0))
                                                                           (the text/text (content-of (the table/cell document)))
                                                                           ,@selection))))
                   ((gesture/keyboard/key-press :sdl-key-space :control)
-                   :domain "Table" :description "Turn the selection into a table cell selection"
+                   :domain "Table" :description "Turns the selection into a table cell selection"
                    :operation (when text-selection?
                                 (make-operation/replace-selection input (find-table-cell-reference selection))))
                   ((gesture/keyboard/key-press :sdl-key-home :alt)

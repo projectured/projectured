@@ -286,7 +286,7 @@
                                                   (?a
                                                    (append (selection-of operation) `((the tree/node (printer-output (the document/search document) ,projection ,recursion))))))
                                            (make-operation/replace-selection printer-input it)))
-                                        (operation/sequence/replace-range
+                                        (operation/text/replace-range
                                          (awhen (pattern-case (reverse (selection-of operation))
                                                   (((the sequence (children-of (the tree/node document)))
                                                     (the tree/leaf (elt (the sequence document) 0))

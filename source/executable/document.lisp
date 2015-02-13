@@ -194,7 +194,7 @@
                                  (text/string chart-css-path :font *font/default* :font-color *color/solarized/blue*)))
                              (table/cell ()
                                (text/text ()
-                                 (text/string "the CSS stylesheet that contains the page style" :font *font/default* :font-color *color/solarized/gray*))))
+                                 (text/string "the CSS stylesheet that defines the page style" :font *font/default* :font-color *color/solarized/gray*))))
                            (table/row ()
                              (table/cell ()
                                (text/text ()
@@ -280,7 +280,7 @@
                        (xml/element ("body" ())
                          (xml/element ("p" ())
                            (xml/text () "We are sorry, the '")
-                           #+nil (xml/element ("i" ()) (make-common-lisp/progn (list trace-amounts (make-common-lisp/application (make-lisp-form/symbol* 'write-string) (list (make-common-lisp/variable-reference path-variable))))))
+                           (xml/element ("i" ()) (make-common-lisp/progn (list trace-amounts (make-common-lisp/application (make-lisp-form/symbol* 'write-string) (list (make-common-lisp/variable-reference path-variable))))))
                            (xml/text () "' page is not found.")))))
          (server-variable (make-common-lisp/special-variable-definition (make-lisp-form/symbol "*DEMO-SERVER*" "PROJECTURED.TEST")
                                                                         (make-common-lisp/application (make-lisp-form/symbol* 'make-instance)
@@ -294,10 +294,11 @@
                                                                                                                                                                                                                           (list (make-common-lisp/lambda-function nil (list (make-common-lisp/application (make-lisp-form/symbol* 'process-http-request) (list (make-common-lisp/variable-reference (make-common-lisp/special-variable-definition (make-lisp-form/symbol "*REQUEST*" "HU.DWIM.WEB-SERVER") nil))))))))))))))))
          (process-http-function (make-common-lisp/function-definition (make-lisp-form/symbol* 'process-http-request)
                                                                       (list request-variable)
-                                                                      (list (make-common-lisp/comment
+                                                                      (list #+nil
+                                                                            (make-common-lisp/comment
                                                                              (text/text ()
-                                                                               (text/string "dispatch on the path of the incoming HTTP request according to the following table" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)
-                                                                               (text/newline)))
+                                                                               (text/string "dispatch on the path of the incoming HTTP request according to the following table" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))
+                                                                            #+nil
                                                                             dispatch-table
                                                                             (make-common-lisp/let (list path-variable (make-common-lisp/lexical-variable-binding (make-lisp-form/symbol* '*standard-output*) (make-common-lisp/application (make-lisp-form/symbol "CLIENT-STREAM-OF" "HU.DWIM.WEB-SERVER")
                                                                                                                                                                                                                                            (list (make-common-lisp/variable-reference request-variable)))))
@@ -319,9 +320,10 @@
                                                                                                                                                                                             chart-data
                                                                                                                                                                                             error-page)))))))
                                                                       :allow-other-keys #f
-                                                                      :documentation nil)))
+                                                                      :documentation "This function processes all incoming HTTP requests.")))
+    process-http-function
+    #+nil
     (book/book (:title "A Web Service Demo" :author "Levente Mészáros")
-      #+nil
       (book/chapter (:title "Problem Description")
         (book/paragraph ()
           (text/text ()
@@ -338,37 +340,31 @@
             (text/normal "This example uses a compound projection that displays all used domains in their natural notation. Proper indentation and syntax highlight are automatically provided without inserting escape sequences that would make reading harder. Note that the edited document")
             (text/emphasis " is not text")
             (text/normal " even though it looks like. It's a complex domain specific data structure that precisely captures the intentions. The projections keep track of what is what to make navigation and editing possible."))))
-      #+nil
       (book/chapter (:title "Chart Page")
         (book/paragraph ()
           (text/text ()
             (text/normal "This is the chart page")))
         chart-page)
-      #+nil
       (book/chapter (:title "Stylesheet")
         (book/paragraph ()
           (text/text ()
             (text/normal "This is the stylesheet")))
         chart-css)
-      #+nil
       (book/chapter (:title "JavaScript Program")
         (book/paragraph ()
           (text/text ()
             (text/normal "This is the client side program")))
         chart-script)
-      #+nil
       (book/chapter (:title "Chart Data")
         (book/paragraph ()
           (text/text ()
             (text/normal "This is the chart data")))
         chart-data)
-      #+nil
       (book/chapter (:title "Error Page")
         (book/paragraph ()
           (text/text ()
             (text/normal "This is the error page")))
         error-page)
-      #+nil
       (book/chapter (:title "Dispatch Table")
         (book/paragraph ()
           (text/text ()
@@ -378,21 +374,20 @@
         (book/paragraph ()
           (text/text ()
             (text/normal "Evaluating the following Common Lisp code creates the web server and stores it in a global variable.")))
-        (make-evaluator/evaluator server-variable :on-demand #t)
+        server-variable
         (book/paragraph ()
           (text/text ()
             (text/normal "Evaluating the following Common Lisp code starts up the web server.")))
-        (make-evaluator/evaluator (make-common-lisp/application (make-lisp-form/symbol "STARTUP-SERVER" "HU.DWIM.WEB-SERVER") (list (make-common-lisp/variable-reference server-variable))) :on-demand #t)
+        (make-common-lisp/application (make-lisp-form/symbol "STARTUP-SERVER" "HU.DWIM.WEB-SERVER") (list (make-common-lisp/variable-reference server-variable)))
         (book/paragraph ()
           (text/text ()
             (text/normal "Evaluating the following Common Lisp code shuts down the web server.")))
-        (make-evaluator/evaluator (make-common-lisp/application (make-lisp-form/symbol "SHUTDOWN-SERVER" "HU.DWIM.WEB-SERVER") (list (make-common-lisp/variable-reference server-variable))) :on-demand #t))
-      #+nil
+        (make-common-lisp/application (make-lisp-form/symbol "SHUTDOWN-SERVER" "HU.DWIM.WEB-SERVER") (list (make-common-lisp/variable-reference server-variable))))
       (book/chapter (:title "Putting Together the Server Program")
         (book/paragraph ()
           (text/text ()
             (text/normal "This is the server side program")))
-        (make-evaluator/evaluator process-http-function :on-demand #t))
+        process-http-function)
       (book/chapter (:title "Resources")
         (book/paragraph ()
           (text/text ()
@@ -408,9 +403,9 @@
     (workbench/navigator ()
       (make-file-system/pathname (resource-pathname "example/")))
     (workbench/editor ()
-      #+nil
       (workbench/document (:title "Web" :filename (resource-pathname "example/web-example.pred"))
         (make-initial-document/web-example))
+      #+nil
       (workbench/document (:title "Welcome" :filename (resource-pathname "example/welcome-page.pred"))
         (make-initial-document/welcome-page))
       #+nil

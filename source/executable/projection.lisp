@@ -46,22 +46,22 @@
     ("json number" (json/number () 0))
     ("json string" (json/string () ""))
     ("json array" (json/array (:selection '((the string (subseq (the string document) 0 0))
-                                            (the string (value-of (the json/nothing document)))
-                                            (the json/nothing (elt (the sequence document) 0))
+                                            (the string (value-of (the json/insertion document)))
+                                            (the json/insertion (elt (the sequence document) 0))
                                             (the sequence (elements-of (the json/array document)))))
-                    (json/nothing (:selection '((the string (subseq (the string document) 0 0))
-                                                (the string (value-of (the json/nothing document))))))))
+                    (json/insertion (:selection '((the string (subseq (the string document) 0 0))
+                                                (the string (value-of (the json/insertion document))))))))
     ("json object entry" (json/object-entry (:selection '((the string (subseq (the string document) 0 0))
                                                           (the string (key-of (the json/object-entry document))))) ""
-                                                          (json/nothing ())))
-    ("json object" (make-json/object (make-document/sequence (list (json/nothing (:selection '((the string (subseq (the string document) 0 0))
-                                                                                               (the string (value-of (the json/nothing document)))))))
+                                                          (json/insertion ())))
+    ("json object" (make-json/object (make-document/sequence (list (json/insertion (:selection '((the string (subseq (the string document) 0 0))
+                                                                                               (the string (value-of (the json/insertion document)))))))
                                                              :selection '((the string (subseq (the string document) 0 0))
-                                                                          (the string (value-of (the json/nothing document)))
-                                                                          (the json/nothing (elt (the sequence document) 0))))
+                                                                          (the string (value-of (the json/insertion document)))
+                                                                          (the json/insertion (elt (the sequence document) 0))))
                                      :selection '((the string (subseq (the string document) 0 0))
-                                                  (the string (value-of (the json/nothing document)))
-                                                  (the json/nothing (elt (the sequence document) 0))
+                                                  (the string (value-of (the json/insertion document)))
+                                                  (the json/insertion (elt (the sequence document) 0))
                                                   (the sequence (entries-of (the json/object document))))))
     ("common lisp comment" (make-instance 'common-lisp/comment
                                           :content (text/text () (text/string ""))
@@ -101,48 +101,47 @@
     (recursive
       (type-dispatching
         (workbench/document
-            (nesting
-              (workbench->widget)
+          (nesting
+            (workbench->widget)
+            (sequential
+              (recursive
+                (type-dispatching
+                  (book/book (copying))
+                  (book/chapter (book/chapter->book/chapter))
+                  (sequence (copying))
+                  (t (preserving))))
+              (focusing '(or book/base xml/base json/base common-lisp/base lisp-form/base text/base) nil)
               (sequential
                 (recursive
+                  (reference-dispatching
+                    (alternative
+                      (type-dispatching
+                        (book/base (book->tree))
+                        (xml/base (xml->tree))
+                        (css/base (css->tree))
+                        (json/base (json->tree))
+                        (common-lisp/base (sequential
+                                            (common-lisp->lisp-form)
+                                            (lisp-form->tree)))
+                        (lisp-form/base (lisp-form->tree))
+                        (javascript/base (javascript->tree))
+                        (document/base (document->t 'initial-factory))
+                        (table/base (sequential
+                                      (recursive
+                                        (type-dispatching
+                                          (table/base (table->text))
+                                          (text/base (preserving))))
+                                      (text/text->tree/leaf)))
+                        (text/base (preserving))
+                        (tree/base (preserving))
+                        (t (t->tree :slot-provider 'initial-slot-provider)))
+                      (t->tree :slot-provider 'initial-slot-provider))))
+                (recursive
                   (type-dispatching
-                    (book/book (copying))
-                    (book/chapter (book/chapter->book/chapter))
-                    (sequence (copying))
-                    (t (preserving))))
-                (focusing '(or book/base xml/base json/base common-lisp/base lisp-form/base text/base) nil)
-                (sequential
-                  (recursive
-                    (reference-dispatching
-                      (alternative
-                        (type-dispatching
-                          (book/base (book->tree))
-                          (xml/base (xml->tree))
-                          (css/base (css->tree))
-                          (json/base (json->tree))
-                          (common-lisp/base (sequential
-                                              (common-lisp->lisp-form)
-                                              (lisp-form->tree)))
-                          (lisp-form/base (lisp-form->tree))
-                          (evaluator/evaluator (evaluator/evaluator->tree/node))
-                          (javascript/base (javascript->tree))
-                          (document/base (document->t 'initial-factory))
-                          (table/base (sequential
-                                        (recursive
-                                          (type-dispatching
-                                            (table/base (table->text))
-                                            (text/base (preserving))))
-                                        (text/text->tree/leaf)))
-                          (text/base (preserving))
-                          (tree/base (preserving))
-                          (t (t->tree :slot-provider 'initial-slot-provider)))
-                        (t->tree :slot-provider 'initial-slot-provider))))
-                  (recursive
-                    (type-dispatching
-                      (tree/base (tree->text))
-                      (text/text (preserving))))
-                  #+nil (line-numbering) ;; TODO: somewhere?
-                  #+nil (word-wrapping 1075)))))
+                    (tree/base (tree->text))
+                    (text/text (preserving))))
+                #+nil (line-numbering) ;; TODO: somewhere?
+                #+nil (word-wrapping 1075)))))
         (workbench/base (workbench->widget))
         (file-system/base (sequential
                             (recursive (file-system->tree))

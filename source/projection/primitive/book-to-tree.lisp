@@ -298,11 +298,11 @@
 (def function backward-mapper/book/paragraph->tree/leaf (printer-iomap reference)
   (bind ((projection (projection-of printer-iomap))
          (recursion (recursion-of printer-iomap)))
-    (pattern-case reference
+    (pattern-case (reverse reference)
       (((the tree/leaf document))
        '((the book/paragraph document)))
-      (((the text/text (text/subseq (the text/text document) ?start-character-index ?end-character-index))
-        (the text/text (content-of (the tree/leaf document))))
+      (((the text/text (content-of (the tree/leaf document)))
+        (the text/text (text/subseq (the text/text document) ?start-character-index ?end-character-index)))
        (if (zerop (text/length (content-of (input-of printer-iomap))))
            (append reference `((the tree/leaf (printer-output (the book/paragraph document) ,projection ,recursion))))
            `((the text/text (text/subseq (the text/text document) ,?start-character-index ,?end-character-index))
@@ -331,28 +331,24 @@
        (append reference `((the tree/node (printer-output (the book/list document) ,projection ,recursion))))))))
 
 (def function backward-mapper/book/picture->tree/leaf (printer-iomap reference)
-  (bind ((projection (projection-of printer-iomap))
+  (bind ((printer-input (input-of printer-iomap))
+         (projection (projection-of printer-iomap))
          (recursion (recursion-of printer-iomap)))
-    (pattern-case reference
+    (pattern-case (reverse reference)
       (((the tree/leaf document))
        '((the book/picture document)))
-      (((the text/text (text/subseq (the text/text document) ?start-character-index ?end-character-index))
-        (the text/text (content-of (the tree/leaf document))))
-       `((the string (subseq (the string document) ,?start-character-index ,?end-character-index))
-         (the string (filename-of (the image/file document)))
-         (the image/file (content-of (the book/picture document)))))
+      (((the text/text (content-of (the tree/leaf document)))
+        (the text/text (text/subseq (the text/text document) ?start-character-index ?end-character-index)))
+       (if (string= (filename-of (content-of printer-input)) "")
+           (append reference `((the tree/leaf (printer-output (the book/picture document) ,projection ,recursion))))
+           `((the string (subseq (the string document) ,?start-character-index ,?end-character-index))
+             (the string (filename-of (the image/file document)))
+             (the image/file (content-of (the book/picture document))))))
       (?
        (append reference `((the tree/leaf (printer-output (the book/picture document) ,projection ,recursion))))))))
 
 ;;;;;;
 ;;; Printer
-
-;; TODO: rename and move?
-(def function print-selection (iomap input-selection forward-mapper)
-  (bind (((:values selection nil child-iomap) (funcall forward-mapper iomap input-selection)))
-    (if child-iomap
-        (append (selection-of (output-of child-iomap)) selection)
-        selection)))
 
 (def printer book/book->tree/node (projection recursion input input-reference)
   (bind ((element-iomaps (as (map-ll* (ll (elements-of input)) (lambda (element index)
@@ -665,5 +661,20 @@
 
 (def reader book/picture->tree/leaf (projection recursion input printer-iomap)
   (declare (ignore projection))
-  (merge-commands (command/read-backward recursion input printer-iomap 'backward-mapper/book/picture->tree/leaf nil)
-                  (make-command/nothing (gesture-of input))))
+  (bind ((printer-input (input-of printer-iomap))
+         (operation-mapper (lambda (operation selection child-selection child-iomap)
+                             (declare (ignore child-selection child-iomap))
+                             (typecase operation
+                               (operation/text/replace-range
+                                (pattern-case (reverse selection)
+                                  (((the image/file (content-of (the book/picture document)))
+                                    (the string (filename-of (the image/file document)))
+                                    (the string (subseq (the string document) ?start-character-index ?end-character-index)))
+                                   (make-operation/sequence/replace-range printer-input selection (replacement-of operation)))
+                                  (((the tree/leaf (printer-output (the book/picture document) ?projection ?recursion)) . ?rest)
+                                   (make-operation/sequence/replace-range printer-input '((the string (subseq (the string document) 0 0))
+                                                                                          (the string (filename-of (the image/file document)))
+                                                                                          (the image/file (content-of (the book/picture document))))
+                                                                          (replacement-of operation)))))))))
+    (merge-commands (command/read-backward recursion input printer-iomap 'backward-mapper/book/picture->tree/leaf operation-mapper)
+                    (make-command/nothing (gesture-of input)))))

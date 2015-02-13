@@ -64,19 +64,13 @@
                                                       (document/search->text/text)
                                                       projection)
                                                     (make-test-projection/text->output))))
-                            (widget/composite (nesting
-                                                (widget->graphics)
-                                                (type-dispatching
-                                                  (widget/composite (nesting
-                                                                      (widget->graphics)
-                                                                      (sequential
-                                                                        (document/search->widget/text)
-                                                                        (nesting
-                                                                          (widget->graphics)
-                                                                          (text->graphics)))))
-                                                  (widget/base (nesting
-                                                                 (widget->graphics)
-                                                                 (text->graphics))))))))))))
+                            (widget/base (nesting
+                                           (widget->graphics)
+                                           (sequential
+                                             (document/search->widget/text)
+                                             (nesting
+                                               (widget->graphics)
+                                               (text->graphics)))))))))))
 
 (def function make-test-projection/selection (projection)
   (nesting
@@ -333,22 +327,22 @@
     ("json number" (json/number () 0))
     ("json string" (json/string () ""))
     ("json array" (json/array (:selection '((the string (subseq (the string document) 0 0))
-                                            (the string (value-of (the json/nothing document)))
-                                            (the json/nothing (elt (the sequence document) 0))
+                                            (the string (value-of (the json/insertion document)))
+                                            (the json/insertion (elt (the sequence document) 0))
                                             (the sequence (elements-of (the json/array document)))))
-                    (json/nothing (:selection '((the string (subseq (the string document) 0 0))
-                                                (the string (value-of (the json/nothing document))))))))
+                    (json/insertion (:selection '((the string (subseq (the string document) 0 0))
+                                                (the string (value-of (the json/insertion document))))))))
     ("json object entry" (json/object-entry (:selection '((the string (subseq (the string document) 0 0))
                                                           (the string (key-of (the json/object-entry document))))) ""
-                                                          (json/nothing ())))
-    ("json object" (make-json/object (make-document/sequence (list (json/nothing (:selection '((the string (subseq (the string document) 0 0))
-                                                                                               (the string (value-of (the json/nothing document)))))))
+                                                          (json/insertion ())))
+    ("json object" (make-json/object (make-document/sequence (list (json/insertion (:selection '((the string (subseq (the string document) 0 0))
+                                                                                               (the string (value-of (the json/insertion document)))))))
                                                              :selection '((the string (subseq (the string document) 0 0))
-                                                                          (the string (value-of (the json/nothing document)))
-                                                                          (the json/nothing (elt (the sequence document) 0))))
+                                                                          (the string (value-of (the json/insertion document)))
+                                                                          (the json/insertion (elt (the sequence document) 0))))
                                      :selection '((the string (subseq (the string document) 0 0))
-                                                  (the string (value-of (the json/nothing document)))
-                                                  (the json/nothing (elt (the sequence document) 0))
+                                                  (the string (value-of (the json/insertion document)))
+                                                  (the json/insertion (elt (the sequence document) 0))
                                                   (the sequence (entries-of (the json/object document))))))
     ("common lisp comment" (make-instance 'common-lisp/comment
                                           :content (text/text () (text/string ""))
@@ -636,16 +630,16 @@
   (sequential
     (recursive
       (type-dispatching
-        (document/base (document->t 'test-factory))
-        (xml/base (xml->tree))))
+        (xml/base (xml->tree))
+        (document/base (document->t 'test-factory))))
     (make-test-projection/tree->text)))
 
 (def function make-test-projection/xml->graphics ()
   (sequential
     (recursive
       (type-dispatching
-        (document/base (document->t 'test-factory))
-        (xml/base (xml->tree))))
+        (xml/base (xml->tree))
+        (document/base (document->t 'test-factory))))
     (make-test-projection/tree->text)
     ;; (line-numbering)
     (make-test-projection/text->output)))
@@ -656,8 +650,8 @@
 (def function make-test-projection/json->tree ()
   (recursive
     (type-dispatching
-      (document/base (document->t 'test-factory))
-      (json/base (json->tree)))))
+      (json/base (json->tree))
+      (document/base (document->t 'test-factory)))))
 
 (def function make-test-projection/json->tree/alternative ()
   (recursive
@@ -676,16 +670,16 @@
   (sequential
     (recursive
       (type-dispatching
-        (document/base (document->t 'test-factory))
-        (json/base (json->tree))))
+        (json/base (json->tree))
+        (document/base (document->t 'test-factory))))
     (make-test-projection/tree->text)))
 
 (def function make-test-projection/json->graphics ()
   (sequential
     (recursive
       (type-dispatching
-        (document/base (document->t 'test-factory))
-        (json/base (json->tree))))
+        (json/base (json->tree))
+        (document/base (document->t 'test-factory))))
     (make-test-projection/tree->text)
     ;; (line-numbering)
     (make-test-projection/text->output)))
@@ -843,7 +837,10 @@
 ;;; Lisp form
 
 (def function make-test-projection/lisp-form->tree ()
-  (recursive (lisp-form->tree)))
+  (recursive
+    (type-dispatching
+      (lisp-form/base (lisp-form->tree))
+      (document/base (document->t 'test-factory)))))
 
 (def function make-test-projection/lisp-form->text ()
   (sequential
@@ -860,7 +857,10 @@
 ;;; Common lisp
 
 (def function make-test-projection/common-lisp->lisp-form ()
-  (recursive (common-lisp->lisp-form)))
+  (recursive
+    (type-dispatching
+      (common-lisp/base (common-lisp->lisp-form))
+      (document/base (preserving)))))
 
 (def function make-test-projection/common-lisp->text ()
   (sequential
@@ -871,6 +871,7 @@
 (def function make-test-projection/common-lisp->graphics ()
   (sequential
     (make-test-projection/common-lisp->text)
+    (make-test-projection/tree->text)
     ;; (line-numbering)
     (make-test-projection/text->output)))
 
@@ -1028,7 +1029,7 @@
 ;;;;;;
 ;;; Demo
 
-(def function make-test-projection/demo->graphics ()
+(def function make-test-projection/demo->text ()
   (sequential
     (make-test-projection/book->book)
     (recursive
@@ -1037,9 +1038,26 @@
         (document/base (document->t 'test-factory))
         (text/text (preserving))
         (xml/base (xml->tree))
-        (json/base (json->tree))))
+        (json/base (json->tree))
+        (css/base (css->tree))
+        (javascript/base (javascript->tree))
+        (common-lisp/base (sequential
+                            (common-lisp->lisp-form)
+                            (lisp-form->tree)))
+        (lisp-form/base (lisp-form->tree))
+        (table/base (sequential
+                      (recursive
+                        (type-dispatching
+                          (table/base (table->text))
+                          (text/base (preserving))))
+                      (text/text->tree/leaf)))
+        (t (preserving))))
     (make-test-projection/tree->text)
-    ;; (word-wrapping 1280)
+    #+nil(word-wrapping 1280)))
+
+(def function make-test-projection/demo->graphics ()
+  (sequential
+    (make-test-projection/demo->text)
     (make-test-projection/text->output)))
 
 #+nil

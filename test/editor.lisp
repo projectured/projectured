@@ -51,12 +51,12 @@
                                        (make-test-projection/reflection projection))
                                       (:ide
                                        (make-test-projection/ide projection))))
-                              (when mark-graphics-changes
-                                (list (recursive
-                                        (graphics->graphics@mark-changes))))
                               (when cache-graphics
                                 (list (recursive
-                                        (graphics->graphics@cache-graphics :debug mark-cached-graphics))))))
+                                        (graphics->graphics@cache-graphics :debug mark-cached-graphics))))
+                              (when mark-graphics-changes
+                                (list (recursive
+                                        (graphics->graphics@mark-changes))))))
          (projection (if (= 1 (length projections))
                          (first projections)
                          (make-projection/sequential projections))))
@@ -186,7 +186,7 @@
 
 (def editor test/editor/inspector/object/nested (make-test-document/inspector/object/nested) (make-test-projection/inspector->graphics))
 
-(def editor test/editor/demo (make-test-document/demo) (make-test-projection/demo->graphics))
+(def editor test/editor/demo (make-initial-document/web-example) (make-test-projection/demo->graphics))
 
 (def editor test/editor/documentation (make-test-document/documentation) (make-test-projection/documentation->graphics))
 

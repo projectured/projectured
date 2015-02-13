@@ -12,6 +12,10 @@
 (def document common-lisp/base ()
   ())
 
+(def document common-lisp/insertion (common-lisp/base)
+  ((value :type string)
+   (factory :type function)))
+
 (def document common-lisp/constant (common-lisp/base)
   ((value :type t)))
 
@@ -88,6 +92,9 @@
 ;;;;;;
 ;;; Construction
 
+(def function make-common-lisp/insertion (value factory &key selection)
+  (make-instance 'common-lisp/insertion :value value :factory factory :selection selection))
+
 (def function make-common-lisp/comment (content)
   (make-instance 'common-lisp/comment :content content))
 
@@ -142,3 +149,13 @@
 
 (def function make-common-lisp/top-level (body)
   (make-instance 'common-lisp/top-level :body body))
+
+;;;;;
+;;; API
+
+(def function common-lisp/complete-document (name)
+  (completion-prefix-switch name
+    ("if" (make-common-lisp/if (make-common-lisp/insertion "" 'common-lisp/complete-document) (make-common-lisp/insertion "" 'common-lisp/complete-document) (make-common-lisp/insertion "" 'common-lisp/complete-document)))
+    ("progn" (make-common-lisp/progn nil))
+    ("let" (make-common-lisp/let nil nil))
+    ("lambda" (make-common-lisp/lambda-function nil nil))))

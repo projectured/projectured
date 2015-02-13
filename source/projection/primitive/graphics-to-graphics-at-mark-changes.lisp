@@ -64,7 +64,9 @@
                                                              (collect (output-of (recurse-printer recursion element nil))))
                                                        (iter (for element :in added-elements)
                                                              (for bounding-rectangle = (make-bounding-rectangle element))
-                                                             (collect (make-graphics/rectangle (location-of bounding-rectangle) (size-of bounding-rectangle)
+                                                             (for inset = (make-2d 1 1))
+                                                             (collect (make-graphics/rectangle (- (location-of bounding-rectangle) inset)
+                                                                                               (+ (size-of bounding-rectangle) (* 2 inset))
                                                                                                :stroke-color *color/solarized/red*)))
                                                        #+nil
                                                        (iter (for element :in removed-elements)

@@ -102,7 +102,7 @@
          :content content
          args))
 
-(def function make-widget/text (location content &rest args &key margin margin-color border border-color padding padding-color)
+(def function make-widget/text (location content &rest args &key margin margin-color border border-color padding padding-color selection)
   (declare (ignore margin margin-color border border-color padding padding-color))
   (apply #'make-instance 'widget/text
          :location location
@@ -195,11 +195,11 @@
 
 (def macro widget/label ((&rest args &key location margin margin-color border border-color padding padding-color fill-color) &body content)
   (declare (ignore margin margin-color border border-color padding padding-color fill-color))
-  `(make-widget/label ,location ,(first content) ,@args))
+  `(make-widget/label ,location ,(first content) ,@(remove-from-plist args :location)))
 
-(def macro widget/text ((&rest args &key location margin margin-color border border-color padding padding-color fill-color) &body content)
+(def macro widget/text ((&rest args &key location margin margin-color border border-color padding padding-color fill-color selection) &body content)
   (declare (ignore margin margin-color border border-color padding padding-color fill-color))
-  `(make-widget/text ,location ,(first content) ,@args))
+  `(make-widget/text ,location ,(first content) ,@(remove-from-plist args :location)))
 
 (def macro widget/checkbox ((&rest args &key location margin margin-color border border-color padding padding-color fill-color) &body content)
   (declare (ignore margin margin-color border border-color padding padding-color fill-color))
@@ -227,7 +227,7 @@
 
 (def macro widget/composite ((&rest args &key location margin margin-color border border-color padding padding-color fill-color selection) &body elements)
   (declare (ignore margin margin-color border border-color padding padding-color fill-color selection))
-  `(make-widget/composite ,location (list ,@elements) ,@args))
+  `(make-widget/composite ,location (list ,@elements) ,@(remove-from-plist args :location)))
 
 (def macro widget/title-pane ((&rest args &key title content-fill-color margin margin-color border border-color padding padding-color fill-color title-fill-color selection) &body content)
   (declare (ignore content-fill-color margin margin-color border border-color padding padding-color fill-color title-fill-color selection))

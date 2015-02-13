@@ -10,7 +10,8 @@
 ;;; IO map
 
 (def iomap iomap/document/search->text/text ()
-  ((line-iomaps :type sequence)))
+  ((content-iomap :type iomap)
+   (line-iomaps :type sequence)))
 
 (def iomap iomap/document/search->text/text/line ()
   ((input-first-character-index :type integer)
@@ -34,6 +35,24 @@
 
 (def macro document/search->text/text ()
   `(make-projection/document/search->text/text))
+
+;;;;;;
+;;; Forward mapper
+
+(def function forward-mapper/document/search->text/text (printer-iomap reference)
+  )
+
+;;;;;;
+;;; Backward mapper
+
+(def function backward-mapper/document/search->text/text (printer-iomap reference)
+  (pattern-case reference
+    (((the text/text (text/subseq (the text/text document) ?start-index ?end-index)))
+     (bind ((start-index (document/search->text/text/map-backward (line-iomaps-of printer-iomap) ?start-index))
+            (end-index (document/search->text/text/map-backward (line-iomaps-of printer-iomap) ?end-index)))
+       (when (and start-index end-index)
+         `((the text/text (text/subseq (the text/text document) ,start-index ,end-index))
+           (the text/text (content-of (the document/search document)))))))))
 
 ;;;;;;
 ;;; Printer
@@ -61,11 +80,16 @@
                      (input-first-character-index-of line-iomap))))))
 
 (def printer document/search->text/text (projection recursion input input-reference)
-  (bind ((text (output-of (recurse-printer recursion (content-of input) `((content-of (the document/document document))
-                                                                          ,@(typed-reference (form-type input) input-reference)))))
+  (bind ((content-iomap (recurse-printer recursion (content-of input) `((content-of (the document/document document))
+                                                                        ,@(typed-reference (form-type input) input-reference))))
+         (text (output-of content-iomap))
          (search-string (search-of input)))
     (if (zerop (length search-string))
-        (make-iomap/object projection recursion input input-reference text)
+        (make-iomap 'iomap/document/search->text/text
+                    :projection projection :recursion recursion
+                    :input input :input-reference input-reference :output text
+                    :content-iomap content-iomap
+                    :line-iomaps nil)
         (bind ((search-string (search-of input))
                (line-iomaps (labels ((search-line (start-position direction input-start-character-index output-character-index)
                                        (bind ((line-start-position (text/line-start-position text start-position))
@@ -106,54 +130,29 @@
                                                               (:forward (+ input-start-character-index line-length 1)))
                                                             output-character-index))))))
                               (search-line (text/origin-position text) :forward 0 0)))
-               (output-selection (as (pattern-case (selection-of input)
-                                       (((the text/text (text/subseq (the text/text document) ?start-character-index ?end-character-index))
-                                         (the text/text (content-of (the document/search document))))
+               (output-selection (as (pattern-case (selection-of text)
+                                       (((the text/text (text/subseq (the text/text document) ?start-character-index ?end-character-index)))
                                         (awhen (document/search->text/text/map-forward line-iomaps ?start-character-index)
                                           `((the text/text (text/subseq (the text/text document) ,it ,it))))))))
                (output (text/make-text (append-ll (map-ll line-iomaps 'output-of)) :selection output-selection)))
           (make-iomap 'iomap/document/search->text/text
                       :projection projection :recursion recursion
                       :input input :input-reference input-reference :output output
+                      :content-iomap content-iomap
                       :line-iomaps line-iomaps)))))
 
 ;;;;;;
 ;;; Reader
 
 (def reader document/search->text/text (projection recursion input printer-iomap)
-  (declare (ignore projection recursion))
+  (declare (ignore projection))
   (bind ((gesture (gesture-of input))
          (printer-input (input-of printer-iomap)))
-    (if (zerop (length (search-of printer-input)))
-        (make-command gesture (operation/extend printer-input `((the ,(form-type (content-of printer-input)) (content-of (the document/search document)))) (operation-of input))
-                      :domain (domain-of input)
-                      :description (description-of input))
-        (merge-commands (awhen (labels ((recurse (operation)
-                                          (typecase operation
-                                            (operation/quit operation)
-                                            (operation/functional operation)
-                                            (operation/replace-selection
-                                             (awhen (pattern-case (selection-of operation)
-                                                      (((the text/text (text/subseq (the text/text document) ?start-index ?end-index)))
-                                                       (awhen (document/search->text/text/map-backward (line-iomaps-of printer-iomap) ?start-index)
-                                                         `((the text/text (text/subseq (the text/text document) ,it ,it))
-                                                           (the text/text (content-of (the document/search document)))))))
-                                               (make-operation/replace-selection printer-input it)))
-                                            (operation/text/replace-range
-                                             (awhen (pattern-case (selection-of operation)
-                                                      (((the text/text (text/subseq (the text/text document) ?start-index ?end-index)))
-                                                       (bind ((start-index (document/search->text/text/map-backward (line-iomaps-of printer-iomap) ?start-index))
-                                                              (end-index (document/search->text/text/map-backward (line-iomaps-of printer-iomap) ?end-index)))
-                                                         (when (and start-index end-index)
-                                                           `((the text/text (text/subseq (the text/text document) ,start-index ,end-index))
-                                                             (the text/text (content-of (the document/search document))))))))
-                                               (make-operation/text/replace-range printer-input it (replacement-of operation))))
-                                            (operation/compound
-                                             (bind ((operations (mapcar #'recurse (elements-of operation))))
-                                               (unless (some 'null operations)
-                                                 (make-operation/compound operations)))))))
-                                 (recurse (operation-of input)))
-                          (make-command gesture it
-                                        :domain (domain-of input)
-                                        :description (description-of input)))
-                        (make-command/nothing gesture)))))
+    (merge-commands (command/extend (recurse-reader recursion (if (zerop (length (search-of printer-input)))
+                                                                  input
+                                                                  (merge-commands (command/read-backward recursion input printer-iomap 'backward-mapper/document/search->text/text nil)
+                                                                                  (make-command/nothing gesture)))
+                                                    (content-iomap-of printer-iomap))
+                                    printer-input
+                                    `((the ,(form-type (content-of printer-input)) (content-of (the document/search document)))))
+                    (make-command/nothing gesture))))

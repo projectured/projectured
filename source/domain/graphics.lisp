@@ -223,11 +223,15 @@
     (make-rectangle (location-of instance) (size-of instance)))
 
   (:method ((instance graphics/canvas))
-    (iter (with canvas-rectangle = (make-rectangle (make-2d 0 0) (make-2d 0 0)))
+    (iter (with canvas-rectangle = nil)
           (for element :in-sequence (elements-of instance))
           (for element-rectangle = (make-bounding-rectangle element))
-          (setf canvas-rectangle (rectangle-union canvas-rectangle element-rectangle))
+          (setf canvas-rectangle (if canvas-rectangle
+                                     (rectangle-union canvas-rectangle element-rectangle)
+                                     element-rectangle))
           (finally
+           (unless canvas-rectangle
+             (setf canvas-rectangle (make-rectangle 0 0)))
            (incf (location-of canvas-rectangle) (location-of instance))
            (return canvas-rectangle)))))
 

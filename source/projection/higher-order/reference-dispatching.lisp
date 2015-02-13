@@ -57,7 +57,7 @@
                     (when (and command (operation-of command))
                       command))
                   (gesture-case (gesture-of input)
-                    ((gesture/keyboard/key-press :sdl-key-c :control)
+                    ((gesture/keyboard/key-press :sdl-key-c '(:shift :control))
                      :domain "Generic" :description "Toggles notation customization at the current selection"
                      :operation (make-operation/functional (lambda ()
                                                              (bind ((input-reference (input-reference-of printer-iomap))

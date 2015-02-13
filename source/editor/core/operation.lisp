@@ -254,6 +254,10 @@
                       (make-operation/compound operations)))))))
       (recurse (operation-of input)))))
 
+(def function command/extend (input printer-input path)
+  (awhen (operation/extend printer-input path (operation-of input))
+    (make-command/clone input it)))
+
 (def function command/read-selection (recursion input printer-iomap forward-mapper backward-mapper)
   (bind ((printer-input (input-of printer-iomap))
          ((:values selection child-selection child-iomap) (funcall forward-mapper printer-iomap (selection-of printer-input))))
@@ -268,6 +272,13 @@
 (def function command/read-backward (recursion input printer-iomap backward-mapper operation-mapper)
   (awhen (operation/read-backward recursion input printer-iomap backward-mapper operation-mapper)
     (make-command/clone input it)))
+
+;; TODO: rename and move?
+(def function print-selection (iomap input-selection forward-mapper)
+  (bind (((:values selection nil child-iomap) (funcall forward-mapper iomap input-selection)))
+    (if child-iomap
+        (append (selection-of (output-of child-iomap)) selection)
+        selection)))
 
 (def method run-operation ((operation operation/compound))
   (iter (for element :in-sequence (elements-of operation))

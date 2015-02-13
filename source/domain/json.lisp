@@ -13,7 +13,7 @@
   ())
 
 ;; TODO: rename and generalize?
-(def document json/nothing (json/base)
+(def document json/insertion (json/base)
   ((value "" :type string :allocation :class :computed-in nil)))
 
 (def document json/null (json/base)
@@ -45,8 +45,8 @@
 ;;;;;;
 ;;; Construction
 
-(def function make-json/nothing (&key selection)
-  (make-instance 'json/nothing :selection selection))
+(def function make-json/insertion (&key selection)
+  (make-instance 'json/insertion :selection selection))
 
 (def function make-json/null (&key selection)
   (make-instance 'json/null :selection selection))
@@ -72,8 +72,8 @@
 ;;;;;;
 ;;; Construction
 
-(def macro json/nothing ((&key selection))
-  `(make-json/nothing :selection ,selection))
+(def macro json/insertion ((&key selection))
+  `(make-json/insertion :selection ,selection))
 
 (def macro json/null ((&key selection))
   `(make-json/null :selection ,selection))

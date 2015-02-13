@@ -6,17 +6,17 @@
 
 (in-package :projectured)
 
-;;;;;;;;
-;;;; Lisp form domain provides:
-;;;;  - all types provided by the Common Lisp implementation
-
 ;; TODO: either rename to s-expression or merge as literals into common-lisp?
 
 ;;;;;;
-;;; Lisp form document classes
+;;; Document
 
 (def document lisp-form/base ()
   ((indentation :type integer)))
+
+(def document lisp-form/insertion (lisp-form/base)
+  ((value :type string)
+   (factory :type function)))
 
 (def document lisp-form/comment (lisp-form/base)
   ((content :type string)))
@@ -25,11 +25,13 @@
   ((value :type number)))
 
 (def document lisp-form/string (lisp-form/base)
-  ((value :type string)))
+  ((value :type string)
+   (default-value :type string)))
 
 (def document lisp-form/symbol (lisp-form/base)
   ((name :type string)
    (package :type t)
+   (default-value :type string)
    (font :type style/font)
    (font-color :type style/color)))
 
@@ -46,7 +48,10 @@
   ((elements :type sequence)))
 
 ;;;;;;
-;;; Lisp form document constructors
+;;; Construction
+
+(def function make-lisp-form/insertion (value factory &key indentation selection)
+  (make-instance 'lisp-form/insertion :value value :factory factory :indentation indentation  :selection selection))
 
 (def function make-lisp-form/comment (content &key indentation selection)
   (make-instance 'lisp-form/comment :content content :indentation indentation  :selection selection))
@@ -54,11 +59,11 @@
 (def function make-lisp-form/number (value &key indentation selection)
   (make-instance 'lisp-form/number :value value :indentation indentation  :selection selection))
 
-(def function make-lisp-form/string (value &key indentation selection)
-  (make-instance 'lisp-form/string :value value :indentation indentation :selection selection))
+(def function make-lisp-form/string (value &key default-value indentation selection)
+  (make-instance 'lisp-form/string :value value :default-value default-value :indentation indentation :selection selection))
 
-(def function make-lisp-form/symbol (name package &key indentation font font-color selection)
-  (make-instance 'lisp-form/symbol :name name :package package :indentation indentation :font font :font-color font-color :selection selection))
+(def function make-lisp-form/symbol (name package &key default-value indentation font font-color selection)
+  (make-instance 'lisp-form/symbol :name name :package package :default-value default-value :indentation indentation :font font :font-color font-color :selection selection))
 
 (def function make-lisp-form/quote (value &key indentation font font-color selection)
   (make-instance 'lisp-form/quote :value value :indentation indentation :selection selection))
@@ -71,6 +76,36 @@
 
 (def function make-lisp-form/top-level (elements &key indentation selection)
   (make-instance 'lisp-form/top-level :elements elements :indentation indentation :selection selection))
+
+;;;;;;
+;;; Construction
+
+(def macro lisp-form/insertion ((&key indentation selection) value factory)
+  `(make-lisp-form/insertion ,value ,factory :indentation ,indentation :selection ,selection))
+
+(def macro lisp-form/comment ((&key indentation selection) &body content)
+  `(make-lisp-form/comment ,(first content) :indentation ,indentation :selection ,selection))
+
+(def macro lisp-form/number ((&key indentation selection) &body value)
+  `(make-lisp-form/number ,(first value) :indentation ,indentation :selection ,selection))
+
+(def macro lisp-form/string ((&key default-value indentation selection) &body value)
+  `(make-lisp-form/string ,(first value) :default-value ,default-value :indentation ,indentation :selection ,selection))
+
+(def macro lisp-form/symbol ((&key default-value indentation font font-color selection) name package)
+  `(make-lisp-form/symbol ,name ,package :default-value ,default-value :indentation ,indentation :font ,font :font-color ,font-color :selection ,selection))
+
+(def macro lisp-form/quote ((&key indentation font font-color selection) &body value)
+  `(make-lisp-form/quote ,(first value) :indentation ,indentation :selection ,selection))
+
+(def macro lisp-form/object ((&key indentation selection) &body value)
+  `(make-lisp-form/object ,(first value) :indentation ,indentation :selection ,selection))
+
+(def macro lisp-form/list ((&key indentation selection) &body elements)
+  `(make-lisp-form/list (list ,@elements) :indentation ,indentation :selection ,selection))
+
+(def macro lisp-form/top-level ((&key indentation selection) &body elements)
+  `(make-lisp-form/top-level (list ,@elements) :indentation ,indentation :selection ,selection))
 
 ;;;;;;
 ;;; API

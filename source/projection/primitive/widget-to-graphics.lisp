@@ -115,6 +115,125 @@
   '(make-projection/widget/scroll-pane->graphics/canvas))
 
 ;;;;;;
+;;; Forward mapper
+
+(def function forward-mapper/widget/label->graphics/canvas (printer-iomap reference)
+  (bind ((projection (projection-of printer-iomap))
+         (recursion (recursion-of printer-iomap)))))
+
+(def function forward-mapper/widget/text->graphics/canvas (printer-iomap reference)
+  (bind ((projection (projection-of printer-iomap))
+         (recursion (recursion-of printer-iomap)))))
+
+(def function forward-mapper/widget/tooltip->graphics/canvas (printer-iomap reference)
+  (bind ((projection (projection-of printer-iomap))
+         (recursion (recursion-of printer-iomap)))))
+
+(def function forward-mapper/widget/menu->graphics/canvas (printer-iomap reference)
+  (bind ((projection (projection-of printer-iomap))
+         (recursion (recursion-of printer-iomap)))))
+
+(def function forward-mapper/widget/menu-item->graphics/canvas (printer-iomap reference)
+  (bind ((projection (projection-of printer-iomap))
+         (recursion (recursion-of printer-iomap)))))
+
+(def function forward-mapper/widget/composite->graphics/canvas (printer-iomap reference)
+  (bind ((projection (projection-of printer-iomap))
+         (recursion (recursion-of printer-iomap)))
+    (pattern-case (reverse reference)
+      (((the sequence (elements-of (the widget/composite document)))
+        (the ?type (elt (the sequence document) ?index))
+        . ?rest)
+       (bind ((element-iomap (elt (child-iomaps-of printer-iomap) ?index))
+              (element (output-of element-iomap)))
+         (values `((the ,(form-type element) (elt (the sequence document) ,?index))
+                   (the sequence (elements-of (the graphics/canvas document))))
+                 (reverse ?rest)
+                 element-iomap)))
+      (((the graphics/canvas (printer-output (the widget/composite document) ?projection ?recursion)) . ?rest)
+       (when (and (eq projection ?projection) (eq recursion ?recursion))
+         (reverse ?rest))))))
+
+(def function forward-mapper/widget/shell->graphics/canvas (printer-iomap reference)
+  (bind ((projection (projection-of printer-iomap))
+         (recursion (recursion-of printer-iomap)))))
+
+(def function forward-mapper/widget/title-pane->graphics/canvas (printer-iomap reference)
+  (bind ((projection (projection-of printer-iomap))
+         (recursion (recursion-of printer-iomap)))))
+
+(def function forward-mapper/widget/split-pane->graphics/canvas (printer-iomap reference)
+  (bind ((projection (projection-of printer-iomap))
+         (recursion (recursion-of printer-iomap)))))
+
+(def function forward-mapper/widget/tabbed-pane->graphics/canvas (printer-iomap reference)
+  (bind ((projection (projection-of printer-iomap))
+         (recursion (recursion-of printer-iomap)))))
+
+(def function forward-mapper/widget/scroll-pane->graphics/canvas (printer-iomap reference)
+  (bind ((projection (projection-of printer-iomap))
+         (recursion (recursion-of printer-iomap)))))
+
+;;;;;;
+;;; Backward mapper
+
+(def function backward-mapper/widget/label->graphics/canvas (printer-iomap reference)
+  (bind ((projection (projection-of printer-iomap))
+         (recursion (recursion-of printer-iomap)))))
+
+(def function backward-mapper/widget/text->graphics/canvas (printer-iomap reference)
+  (bind ((projection (projection-of printer-iomap))
+         (recursion (recursion-of printer-iomap)))))
+
+(def function backward-mapper/widget/tooltip->graphics/canvas (printer-iomap reference)
+  (bind ((projection (projection-of printer-iomap))
+         (recursion (recursion-of printer-iomap)))))
+
+(def function backward-mapper/widget/menu->graphics/canvas (printer-iomap reference)
+  (bind ((projection (projection-of printer-iomap))
+         (recursion (recursion-of printer-iomap)))))
+
+(def function backward-mapper/widget/menu-item->graphics/canvas (printer-iomap reference)
+  (bind ((projection (projection-of printer-iomap))
+         (recursion (recursion-of printer-iomap)))))
+
+(def function backward-mapper/widget/composite->graphics/canvas (printer-iomap reference)
+  (bind ((projection (projection-of printer-iomap))
+         (recursion (recursion-of printer-iomap)))
+    (pattern-case (reverse reference)
+      (((the sequence (elements-of (the graphics/canvas document)))
+        (the ?type (elt (the sequence document) ?index))
+        . ?rest)
+       (bind ((element-iomap (elt (child-iomaps-of printer-iomap) ?index))
+              (element (input-of element-iomap)))
+         (values `((the ,(form-type element) (elt (the sequence document) ,?index))
+                   (the sequence (elements-of (the widget/composite document))))
+                 (reverse ?rest)
+                 element-iomap)))
+      (?
+       (append reference `((the graphics/canvas (printer-output (the widget/composite document) ,projection ,recursion))))))))
+
+(def function backward-mapper/widget/shell->graphics/canvas (printer-iomap reference)
+  (bind ((projection (projection-of printer-iomap))
+         (recursion (recursion-of printer-iomap)))))
+
+(def function backward-mapper/widget/title-pane->graphics/canvas (printer-iomap reference)
+  (bind ((projection (projection-of printer-iomap))
+         (recursion (recursion-of printer-iomap)))))
+
+(def function backward-mapper/widget/split-pane->graphics/canvas (printer-iomap reference)
+  (bind ((projection (projection-of printer-iomap))
+         (recursion (recursion-of printer-iomap)))))
+
+(def function backward-mapper/widget/tabbed-pane->graphics/canvas (printer-iomap reference)
+  (bind ((projection (projection-of printer-iomap))
+         (recursion (recursion-of printer-iomap)))))
+
+(def function backward-mapper/widget/scroll-pane->graphics/canvas (printer-iomap reference)
+  (bind ((projection (projection-of printer-iomap))
+         (recursion (recursion-of printer-iomap)))))
+
+;;;;;;
 ;;; Printer
 
 (def function widget/content-top-left (widget)
@@ -182,9 +301,7 @@
                                                                       :stroke-color *color/black*)
                                              content-output)
                                        (location-of input))))
-    (make-iomap/compound projection recursion input input-reference output
-                         (list (make-iomap/object projection recursion input input-reference output)
-                               content-iomap))))
+    (make-iomap/compound projection recursion input input-reference output (list content-iomap))))
 
 (def printer widget/text->graphics/canvas (projection recursion input input-reference)
   (bind ((content (content-of input))
@@ -193,9 +310,7 @@
                                            ,@(typed-reference (form-type input) input-reference))))
          (content-output (output-of content-iomap))
          (output (make-graphics/canvas (list content-output) (location-of input))))
-    (make-iomap/compound projection recursion input input-reference output
-                         (list (make-iomap/object projection recursion input input-reference output)
-                               content-iomap))))
+    (make-iomap/compound projection recursion input input-reference output (list  content-iomap))))
 
 (def printer widget/tooltip->graphics/canvas (projection recursion input input-reference)
   (bind ((content-iomap (as (recurse-printer recursion (content-of input)
@@ -264,9 +379,7 @@
                                                            ,@(typed-reference (form-type input) input-reference))))))
          (output (make-graphics/canvas (mapcar 'output-of element-iomaps)
                                        (location-of input))))
-    (make-iomap/compound projection recursion input input-reference output
-                         (list* (make-iomap/object projection recursion input input-reference output)
-                                element-iomaps))))
+    (make-iomap/compound projection recursion input input-reference output element-iomaps)))
 
 (def printer widget/shell->graphics/canvas (projection recursion input input-reference)
   (bind ((content-iomap (as (recurse-printer recursion (content-of input)
@@ -402,11 +515,19 @@
 
 (def reader widget/label->graphics/canvas (projection recursion input printer-iomap)
   (declare (ignore projection))
-  (recurse-reader recursion input (elt (child-iomaps-of printer-iomap) 0)))
+  (bind ((printer-input (input-of printer-iomap)))
+    (merge-commands (command/extend (recurse-reader recursion input (elt (child-iomaps-of printer-iomap) 0))
+                                    printer-input
+                                    `((the ,(form-type (content-of printer-input)) (content-of (the widget/label document)))))
+                    (make-command/nothing (gesture-of input)))))
 
 (def reader widget/text->graphics/canvas (projection recursion input printer-iomap)
   (declare (ignore projection))
-  (recurse-reader recursion input (elt (child-iomaps-of printer-iomap) 0)))
+  (bind ((printer-input (input-of printer-iomap)))
+    (merge-commands (command/extend (recurse-reader recursion input (elt (child-iomaps-of printer-iomap) 0))
+                                    printer-input
+                                    `((the ,(form-type (content-of printer-input)) (content-of (the widget/text document)))))
+                    (make-command/nothing (gesture-of input)))))
 
 (def reader widget/tooltip->graphics/canvas (projection recursion input printer-iomap)
   (declare (ignore projection recursion))
@@ -426,9 +547,22 @@
 
 (def reader widget/composite->graphics/canvas (projection recursion input printer-iomap)
   (declare (ignore projection))
-  (iter (for index :from 0)
-        (for element :in-sequence (elements-of (input-of printer-iomap)))
-        (thereis (recurse-reader recursion input (elt (child-iomaps-of printer-iomap) (1+ index))))))
+  (bind ((printer-input (input-of printer-iomap))
+         (gesture (gesture-of input)))
+    (merge-commands (command/read-selection recursion input printer-iomap 'forward-mapper/widget/composite->graphics/canvas 'backward-mapper/widget/composite->graphics/canvas)
+                    (command/read-backward recursion input printer-iomap 'backward-mapper/widget/composite->graphics/canvas nil)
+                    (iter (for index :from 0)
+                          (for element :in-sequence (elements-of (input-of printer-iomap)))
+                          ;; KLUDGE:
+                          (setf (location-of gesture) (- (location-of gesture) #+nil(widget/content-top-left element) (location-of (elt (elements-of (output-of printer-iomap)) index))))
+                          (for element-command = (recurse-reader recursion input (elt (child-iomaps-of printer-iomap) index)))
+                          (awhen (and element-command
+                                      (command/extend element-command
+                                                      printer-input
+                                                      `((the ,(form-type element) (elt (the sequence document) ,index))
+                                                        (the sequence (elements-of (the widget/composite document))))))
+                            (return it)))
+                    (make-command/nothing (gesture-of input)))))
 
 (def reader widget/shell->graphics/canvas (projection recursion input printer-iomap)
   (declare (ignore projection))

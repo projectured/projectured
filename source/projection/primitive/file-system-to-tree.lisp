@@ -46,9 +46,8 @@
                                 (the text/text (content-of (the tree/leaf document)))))))
          (output (tree/leaf (:selection output-selection)
                    (text/text (:selection (butlast output-selection 1))
-                     ;; TODO: icon
-                     ;;(image/file () (resource-pathname "image/file.png"))
-                     (text/string (file-namestring pathname) :font *font/ubuntu/regular/18* :font-color *color/solarized/blue*)))))
+                     (image/file () (resource-pathname "image/file.png"))
+                     (text/string (string+ " " (file-namestring pathname)) :font *font/ubuntu/regular/18* :font-color *color/solarized/blue*)))))
     (make-iomap/compound projection recursion input input-reference output nil)))
 
 (def printer file-system/directory->tree/node (projection recursion input input-reference)
@@ -58,7 +57,7 @@
                                (for element-iomap = (recurse-printer recursion element
                                                                      `((elt (the sequence (elements-of document)) ,index)
                                                                        ,@(typed-reference (form-type input) input-reference))))
-                               (setf (indentation-of (output-of element-iomap)) 5)
+                               (setf (indentation-of (output-of element-iomap)) 2)
                                (collect element-iomap)))
          (output-selection (pattern-case (reverse (selection-of input))
                              (((the sequence (elements-of (the file-system/directory document)))
@@ -71,10 +70,8 @@
                                           (the sequence (children-of (the tree/node document)))))))))
          (output (make-tree/node (list* (tree/leaf (:selection (butlast output-selection 2))
                                           (text/text ()
-                                            ;; TODO: icon
-                                            ;;(image/file () (resource-pathname "image/directory.png"))
-                                            ;;(text/spacing 5 :unit :pixel)
-                                            (text/string (last-elt (pathname-directory pathname)) :font *font/ubuntu/regular/18* :font-color *color/solarized/red*)))
+                                            (image/file () (resource-pathname "image/directory.png"))
+                                            (text/string (string+ " " (last-elt (pathname-directory pathname))) :font *font/ubuntu/regular/18* :font-color *color/solarized/red*)))
                                         (mapcar 'output-of element-iomaps))
                                  :selection output-selection)))
     (make-iomap/compound projection recursion input input-reference output element-iomaps)))
