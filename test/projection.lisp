@@ -59,11 +59,20 @@
                           (type-dispatching
                             (widget/scroll-pane (nesting
                                                   (widget->graphics)
-                                                  (sequential
-                                                    (nesting
-                                                      (document/search->text/text)
-                                                      projection)
-                                                    (make-test-projection/text->output))))
+                                                  (alternative
+                                                    (sequential
+                                                      (nesting
+                                                        (document/search->text/text)
+                                                        projection)
+                                                      (make-test-projection/text->output))
+                                                    (sequential
+                                                      (document/search->tree/node 'test-searcher)
+                                                      (recursive
+                                                        (type-dispatching
+                                                          (tree/base (tree->text))
+                                                          (text/text (preserving))
+                                                          (t projection)))
+                                                      (make-test-projection/text->output)))))
                             (widget/base (nesting
                                            (widget->graphics)
                                            (sequential
@@ -377,6 +386,37 @@
     ("javascript function definition" (make-javascript/definition/function "" nil nil))
     ("evaluator" (make-evaluator/evaluator (make-instance 'common-lisp/progn :body nil)))))
 
+(def function test-searcher (search instance)
+  (search-parts instance (lambda (instance)
+                           (typecase instance
+                             (test/check
+                              (string= search "is"))
+                             (json/null
+                              (search-ignorecase search (value-of instance)))
+                             (json/boolean
+                              (search-ignorecase search (if (value-p instance)
+                                                            (true-value-of instance)
+                                                            (false-value-of instance))))
+                             (json/number
+                              (search-ignorecase search (write-to-string(value-of instance))))
+                             (json/string
+                              (search-ignorecase search (value-of instance)))
+                             (json/object-entry
+                              (search-ignorecase search (key-of instance)))
+                             (common-lisp/constant
+                              (search-ignorecase search (write-to-string (value-of instance))))
+                             (common-lisp/variable-reference
+                              (search-ignorecase search (name-of (name-of (variable-of instance)))))
+                             (common-lisp/application
+                              (typecase (operator-of instance)
+                                (lisp-form/symbol
+                                 (search-ignorecase search (name-of (operator-of instance))))
+                                (common-lisp/function-reference
+                                 (search-ignorecase search (name-of (name-of (function-of (operator-of instance))))))))
+                             (common-lisp/function-definition
+                              (search-ignorecase search (name-of (name-of instance))))))
+                :slot-provider 'test-slot-provider))
+
 ;;;;;;
 ;;; Debug
 
@@ -600,7 +640,7 @@
   (sequential
     (make-test-projection/book->book)
     (make-test-projection/book->text)
-    ;; (word-wrapping 1280)
+    ;(word-wrapping 1280)
     (make-test-projection/text->output)))
 
 (def function make-test-projection/book->graphics/sorting ()
@@ -917,45 +957,6 @@
              (text/text->tree/leaf)))))
     (make-test-projection/tree->text)
     (make-test-projection/text->output)))
-
-(def function make-test-projection/common-lisp->graphics/search ()
-  (sequential
-    (document/search->tree/node (lambda (search instance)
-                                  (search-parts instance (lambda (instance)
-                                                           (typecase instance
-                                                             (test/check
-                                                              (string= search "is"))
-                                                             (common-lisp/constant
-                                                              (search-ignorecase search (write-to-string (value-of instance))))
-                                                             (common-lisp/variable-reference
-                                                              (search-ignorecase search (name-of (name-of (variable-of instance)))))
-                                                             (common-lisp/application
-                                                              (typecase (operator-of instance)
-                                                                (lisp-form/symbol
-                                                                 (search-ignorecase search (name-of (operator-of instance))))
-                                                                (common-lisp/function-reference
-                                                                 (search-ignorecase search (name-of (name-of (function-of (operator-of instance))))))))
-                                                             (common-lisp/function-definition
-                                                              (search-ignorecase search (name-of (name-of instance))))))
-                                                :slot-provider 'test-slot-provider)))
-    (recursive
-      (type-dispatching
-        (test/check (test/check->tree/node))
-        (common-lisp/variable-reference (preserving))
-        (common-lisp/function-reference (preserving))
-        (t (copying))))
-    (recursive (type-dispatching
-                 (common-lisp/base (common-lisp->lisp-form))
-                 (document/base (document->t 'test-factory))
-                 (t (copying))))
-    (recursive (type-dispatching
-                 (lisp-form/base (lisp-form->tree))
-                 (t (copying))))
-    (make-test-projection/tree->text)
-    (make-test-projection/text->output)))
-
-(def function make-test-projection/common-lisp->graphics/split ()
-  (make-test-projection/split (make-test-projection/common-lisp->graphics/search) (make-test-projection/common-lisp->graphics/test)))
 
 ;;;;;;
 ;;; Evaluator

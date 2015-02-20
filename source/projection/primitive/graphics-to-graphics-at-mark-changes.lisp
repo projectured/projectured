@@ -6,14 +6,6 @@
 
 (in-package :projectured)
 
-;;; TODO: both animation and debug draw!
-
-;;;;;;
-;;; IO map
-
-(def iomap iomap/graphics/canvas->graphics/canvas@mark-changes ()
-  ((elements :type sequence)))
-
 ;;;;;;
 ;;; Projection
 

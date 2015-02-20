@@ -25,7 +25,7 @@
 
 (def function make-test-document/search (content)
   (bind ((document
-          (document/search (:search "d")
+          (document/search (:search "")
             content)))
     (widget/shell ()
       (widget/composite (:location (make-2d 0 0) :selection '((the document/search (content-of (the widget/scroll-pane document)))
@@ -746,14 +746,6 @@
                                                                                                                                (make-common-lisp/constant 3628800)))
                                                                                            evaluator)))))
           evaluator)))))
-
-(def function make-test-document/common-lisp/search ()
-  (document/search ()
-    (make-test-document/common-lisp)))
-
-(def function make-test-document/common-lisp/split ()
-  (bind ((test-document (make-test-document/common-lisp/test #f)))
-    (make-test-document/split (document/search () test-document) test-document)))
 
 ;;;;;;
 ;;; Evaluator

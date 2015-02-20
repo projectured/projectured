@@ -76,9 +76,9 @@
                                                 (line-index 0)
                                                 (line-number-format-string (format nil "\~~~A,' D " (va line-number-length))))
                                            (text/map-split input #\NewLine
-                                                           (lambda (start-element-index start-character-index end-element-index end-character-index)
+                                                           (lambda (start-position end-position)
                                                              (bind ((line-number (format nil line-number-format-string (1+ line-index)))
-                                                                    (line (text/substring input start-element-index start-character-index end-element-index end-character-index)))
+                                                                    (line (text/substring input start-position end-position)))
                                                                (push (text/make-string line-number
                                                                                        :font (font-of projection)
                                                                                        :font-color *color/solarized/content/light*
@@ -88,7 +88,7 @@
                                                                (iter (for line-element-index :from 0)
                                                                      (for line-element :in-sequence (elements-of line))
                                                                      (push line-element elements))
-                                                               (push (text/make-string (string #\NewLine) :font *font/default* :font-color *color/default*) elements)
+                                                               (push (text/newline) elements)
                                                                (incf line-index))))
                                            (nreverse (rest elements))))
                                      :selection (as (labels ((map-character-index (character-index)

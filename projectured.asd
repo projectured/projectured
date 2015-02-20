@@ -115,6 +115,7 @@
                                                          (:file "file-system-to-tree")
                                                          (:file "graph-to-graphics")
                                                          (:file "graphics-to-graphics-at-cache-image")
+                                                         (:file "graphics-to-graphics-at-clip-changes")
                                                          (:file "graphics-to-graphics-at-mark-changes")
                                                          (:file "image-to-tree")
                                                          (:file "inliner")

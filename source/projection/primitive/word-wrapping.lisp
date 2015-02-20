@@ -159,36 +159,23 @@
 
 (def printer word-wrapping (projection recursion input input-reference)
   (declare (ignore input-reference))
-  (bind ((elements (labels ((find-line-start-element (element)
-                              (if (text/newline? (value-of element))
-                                  element
-                                  (aif (previous-element-of element)
-                                       (find-line-start-element it)
-                                       element)))
-                            (find-line-end-element (element)
-                              (if (text/newline? (value-of element))
-                                  element
-                                  (aif (next-element-of element)
-                                       (find-line-end-element it)
-                                       element)))
-                            (wrap-line (line-start-element line-end-element)
+  (bind ((elements (labels ((wrap-line (line-start-position line-end-position)
                               (iter (with x = 0)
+                                    (with wrap-width = (wrap-width-of projection))
                                     (with newline-insertion-indices = nil)
                                     (with output-character-index = 0)
-                                    (with wrap-width = (wrap-width-of projection))
-                                    (for (values start-element start-character-index)
-                                         :initially (values line-start-element 0)
-                                         :then (text/find input end-element-index end-character-index (lambda (c) (not (whitespace? c)))))
+                                    (for start-position :initially line-start-position :then (text/find input end-position (complement #'whitespace?)))
+                                    (while start-position)
                                     ;; TODO: stop at what?
-                                    #+nil(until (eq start-element line-end-element))
                                     (for whitespace-elements = (unless (first-iteration-p)
-                                                                 (elements-of (text/substring input end-element-index end-character-index start-element start-character-index))))
-                                    (for whitespace-width = (iter (with sum = 0) (for element :in-sequence whitespace-elements)
+                                                                 (elements-of (text/substring input end-position start-position))))
+                                    (for whitespace-width = (iter (with sum = 0)
+                                                                  (for element :in-sequence whitespace-elements)
                                                                   (typecase element
+                                                                    (text/newline
+                                                                     (setf x 0)
+                                                                     (setf sum 0))
                                                                     (text/string
-                                                                     (when (find #\NewLine (content-of element))
-                                                                       (setf x 0)
-                                                                       (setf sum 0))
                                                                      (incf sum (2d-x (measure-text (content-of element) (font-of element)))))
                                                                     (t
                                                                      ;; KLUDGE:
@@ -196,11 +183,12 @@
                                                                   (finally (return sum))))
                                     (incf x whitespace-width)
                                     (incf output-character-index (text/length (text/make-text whitespace-elements)))
-                                    ;; TODO: just append the vector
                                     (appending (coerce whitespace-elements 'list) :into output-elements)
-                                    (while start-element)
-                                    (for (values end-element-index end-character-index) = (text/find input start-element start-character-index 'whitespace?))
-                                    (for word-elements = (elements-of (text/substring input start-element start-character-index end-element-index end-character-index)))
+                                    ;; TODO: just append the vector
+                                    (until (text/position<= input line-end-position start-position))
+                                    (for end-position = (text/find input start-position #'whitespace?))
+                                    (while end-position)
+                                    (for word-elements = (elements-of (text/substring input start-position end-position)))
                                     (for word-width = (iter (for element :in-sequence word-elements)
                                                             (summing
                                                              (typecase element
@@ -212,20 +200,21 @@
                                       (setf x word-width)
                                       (push output-character-index newline-insertion-indices)
                                       (incf output-character-index)
-                                      (collect (text/make-string (string #\NewLine) :font *font/default* :font-color *color/default*) :into output-elements))
+                                      (collect (text/newline) :into output-elements))
                                     (incf output-character-index (text/length (text/make-text word-elements)))
                                     ;; TODO: just append the vector
                                     (appending (coerce word-elements 'list) :into output-elements)
-                                    (while end-element-index)
-                                    (finally (return (ll (elements-of (text/consolidate (text/make-text output-elements))))))))
-                            (make-element (element)
-                              (bind ((line-start-element (find-line-start-element element))
-                                     (line-end-element (find-line-end-element element))
-                                     (wrapped-elements (wrap-line line-start-element line-end-element)))
+                                    (finally (return (ll output-elements)))))
+                            (make-element (start-position)
+                              (bind ((line-start-position (text/line-start-position input start-position))
+                                     (line-end-position (text/line-end-position input start-position))
+                                     (wrapped-elements (wrap-line line-start-position line-end-position)))
                                 (make-computed-ll (as wrapped-elements)
-                                                  (as (awhen (previous-element-of line-start-element) (make-element (previous-element-of it))))
-                                                  (as (awhen (next-element-of line-end-element) (make-element it)))))))
-                     (append-ll (make-element (elements-of input)))))
+                                                  (as (awhen (text/previous-position input line-start-position)
+                                                        (make-element it)))
+                                                  (as (awhen (text/next-position input line-end-position)
+                                                        (make-element it)))))))
+                     (append-ll (make-element (text/origin-position input)))))
          (output (text/make-text elements)))
     (make-iomap 'iomap/word-wrapping
                 :projection projection :recursion recursion

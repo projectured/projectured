@@ -40,6 +40,7 @@
            (if display
                (bind ((surface (sdl:window (width-of display) (height-of display) :flags sdl-cffi::sdl-no-frame :double-buffer #t :title-caption "Projectional Editor")))
                  (setf (surface-of display) surface)
+                 (sdl:fill-surface sdl:*white* :surface surface)
                  (call-next-method))
                (call-next-method))))
     (sdl:quit-video)))
@@ -48,7 +49,6 @@
   (bind ((display (find-if (of-type 'device/display) (devices-of editor))))
     (if display
         (sdl:with-surface ((surface-of display))
-          (sdl:fill-surface sdl:*white*)
           (call-next-method)
           (when sdl:*default-display*
             (sdl:update-display)))

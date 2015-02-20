@@ -240,7 +240,7 @@
                                                                           (awhen (indentation-of (input-of (value-of current-element)))
                                                                             (return (+ result it)))
                                                                           (finally (return (+ result (aif (opening-delimiter-of input) (text/length it) 0))))))
-                                                  (indentation (indentation-of child-input))
+                                                  (indentation (when (typep child-input 'tree/base) (indentation-of child-input)))
                                                   (line-indentation (or indentation last-line-length))
                                                   (indentation-length (as (bind ((child-line-count (text/count-lines child-output)))
                                                                             (+ (* line-indentation (1- child-line-count))

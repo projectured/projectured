@@ -49,6 +49,35 @@
   `(make-projection/document/search->tree/node ,searcher))
 
 ;;;;;;
+;;; Forward mapper
+
+;;;;;;
+;;; Backward mapper
+
+(def function backward-mapper/document/search->tree/node (printer-iomap reference)
+  (bind ((projection (projection-of printer-iomap))
+         (recursion (recursion-of printer-iomap))
+         (printer-input (input-of printer-iomap)))
+    (pattern-case (reverse reference)
+      (((the sequence (children-of (the tree/node document)))
+        (the tree/leaf (elt (the sequence document) 0))
+        (the text/text (content-of (the tree/leaf document)))
+        (the text/text (text/subseq (the text/text document) ?start-index ?end-index)))
+       `((the string (subseq (the string document) ,?start-index ,?end-index))
+         (the string (search-of (the document/search document)))))
+      (((the sequence (children-of (the tree/node document)))
+        (the tree/node (elt (the sequence document) ?index))
+        (the sequence (children-of (the tree/node document)))
+        (the ?type (elt (the sequence document) 0))
+        . ?rest)
+       (values `((the ,(form-type (content-of printer-input)) (content-of (the document/search document))))
+               (reverse ?rest)
+               ;; TODO:
+               nil))
+      (?a
+       (append reference `((the tree/node (printer-output (the document/search document) ,projection ,recursion))))))))
+
+;;;;;;
 ;;; Printer
 
 (def printer document/nothing->tree/leaf (projection recursion input input-reference)
@@ -113,25 +142,22 @@
                      (return (values `(,@(reverse (subseq ?rest (length reference)))
                                          (the tree/node (elt (the sequence document) 0))
                                          (the sequence (children-of (the tree/node document)))
-                                         (the ?type (elt (the sequence document) ,(1+ index)))
+                                         (the ?type (elt (the sequence document) ,index))
                                          (the sequence (children-of (the tree/node document))))
                                      index)))))
             (((the tree/node (printer-output (the document/search document) ?projection ?recursion)) . ?rest)
              (when (and (eq projection ?projection) (eq recursion ?recursion))
                (reverse ?rest)))))
-         (font-color (if empty-search? (color/lighten *color/solarized/blue* 0.75) *color/solarized/blue*))
-         (output (make-tree/node (list* (tree/leaf (:selection (butlast output-selection 2))
-                                          (text/text (:selection (butlast output-selection 3))
-                                            (text/string (if empty-search? "enter search string" search) :font *font/liberation/serif/regular/24* :font-color font-color)))
-                                        (iter (for index :from 0)
-                                              (for reference :in result)
-                                              (collect (tree/node (:indentation 0 :selection (butlast output-selection 2))
-                                                         (bind ((content (eval-reference content (reference/flatten (reverse reference)))))
-                                                           (when (and (equal index selection-index) (typep content 'document))
-                                                             ;; KLUDGE:
-                                                             (setf (selection-of content) (butlast output-selection 4)))
-                                                           content)))))
-                                 :selection output-selection)))
+         (output (make-tree/node (iter (for index :from 0)
+                                       (for reference :in result)
+                                       (collect (tree/node (:indentation 0 :selection (butlast output-selection 2))
+                                                  (bind ((content (eval-reference content (reference/flatten (reverse reference)))))
+                                                    (when (typep content 'document)
+                                                      ;; KLUDGE:
+                                                      (setf (selection-of content) (when (eql index selection-index)
+                                                                                     (butlast output-selection 4))))
+                                                    content))))
+                                 :selection (when selection-index output-selection))))
     (make-iomap 'iomap/document/search->tree/node
                 :projection projection :recursion recursion
                 :input input :input-reference input-reference :output output
@@ -279,13 +305,25 @@
                                                     (the sequence (children-of (the tree/node document)))
                                                     (the ?type (elt (the sequence document) 0))
                                                     . ?rest)
-                                                   (bind ((index (1- ?index))
+                                                   (bind ((index ?index)
                                                           (content (content-of printer-input))
                                                           (reference (elt (result-of printer-iomap) index)))
                                                      (append (reverse ?rest) reference `((the ,(form-type content) (content-of (the document/search document)))))))
                                                   (?a
                                                    (append (selection-of operation) `((the tree/node (printer-output (the document/search document) ,projection ,recursion))))))
                                            (make-operation/replace-selection printer-input it)))
+                                        (operation/sequence/replace-range
+                                         (awhen (pattern-case (reverse (selection-of operation))
+                                                  (((the sequence (children-of (the tree/node document)))
+                                                    (the tree/node (elt (the sequence document) ?index))
+                                                    (the sequence (children-of (the tree/node document)))
+                                                    (the ?type (elt (the sequence document) 0))
+                                                    . ?rest)
+                                                   (bind ((index ?index)
+                                                          (content (content-of printer-input))
+                                                          (reference (elt (result-of printer-iomap) index)))
+                                                     (append (reverse ?rest) reference `((the ,(form-type content) (content-of (the document/search document))))))))
+                                           (make-operation/sequence/replace-range printer-input it (replacement-of operation))))
                                         (operation/text/replace-range
                                          (awhen (pattern-case (reverse (selection-of operation))
                                                   (((the sequence (children-of (the tree/node document)))
@@ -302,7 +340,7 @@
                                                     (the sequence (children-of (the tree/node document)))
                                                     (the ?type (elt (the sequence document) 0))
                                                     . ?rest)
-                                                   (bind ((index (1- ?index))
+                                                   (bind ((index ?index)
                                                           (content (content-of printer-input))
                                                           (reference (elt (result-of printer-iomap) index)))
                                                      (append (reverse ?rest) reference `((the ,(form-type content) (content-of (the document/search document))))))))
@@ -314,7 +352,7 @@
                                                     (the sequence (children-of (the tree/node document)))
                                                     (the ?type (elt (the sequence document) 0))
                                                     . ?rest)
-                                                   (bind ((index (1- ?index))
+                                                   (bind ((index ?index)
                                                           (content (content-of printer-input))
                                                           (reference (elt (result-of printer-iomap) index)))
                                                      (append (reverse ?rest) reference `((the ,(form-type content) (content-of (the document/search document))))))))

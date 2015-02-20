@@ -368,7 +368,7 @@
 (def function text/element-content (element)
   (if (typep element 'text/string)
       (content-of element)
-      (list nil)))
+      (list #\NewLine)))
 
 ;; TODO: remove and inline?
 (def function text/element-length (element)

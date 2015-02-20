@@ -11,8 +11,8 @@
 
 (def suite* (test/editor :in test))
 
-(def test test/editor/read-eval-print-loop (&key document projection wrap cache-graphics display-gestures display-selection mark-cached-graphics mark-graphics-changes profile (profile-reader profile) (profile-evaluator profile) (profile-printer profile))
-  (bind ((editor (make-editor :filename "/tmp/projectured.bmp"))
+(def test test/editor/read-eval-print-loop (&key document projection filename wrap display-gestures display-selection cache-graphics debug-cache-graphics clip-graphics-changes debug-clip-graphics-changes mark-graphics-changes profile (profile-reader profile) (profile-evaluator profile) (profile-printer profile))
+  (bind ((editor (make-editor :filename filename))
          (document (ecase wrap
                      ((nil)
                       document)
@@ -53,10 +53,19 @@
                                        (make-test-projection/ide projection))))
                               (when cache-graphics
                                 (list (recursive
-                                        (graphics->graphics@cache-graphics :debug mark-cached-graphics))))
+                                        (graphics->graphics@cache-graphics :debug debug-cache-graphics))))
                               (when mark-graphics-changes
                                 (list (recursive
-                                        (graphics->graphics@mark-changes))))))
+                                        (graphics->graphics@mark-changes))))
+                              (list (make-instance 'projection
+                                                   :reader (lambda (projection recursion input printer-iomap)
+                                                             (declare (ignore projection recursion printer-iomap))
+                                                             input)
+                                                   :printer (lambda (projection recursion input input-reference)
+                                                              (make-iomap/object projection recursion input input-reference (as (make-graphics/canvas (list (make-graphics/rectangle (make-2d 0 0) (make-2d 1280 720) :fill-color *color/white*) input)
+                                                                                                                                                      (make-2d 0 0)))))))
+                              (when clip-graphics-changes
+                                (list (graphics/canvas->graphics/canvas@clip-changes :debug debug-clip-graphics-changes)))))
          (projection (if (= 1 (length projections))
                          (first projections)
                          (make-projection/sequential projections))))
@@ -159,10 +168,6 @@
 (def editor test/editor/common-lisp/inliner (make-test-document/common-lisp) (make-test-projection/common-lisp/inliner->graphics))
 
 (def editor test/editor/common-lisp/test (make-test-document/common-lisp/test) (make-test-projection/common-lisp->graphics/test))
-
-(def editor test/editor/common-lisp/search (make-test-document/common-lisp/search) (make-test-projection/common-lisp->graphics/search))
-
-(def editor test/editor/common-lisp/split (make-test-document/common-lisp/split) (make-test-projection/common-lisp->graphics/split))
 
 (def editor test/editor/evaluator (make-test-document/evaluator) (make-test-projection/evaluator))
 
