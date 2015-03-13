@@ -137,6 +137,8 @@
 
 (def demo evaluator (make-test-document/evaluator) (make-test-projection/evaluator))
 
+(def demo sql (make-test-document/sql) (make-test-projection/sql->graphics))
+
 (def demo t/null (make-test-document/t/null) (make-test-projection/t->graphics/table))
 
 (def demo t/cons (make-test-document/t/cons) (make-test-projection/t->graphics/table))

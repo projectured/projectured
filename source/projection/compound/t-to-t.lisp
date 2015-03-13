@@ -324,6 +324,19 @@
   '(make-projection/common-lisp->lisp-form))
 
 ;;;;;;
+;;; SQL
+
+
+(def function make-projection/sql->tree ()
+  (type-dispatching
+    (sql/column-reference (make-projection/sql/column-reference->tree/leaf))
+    (sql/table-reference (make-projection/sql/table-reference->tree/leaf))
+    (sql/select (make-projection/sql/select->tree/node))))
+
+(def macro sql->tree ()
+  '(make-projection/sql->tree))
+
+;;;;;;
 ;;; Test
 
 (def function make-projection/test->tree ()

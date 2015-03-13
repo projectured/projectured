@@ -773,6 +773,18 @@
 (def function make-test-document/test ()
   (find-test 'test/factorial))
 
+;;;;;
+;;; SQL
+
+(def function make-test-document/sql ()
+  (sql/select ()
+    (list (sql/column-reference ()
+            (sql/column () "name" "varchar"))
+          (sql/column-reference ()
+            (sql/column () "age" "integer")))
+    (list (sql/table-reference ()
+            (sql/table () "person")))))
+
 ;;;;;;
 ;;; T
 
