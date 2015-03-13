@@ -28,10 +28,10 @@
 ;;; Printer
 
 (def printer invariably (projection recursion input input-reference)
-  (bind ((output-selection (pattern-case (reverse (selection-of input))
+  (bind ((output-selection (pattern-case (selection-of input)
                              (((the ?output-type (printer-output (the ?input-type document) ?projection ?recursion)) . ?rest)
                               (when (and (eq projection ?projection) (eq recursion ?recursion))
-                                (reverse ?rest)))))
+                                ?rest))))
          (output (output-of projection)))
     (set-selection output output-selection)
     (make-iomap/object projection recursion input input-reference output)))

@@ -7,7 +7,7 @@
 (in-package :projectured.test)
 
 ;;;;;;
-;;; Printer
+;;; Automated printer test suite
 
 (def suite* (test/printer :in test))
 
@@ -26,7 +26,7 @@
                             (finishes (run-read-evaluate-print-loop editor document projection))
                             (incf index))))))))
 
-(def test test/pringer/text->graphics (count offset)
+(def test test/printer/text->graphics (count offset)
   (test/printer/exhaustive (text->graphics)
                            (lambda (function)
                              (iter (for document-index :from 0 :below (expt 2 count))

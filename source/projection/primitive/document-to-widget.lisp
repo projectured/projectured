@@ -30,15 +30,15 @@
 (def function forward-mapper/document/search->widget/text (printer-iomap reference)
   (bind ((projection (projection-of printer-iomap))
          (recursion (recursion-of printer-iomap)))
-    (pattern-case (reverse reference)
+    (pattern-case reference
       (((the string (search-of (the document/search document)))
         (the string (subseq (the string document) ?start-index ?end-index)))
        (bind ((offset 8))
-         `((the text/text (text/subseq (the text/text document) ,(+ ?start-index offset) ,(+ ?end-index offset)))
-           (the text/text (content-of (the widget/text document))))))
+         `((the text/text (content-of (the widget/text document)))
+           (the text/text (text/subseq (the text/text document) ,(+ ?start-index offset) ,(+ ?end-index offset))))))
       (((the widget/text (printer-output (the document/search document) ?projection ?recursion)) . ?rest)
        (when (and (eq projection ?projection) (eq recursion ?recursion))
-         (reverse ?rest))))))
+         ?rest)))))
 
 ;;;;;;
 ;;; Backward mapper
@@ -47,17 +47,17 @@
   (bind ((printer-input (input-of printer-iomap))
          (projection (projection-of printer-iomap))
          (recursion (recursion-of printer-iomap)))
-    (pattern-case (reverse reference)
+    (pattern-case reference
       (((the text/text (content-of (the widget/text document)))
         (the text/text (text/subseq (the text/text document) ?start-index ?end-index)))
        (bind ((offset 8))
          (if (and (not (string= (search-of printer-input) ""))
                   (>= ?start-index 8))
-             `((the string (subseq (the string document) ,(- ?start-index offset) ,(- ?end-index offset)))
-               (the string (search-of (the document/search document))))
-             (append reference `((the widget/text (printer-output (the document/search document) ,projection ,recursion)))))))
+             `((the string (search-of (the document/search document)))
+               (the string (subseq (the string document) ,(- ?start-index offset) ,(- ?end-index offset))))
+             (append `((the widget/text (printer-output (the document/search document) ,projection ,recursion))) reference))))
       (?
-       (append reference `((the widget/text (printer-output (the document/search document) ,projection ,recursion))))))))
+       (append `((the widget/text (printer-output (the document/search document) ,projection ,recursion))) reference)))))
 
 ;;;;;;
 ;;; Printer
@@ -69,7 +69,7 @@
                                             (selection-of input)
                                             'forward-mapper/document/search->widget/text))
          (output (widget/text (:selection output-selection :location (make-2d 0 0) :margin (make-inset :all 5))
-                   (text/text (:selection (butlast output-selection))
+                   (text/text (:selection (nthcdr 1 output-selection))
                      (text/string "Search: " :font *font/ubuntu/regular/24* :font-color *color/solarized/gray*)
                      (text/string (if empty?
                                       "enter search text"
@@ -88,14 +88,14 @@
                              (declare (ignore child-selection child-iomap))
                              (typecase operation
                                (operation/text/replace-range
-                                (pattern-case (reverse selection)
+                                (pattern-case selection
                                   (((the string (search-of (the document/search document)))
                                     (the string (subseq (the string document) ?start-index ?end-index)))
                                    (make-operation/sequence/replace-range printer-input selection (replacement-of operation)))
                                   (((the widget/text (printer-output (the document/search document) ?projection ?recursion))
                                     . ?rest)
-                                   (make-operation/sequence/replace-range printer-input '((the string (subseq (the string document) 0 0))
-                                                                                          (the string (search-of (the document/search document))))
+                                   (make-operation/sequence/replace-range printer-input '((the string (search-of (the document/search document)))
+                                                                                          (the string (subseq (the string document) 0 0)))
                                                                           (replacement-of operation)))))))))
     (merge-commands (command/read-backward recursion input printer-iomap 'backward-mapper/document/search->widget/text operation-mapper)
                     (make-command/nothing (gesture-of input)))))

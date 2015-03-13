@@ -6,7 +6,12 @@
 
 (in-package :projectured.test)
 
-(def test test/graphics ()
+;;;;;;
+;;; Graphics test suite
+
+(def suite* (test/graphics :in test))
+
+(def test test/graphics/simple ()
   (unwind-protect
        (progn
          (sdl:init-sdl)

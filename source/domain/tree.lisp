@@ -12,7 +12,8 @@
 (def document tree/base ()
   ((opening-delimiter :type text/text)
    (closing-delimiter :type text/text)
-   (indentation :type integer)))
+   (indentation :type integer)
+   (padding :type inset)))
 
 (def document tree/leaf (tree/base)
   ((content :type t)))
@@ -84,6 +85,6 @@
   (notf (expanded-p (eval-reference (document-of operation) (reference/flatten (reverse (selection-of operation)))))))
 
 (def function tree/reference? (reference)
-  (pattern-case reference
+  (pattern-case (reverse reference)
     (((the ?type (?if (subtypep ?type 'tree/base)) ?a) . ?rest)
      #t)))

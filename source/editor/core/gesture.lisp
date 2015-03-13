@@ -77,8 +77,8 @@
 ;;; Gesture API implementation
 
 (def method print-object ((instance gesture/keyboard) stream)
-  (print-unreadable-object (instance stream :type #t :identity #f)
-    (princ (key-of instance) stream)))
+  (print-unreadable-object (instance stream :type #t :identity #t)
+    (princ (gesture/describe instance) stream)))
 
 (def method read-gesture ((event-queue event-queue))
   (bind ((events (events-of event-queue))

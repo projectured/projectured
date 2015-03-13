@@ -28,9 +28,9 @@
           (document/search (:search "")
             content)))
     (widget/shell ()
-      (widget/composite (:location (make-2d 0 0) :selection '((the document/search (content-of (the widget/scroll-pane document)))
+      (widget/composite (:location (make-2d 0 0) :selection '((the sequence (elements-of (the widget/composite document)))
                                                               (the widget/scroll-pane (elt (the sequence document) 0))
-                                                              (the sequence (elements-of (the widget/composite document)))))
+                                                              (the document/search (content-of (the widget/scroll-pane document)))))
         (widget/scroll-pane (:location (make-2d 0 0) :size (make-2d 1280 690) :margin (make-inset :all 5))
           document)
         (widget/composite (:location (make-2d 1000 0))
@@ -385,8 +385,8 @@
                                                   (text/text () (text/string "\"" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))
                              :closing-delimiter (when include-delimiters
                                                   (text/text () (text/string "\"" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)))
-                             :selection '((the text/text (text/subseq (the text/text document) 0 0))
-                                          (the text/text (content-of (the tree/leaf document)))))
+                             :selection '((the text/text (content-of (the tree/leaf document)))
+                                          (the text/text (text/subseq (the text/text document) 0 0))))
                    (text/text (:selection '((the text/text (text/subseq (the text/text document) 0 0))))
                      (text/string (format nil "Hello World ~{~A.~}" (reverse path)) :font *font/liberation/serif/regular/18* :font-color *color/solarized/content/darker*)))
                  (bind ((elements (list* (make-computed-ll (as (tree/leaf ()
@@ -408,8 +408,8 @@
                                    :separator (text/text () (text/string " " :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))
                                    :indentation 2
                                    :selection (append (selection-of (value-of origin-element))
-                                                      `((the ,(form-type (value-of origin-element)) (elt (the sequence document) ,origin-index))
-                                                        (the sequence (children-of (the tree/node document))))))))))
+                                                      `((the sequence (children-of (the tree/node document)))
+                                                        (the ,(form-type (value-of origin-element)) (elt (the sequence document) ,origin-index)))))))))
     (recurse depth nil)))
 
 ;;;;;;

@@ -29,7 +29,7 @@
 ;;;;;;
 ;;; API
 
-(def method run-read-evaluate-print-loop ((editor editor/sdl) document projection &key profile profile-reader profile-evaluator profile-printer)
+(def method run-read-evaluate-print-loop ((editor editor/sdl) document projection &key measure measure-reader measure-evaluator measure-printer)
   (unwind-protect
        (progn
          (sdl:init-sdl)
@@ -49,6 +49,7 @@
   (bind ((display (find-if (of-type 'device/display) (devices-of editor))))
     (if display
         (sdl:with-surface ((surface-of display))
+          (sdl:fill-surface sdl:*white*) ;; KLUDGE
           (call-next-method)
           (when sdl:*default-display*
             (sdl:update-display)))

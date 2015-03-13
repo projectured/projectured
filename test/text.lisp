@@ -7,7 +7,7 @@
 (in-package :projectured.test)
 
 ;;;;;;
-;;; Text test
+;;; Text domain test suite
 
 (def suite* (test/text :in test))
 

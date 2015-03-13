@@ -72,11 +72,12 @@
                                                                       ,@(typed-reference (form-type input) input-reference))))
          (output (widget/shell (:border (make-inset :all 5)
                                 :border-color *color/gray191*)
-                   (widget/split-pane (:selection '((the widget/split-pane (elt (the sequence document) 1))
-                                                    (the sequence (elements-of (the widget/split-pane document)))))
+                   (widget/split-pane (:selection '((the sequence (elements-of (the widget/split-pane document)))
+                                                    (the widget/split-pane (elt (the sequence document) 1))))
                      (output-of navigator-iomap)
-                     (widget/split-pane (:orientation :vertical :selection '((the widget/tabbed-pane (elt (the sequence document) 0))
-                                                                             (the sequence (elements-of (the widget/split-pane document)))))
+                     (widget/split-pane (:orientation :vertical
+                                         :selection '((the sequence (elements-of (the widget/split-pane document)))
+                                                      (the widget/tabbed-pane (elt (the sequence document) 0))))
                        (output-of editor-iomap)
                        (output-of console-iomap))))))
     (make-iomap/compound projection recursion input input-reference output (list navigator-iomap console-iomap editor-iomap))))
@@ -87,7 +88,7 @@
                               (collect (recurse-printer recursion folder `((elt (the sequence document) ,index)
                                                                            (the sequence (folders-of (the workbench/navigator document)))
                                                                            ,@(typed-reference (form-type input) input-reference))))))
-         (output (widget/title-pane (:title (text/text () (text/string "Navigator" :font *font/ubuntu/regular/18*))
+         (output (widget/title-pane (:title (text/text () (text/string "Navigator" :font *font/ubuntu/regular/24*))
                                      :title-fill-color *color/solarized/content/lighter*
                                      :border (make-inset :all 5)
                                      :border-color *color/solarized/content/lighter*)
@@ -100,7 +101,7 @@
 (def printer workbench/console->widget/title-pane (projection recursion input input-reference)
   (bind ((content-iomap (recurse-printer recursion (content-of input) `((content-of (the workbench/document document))
                                                                         ,@(typed-reference (form-type input) input-reference))))
-         (output (widget/title-pane (:title (text/text () (text/string "Console" :font *font/ubuntu/regular/18*))
+         (output (widget/title-pane (:title (text/text () (text/string "Console" :font *font/ubuntu/regular/24*))
                                      :title-fill-color *color/solarized/content/lighter*
                                      :border (make-inset :all 5)
                                      :border-color *color/solarized/content/lighter*)
@@ -118,7 +119,7 @@
                                                                                ,@(typed-reference (form-type input) input-reference))))))
          (output (make-widget/tabbed-pane (iter (for document :in-sequence (documents-of input))
                                                 (for document-iomap :in document-iomaps)
-                                                (collect (list (text/text () (text/string (title-of document) :font *font/ubuntu/regular/18*))
+                                                (collect (list (text/text () (text/string (title-of document) :font *font/ubuntu/regular/24*))
                                                                (output-of document-iomap))))
                                           0
                                           :border (make-inset :all 5)

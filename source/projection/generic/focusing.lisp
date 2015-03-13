@@ -21,7 +21,7 @@
   (make-projection 'focusing
                    :part-type part-type
                    :part part
-                   :part-evaluator (compile nil `(lambda (document) ,(reference/flatten (reverse part))))))
+                   :part-evaluator (compile nil `(lambda (document) ,(reference/flatten part)))))
 
 ;;;;;;
 ;;; Construction
@@ -40,7 +40,7 @@
   (bind ((projection (projection-of operation))
          (part (part-of operation)))
     (setf (part-of projection) part)
-    (setf (part-evaluator-of projection) (compile nil `(lambda (document) ,(reference/flatten (reverse part)))))))
+    (setf (part-evaluator-of projection) (compile nil `(lambda (document) ,(reference/flatten part))))))
 
 ;;;;;;
 ;;; Printer
@@ -59,16 +59,16 @@
      :operation (when (part-of projection)
                   (make-instance 'operation/focusing/replace-part
                                  :projection projection
-                                 :part (iter (for selection :on (rest (part-of projection)))
+                                 :part (iter (for selection :on (reverse (butlast (part-of projection))))
                                              (when (subtypep (second (first selection)) (part-type-of projection))
-                                               (return selection))))))
+                                               (return (reverse selection)))))))
     ((gesture/keyboard/key-press #\. :control)
      :domain "Focusing" :description "Moves the focus to the selection"
      :operation (make-instance 'operation/focusing/replace-part
                                :projection projection
-                               :part (iter (for selection :on (selection-of (input-of printer-iomap)))
+                               :part (iter (for selection :on (reverse (selection-of (input-of printer-iomap))))
                                            (when (subtypep (second (first selection)) (part-type-of projection))
-                                             (return selection)))))))
+                                             (return (reverse selection))))))))
 (def reader focusing (projection recursion input printer-iomap)
   (declare (ignore recursion))
   (merge-commands (focusing/read-command projection input printer-iomap)

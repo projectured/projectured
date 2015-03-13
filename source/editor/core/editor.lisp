@@ -23,7 +23,7 @@
 (def generic print-to-devices (editor document projection)
   (:documentation "Prints DOCUMENT to the output devices of EDITOR using PROJECTION. Has side effects on the state of the output devices of EDITOR."))
 
-(def generic run-read-evaluate-print-loop (editor document projection &key profile profile-reader profile-evaluator profile-printer)
+(def generic run-read-evaluate-print-loop (editor document projection &key measure measure-reader measure-evaluator measure-printer)
   (:documentation "Runs read-evaluate-print loop of EDITOR on DOCUMENT using PROJECTION. The loop first prints DOCUMENT to the output devices of EDITOR. Next it reads an operation from the input devices of EDITOR. Finally it evaluates the result of read operation and starts over. Has side effects continuously on the state of EDITOR and the content of DOCUMENT while running."))
 
 ;;;;;;
@@ -40,15 +40,15 @@
 ;;;;;;
 ;;; Editor API implementation
 
-(def method run-read-evaluate-print-loop ((editor editor) document projection &key profile (profile-reader profile) (profile-evaluator profile) (profile-printer profile))
+(def method run-read-evaluate-print-loop ((editor editor) document projection &key measure (measure-reader measure) (measure-evaluator measure) (measure-printer measure))
   (catch :quit-editor
-    (iter (with-measuring (:printer profile-printer)
+    (iter (with-measuring (:printer measure-printer)
             (editor.debug "Printing ~A to output devices" document)
             (print-to-devices editor document projection))
-          (for operation = (with-measuring (:reader profile-reader)
+          (for operation = (with-measuring (:reader measure-reader)
                              (editor.debug "Reading from input devices for ~A" document)
                              (read-from-devices editor document projection)))
-          (with-measuring (:evaluator profile-evaluator)
+          (with-measuring (:evaluator measure-evaluator)
             (editor.debug "Evaluating ~A on ~A" operation document)
             (run-operation operation)))))
 

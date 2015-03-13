@@ -61,13 +61,13 @@
   (make-instance 'json/string :value value :selection selection))
 
 (def function make-json/array (elements &key selection)
-  (make-instance 'json/array :elements (make-document/sequence elements :selection (butlast selection)) :selection selection))
+  (make-instance 'json/array :elements (ll elements) :selection selection))
 
 (def function make-json/object-entry (key value &key selection)
   (make-instance 'json/object-entry :key key :value value :selection selection))
 
 (def function make-json/object (entries &key selection)
-  (make-instance 'json/object :entries (make-document/sequence entries) :selection selection))
+  (make-instance 'json/object :entries (ll entries) :selection selection))
 
 ;;;;;;
 ;;; Construction

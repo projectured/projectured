@@ -90,10 +90,11 @@
                    (standard-object
                     (iter (with class = (class-of instance))
                           (for slot :in (funcall slot-provider instance))
-                          (for slot-value = (slot-value-using-class class instance slot))
-                          (for slot-reader = (find-slot-reader class slot))
-                          (recurse slot-value `((,slot-reader (the ,(form-type instance) document))
-                                                ,@(typed-reference (form-type instance) reference)))))))))
+                          (when (slot-boundp-using-class class instance slot)
+                            (for slot-value = (slot-value-using-class class instance slot))
+                            (for slot-reader = (find-slot-reader class slot))
+                            (recurse slot-value `((,slot-reader (the ,(form-type instance) document))
+                                                  ,@(typed-reference (form-type instance) reference))))))))))
       (recurse root nil))
     (nreverse result)))
 

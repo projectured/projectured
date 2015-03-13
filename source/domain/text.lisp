@@ -16,7 +16,8 @@
   ((font :type style/font)
    (font-color :type style/color)
    (fill-color :type style/color)
-   (line-color :type style/color)))
+   (line-color :type style/color)
+   (padding :type inset)))
 
 (def document text/newline (text/element)
   ((content (string #\NewLine) :type string :allocation :class :computed-in nil)))
@@ -34,26 +35,28 @@
 ;;;;;;
 ;;; Construction
 
-(def function text/make-newline (&key font)
-  (make-instance 'text/newline :font font))
+(def function text/make-newline (&key font padding)
+  (make-instance 'text/newline :font font :padding padding))
 
-(def function text/make-spacing (size &key font font-color fill-color line-color (unit :pixel))
+(def function text/make-spacing (size &key font font-color fill-color line-color (unit :pixel) padding)
   (make-instance 'text/spacing
                  :size size
                  :unit unit
                  :font font
                  :font-color font-color
                  :fill-color fill-color
-                 :line-color line-color))
+                 :line-color line-color
+                 :padding padding))
 
-(def function text/make-string (content &key font font-color fill-color line-color)
+(def function text/make-string (content &key font font-color fill-color line-color padding)
   (check-type content string)
   (make-instance 'text/string
                  :content content
                  :font font
                  :font-color font-color
                  :fill-color fill-color
-                 :line-color line-color))
+                 :line-color line-color
+                 :padding padding))
 
 (def function text/make-text (elements &key selection)
   (make-instance 'text/text :elements elements :selection selection))
@@ -61,14 +64,14 @@
 ;;;;;;
 ;;; Construction
 
-(def macro text/newline (&key font)
-  `(text/make-newline :font ,(or font '*font/default*)))
+(def macro text/newline (&key font padding)
+  `(text/make-newline :font ,(or font '*font/default*) :padding ,padding))
 
-(def macro text/spacing (size &key font font-color fill-color line-color unit)
-  `(text/make-spacing ,size :unit ,unit :font ,(or font '*font/default*) :font-color ,font-color :fill-color ,fill-color :line-color ,line-color))
+(def macro text/spacing (size &key unit font font-color fill-color line-color padding)
+  `(text/make-spacing ,size :unit ,unit :font ,(or font '*font/default*) :font-color ,font-color :fill-color ,fill-color :line-color ,line-color :padding ,padding))
 
-(def macro text/string (content &key font font-color fill-color line-color)
-  `(text/make-string ,content :font ,(or font '*font/default*) :font-color ,(or font-color '*color/default*) :fill-color ,fill-color :line-color ,line-color))
+(def macro text/string (content &key font font-color fill-color line-color padding)
+  `(text/make-string ,content :font ,(or font '*font/default*) :font-color ,(or font-color '*color/default*) :fill-color ,fill-color :line-color ,line-color :padding ,padding))
 
 (def macro text/text ((&key selection) &body elements)
   `(text/make-text (list ,@elements) :selection ,selection))
@@ -76,15 +79,15 @@
 ;;;;;;
 ;;; Construction
 
-(def function text/make-simple-text (content &key selection (font *font/default*) (font-color *color/default*) fill-color line-color)
+(def function text/make-simple-text (content &key selection (font *font/default*) (font-color *color/default*) fill-color line-color padding)
   (text/text (:selection selection)
-    (text/string content :font font :font-color font-color :fill-color fill-color :line-color line-color)))
+    (text/string content :font font :font-color font-color :fill-color fill-color :line-color line-color :padding padding)))
 
-(def function text/make-default-text (content default-content &key selection (font *font/default*) (font-color *color/default*) fill-color line-color)
+(def function text/make-default-text (content default-content &key selection (font *font/default*) (font-color *color/default*) fill-color line-color padding)
   (text/text (:selection selection)
     (if (zerop (length content))
-        (text/string default-content :font font :font-color (color/lighten font-color 0.75) :fill-color fill-color :line-color line-color)
-        (text/string content :font font :font-color font-color :fill-color fill-color :line-color line-color))))
+        (text/string default-content :font font :font-color (color/lighten font-color 0.75) :fill-color fill-color :line-color line-color :padding padding)
+        (text/string content :font font :font-color font-color :fill-color fill-color :line-color line-color :padding padding))))
 ;;;;;;
 ;;; Operation
 
@@ -285,7 +288,7 @@
       (iter (for element :initially (text/position-element (text/next-position text start-position)) :then (text/next-element text element))
             (for previous-element :previous element)
             (unless element
-              (return (text/make-position :element previous-element :index (length (content-of (text/element text previous-element))) :distance nil)))
+              (return (text/make-position :element previous-element :index (text/element-length (text/element text previous-element)) :distance nil)))
             (when (text/newline? (text/element text element))
               (return (text/make-position :element element :index 0 :distance nil))))))
 
@@ -318,7 +321,7 @@
     (when normalized-position
       (bind ((element (text/position-element normalized-position))
              (index (text/position-index normalized-position))
-             (string (content-of (text/element text element))))
+             (string (text/element-content (text/element text element))))
         (when (< index (length string))
           (elt string index))))))
 
@@ -429,13 +432,19 @@
                                       :font (font-of start-element)
                                       :font-color (font-color-of start-element)
                                       :fill-color (fill-color-of start-element)
-                                      :line-color (line-color-of start-element)))
+                                      :line-color (line-color-of start-element)
+                                      :padding (padding-of start-element)))
             (t start-element)))
         (text/make-text
          (append (bind ((string (subseq (text/element-content start-element) (text/position-index start-position) (text/element-length start-element))))
                    (unless (zerop (length string))
                      (list (typecase start-element
-                             (text/string (text/string string :font (font-of start-element) :font-color (font-color-of start-element) :fill-color (fill-color-of start-element) :line-color (line-color-of start-element)))
+                             (text/string (text/string string
+                                                       :font (font-of start-element)
+                                                       :font-color (font-color-of start-element)
+                                                       :fill-color (fill-color-of start-element)
+                                                       :line-color (line-color-of start-element)
+                                                       :padding (padding-of start-element)))
                              (t start-element)))))
                  (iter (for element :initially (text/next-element text (text/position-element start-position)) :then (text/next-element text element))
                        (until (eq element (text/position-element end-position)))
@@ -443,7 +452,12 @@
                  (bind ((string (subseq (text/element-content end-element) 0 (text/position-index end-position))))
                    (unless (zerop (length string))
                      (list (typecase end-element
-                             (text/string (text/string string :font (font-of end-element) :font-color (font-color-of end-element) :fill-color (fill-color-of end-element) :line-color (line-color-of end-element)))
+                             (text/string (text/string string
+                                                       :font (font-of end-element)
+                                                       :font-color (font-color-of end-element)
+                                                       :fill-color (fill-color-of end-element)
+                                                       :line-color (line-color-of end-element)
+                                                       :padding (padding-of end-element)))
                              (t end-element))))))))))
 
 (def function text/subseq (text start-character-index &optional (end-character-index (text/length text (text/origin-position text) (text/last-position text))))
@@ -507,7 +521,7 @@
   text)
 
 (def function text/reference? (reference)
-  (pattern-case reference
+  (pattern-case (reverse reference)
     (((the text/text (text/subseq (the text/text document) ?b ?a)) . ?rest)
      #t)))
 
@@ -522,20 +536,26 @@
                                  (eq (line-color-of element) (line-color-of last-string-element)))
                             (setf (content-of last-string-element) (concatenate 'string (content-of last-string-element) (content-of element)))
                             (collect (if (typep element 'text/string)
-                                         (setf last-string-element (text/make-string (copy-seq (content-of element)) :font (font-of element) :font-color (font-color-of element) :fill-color (fill-color-of element) :line-color (line-color-of element)))
+                                         (setf last-string-element (text/make-string (copy-seq (content-of element))
+                                                                                     :font (font-of element)
+                                                                                     :font-color (font-color-of element)
+                                                                                     :fill-color (fill-color-of element)
+                                                                                     :line-color (line-color-of element)
+                                                                                     :padding (padding-of element)))
                                          (progn
                                            (setf last-string-element nil)
                                            element))
                               :result-type vector)))
                   :selection (selection-of text)))
 
-(def function text/replace-style (text &key font font-color fill-color line-color)
+(def function text/replace-style (text &key font font-color fill-color line-color padding)
   (text/make-text (iter (for element :in (elements-of text))
                         (collect (text/string (content-of element)
                                               :font (or font (font-of element))
                                               :font-color (or font-color (font-color-of element))
                                               :fill-color (or fill-color (fill-color-of element))
-                                              :line-color (or line-color (line-color-of element)))))))
+                                              :line-color (or line-color (line-color-of element))
+                                              :padding (or padding (padding-of element)))))))
 
 ;; TODO: move and rename
 (def function make-command-help-text (command)
@@ -722,7 +742,7 @@
   (bind ((document (document-of operation))
          (selection (selection-of operation))
          (replacement (replacement-of operation)))
-    (pattern-case selection
+    (pattern-case (reverse selection)
       (((the text/text (text/subseq (the text/text document) ?start-character-index ?end-character-index)) . ?rest)
        (bind ((text-reference (reference/flatten (reverse ?rest)))
               (text (eval-reference document text-reference))
@@ -739,4 +759,4 @@
                             (subseq start-content 0 (text/position-index start-position))
                             replacement
                             (subseq start-content (+ (text/position-index start-position) (text/length text start-position end-position)))))
-         (set-selection document `((the text/text (text/subseq (the text/text document) ,new-character-index ,new-character-index)) ,@?rest)))))))
+         (set-selection document (append (reverse ?rest) `((the text/text (text/subseq (the text/text document) ,new-character-index ,new-character-index))))))))))

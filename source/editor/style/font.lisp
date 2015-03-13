@@ -49,7 +49,7 @@
 ;;;;;;
 ;;; Default
 
-(def font *font/default* ("font/UbuntuMono-R.ttf" 18))
+(def font *font/default* ("font/UbuntuMono-R.ttf" 24))
 
 ;;;;;;
 ;;; Inconsolata
@@ -70,6 +70,18 @@
 (def font *font/ubuntu/monospace/regular/18* ("font/UbuntuMono-R.ttf" 18))
 (def font *font/ubuntu/monospace/italic/18* ("font/UbuntuMono-RI.ttf" 18))
 (def font *font/ubuntu/monospace/bold/18* ("font/UbuntuMono-B.ttf" 18))
+
+(def font *font/ubuntu/monospace/regular/20* ("font/UbuntuMono-R.ttf" 20))
+(def font *font/ubuntu/monospace/italic/20* ("font/UbuntuMono-RI.ttf" 20))
+(def font *font/ubuntu/monospace/bold/20* ("font/UbuntuMono-B.ttf" 20))
+
+(def font *font/ubuntu/monospace/regular/22* ("font/UbuntuMono-R.ttf" 22))
+(def font *font/ubuntu/monospace/italic/22* ("font/UbuntuMono-RI.ttf" 22))
+(def font *font/ubuntu/monospace/bold/22* ("font/UbuntuMono-B.ttf" 22))
+
+(def font *font/ubuntu/monospace/regular/24* ("font/UbuntuMono-R.ttf" 24))
+(def font *font/ubuntu/monospace/italic/24* ("font/UbuntuMono-RI.ttf" 24))
+(def font *font/ubuntu/monospace/bold/24* ("font/UbuntuMono-B.ttf" 24))
 
 ;;;;;;
 ;;; Ubuntu

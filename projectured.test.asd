@@ -11,11 +11,13 @@
                :hu.dwim.computed-class+hu.dwim.logger
                :hu.dwim.stefil+hu.dwim.def+swank)
   :components ((:module "test"
-                :components ((:file "document" :depends-on ("suite"))
+                :components ((:file "demo" :depends-on ("document" "projection"))
+                             (:file "document" :depends-on ("suite"))
+                             (:file "editor" :depends-on ("projection"))
+                             (:file "graphics" :depends-on ("suite"))
+                             (:file "navigation" :depends-on ("package"))
                              (:file "package")
                              (:file "printer" :depends-on ("suite"))
                              (:file "projection" :depends-on ("document"))
-                             (:file "editor" :depends-on ("projection"))
-                             (:file "selection" :depends-on ("package"))
                              (:file "suite" :depends-on ("package"))
                              (:file "text" :depends-on ("suite"))))))

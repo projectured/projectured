@@ -153,37 +153,37 @@
                             (widget->graphics)
                             (reference-dispatching ()
                               ;; TODO: this is very fragile, create a class for tabbed-pane selectors would probably help
-                              (((the widget/label (elt (the sequence document) 0))
-                                (the sequence (elt (the sequence document) 0)))
+                              (((the sequence (elt (the sequence document) 0))
+                                (the widget/label (elt (the sequence document) 0)))
                                (recursive
                                  (type-dispatching
                                    (widget/base (widget/label->graphics/canvas))
                                    (text/base (text->graphics)))))
-                              (((the widget/label (elt (the sequence document) 0))
-                                (the sequence (elt (the sequence document) 1)))
+                              (((the sequence (elt (the sequence document) 1))
+                                (the widget/label (elt (the sequence document) 0)))
                                (recursive
                                  (type-dispatching
                                    (widget/base (widget/label->graphics/canvas))
                                    (text/base (text->graphics)))))
-                              (((the widget/label (elt (the sequence document) 0))
-                                (the sequence (elt (the sequence document) 2 )))
+                              (((the sequence (elt (the sequence document) 2 ))
+                                (the widget/label (elt (the sequence document) 0)))
                                (recursive
                                  (type-dispatching
                                    (widget/base (widget/label->graphics/canvas))
                                    (text/base (text->graphics)))))
-                              (((the widget/label (elt (the sequence document) 0))
-                                (the sequence (elt (the sequence document) 3)))
+                              (((the sequence (elt (the sequence document) 3))
+                                (the widget/label (elt (the sequence document) 0)))
                                (recursive
                                  (type-dispatching
                                    (widget/base (widget/label->graphics/canvas))
                                    (text/base (text->graphics)))))
-                              (((the widget/scroll-pane (elt (the sequence document) 1))
-                                (the sequence (elt (the sequence document) 0)))
+                              (((the sequence (elt (the sequence document) 0))
+                                (the widget/scroll-pane (elt (the sequence document) 1)))
                                (nesting
                                  (widget->graphics)
                                  projection))
-                              (((the widget/scroll-pane (elt (the sequence document) 1))
-                                (the sequence (elt (the sequence document) 1)))
+                              (((the sequence (elt (the sequence document) 1))
+                                (the widget/scroll-pane (elt (the sequence document) 1)))
                                (nesting
                                  (widget->graphics)
                                  (sequential
@@ -193,8 +193,8 @@
                                        (table/base (table->text))
                                        (t (preserving))))
                                    (make-test-projection/text->output))))
-                              (((the widget/scroll-pane (elt (the sequence document) 1))
-                                (the sequence (elt (the sequence document) 2)))
+                              (((the sequence (elt (the sequence document) 2))
+                                (the widget/scroll-pane (elt (the sequence document) 1)))
                                (nesting
                                  (widget->graphics)
                                  (sequential
@@ -204,21 +204,21 @@
                                        (table/base (table->text))
                                        (t (preserving))))
                                    (make-test-projection/text->output))))
-                              (((the widget/tabbed-pane (elt (the sequence document) 1))
-                                (the sequence (elt (the sequence document) 3)))
+                              (((the sequence (elt (the sequence document) 3))
+                                (the widget/tabbed-pane (elt (the sequence document) 1)))
                                (nesting
                                  (widget->graphics)
                                  ;; TODO: this is very fragile, create a class for tabbed-pane selectors would probably help
                                  ;; TODO: add more stages?
                                  (reference-dispatching ()
-                                   (((the widget/label (elt (the sequence document) 0))
-                                     (the sequence (elt (the sequence document) 0)))
+                                   (((the sequence (elt (the sequence document) 0))
+                                     (the widget/label (elt (the sequence document) 0)))
                                     (recursive
                                       (type-dispatching
                                         (widget/base (widget/label->graphics/canvas))
                                         (text/base (text->graphics)))))
-                                   (((the widget/scroll-pane (elt (the sequence document) 1))
-                                     (the sequence (elt (the sequence document) 0)))
+                                   (((the sequence (elt (the sequence document) 0))
+                                     (the widget/scroll-pane (elt (the sequence document) 1)))
                                     (nesting
                                       (widget->graphics)
                                       (sequential
@@ -249,14 +249,14 @@
                                 (widget->graphics)
                                 (reference-dispatching ()
                                   ;; TODO: this is very fragile, create a class for tabbed-pane selectors would probably help
-                                  (((the widget/label (elt (the sequence document) 0))
-                                    (the sequence (elt (the sequence document) 0)))
+                                  (((the sequence (elt (the sequence document) 0))
+                                    (the widget/label (elt (the sequence document) 0)))
                                    (recursive
                                      (type-dispatching
                                        (widget/base (widget/label->graphics/canvas))
                                        (text/base (text->graphics)))))
-                                  (((the widget/scroll-pane (elt (the sequence document) 1))
-                                    (the sequence (elt (the sequence document) 0)))
+                                  (((the sequence (elt (the sequence document) 0))
+                                    (the widget/scroll-pane (elt (the sequence document) 1)))
                                    (nesting
                                      (widget->graphics)
                                      projection)))))
@@ -291,23 +291,23 @@
 
 (def function test-factory (name)
   (completion-prefix-switch name
-    ("book" (book/book (:selection '((the string (subseq (the string document) 0 0))
-                                     (the string (title-of (the book/book document)))))))
-    ("chapter" (book/chapter (:selection '((the string (subseq (the string document) 0 0))
-                                           (the string (title-of (the book/chapter document)))))))
-    ("paragraph" (book/paragraph (:selection '((the text/text (text/subseq (the text/text document) 0 0))
-                                               (the text/text (content-of (the book/paragraph document)))))
-                   (text/text () (text/string "" :font *font/liberation/sans/regular/24* :font-color *color/solarized/content/darker*))))
-    ("list" (book/list (:selection '((the text/text (text/subseq (the text/text document) 0 0))
-                                     (the text/text (content-of (the book/paragraph document)))
+    ("book" (book/book (:selection '((the string (title-of (the book/book document)))
+                                     (the string (subseq (the string document) 0 0))))))
+    ("chapter" (book/chapter (:selection '((the string (title-of (the book/chapter document)))
+                                           (the string (subseq (the string document) 0 0))))))
+    ("paragraph" (book/paragraph (:selection '((the text/text (content-of (the book/paragraph document)))
+                                               (the text/text (text/subseq (the text/text document) 0 0))))
+                   (text/text () (text/string "" :font *font/liberation/serif/regular/24* :font-color *color/solarized/content/darker*))))
+    ("list" (book/list (:selection '((the sequence (elements-of (the book/list document)))
                                      (the book/paragraph (elt (the sequence document) 0))
-                                     (the sequence (elements-of (the book/list document)))))
-              (book/paragraph (:selection '((the text/text (text/subseq (the text/text document) 0 0))
-                                            (the text/text (content-of (the book/paragraph document)))))
-                (text/text () (text/string "" :font *font/liberation/sans/regular/24* :font-color *color/solarized/content/darker*)))))
-    ("picture" (book/picture (:selection '((the string (subseq (the string document) 0 0))
+                                     (the text/text (content-of (the book/paragraph document)))
+                                     (the text/text (text/subseq (the text/text document) 0 0))))
+              (book/paragraph (:selection '((the text/text (content-of (the book/paragraph document)))
+                                            (the text/text (text/subseq (the text/text document) 0 0))))
+                (text/text () (text/string "" :font *font/liberation/serif/regular/24* :font-color *color/solarized/content/darker*)))))
+    ("picture" (book/picture (:selection '((the image/file (content-of (the book/picture document)))
                                            (the string (filename-of (the image/file document)))
-                                           (the image/file (content-of (the book/picture document)))))
+                                           (the string (subseq (the string document) 0 0))))
                  (image/file () "")))
     ("text" (text/text (:selection '((the text/text (text/subseq (the text/text document) 0 0)))) (text/string "")))
     ;; TODO:
@@ -320,52 +320,50 @@
                    (text/text () (text/string ""))
                    #+nil
                    (document/nothing)))))
-    ("xml element" (xml/element ("" nil :selection '((the string (subseq (the string document) 0 0))
-                                                     (the string (xml/start-tag (the xml/element document)))))))
-    ("xml attribute" (xml/attribute (:selection '((the string (subseq (the string document) 0 0))
-                                                  (the string (name-of (the xml/attribute document))))) "" ""))
-    ("xml text" (xml/text (:selection '((the string (subseq (the string document) 0 0))
-                                        (the string (value-of (the xml/text document))))) ""))
-    ("css rule" (css/rule ("" :selection '((the string (subseq (the string document) 0 0))
-                                           (the string (selector-of (the css/rule document)))))))
-    ("css attribute" (css/attribute (:selection '((the string (subseq (the string document) 0 0))
-                                                  (the string (name-of (the css/attribute document))))) "" ""))
+    ("xml element" (xml/element ("" nil :selection '((the string (xml/start-tag (the xml/element document)))
+                                                     (the string (subseq (the string document) 0 0))))))
+    ("xml attribute" (xml/attribute (:selection '((the string (name-of (the xml/attribute document)))
+                                                  (the string (subseq (the string document) 0 0)))) "" ""))
+    ("xml text" (xml/text (:selection '((the string (value-of (the xml/text document)))
+                                        (the string (subseq (the string document) 0 0)))) ""))
+    ("css rule" (css/rule ("" :selection '((the string (selector-of (the css/rule document)))
+                                           (the string (subseq (the string document) 0 0))))))
+    ("css attribute" (css/attribute (:selection '((the string (name-of (the css/attribute document)))
+                                                  (the string (subseq (the string document) 0 0)))) "" ""))
     ("json null" (json/null ()))
     ("json false" (json/boolean () #f))
     ("json true" (json/boolean ()#t))
     ("json number" (json/number () 0))
     ("json string" (json/string () ""))
-    ("json array" (json/array (:selection '((the string (subseq (the string document) 0 0))
-                                            (the string (value-of (the json/insertion document)))
+    ("json array" (json/array (:selection '((the sequence (elements-of (the json/array document)))
                                             (the json/insertion (elt (the sequence document) 0))
-                                            (the sequence (elements-of (the json/array document)))))
-                    (json/insertion (:selection '((the string (subseq (the string document) 0 0))
-                                                (the string (value-of (the json/insertion document))))))))
-    ("json object entry" (json/object-entry (:selection '((the string (subseq (the string document) 0 0))
-                                                          (the string (key-of (the json/object-entry document))))) ""
-                                                          (json/insertion ())))
-    ("json object" (make-json/object (make-document/sequence (list (json/insertion (:selection '((the string (subseq (the string document) 0 0))
-                                                                                               (the string (value-of (the json/insertion document)))))))
-                                                             :selection '((the string (subseq (the string document) 0 0))
-                                                                          (the string (value-of (the json/insertion document)))
-                                                                          (the json/insertion (elt (the sequence document) 0))))
-                                     :selection '((the string (subseq (the string document) 0 0))
-                                                  (the string (value-of (the json/insertion document)))
+                                            (the string (value-of (the json/insertion document)))
+                                            (the string (subseq (the string document) 0 0))))
+                    (json/insertion (:selection '((the string (value-of (the json/insertion document)))
+                                                  (the string (subseq (the string document) 0 0)))))))
+    ("json object entry" (json/object-entry (:selection '((the string (key-of (the json/object-entry document)))
+                                                          (the string (subseq (the string document) 0 0))))
+                                            ""
+                                            (json/insertion ())))
+    ("json object" (make-json/object (list (json/insertion (:selection '((the string (value-of (the json/insertion document)))
+                                                                         (the string (subseq (the string document) 0 0))))))
+                                     :selection '((the sequence (entries-of (the json/object document)))
                                                   (the json/insertion (elt (the sequence document) 0))
-                                                  (the sequence (entries-of (the json/object document))))))
+                                                  (the string (value-of (the json/insertion document)))
+                                                  (the string (subseq (the string document) 0 0)))))
     ("common lisp comment" (make-instance 'common-lisp/comment
                                           :content (text/text () (text/string ""))
-                                          :selection '((the string (subseq (the string document) 0 0))
-                                                       (the string (content-of (the common-lisp/comment document))))))
+                                          :selection '((the string (content-of (the common-lisp/comment document)))
+                                                       (the string (subseq (the string document) 0 0)))))
     ("common lisp string" (make-instance 'common-lisp/constant
                                          :value ""
-                                         :selection '((the string (subseq (the string document) 0 0))
-                                                      (the string (value-of (the common-lisp/constant document))))))
+                                         :selection '((the string (value-of (the common-lisp/constant document)))
+                                                      (the string (subseq (the string document) 0 0)))))
     ("common lisp number" (make-instance 'common-lisp/constant
                                          :value 0
-                                         :selection '((the string (subseq (the string document) 0 0))
+                                         :selection '((the number (value-of (the common-lisp/constant document)))
                                                       (the string (write-to-string (the number document)))
-                                                      (the number (value-of (the common-lisp/constant document))))))
+                                                      (the string (subseq (the string document) 0 0)))))
     ("common lisp if" (make-instance 'common-lisp/if
                                      :condition (document/nothing)
                                      :then (document/nothing)
@@ -373,15 +371,15 @@
     ("common lisp progn" (make-instance 'common-lisp/progn :body nil))
     ("common lisp function application" (make-instance 'common-lisp/application
                                                        :operator (make-lisp-form/symbol "" "PROJECTURED.TEST")
-                                                       :selection '((the string (subseq (the string document) 0 0))
+                                                       :selection '((the lisp-form/symbol (operator-of (the common-lisp/application document)))
                                                                     (the string (name-of (the lisp-form/symbol document)))
-                                                                    (the lisp-form/symbol (operator-of (the common-lisp/application document))))
+                                                                    (the string (subseq (the string document) 0 0)))
                                                        :arguments nil))
     ("common lisp function definition" (make-instance 'common-lisp/function-definition
                                                       :name (make-lisp-form/symbol "" "PROJECTURED.TEST") :documentation "" :bindings nil :allow-other-keys #f :body nil
-                                                      :selection '((the string (subseq (the string document) 0 0))
+                                                      :selection '((the lisp-form/symbol (name-of (the common-lisp/function-definition document)))
                                                                    (the string (name-of (the lisp-form/symbol document)))
-                                                                   (the lisp-form/symbol (name-of (the common-lisp/function-definition document))))))
+                                                                   (the string (subseq (the string document) 0 0)))))
     ("javascript block" (make-javascript/statement/block nil))
     ("javascript function definition" (make-javascript/definition/function "" nil nil))
     ("evaluator" (make-evaluator/evaluator (make-instance 'common-lisp/progn :body nil)))))
@@ -733,8 +731,8 @@
 
 (def function make-test-projection/json->graphics/focusing ()
   (sequential
-    (focusing 'json/base '((the json/string (elt (the sequence document) 4))
-                           (the sequence (elements-of (the json/array document)))))
+    (focusing 'json/base '((the sequence (elements-of (the json/array document)))
+                           (the json/string (elt (the sequence document) 4))))
     (recursive (json->tree))
     (make-test-projection/tree->text)
     ;; (line-numbering)
@@ -1037,7 +1035,7 @@
       (type-dispatching
         (book/base (book->tree))
         (document/base (document->t 'test-factory))
-        (text/text (preserving))
+        (text/text (preserving) #+nil (word-wrapping 1000))
         (xml/base (xml->tree))
         (json/base (json->tree))
         (css/base (css->tree))
@@ -1161,8 +1159,8 @@
             (sequential
               #+nil
               (focusing '(or book/base xml/base json/base text/base)
-                        '((the json/string (elt (the sequence document) 4))
-                          (the sequence (elements-of (the json/array document)))))
+                        '((the sequence (elements-of (the json/array document)))
+                          (the json/string (elt (the sequence document) 4))))
               (recursive
                 (type-dispatching
                   (book/base (make-test-projection/book->text))

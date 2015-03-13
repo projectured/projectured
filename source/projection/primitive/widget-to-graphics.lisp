@@ -140,19 +140,19 @@
 (def function forward-mapper/widget/composite->graphics/canvas (printer-iomap reference)
   (bind ((projection (projection-of printer-iomap))
          (recursion (recursion-of printer-iomap)))
-    (pattern-case (reverse reference)
+    (pattern-case reference
       (((the sequence (elements-of (the widget/composite document)))
         (the ?type (elt (the sequence document) ?index))
         . ?rest)
        (bind ((element-iomap (elt (child-iomaps-of printer-iomap) ?index))
               (element (output-of element-iomap)))
-         (values `((the ,(form-type element) (elt (the sequence document) ,?index))
-                   (the sequence (elements-of (the graphics/canvas document))))
-                 (reverse ?rest)
+         (values `((the sequence (elements-of (the graphics/canvas document)))
+                   (the ,(form-type element) (elt (the sequence document) ,?index)))
+                 ?rest
                  element-iomap)))
       (((the graphics/canvas (printer-output (the widget/composite document) ?projection ?recursion)) . ?rest)
        (when (and (eq projection ?projection) (eq recursion ?recursion))
-         (reverse ?rest))))))
+         ?rest)))))
 
 (def function forward-mapper/widget/shell->graphics/canvas (printer-iomap reference)
   (bind ((projection (projection-of printer-iomap))
@@ -200,18 +200,18 @@
 (def function backward-mapper/widget/composite->graphics/canvas (printer-iomap reference)
   (bind ((projection (projection-of printer-iomap))
          (recursion (recursion-of printer-iomap)))
-    (pattern-case (reverse reference)
+    (pattern-case reference
       (((the sequence (elements-of (the graphics/canvas document)))
         (the ?type (elt (the sequence document) ?index))
         . ?rest)
        (bind ((element-iomap (elt (child-iomaps-of printer-iomap) ?index))
               (element (input-of element-iomap)))
-         (values `((the ,(form-type element) (elt (the sequence document) ,?index))
-                   (the sequence (elements-of (the widget/composite document))))
-                 (reverse ?rest)
+         (values `((the sequence (elements-of (the widget/composite document)))
+                   (the ,(form-type element) (elt (the sequence document) ,?index)))
+                 ?rest
                  element-iomap)))
       (?
-       (append reference `((the graphics/canvas (printer-output (the widget/composite document) ,projection ,recursion))))))))
+       (append `((the graphics/canvas (printer-output (the widget/composite document) ,projection ,recursion))) reference)))))
 
 (def function backward-mapper/widget/shell->graphics/canvas (printer-iomap reference)
   (bind ((projection (projection-of printer-iomap))
@@ -559,8 +559,8 @@
                           (awhen (and element-command
                                       (command/extend element-command
                                                       printer-input
-                                                      `((the ,(form-type element) (elt (the sequence document) ,index))
-                                                        (the sequence (elements-of (the widget/composite document))))))
+                                                      `((the sequence (elements-of (the widget/composite document)))
+                                                        (the ,(form-type element) (elt (the sequence document) ,index)))))
                             (return it)))
                     (make-command/nothing (gesture-of input)))))
 
@@ -580,13 +580,13 @@
                                                (operation/load-document operation)
                                                (operation/widget/tabbed-pane/select-page operation)
                                                (operation/replace-selection
-                                                (make-operation/replace-selection printer-input (append (selection-of operation) `((the ,(form-type (content-of printer-input)) (content-of (the widget/shell document)))))))
+                                                (make-operation/replace-selection printer-input (append `((the ,(form-type (content-of printer-input)) (content-of (the widget/shell document)))) (selection-of operation))))
                                                (operation/sequence/replace-range
-                                                (make-operation/sequence/replace-range printer-input (append (selection-of operation) `((the ,(form-type (content-of printer-input)) (content-of (the widget/shell document))))) (replacement-of operation)))
+                                                (make-operation/sequence/replace-range printer-input (append `((the ,(form-type (content-of printer-input)) (content-of (the widget/shell document)))) (selection-of operation)) (replacement-of operation)))
                                                (operation/number/replace-range
-                                                (make-operation/number/replace-range printer-input (append (selection-of operation) `((the ,(form-type (content-of printer-input)) (content-of (the widget/shell document))))) (replacement-of operation)))
+                                                (make-operation/number/replace-range printer-input (append `((the ,(form-type (content-of printer-input)) (content-of (the widget/shell document)))) (selection-of operation)) (replacement-of operation)))
                                                (operation/replace-target
-                                                (make-operation/replace-target printer-input (append (selection-of operation) `((the ,(form-type (content-of printer-input)) (content-of (the widget/shell document))))) (replacement-of operation)))
+                                                (make-operation/replace-target printer-input (append `((the ,(form-type (content-of printer-input)) (content-of (the widget/shell document)))) (selection-of operation)) (replacement-of operation)))
                                                (operation/focusing/replace-part
                                                 operation)
                                                (operation/show-context-sensitive-help
@@ -635,7 +635,7 @@
   (bind ((printer-input (input-of printer-iomap))
          (gesture (gesture-of input)))
     (merge-commands (if (typep (gesture-of input) 'gesture/mouse)
-                        (pattern-case (reverse (make-reference (output-of printer-iomap) (mouse-position) nil))
+                        (pattern-case (make-reference (output-of printer-iomap) (mouse-position) nil)
                           (((the sequence (elements-of (the graphics/canvas document)))
                             (the graphics/canvas (elt (the sequence document) ?index))
                             . ?rest)
@@ -657,7 +657,7 @@
                                            (operation/extend printer-input element-path (operation-of content-command))
                                            :domain (domain-of content-command)
                                            :description (description-of content-command)))))
-                        (pattern-case (reverse (selection-of printer-input))
+                        (pattern-case (selection-of printer-input)
                           (((the sequence (elements-of (the widget/split-pane document)))
                             (the ?type (elt (the sequence document) ?index))
                             . ?rest)
@@ -691,7 +691,7 @@
     (merge-commands (gesture-case (gesture-of input)
                       ((make-instance 'gesture/mouse/button/click :button :button-left :modifiers nil)
                        :domain "Widget" :description "Selects the page in the tabbed pane where the mouse is pointing at"
-                       :operation (pattern-case (reverse (make-reference (output-of printer-iomap) (location-of (gesture-of input)) nil))
+                       :operation (pattern-case (make-reference (output-of printer-iomap) (location-of (gesture-of input)) nil)
                                     (((the sequence (elements-of (the graphics/canvas document)))
                                       (the ?type (elt (the sequence document) ?index))
                                       . ?rest)
@@ -702,7 +702,7 @@
                                                       :selected-index (floor ?index 3))))))
                       ((make-instance 'gesture/mouse/button/click :button :button-left :modifiers nil)
                        :domain "Widget" :description "Closes the page in the tabbed pane where the mouse is pointing at"
-                       :operation (pattern-case (reverse (make-reference (output-of printer-iomap) (location-of (gesture-of input)) nil))
+                       :operation (pattern-case (make-reference (output-of printer-iomap) (location-of (gesture-of input)) nil)
                                     (((the sequence (elements-of (the graphics/canvas document)))
                                       (the ?type (elt (the sequence document) ?index))
                                       . ?rest)
@@ -727,9 +727,9 @@
                     (when (selector-element-pairs-of printer-input)
                       (bind ((element (second (elt (selector-element-pairs-of printer-input) (selected-index-of printer-input))))
                              (element-type (form-type element))
-                             (element-reference `((the ,element-type (elt (the sequence document) 1))
+                             (element-reference `((the sequence (selector-element-pairs-of (the widget/tabbed-pane document)))
                                                   (the sequence (elt (the sequence document) ,(selected-index-of printer-input)))
-                                                  (the sequence (selector-element-pairs-of (the widget/tabbed-pane document)))))
+                                                  (the ,element-type (elt (the sequence document) 1))))
                              (child-input (if (typep gesture 'gesture/mouse/button/click)
                                               ;; TODO: width
                                               (make-command (make-instance 'gesture/mouse/button/click :modifiers (modifiers-of gesture) :button (button-of gesture) :location (- (location-of (gesture-of input)) (make-2d 0 40)))

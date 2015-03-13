@@ -83,24 +83,23 @@
   (declare (ignore projection))
   (merge-commands (command/read-backward recursion input printer-iomap
                                          (lambda (printer-iomap selection)
-                                           (bind ((printer-input (input-of printer-iomap))
-                                                  (reverse-selection (reverse selection)))
+                                           (bind ((printer-input (input-of printer-iomap)))
                                              (etypecase printer-input
                                                (number selection)
                                                (string selection)
                                                (sequence
-                                                (pattern-case reverse-selection
+                                                (pattern-case selection
                                                   (((the ?type (elt (the sequence document) ?index)) . ?rest)
-                                                   (values (list (first reverse-selection)) (reverse ?rest) (elt (child-iomaps-of printer-iomap) ?index)))
+                                                   (values (list (first selection)) ?rest (elt (child-iomaps-of printer-iomap) ?index)))
                                                   (?a selection)))
                                                (standard-object
-                                                (pattern-case reverse-selection
+                                                (pattern-case selection
                                                   (((the ?type (?reader (the ?input-type document))) . ?rest)
                                                    (bind ((class (class-of printer-input))
                                                           (slots (remove-if (lambda (slot) (member (slot-definition-name slot) '(selection))) (class-slots class)))
                                                           (slot-index (position ?reader slots :key (curry 'find-slot-reader class)))
                                                           (slot-value-iomap (va (elt (slot-value-iomaps-of printer-iomap) slot-index))))
-                                                     (values (list (first reverse-selection)) (reverse ?rest) slot-value-iomap)))
+                                                     (values (list (first selection)) ?rest slot-value-iomap)))
                                                   (?a selection))))))
                                          nil)
                   (make-command/nothing (gesture-of input))))

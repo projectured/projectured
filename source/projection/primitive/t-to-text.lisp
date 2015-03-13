@@ -64,29 +64,29 @@
 ;;; Printer
 
 (def printer t/null->text/text (projection recursion input input-reference)
-  (bind ((output (text/text () (text/string "NIL" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/red*))))
+  (bind ((output (text/text () (text/string "NIL" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/red*))))
     (make-iomap/object projection recursion input input-reference output)))
 
 (def printer t/number->text/text (projection recursion input input-reference)
-  (bind ((output (text/text () (text/string (write-to-string input) :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/magenta*))))
+  (bind ((output (text/text () (text/string (write-to-string input) :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/magenta*))))
     (make-iomap/object projection recursion input input-reference output)))
 
 (def printer t/string->text/text (projection recursion input input-reference)
   (bind ((output (text/text ()
-                   (text/string "\"" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)
-                   (text/string input :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/green*)
-                   (text/string "\"" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))))
+                   (text/string "\"" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*)
+                   (text/string input :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/green*)
+                   (text/string "\"" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))))
     (make-iomap/compound projection recursion input input-reference output nil)))
 
 (def printer t/symbol->text/text (projection recursion input input-reference)
-  (bind ((output (text/text () (text/string (symbol-name input) :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/green*))))
+  (bind ((output (text/text () (text/string (symbol-name input) :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/green*))))
     (make-iomap/object projection recursion input input-reference output)))
 
 (def printer t/pathname->text/text (projection recursion input input-reference)
   (bind ((output (text/text ()
-                   (text/string "#P\"" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*)
-                   (text/string (princ-to-string input) :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/green*)
-                   (text/string "\"" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/gray*))))
+                   (text/string "#P\"" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*)
+                   (text/string (princ-to-string input) :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/green*)
+                   (text/string "\"" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))))
     (make-iomap/object projection recursion input input-reference output)))
 
 ;;;;;;

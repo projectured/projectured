@@ -90,10 +90,10 @@
 
 (def function make-inset (&key top bottom left right horizontal vertical all)
   (make-instance 'inset
-                 :top (or top vertical all)
-                 :bottom (or bottom vertical all)
-                 :left (or left horizontal all)
-                 :right (or right horizontal all)))
+                 :top (or top vertical all 0)
+                 :bottom (or bottom vertical all 0)
+                 :left (or left horizontal all 0)
+                 :right (or right horizontal all 0)))
 
 (def function make-widget/label (location content &rest args &key margin margin-color border border-color padding padding-color)
   (declare (ignore margin margin-color border border-color padding padding-color))

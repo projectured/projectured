@@ -301,9 +301,9 @@
     (not-yet-implemented)))
 
 (def methods make-reference
-    (:method :around ((instance graphics/base) location reference)
-             (when (rectangle-contains-point? (make-bounding-rectangle instance) location)
-               (call-next-method)))
+  (:method :around ((instance graphics/base) location reference)
+    (when (rectangle-contains-point? (make-bounding-rectangle instance) location)
+      (call-next-method)))
 
   (:method ((instance graphics/point) location reference)
     nil)
@@ -312,7 +312,7 @@
     nil)
 
   (:method ((instance graphics/rectangle) location reference)
-    (typed-reference 'graphics/rectangle reference))
+    reference)
 
   (:method ((instance graphics/polygon) location reference)
     (not-yet-implemented))
@@ -331,25 +331,25 @@
           (for size = (measure-text (subseq text 0 index) font))
           (when (rectangle-contains-point? (make-rectangle (location-of instance) size) location)
             (return
-              `((the string (subseq (the string document) ,(1- index) ,(1- index)))
-                (the string (text-of (the graphics/text document)))
-                ,@(typed-reference 'graphics/text reference))))))
+              (append reference
+                      `((the string (text-of (the graphics/text document)))
+                        (the string (subseq (the string document) ,(1- index) ,(1- index)))))))))
 
   (:method ((instance graphics/image) location reference)
-    (typed-reference (form-type instance) reference))
+    reference)
 
   (:method ((instance graphics/viewport) location reference)
     (make-reference (content-of instance) (- location (location-of instance))
-                    `((content-of (the graphics/viewport document))
-                      ,@(typed-reference 'graphics/viewport reference))))
+                    (append reference
+                            `((the ,(form-type (content-of instance)) (content-of (the graphics/viewport document)))))))
 
   (:method ((instance graphics/canvas) location reference)
     (iter (for index :from 0)
           (for element :in-sequence (elements-of instance))
           (thereis (make-reference element (- location (location-of instance))
-                                   `((elt (the sequence document) ,index)
-                                     (the sequence (elements-of (the graphics/canvas document)))
-                                     ,@(typed-reference 'graphics/canvas reference)))))))
+                                   (append reference
+                                           `((the sequence (elements-of (the graphics/canvas document)))
+                                             (the ,(form-type element) (elt (the sequence document) ,index)))))))))
 
 ;;;;;;
 ;;; Graphics operation classes

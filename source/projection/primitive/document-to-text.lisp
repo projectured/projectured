@@ -51,8 +51,8 @@
      (bind ((start-index (document/search->text/text/map-backward (line-iomaps-of printer-iomap) ?start-index))
             (end-index (document/search->text/text/map-backward (line-iomaps-of printer-iomap) ?end-index)))
        (when (and start-index end-index)
-         `((the text/text (text/subseq (the text/text document) ,start-index ,end-index))
-           (the text/text (content-of (the document/search document)))))))))
+         `((the text/text (content-of (the document/search document)))
+           (the text/text (text/subseq (the text/text document) ,start-index ,end-index))))))))
 
 ;;;;;;
 ;;; Printer

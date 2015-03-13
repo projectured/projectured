@@ -50,7 +50,10 @@
                           (maximize (2d-y (measure-text " " (font-of text-element)))))
                          (text/spacing)
                          (text/string
-                          (maximize (2d-y (measure-text " " (font-of text-element)))))
+                          (maximize (+ (2d-y (measure-text " " (font-of text-element)))
+                                       (aif (padding-of text-element)
+                                            (inset/height it)
+                                            0))))
                          (image/file
                              (bind ((image (make-graphics/image (make-2d 0 0) text-element))
                                     (size (size-of (make-bounding-rectangle image))))
@@ -166,7 +169,8 @@
                                                           (collect (make-graphics/rectangle (make-2d x 0) (make-2d (2d-x size) line-height) :fill-color it)))
                                                         (push graphics-element-index graphics-element-indices)
                                                         (incf graphics-element-index)
-                                                        (collect (make-graphics/text (make-2d x (- line-height (2d-y size))) content
+                                                        (collect (make-graphics/text (make-2d x (- line-height (2d-y size) (aif (padding-of text-element) (bottom-of it) 0)))
+                                                                                     content
                                                                                      :font (font-of text-element)
                                                                                      :font-color (font-color-of text-element)
                                                                                      :fill-color (fill-color-of text-element)))
@@ -224,7 +228,7 @@
   (bind ((operation (operation-of command)))
     (awhen (typecase operation
              (operation/replace-selection
-              (pattern-case (selection-of operation)
+              (pattern-case (reverse (selection-of operation))
                 (((the string (subseq (the string document) ?graphics-start-character-index ?graphics-end-character-index))
                   (the string (text-of (the graphics/text document)))
                   (the graphics/text (elt (the sequence document) ?graphics-element-index))
@@ -238,7 +242,7 @@
                                            (+ ?graphics-start-character-index (line-start-character-index-of line-iomap) (elt (first-character-indices-of line-iomap) position)))))
                    (make-operation/replace-selection (input-of printer-iomap) `((the text/text (text/subseq (the text/text document) ,character-index ,character-index))))))))
              (operation/describe
-              (pattern-case (selection-of operation)
+              (pattern-case (reverse (selection-of operation))
                 (((the string (subseq (the string document) ?graphics-start-character-index ?graphics-end-character-index))
                   (the string (text-of (the graphics/text document)))
                   (the graphics/text (elt (the sequence document) ?graphics-element-index))

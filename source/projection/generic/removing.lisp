@@ -56,10 +56,10 @@
                                 (finally (nreversef input-indices))))
          (output (etypecase input
                    (document/sequence
-                       (bind ((output-selection (pattern-case (reverse (selection-of input))
+                       (bind ((output-selection (pattern-case (selection-of input)
                                                   (((the ?element-type (elt (the sequence document) ?element-index))
                                                     . ?rest)
-                                                   (append (reverse ?rest) `((the ,?element-type (elt (the sequence document) ,(position ?element-index input-indices)))))))))
+                                                   (append `((the ,?element-type (elt (the sequence document) ,(position ?element-index input-indices)))) ?rest)))))
                          (make-document/sequence output-elements :selection output-selection)))
                    (sequence output-elements))))
     (make-iomap 'iomap/removing
@@ -81,15 +81,15 @@
                                (operation/functional operation)
                                (operation/replace-selection
                                 (awhen (when (typep printer-input 'document/sequence)
-                                         (pattern-case (reverse (selection-of operation))
+                                         (pattern-case (selection-of operation)
                                            (((the ?element-type (elt (the sequence document) ?element-index)) . ?rest)
-                                            (append (reverse ?rest) `((the ,?element-type (elt (the sequence document) ,(elt (input-indices-of printer-iomap) ?element-index))))))))
+                                            (append `((the ,?element-type (elt (the sequence document) ,(elt (input-indices-of printer-iomap) ?element-index)))) ?rest))))
                                   (make-operation/replace-selection printer-input it)))
                                (operation/sequence/replace-range
                                 (awhen (when (typep printer-input 'document/sequence)
-                                         (pattern-case (reverse (selection-of operation))
+                                         (pattern-case (selection-of operation)
                                            (((the ?element-type (elt (the sequence document) ?element-index)) . ?rest)
-                                            (append (reverse ?rest) `((the ,?element-type (elt (the sequence document) ,(elt (input-indices-of printer-iomap) ?element-index))))))))
+                                            (append `((the ,?element-type (elt (the sequence document) ,(elt (input-indices-of printer-iomap) ?element-index)))) ?rest))))
                                   (make-operation/sequence/replace-range printer-input it (replacement-of operation))))
                                (operation/compound
                                 (bind ((operations (mapcar #'recurse (elements-of operation))))

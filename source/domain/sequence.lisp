@@ -106,7 +106,7 @@
 
 (def method run-operation ((operation operation/sequence/replace-range))
   (bind (((:values reference start end)
-          (pattern-case (selection-of operation)
+          (pattern-case (reverse (selection-of operation))
             (((the string (subseq (the ?type (?if (subtypep ?type 'string)) ?a) ?b ?c)) . ?rest)
              (values `(,@(reverse ?rest) (the string ,?a)) ?b ?c))
             (((the sequence (subseq (the ?type (?if (subtypep ?type 'sequence)) ?a) ?b ?c)) . ?rest)
@@ -140,8 +140,8 @@
                                                        (if (eq 'sequence (form-type new-sequence))
                                                            (when (<= 0 start (1- (length new-sequence)))
                                                              (bind ((type (form-type (elt new-sequence start))))
-                                                               `(#+nil (the ,type document) ;; TODO: to make delete from sequence work, but breaks insertion
-                                                                 (the ,type (elt (the ,(form-type old-sequence) document) ,start))
-                                                                 ,@(rest (reverse reference)))))
-                                                           `((the ,(form-type new-sequence) (subseq (the ,(form-type old-sequence) document) ,index ,index))
-                                                             ,@(rest (reverse reference)))))))))
+                                                               (append (butlast reference)
+                                                                       `(#+nil (the ,type document) ;; TODO: to make delete from sequence work, but breaks insertion
+                                                                         (the ,type (elt (the ,(form-type old-sequence) document) ,start))))))
+                                                           (append (butlast reference)
+                                                                   `((the ,(form-type new-sequence) (subseq (the ,(form-type old-sequence) document) ,index ,index))))))))))

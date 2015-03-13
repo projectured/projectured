@@ -156,22 +156,22 @@
                ((or operation/quit operation/functional operation/save-document operation/load-document operation/widget/scroll-pane/scroll operation/widget/tabbed-pane/select-page operation/select-next-alternative operation/focusing/replace-part) operation)
                ;; TODO: base type for these ones with 1 reference?
                (operation/replace-selection
-                (make-operation/replace-selection printer-input (append (selection-of operation) path)))
+                (make-operation/replace-selection printer-input (append path (selection-of operation))))
                (operation/sequence/replace-range
-                (make-operation/sequence/replace-range printer-input (append (selection-of operation) path) (replacement-of operation)))
+                (make-operation/sequence/replace-range printer-input (append path (selection-of operation)) (replacement-of operation)))
                (operation/number/replace-range
-                (make-operation/number/replace-range printer-input (append (selection-of operation) path) (replacement-of operation)))
+                (make-operation/number/replace-range printer-input (append path (selection-of operation)) (replacement-of operation)))
                (operation/text/replace-range
-                (make-operation/text/replace-range printer-input (append (selection-of operation) path) (replacement-of operation)))
+                (make-operation/text/replace-range printer-input (append path (selection-of operation)) (replacement-of operation)))
                (operation/replace-target
-                (make-operation/replace-target printer-input (append (selection-of operation) path) (replacement-of operation)))
+                (make-operation/replace-target printer-input (append path (selection-of operation)) (replacement-of operation)))
                (operation/describe
-                (make-operation/describe (append (selection-of operation) path)))
+                (make-operation/describe (append path (selection-of operation))))
                (operation/show-context-sensitive-help
                 (make-instance 'operation/show-context-sensitive-help
                                :commands (iter (for command :in (commands-of operation))
-                                               (awhen (recurse (operation-of command))
-                                                 (collect (make-command/clone command it))))))
+                                               (awhen (command/extend command printer-input path)
+                                                 (collect it)))))
                (operation/compound
                 (bind ((operations (mapcar #'recurse (elements-of operation))))
                   (unless (some 'null operations)
@@ -186,7 +186,7 @@
                  (operation/replace-selection
                   (bind (((:values selection child-selection child-iomap) (funcall backward-mapper printer-iomap (selection-of operation))))
                     (or (when operation-mapper (funcall operation-mapper operation selection child-selection child-iomap))
-                        (if child-iomap
+                        (if (and child-iomap child-selection)
                             (bind ((input-child-operation (make-operation/replace-selection (input-of child-iomap) child-selection))
                                    (input-child-command (make-command/clone input input-child-operation))
                                    (output-child-command (recurse-reader recursion input-child-command child-iomap))
@@ -196,7 +196,7 @@
                  (operation/replace-target
                   (bind (((:values selection child-selection child-iomap) (funcall backward-mapper printer-iomap (selection-of operation))))
                     (or (when operation-mapper (funcall operation-mapper operation selection child-selection child-iomap))
-                        (if child-iomap
+                        (if (and child-iomap child-selection)
                             (bind ((input-child-operation (make-operation/replace-target (input-of child-iomap) child-selection (replacement-of operation)))
                                    (input-child-command (make-command/clone input input-child-operation))
                                    (output-child-command (recurse-reader recursion input-child-command child-iomap))
@@ -206,7 +206,7 @@
                  (operation/sequence/replace-range
                   (bind (((:values selection child-selection child-iomap) (funcall backward-mapper printer-iomap (selection-of operation))))
                     (or (when operation-mapper (funcall operation-mapper operation selection child-selection child-iomap))
-                        (if child-iomap
+                        (if (and child-iomap child-selection)
                             (bind ((input-child-operation (make-operation/sequence/replace-range (input-of child-iomap) child-selection (replacement-of operation)))
                                    (input-child-command (make-command/clone input input-child-operation))
                                    (output-child-command (recurse-reader recursion input-child-command child-iomap))
@@ -216,7 +216,7 @@
                  (operation/text/replace-range
                   (bind (((:values selection child-selection child-iomap) (funcall backward-mapper printer-iomap (selection-of operation))))
                     (or (when operation-mapper (funcall operation-mapper operation selection child-selection child-iomap))
-                        (if child-iomap
+                        (if (and child-iomap child-selection)
                             (bind ((input-child-operation (make-operation/text/replace-range (input-of child-iomap) child-selection (replacement-of operation)))
                                    (input-child-command (make-command/clone input input-child-operation))
                                    (output-child-command (recurse-reader recursion input-child-command child-iomap))
@@ -226,7 +226,7 @@
                  (operation/number/replace-range
                   (bind (((:values selection child-selection child-iomap) (funcall backward-mapper printer-iomap (selection-of operation))))
                     (or (when operation-mapper (funcall operation-mapper operation selection child-selection child-iomap))
-                        (if child-iomap
+                        (if (and child-iomap child-selection)
                             (bind ((input-child-operation (make-operation/number/replace-range (input-of child-iomap) child-selection (replacement-of operation)))
                                    (input-child-command (make-command/clone input input-child-operation))
                                    (output-child-command (recurse-reader recursion input-child-command child-iomap))
@@ -236,7 +236,7 @@
                  (operation/describe
                   (bind (((:values selection child-selection child-iomap) (funcall backward-mapper printer-iomap (selection-of operation))))
                     (or (when operation-mapper (funcall operation-mapper operation selection child-selection child-iomap))
-                        (if child-iomap
+                        (if (and child-iomap child-selection)
                             (bind ((input-child-operation (make-operation/describe child-selection))
                                    (input-child-command (make-command/clone input input-child-operation))
                                    (output-child-command (recurse-reader recursion input-child-command child-iomap))
@@ -246,8 +246,8 @@
                  (operation/show-context-sensitive-help
                   (make-instance 'operation/show-context-sensitive-help
                                  :commands (iter (for command :in (commands-of operation))
-                                                 (awhen (recurse (operation-of command))
-                                                   (collect (make-command/clone command it))))))
+                                                 (awhen (command/read-backward recursion command printer-iomap backward-mapper operation-mapper)
+                                                   (collect it)))))
                  (operation/compound
                   (bind ((operations (mapcar #'recurse (elements-of operation))))
                     (unless (some 'null operations)
@@ -277,7 +277,7 @@
 (def function print-selection (iomap input-selection forward-mapper)
   (bind (((:values selection nil child-iomap) (funcall forward-mapper iomap input-selection)))
     (if child-iomap
-        (append (selection-of (output-of child-iomap)) selection)
+        (append selection (selection-of (output-of child-iomap)))
         selection)))
 
 (def method run-operation ((operation operation/compound))
@@ -298,22 +298,22 @@
 
 (def function remove-selection (document selection)
   (labels ((recurse (document selection)
-               (when (typep document 'document)
-                 (setf (selection-of document) nil))
                (when (rest selection)
-                 (recurse (eval-reference document (first selection)) (rest selection)))))
+                 (recurse (eval-reference document (first selection)) (rest selection)))
+               (when (typep document 'document)
+                 (setf (selection-of document) nil))))
       ;; KLUDGE: this clears the old selection but the document may have changed meanwhile causing errors
       ;; KLUDGE: this kind of problem would be solved by putting only the relevant parts of the selection to the documents
       (ignore-errors
-        (recurse document (reverse selection)))))
+        (recurse document selection))))
 
 (def function set-selection (document selection)
   (labels ((recurse (document selection)
-             (when (typep document 'document)
-               (setf (selection-of document) (reverse selection)))
              (when (rest selection)
-               (recurse (eval-reference document (first selection)) (rest selection)))))
-    (recurse document (reverse selection))))
+               (recurse (eval-reference document (first selection)) (rest selection)))
+             (when (typep document 'document)
+               (setf (selection-of document) selection))))
+    (recurse document selection)))
 
 (def method run-operation ((operation operation/replace-selection))
   (bind ((document (document-of operation))
@@ -324,7 +324,7 @@
     (editor.debug "Selection of ~A is set to ~A" document new-selection)))
 
 (def method run-operation ((operation operation/replace-target))
-  (setf (eval-reference (document-of operation) (reference/flatten (reverse (selection-of operation)))) (replacement-of operation)))
+  (setf (eval-reference (document-of operation) (reference/flatten (selection-of operation))) (replacement-of operation)))
 
 (def function deserialize-document (filename)
   (bind ((extension (pathname-type filename)))

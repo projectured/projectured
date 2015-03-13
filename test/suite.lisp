@@ -6,6 +6,12 @@
 
 (in-package :projectured.test)
 
+;;;;;;
+;;; Test logger
+
 (def logger test ())
+
+;;;;;;
+;;; Root test suite
 
 (def suite* (test :in root-suite))
