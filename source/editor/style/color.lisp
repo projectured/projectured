@@ -9,7 +9,10 @@
 ;;;;;;
 ;;; Document
 
-(def document style/color ()
+(def document style/base ()
+  ())
+
+(def document style/color (style/base)
   ((alpha :type (integer 0 255))
    (red :type (integer 0 255))
    (green :type (integer 0 255))

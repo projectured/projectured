@@ -449,7 +449,7 @@
 
 (def function make-test-document/book ()
   (book/book (:title "Lorem ipsum" :author "me")
-    (book/chapter (:title "Chapter 1")
+    (book/chapter (:title "Chapter")
       (book/paragraph ()
         (text/text ()
           (text/string "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras eu nunc nibh. Cras imperdiet faucibus tortor ac dictum. Aliquam sit amet justo nec ligula lobortis ornare. Aenean a odio id dolor adipiscing interdum. Maecenas nec nisl neque. Suspendisse interdum rutrum neque, in volutpat orci varius in. Praesent a ipsum ac erat pulvinar adipiscing quis sit amet magna. Etiam semper vulputate mi ac interdum. Nunc a tortor non purus fringilla aliquam." :font *font/liberation/serif/regular/24* :font-color *color/solarized/content/darker*)))
@@ -460,7 +460,7 @@
         (book/paragraph ()
           (text/text ()
             (text/string "second" :font *font/liberation/serif/regular/24* :font-color *color/solarized/content/darker*)))))
-    (book/chapter (:title "Chapter 2")
+    (book/chapter (:title "Chapter")
       (book/paragraph ()
         (text/text ()
           (text/string "Morbi scelerisque, felis a viverra pharetra, arcu enim aliquet urna, mollis suscipit felis elit in neque. Aenean vel tempus nulla. Vestibulum magna nisi, cursus vel auctor eu, suscipit sit amet purus. Donec ligula purus, pulvinar id tristique ut, suscipit ornare diam. Maecenas sed justo turpis. Vivamus eu scelerisque dui. Pellentesque mollis rutrum est ac tempus. Sed venenatis, erat id elementum semper, nisl tortor malesuada orci, ac venenatis elit ipsum non augue. Praesent blandit purus est, id venenatis eros. Phasellus non dui dolor. Duis magna erat, pulvinar sed aliquam vitae, porta vel quam." :font *font/liberation/serif/regular/24* :font-color *color/solarized/content/darker*))))))
@@ -791,8 +791,17 @@
 (def function make-test-document/t/null ()
   nil)
 
-(def function make-test-document/t/cons ()
-  (cons "Hello World" nil))
+(def function make-test-document/t/list ()
+  (list "Hello World"))
+
+(def function make-test-document/t/sequence ()
+  (document/sequence () "Hello World"))
+
+(def function make-test-document/t/color ()
+  *color/solarized/blue*)
+
+(def function make-test-document/t/font ()
+  *font/ubuntu/monospace/regular/24*)
 
 (def class* test-object ()
   ((test-instance-slot)

@@ -11,7 +11,7 @@
 
 (def suite* (test/navigation :in test))
 
-(def test test/navigation/sequential (&key demo instance document projection log-level)
+(def test test/navigation/sequential (&key demo instance document projection (log-level +warn+) navigation-count navigation-time)
   (with-demo (:name demo :instance instance)
     (with-logger-level (editor log-level)
       (with-logger-level (test log-level)
@@ -42,10 +42,14 @@
               (finally
                (bind ((total-time (coerce (/ (- (get-internal-run-time) start-time) internal-time-units-per-second) 'float))
                       (average-time (unless (zerop count) (* (/ total-time count) 1000))))
+                 (when navigation-count
+                   (is (= navigation-count count)))
+                 (when navigation-time
+                   (is (< average-time navigation-time)))
                  (test.info "Completed processing ~A navigations in ~A seconds (average ~A ms)" count total-time average-time)
                  (return (values count average-time)))))))))
 
-(def test test/navigation/exhaustive (&key demo instance document projection log-level)
+(def test test/navigation/exhaustive (&key demo instance document projection (log-level +warn+) navigation-count navigation-time)
   (with-demo (:name demo :instance instance)
     (with-logger-level (editor log-level)
       (with-logger-level (test log-level)
@@ -89,5 +93,18 @@
                        (test.info "Processed gesture: ~A" gesture))
                  (iter (for selection :in processed-selections)
                        (test.info "Procecssed selection: ~A" selection))
+                 (when navigation-count
+                   (is (= navigation-count count)))
+                 (when navigation-time
+                   (is (< average-time navigation-time)))
                  (test.info "Completed processing ~A gestures and ~A selections in ~A seconds (average ~A ms)" (length processed-gestures) (length processed-selections) total-time average-time)
                  (return (values (length processed-gestures) (length processed-selections) average-time)))))))))
+
+(def test test/navigation/demo ()
+  (test/navigation/sequential :demo 'css :navigation-count 47 :navigation-time 100)
+  (test/navigation/sequential :demo 'common-lisp :navigation-count 112 :navigation-time 100)
+  (test/navigation/sequential :demo 'xml :navigation-count 188 :navigation-time 100)
+  (test/navigation/sequential :demo 'json :navigation-count 193 :navigation-time 100)
+  (test/navigation/sequential :demo 'book :navigation-count 1118 :navigation-time 100)
+  #+nil
+  (test/navigation/sequential :demo 'javascript :navigation-count 112 :navigation-time 100))

@@ -28,7 +28,8 @@
 ;;; Data structure
 
 (def document document ()
-  ((selection nil :type selection)))
+  ((selection nil :type selection)
+   (annotation nil :type document)))
 
 ;;;;;;
 ;;; API implementation

@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; Document
 
-(def document style/font ()
+(def document style/font (style/base)
   ((filename :type string)
    (size :type number)
    (raw :type t)))

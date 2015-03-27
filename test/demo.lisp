@@ -19,10 +19,13 @@
 (def namespace demo)
 
 (def definer demo (name document projection)
-  `(setf (find-demo ',name)
-         (make-instance 'demo :name ',name
-                        :document ,document :document-factory (lambda () ,document)
-                        :projection ,projection :projection-factory (lambda () ,projection))))
+  `(progn
+     (def test ,(format-symbol :projectured.test "TEST/EDITOR/~A" name) (&rest args &key &allow-other-keys)
+       (apply 'test/editor/run-read-evaluate-print-loop :demo ',name args))
+     (setf (find-demo ',name)
+           (make-instance 'demo :name ',name
+                          :document ,document :document-factory (lambda () ,document)
+                          :projection ,projection :projection-factory (lambda () ,projection)))))
 
 (def macro with-demo ((&key name instance) &body forms)
   `(bind ((demo (find-demo ,name :otherwise nil))
@@ -119,6 +122,8 @@
 
 (def demo json/sorting (make-test-document/json) (make-test-projection/json->graphics/sorting))
 
+(def demo json/templating (make-test-document/json) (make-test-projection/json->graphics/templating))
+
 (def demo css (make-test-document/css) (make-test-projection/css->graphics))
 
 (def demo file-system (make-test-document/file-system) (make-test-projection/file-system->graphics))
@@ -139,21 +144,27 @@
 
 (def demo sql (make-test-document/sql) (make-test-projection/sql->graphics))
 
-(def demo t/null (make-test-document/t/null) (make-test-projection/t->graphics/table))
+(def demo t/null (make-test-document/t/null) (make-test-projection/t->graphics/tree))
 
-(def demo t/cons (make-test-document/t/cons) (make-test-projection/t->graphics/table))
+(def demo t/list (make-test-document/t/list) (make-test-projection/t->graphics/tree))
 
-(def demo t/object (make-test-document/t/object) (make-test-projection/t->graphics/table))
+(def demo t/sequence (make-test-document/t/sequence) (make-test-projection/t->graphics/tree))
 
-(def demo t/object/nested (make-test-document/t/object/nested) (make-test-projection/t->graphics/table))
+(def demo t/color (make-test-document/t/color) (alternative (make-test-projection/t->graphics/tree) (make-test-projection/style->graphics)))
 
-(def demo t/text (make-test-document/text) (make-test-projection/t->graphics/table))
+(def demo t/font (make-test-document/t/font) (alternative (make-test-projection/t->graphics/tree) (make-test-projection/style->graphics)))
 
-(def demo t/tree (make-test-document/tree) (make-test-projection/t->graphics/table))
+(def demo t/object (make-test-document/t/object) (make-test-projection/t->graphics/tree))
 
-(def demo t/xml (make-test-document/xml) (make-test-projection/t->graphics/tree))
+(def demo t/object/nested (make-test-document/t/object/nested) (make-test-projection/t->graphics/tree))
 
-(def demo t/json (make-test-document/json) (make-test-projection/t->graphics/tree))
+(def demo t/text (make-test-document/text) (alternative (make-test-projection/t->graphics/tree) (make-test-projection/text->graphics)))
+
+(def demo t/tree (make-test-document/tree) (make-test-projection/t->graphics/tree))
+
+(def demo t/xml (make-test-document/xml) (alternative (make-test-projection/t->graphics/tree) (make-test-projection/xml->graphics)))
+
+(def demo t/json (make-test-document/json) (alternative (make-test-projection/t->graphics/tree) (make-test-projection/json->graphics)))
 
 (def demo inspector/object (make-test-document/inspector/object) (make-test-projection/inspector->graphics))
 

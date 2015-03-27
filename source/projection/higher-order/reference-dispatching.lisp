@@ -34,7 +34,7 @@
 
 (def printer reference-dispatching (projection recursion input input-reference)
   (declare (ignore recursion))
-  (iter (with typed-input-reference = (typed-reference (form-type input) input-reference))
+  (iter (with typed-input-reference = (reverse (typed-reference (form-type input) input-reference)))
         (with default-projection = (default-projection-of projection))
         (with reference-projection-pairs = (reference-projection-pairs-of projection))
         (for (reference reference-projection) :in-sequence reference-projection-pairs)
@@ -47,7 +47,7 @@
 
 (def reader reference-dispatching (projection recursion input printer-iomap)
   (declare (ignore recursion))
-  (merge-commands (bind ((command (iter (with input-reference = (input-reference-of printer-iomap))
+  (merge-commands (bind ((command (iter (with input-reference = (reverse (input-reference-of printer-iomap)))
                                         (with default-projection = (default-projection-of projection))
                                         (with reference-projection-pairs = (reference-projection-pairs-of projection))
                                         (for (reference reference-projection) :in-sequence reference-projection-pairs)
@@ -60,7 +60,7 @@
                     ((gesture/keyboard/key-press :sdl-key-c '(:shift :control))
                      :domain "Generic" :description "Toggles notation customization at the current selection"
                      :operation (make-operation/functional (lambda ()
-                                                             (bind ((input-reference (input-reference-of printer-iomap))
+                                                             (bind ((input-reference (reverse (input-reference-of printer-iomap)))
                                                                     (reference-projection-pairs (reference-projection-pairs-of projection)))
                                                                (setf (reference-projection-pairs-of projection)
                                                                      (if (find input-reference reference-projection-pairs :key 'first :test 'equal)

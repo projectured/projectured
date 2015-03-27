@@ -40,7 +40,7 @@
 ;;; Construction
 
 (def macro xml/element ((name attributes &key selection) &body children)
-  `(make-xml/element ,name (list-ll ,@attributes) (list-ll ,@children) :selection ,selection))
+  `(make-xml/element ,name (document/sequence () ,@attributes) (document/sequence () ,@children) :selection ,selection))
 
 (def macro xml/attribute ((&key selection) name value)
   `(make-xml/attribute ,name ,value :selection ,selection))

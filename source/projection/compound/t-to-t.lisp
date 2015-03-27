@@ -28,6 +28,29 @@
   '(make-projection/graphics->graphics@mark-changes))
 
 ;;;;;;
+;;; Style
+
+(def function make-projection/style->graphics ()
+  (type-dispatching
+    (style/color (style/color->graphics/rectangle))
+    (style/font (style/font->graphics/text))))
+
+(def macro style->graphics ()
+  '(make-projection/style->graphics))
+
+
+;;;;;;
+;;; Image
+
+(def function make-projection/image->graphics ()
+  (type-dispatching
+    (image/file (image/file->graphics/image))
+    (image/memory (image/memory->graphics/image))))
+
+(def macro image->graphics ()
+  '(make-projection/image->graphics))
+
+;;;;;;
 ;;; Text
 
 (def function make-projection/text->graphics ()
@@ -135,6 +158,12 @@
 (def macro table->text ()
   '(make-projection/table->text))
 
+(def function make-projection/table->graphics ()
+  (make-projection/table/table->graphics/canvas))
+
+(def macro table->graphics ()
+  '(make-projection/table->graphics))
+
 ;;;;;;
 ;;; Inspector
 
@@ -209,11 +238,11 @@
 
 (def function make-projection/t->tree (&key slot-provider)
   (type-dispatching
-    (null (make-projection/t/null->text/text))
-    (number (make-projection/t/number->text/text))
-    (string (make-projection/t/string->text/text))
-    (symbol (make-projection/t/symbol->text/text))
-    (pathname (make-projection/t/pathname->text/text))
+    (null (make-projection/t/null->tree/leaf))
+    (number (make-projection/t/number->tree/leaf))
+    (string (make-projection/t/string->tree/leaf))
+    (symbol (make-projection/t/symbol->tree/leaf))
+    (pathname (make-projection/t/pathname->tree/leaf))
     (sequence (make-projection/t/sequence->tree/node))
     ((or structure-object standard-object) (make-projection/t/object->tree/node :slot-provider slot-provider))))
 
@@ -222,11 +251,11 @@
 
 (def function make-projection/t->table (&key slot-provider)
   (type-dispatching
-    (null (make-projection/t/null->text/text))
-    (number (make-projection/t/number->text/text))
-    (string (make-projection/t/string->text/text))
-    (symbol (make-projection/t/symbol->text/text))
-    (pathname (make-projection/t/pathname->text/text))
+    (null (make-projection/t/null->tree/leaf))
+    (number (make-projection/t/number->tree/leaf))
+    (string (make-projection/t/string->tree/leaf))
+    (symbol (make-projection/t/symbol->tree/leaf))
+    (pathname (make-projection/t/pathname->tree/leaf))
     (sequence (make-projection/t/sequence->table/table))
     (hash-table (make-projection/t/hash-table->table/table))
     (function (make-projection/t/function->table/table))

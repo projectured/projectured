@@ -601,6 +601,10 @@
                                                 (make-operation/compound (list (make-instance 'operation/widget/tooltip/move :tooltip tooltip :location (mouse-position))
                                                                                (make-instance 'operation/widget/tooltip/replace-content :tooltip tooltip :content (selection-of operation))
                                                                                (make-instance 'operation/widget/show :widget tooltip))))
+                                               (operation/show-annotation
+                                                (make-operation/compound (list (make-instance 'operation/widget/tooltip/move :tooltip tooltip :location (mouse-position))
+                                                                               (make-instance 'operation/widget/tooltip/replace-content :tooltip tooltip :content (annotation-of (eval-reference (document-of operation) (reference/flatten (selection-of operation)))))
+                                                                               (make-instance 'operation/widget/show :widget tooltip))))
                                                (operation/compound
                                                 (bind ((child-operations (mapcar #'recurse (elements-of operation))))
                                                   (unless (some 'null child-operations)

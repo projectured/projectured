@@ -133,37 +133,6 @@
 ;;;;;;
 ;;; Reader
 
-(def function line-numbering/read-backward (command printer-iomap)
-  (awhen (labels ((recurse (operation)
-                    (typecase operation
-                      (operation/quit operation)
-                      (operation/functional operation)
-                      (operation/replace-selection
-                       (awhen (backward-mapper/line-numbering printer-iomap (selection-of operation))
-                         (make-operation/replace-selection (input-of printer-iomap) it)))
-                      (operation/sequence/replace-range
-                       (awhen (backward-mapper/line-numbering printer-iomap (selection-of operation))
-                         (make-operation/sequence/replace-range (input-of printer-iomap) it (replacement-of operation))))
-                      (operation/describe
-                       (make-operation/describe (backward-mapper/line-numbering printer-iomap (selection-of operation))))
-                      (operation/show-context-sensitive-help
-                       (make-instance 'operation/show-context-sensitive-help
-                                      :commands (iter (for command :in (commands-of operation))
-                                                      (awhen (recurse (operation-of command))
-                                                        (collect (make-instance 'command
-                                                                                :gesture (gesture-of command)
-                                                                                :domain (domain-of command)
-                                                                                :description (description-of command)
-                                                                                :operation it))))))
-                      (operation/compound
-                       (bind ((child-operations (mapcar #'recurse (elements-of operation))))
-                         (unless (some 'null child-operations)
-                           (make-operation/compound child-operations)))))))
-           (recurse (operation-of command)))
-    (make-command (gesture-of command) it
-                  :domain (domain-of command)
-                  :description (description-of command))))
-
 (def reader line-numbering (projection recursion input printer-iomap)
   (declare (ignore projection))
   (merge-commands (text/read-operation (input-of printer-iomap) (gesture-of input))

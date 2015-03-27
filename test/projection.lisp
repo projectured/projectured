@@ -483,6 +483,12 @@
   (preserving))
 
 ;;;;;;
+;;; Style
+
+(def function make-test-projection/style->graphics ()
+  (style->graphics))
+
+;;;;;;
 ;;; String
 
 (def function make-test-projection/string->graphics ()
@@ -508,8 +514,11 @@
 
 (def function make-test-projection/text->graphics ()
   (sequential
-    ;;(line-numbering)
-    (make-test-projection/text->output)))
+    (line-numbering)
+    (recursive
+      (type-dispatching
+        (text/base (make-test-projection/text->output))
+        (image/base (image->graphics))))))
 
 (def function make-test-projection/text->graphics/ll ()
   (make-test-projection/text->output))
@@ -645,7 +654,7 @@
   (sequential
     (make-test-projection/book->book)
     (make-test-projection/book->text)
-    ;(word-wrapping 1280)
+    (word-wrapping 1280)
     (make-test-projection/text->output)))
 
 (def function make-test-projection/book->graphics/sorting ()
@@ -804,12 +813,52 @@
     #+nil
     (recursive
       (type-dispatching
-        (list (sorting 'object-class-symbol-name 'string>))
+        (list (sorting 'object-class-symbol-name 'string>)))
       (t (copying))))
   (recursive (json->tree))
   (make-test-projection/tree->text)
   ;; (line-numbering)
-  (make-test-projection/text->output)))
+  (make-test-projection/text->output))
+
+(def function make-test-projection/json->graphics/templating ()
+  (sequential
+    (recursive (type-dispatching
+                 (json/null (templating
+                              (tree/leaf ()
+                                (text/text ()
+                                  (text/string (template/recurse-slot () 'value) :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/blue*)))))
+                 (json/boolean (templating
+                                 (tree/leaf ()
+                                   (text/text ()
+                                     (text/string (template/recurse-slot () 'false-value) :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/blue*)))))
+                 (json/number (templating
+                                (tree/leaf ()
+                                  (text/text ()
+                                    (text/string (template/evaluate-form () `(write-to-string (slot-value document 'value))) :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/magenta*)))))
+                 (json/string (templating
+                                (tree/leaf (:opening-delimiter (text/text () (text/string "\"" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
+                                            :closing-delimiter (text/text () (text/string "\"" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*)))
+                                  (text/text ()
+                                    (text/string (template/recurse-slot () 'value) :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/green*)))))
+                 (json/array (templating
+                               (make-tree/node (template/recurse-slot () 'elements)
+                                               :opening-delimiter (text/text () (text/string "[" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
+                                               :closing-delimiter (text/text () (text/string "]" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
+                                               :separator (text/text () (text/string ", " :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*)))))
+                 (json/object-entry (templating
+                                      (tree/node (:separator (text/text () (text/string " : " :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*)))
+                                        (tree/leaf (:opening-delimiter (text/text () (text/string "\"" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
+                                                    :closing-delimiter (text/text () (text/string "\"" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*)))
+                                          (text/text ()
+                                            (text/string (template/recurse-slot () 'key) :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/red*)))
+                                        (template/recurse-slot () 'value))))
+                 (json/object (templating
+                                (make-tree/node (template/recurse-slot () 'entries)
+                                                :opening-delimiter (text/text () (text/string "{" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
+                                                :closing-delimiter (text/text () (text/string "}" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
+                                                :separator (text/text () (text/string ", " :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*)))))
+                 (t (preserving))))
+    (make-test-projection/tree->graphics)))
 
 ;;;;;;
 ;;; CSS
@@ -979,7 +1028,11 @@
 ;;; T
 
 (def function test-slot-provider (instance)
-  (remove-if (lambda (slot) (member (slot-definition-name slot) '(raw selection font font-color stroke-color fill-color line-color))) (class-slots (class-of instance))))
+  (remove-if (lambda (slot) (member (slot-definition-name slot)
+                               '(raw selection)
+                               #+nil
+                               '(raw selection font font-color stroke-color fill-color line-color)))
+             (class-slots (class-of instance))))
 
 (def function make-test-projection/t->text/tree ()
   (sequential
@@ -1060,34 +1113,41 @@
 (def function make-test-projection/demo->text ()
   (sequential
     (make-test-projection/book->book)
+    (focusing '(or book/base json/base xml/base css/base javascript/base common-lisp/base lisp-form/base) nil)
     (recursive
-      (type-dispatching
-        (book/base (book->tree))
-        (document/base (document->t 'test-factory))
-        (text/text (preserving) #+nil (word-wrapping 1000))
-        (xml/base (xml->tree))
-        (json/base (json->tree))
-        (css/base (css->tree))
-        (javascript/base (javascript->tree))
-        (common-lisp/base (sequential
-                            (common-lisp->lisp-form)
-                            (lisp-form->tree)))
-        (sql/base (sql->tree))
-        (lisp-form/base (lisp-form->tree))
-        (table/base (sequential
-                      (recursive
-                        (type-dispatching
-                          (table/base (table->text))
-                          (text/base (preserving))))
-                      (text/text->tree/leaf)))
-        (t (preserving))))
+      (reference-dispatching
+        (alternative
+          (type-dispatching
+            (book/base (book->tree))
+            (document/base (document->t 'test-factory))
+            (text/text (word-wrapping 1000))
+            (xml/base (xml->tree))
+            (json/base (json->tree))
+            (css/base (css->tree))
+            (javascript/base (javascript->tree))
+            (common-lisp/base (sequential
+                                (common-lisp->lisp-form)
+                                (lisp-form->tree)))
+            (lisp-form/base (lisp-form->tree))
+            (table/base (sequential
+                          (recursive
+                            (type-dispatching
+                              (table/base (table->text))
+                              (text/base (preserving))))
+                          (text/text->tree/leaf)))
+            (t (preserving)))
+          (recursive
+            (t->tree :slot-provider 'test-slot-provider)))))
     (make-test-projection/tree->text)
     #+nil(word-wrapping 1280)))
 
 (def function make-test-projection/demo->graphics ()
   (sequential
     (make-test-projection/demo->text)
-    (make-test-projection/text->output)))
+    (recursive
+      (type-dispatching
+        (text/base (make-test-projection/text->output))
+        (image/base (image->graphics))))))
 
 #+nil
 (def function make-test-projection/demo->graphics ()

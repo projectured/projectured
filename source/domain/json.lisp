@@ -61,13 +61,13 @@
   (make-instance 'json/string :value value :selection selection))
 
 (def function make-json/array (elements &key selection)
-  (make-instance 'json/array :elements (ll elements) :selection selection))
+  (make-instance 'json/array :elements elements :selection selection))
 
 (def function make-json/object-entry (key value &key selection)
   (make-instance 'json/object-entry :key key :value value :selection selection))
 
 (def function make-json/object (entries &key selection)
-  (make-instance 'json/object :entries (ll entries) :selection selection))
+  (make-instance 'json/object :entries entries :selection selection))
 
 ;;;;;;
 ;;; Construction
@@ -88,14 +88,14 @@
   `(make-json/string ,(first value) :selection ,selection))
 
 (def macro json/array ((&key selection) &body elements)
-  `(make-json/array (list-ll ,@elements) :selection ,selection))
+  `(make-json/array (document/sequence () ,@elements) :selection ,selection))
 
 (def macro json/object-entry ((&key selection) key value)
   `(make-json/object-entry ,key ,value :selection ,selection))
 
 (def macro json/object ((&key selection) &body key-value-pairs)
-  `(make-json/object (list-ll ,@(iter (for (key value) :in key-value-pairs)
-                                      (collect `(make-json/object-entry ,key ,value))))
+  `(make-json/object (document/sequence () ,@(iter (for (key value) :in key-value-pairs)
+                                                   (collect `(make-json/object-entry ,key ,value))))
                      :selection ,selection))
 
 ;;;;;;

@@ -596,7 +596,17 @@
 
 (def reader json/array->tree/node (projection recursion input printer-iomap)
   (declare (ignore projection))
-  (bind ((printer-input (input-of printer-iomap)))
+  (bind ((printer-input (input-of printer-iomap))
+         ;; TODO: make this reusable and generic
+         (operation-mapper (lambda (operation selection child-selection child-iomap)
+                             (declare (ignore child-selection child-iomap))
+                             (typecase operation
+                               (operation/show-annotation
+                                (pattern-case selection
+                                  (((the tree/node (printer-output (the json/array document) ?projection ?recursion)) . ?rest)
+                                   (make-instance 'operation/show-annotation
+                                                  :document (document-of operation)
+                                                  :selection '((the json/array document))))))))))
     (merge-commands (command/read-selection recursion input printer-iomap 'forward-mapper/json/array->tree/node 'backward-mapper/json/array->tree/node)
                     (gesture-case (gesture-of input)
                       ((gesture/keyboard/key-press #\,)
@@ -644,7 +654,7 @@
                                                                                                                      (the json/insertion (elt (the sequence document) 0))
                                                                                                                      (the string (value-of (the json/insertion document)))
                                                                                                                      (the string (subseq (the string document) 0 0)))))))))
-                    (command/read-backward recursion input printer-iomap 'backward-mapper/json/array->tree/node nil)
+                    (command/read-backward recursion input printer-iomap 'backward-mapper/json/array->tree/node operation-mapper)
                     (make-command/nothing (gesture-of input)))))
 
 (def reader json/object-entry->tree/node (projection recursion input printer-iomap)

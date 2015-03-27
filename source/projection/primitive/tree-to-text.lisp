@@ -343,7 +343,7 @@
                                                                      ,(find-parent-character-index child-iomap ?end-character-index))))))))
                                  (((the text/text (printer-output (the tree/node document) ?projection ?recursion)) . ?rest)
                                   (when (and (eq projection ?projection) (eq recursion ?recursion))
-                                    (reverse ?rest))))))
+                                    ?rest)))))
          (output (text/make-text output-elements :selection output-selection)))
     (make-iomap 'iomap/tree/node->text/text
                 :projection projection :recursion recursion
@@ -610,6 +610,15 @@
                                     (((the sequence (children-of (the tree/node document)))
                                       (the ?type (elt (the sequence document) ?index))
                                       (the ?type document))
+                                     (make-operation/sequence/replace-range printer-input `((the sequence (children-of (the tree/node document)))
+                                                                                            (the sequence (subseq (the sequence document) ,?index ,(1+ ?index))))
+                                                                            nil))))
+                      ((gesture/keyboard/key-press :sdl-key-k :control)
+                       :domain "Book" :description "Deletes the selected child from the node"
+                       :operation (pattern-case selection
+                                    (((the sequence (children-of (the tree/node document)))
+                                      (the ?type (elt (the sequence document) ?index))
+                                      . ?rest)
                                      (make-operation/sequence/replace-range printer-input `((the sequence (children-of (the tree/node document)))
                                                                                             (the sequence (subseq (the sequence document) ,?index ,(1+ ?index))))
                                                                             nil)))))

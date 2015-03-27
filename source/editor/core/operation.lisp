@@ -47,6 +47,10 @@
 (def operation operation/describe ()
   ((selection :type reference)))
 
+(def operation operation/show-annotation ()
+  ((document :type document)
+   (selection :type reference)))
+
 (def operation operation/replace-content ()
   ((document :type document)
    (content :type t))
@@ -167,6 +171,8 @@
                 (make-operation/replace-target printer-input (append path (selection-of operation)) (replacement-of operation)))
                (operation/describe
                 (make-operation/describe (append path (selection-of operation))))
+               (operation/show-annotation
+                (make-instance 'operation/show-annotation :document printer-input :selection (append path (selection-of operation))))
                (operation/show-context-sensitive-help
                 (make-instance 'operation/show-context-sensitive-help
                                :commands (iter (for command :in (commands-of operation))
@@ -243,6 +249,16 @@
                                    (output-element-operation (operation-of output-child-command)))
                               (operation/extend printer-input selection output-element-operation))
                             (make-operation/describe selection)))))
+                 (operation/show-annotation
+                  (bind (((:values selection child-selection child-iomap) (funcall backward-mapper printer-iomap (selection-of operation))))
+                    (or (when operation-mapper (funcall operation-mapper operation selection child-selection child-iomap))
+                        (if (and child-iomap child-selection)
+                            (bind ((input-child-operation (make-instance 'operation/show-annotation :document (output-of child-iomap) :selection child-selection))
+                                   (input-child-command (make-command/clone input input-child-operation))
+                                   (output-child-command (recurse-reader recursion input-child-command child-iomap))
+                                   (output-element-operation (operation-of output-child-command)))
+                              (operation/extend printer-input selection output-element-operation))
+                            (make-instance 'operation/show-annotation :document printer-input :selection selection)))))
                  (operation/show-context-sensitive-help
                   (make-instance 'operation/show-context-sensitive-help
                                  :commands (iter (for command :in (commands-of operation))
@@ -260,7 +276,7 @@
 
 (def function command/read-selection (recursion input printer-iomap forward-mapper backward-mapper)
   (bind ((printer-input (input-of printer-iomap))
-         ((:values selection child-selection child-iomap) (funcall forward-mapper printer-iomap (selection-of printer-input))))
+         ((:values selection child-selection child-iomap) (funcall forward-mapper printer-iomap (when (typep printer-input 'document) (selection-of printer-input)))))
     (when child-selection
       (bind ((child-input-command (make-command/clone input))
              (child-output-command (recurse-reader recursion child-input-command child-iomap))
@@ -317,7 +333,7 @@
 
 (def method run-operation ((operation operation/replace-selection))
   (bind ((document (document-of operation))
-         (old-selection (selection-of document))
+         (old-selection (when (typep document 'document) (selection-of document)))
          (new-selection (selection-of operation)))
     (remove-selection document old-selection)
     (set-selection document new-selection)
@@ -373,6 +389,9 @@
                                          (length (alternatives-of projection))))))
 
 (def method run-operation ((operation operation/describe))
+  (values))
+
+(def method run-operation ((operation operation/show-annotation))
   (values))
 
 (def method run-operation ((operation operation/show-context-sensitive-help))

@@ -62,7 +62,7 @@
                                   (bind (((:values operation processed?) ,(getf (rest case) :operation)))
                                     (when (or operation processed?)
                                       (make-instance 'command
-                                                     :gesture ,(first case)
+                                                     :gesture ,gesture-variable
                                                      :domain ,(getf (rest case) :domain)
                                                      :description ,(getf (rest case) :description)
                                                      :operation operation))))))))))

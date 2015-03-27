@@ -11,18 +11,19 @@
 
 (def method raw-of :around ((font style/font))
   (or (call-next-method)
-      (setf (raw-of font) (sdl:initialise-font (make-instance 'sdl:ttf-font-definition :size (size-of font) :filename (resource-pathname (filename-of font)))))))
+      (va (setf (raw-of font) (as (or (ignore-errors (sdl:initialise-font (make-instance 'sdl:ttf-font-definition :size (size-of font) :filename (resource-pathname (filename-of font)))))
+                                      (raw-of *font/default*)))))))
 
 (def method raw-of :around ((color style/color))
   (or (call-next-method)
-      (setf (raw-of color) (sdl:color :r (red-of color) :g (green-of color) :b (blue-of color) :a (alpha-of color)))))
+      (va (setf (raw-of color) (as (sdl:color :r (red-of color) :g (green-of color) :b (blue-of color) :a (alpha-of color)))))))
 
 (def method raw-of :around ((image image/file))
   (or (call-next-method)
       (bind ((filename (filename-of image)))
-        (setf (raw-of image) (sdl-image:load-image (if (starts-with #\/ (namestring filename))
-                                                       filename
-                                                       (merge-pathnames filename (hu.dwim.asdf:system-pathname :projectured))) :alpha 255)))))
+        (va (setf (raw-of image) (as (sdl-image:load-image (if (starts-with #\/ (namestring filename))
+                                                               filename
+                                                               (merge-pathnames filename (hu.dwim.asdf:system-pathname :projectured))) :alpha 255)))))))
 
 (def method measure-text (text font)
   (make-2d (sdl:get-font-size text :size :w :font (raw-of font))

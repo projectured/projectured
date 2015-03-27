@@ -7,12 +7,6 @@
 (in-package :projectured)
 
 ;;;;;;
-;;; IO map
-
-(def iomap iomap/preserving ()
-  ())
-
-;;;;;;
 ;;; Projection
 
 (def projection preserving ()
@@ -34,8 +28,7 @@
 ;;; Printer
 
 (def printer preserving (projection recursion input input-reference)
-  (declare (ignore projection recursion input-reference))
-  (make-iomap 'iomap/preserving :input input :output input))
+  (make-iomap/object projection recursion input input-reference input))
 
 ;;;;;;
 ;;; Reader

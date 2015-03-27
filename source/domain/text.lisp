@@ -49,7 +49,7 @@
                  :padding padding))
 
 (def function text/make-string (content &key font font-color fill-color line-color padding)
-  (check-type content string)
+  #+nil (check-type content string)
   (make-instance 'text/string
                  :content content
                  :font font
@@ -270,27 +270,39 @@
     (awhen (text/next-raw-position text it)
       (text/normalize-position text it))))
 
-(def function text/line-start-position (text start-position)
+(def function text/line-start-position (text start-position &key compute-distance)
   "Returns the closest position less than or equal to START-POSITION without having a newline character in between."
   (if (text/after-newline? text start-position)
       start-position
-      (iter (for element :initially (text/position-element (text/previous-position text start-position)) :then (text/previous-element text element))
-            (for previous-element :previous element)
-            (unless element
-              (return (text/make-position :element previous-element :index 0 :distance nil)))
-            (when (text/newline? (text/element text element))
-              (return (text/make-position :element previous-element :index 0 :distance nil))))))
+      (bind ((line-start-position
+              (iter (for element :initially (text/position-element start-position) :then (text/previous-element text element))
+                    (for previous-element :previous element)
+                    (unless (first-iteration-p)
+                      (unless element
+                        (return (text/make-position :element previous-element :index 0 :distance nil)))
+                      (when (text/newline? (text/element text element))
+                        (return (text/make-position :element previous-element :index 0 :distance nil)))))))
+        (when compute-distance
+          (setf (text/position-distance line-start-position) (- (text/position-distance start-position)
+                                                                (text/length text line-start-position start-position))))
+        line-start-position)))
 
-(def function text/line-end-position (text start-position)
+(def function text/line-end-position (text start-position &key compute-distance)
   "Returns the closest position greater than or equal to START-POSITION without having a newline character in between."
   (if (text/before-newline? text start-position)
       start-position
-      (iter (for element :initially (text/position-element (text/next-position text start-position)) :then (text/next-element text element))
-            (for previous-element :previous element)
-            (unless element
-              (return (text/make-position :element previous-element :index (text/element-length (text/element text previous-element)) :distance nil)))
-            (when (text/newline? (text/element text element))
-              (return (text/make-position :element element :index 0 :distance nil))))))
+      (bind ((line-end-position
+              (iter (for element :initially (text/position-element start-position) :then (text/next-element text element))
+                    (for previous-element :previous element)
+                    (unless (first-iteration-p)
+                      (unless element
+                        (return (text/make-position :element previous-element :index (text/element-length (text/element text previous-element)) :distance nil)))
+                      (when (text/newline? (text/element text element))
+                        (return (text/make-position :element element :index 0 :distance nil)))))))
+        (when compute-distance
+          (setf (text/position-distance line-end-position) (+ (text/position-distance start-position)
+                                                              (text/length text start-position line-end-position))))
+        line-end-position)))
 
 (def function text/relative-position (text start-position distance)
   (iter (repeat (abs distance))
@@ -369,9 +381,14 @@
     (computed-ll (value-of element))))
 
 (def function text/element-content (element)
-  (if (typep element 'text/string)
-      (content-of element)
-      (list #\NewLine)))
+  (etypecase element
+    (text/newline
+     "
+")
+    (text/string
+     (content-of element))
+    (t
+     '(nil))))
 
 ;; TODO: remove and inline?
 (def function text/element-length (element)
@@ -720,7 +737,10 @@
                            (make-operation/text/replace-range text `((the text/text (text/subseq (the text/text document) ,(- ?b (text/length text start-position end-position)) ,?b))) ""))))))
         ((gesture/keyboard/key-press :sdl-key-i :control)
          :domain "Text" :description "Describes the character at the selection"
-         :operation (make-operation/describe (selection-of text))))
+         :operation (make-operation/describe (selection-of text)))
+        ((gesture/keyboard/key-press :sdl-key-a :control)
+         :domain "Text" :description "TODO"
+         :operation (make-instance 'operation/show-annotation :document text :selection (selection-of text))))
       ;; TODO: move into gesture-case
       (cond ((and (typep gesture 'gesture/keyboard/key-press)
                   (null (set-difference (modifiers-of gesture) '(:shift)))

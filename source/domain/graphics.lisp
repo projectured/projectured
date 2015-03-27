@@ -161,17 +161,17 @@
 (def function make-graphics/ellipse (location radius &key stroke-color fill-color)
   (make-instance 'graphics/ellipse :location location :radius radius :stroke-color stroke-color :fill-color fill-color))
 
-(def function make-graphics/text (location text &key font font-color fill-color)
-  (make-instance 'graphics/text :location location :text text :font font :font-color font-color :fill-color fill-color))
+(def function make-graphics/text (location text &key selection font font-color fill-color)
+  (make-instance 'graphics/text :location location :text text :selection selection :font font :font-color font-color :fill-color fill-color))
 
 (def function make-graphics/image (location image)
   (make-instance 'graphics/image :location location :image image))
 
-(def function make-graphics/viewport (content location size)
-  (make-instance 'graphics/viewport :location location :content content :size size))
+(def function make-graphics/viewport (content location size &key selection)
+  (make-instance 'graphics/viewport :location location :content content :size size :selection selection))
 
-(def function make-graphics/canvas (elements location)
-  (make-instance 'graphics/canvas :location location :elements elements))
+(def function make-graphics/canvas (elements location &key selection)
+  (make-instance 'graphics/canvas :location location :elements elements :selection selection))
 
 ;;;;;;
 ;;; Graphics API implementation
@@ -388,7 +388,10 @@
      :operation (make-operation/replace-selection graphics (make-reference graphics (location-of gesture) nil)))
     ((gesture/keyboard/key-press :sdl-key-i :control)
      :domain "Graphics" :description "Describes what the mouse is pointing at"
-     :operation (make-operation/describe (make-reference graphics (location-of gesture) nil)))))
+     :operation (make-operation/describe (make-reference graphics (location-of gesture) nil)))
+    ((gesture/keyboard/key-press :sdl-key-a :control)
+     :domain "Graphics" :description "TODO"
+     :operation (make-instance 'operation/show-annotation :document graphics :selection (make-reference graphics (location-of gesture) nil)))))
 
 (def method run-operation ((operation operation/graphics/translate-location))
   (translate-location (target-of (selection-of operation)) (translation-of operation)))
