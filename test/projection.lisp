@@ -295,7 +295,8 @@
                                      (the string (subseq (the string document) 0 0))))))
     ("chapter" (book/chapter (:selection '((the string (title-of (the book/chapter document)))
                                            (the string (subseq (the string document) 0 0))))))
-    ("paragraph" (book/paragraph (:selection '((the text/text (content-of (the book/paragraph document)))
+    ("paragraph" (book/paragraph (:alignment :justified
+                                  :selection '((the text/text (content-of (the book/paragraph document)))
                                                (the text/text (text/subseq (the text/text document) 0 0))))
                    (text/text () (text/string "" :font *font/liberation/serif/regular/24* :font-color *color/solarized/content/darker*))))
     ("list" (book/list (:selection '((the sequence (elements-of (the book/list document)))
@@ -514,7 +515,7 @@
 
 (def function make-test-projection/text->graphics ()
   (sequential
-    (line-numbering)
+;;    (line-numbering)
     (recursive
       (type-dispatching
         (text/base (make-test-projection/text->output))
@@ -645,6 +646,10 @@
   (sequential
     (recursive
       (type-dispatching
+        (book/paragraph (nesting
+                          (book/paragraph->tree/leaf)
+                          (text-aligning 1270)
+                          (word-wrapping 1270)))
         (book/base (book->tree))
         (document/base (document->t 'test-factory))
         (text/text (preserving))))
@@ -654,7 +659,7 @@
   (sequential
     (make-test-projection/book->book)
     (make-test-projection/book->text)
-    (word-wrapping 1280)
+    ;(word-wrapping 1280)
     (make-test-projection/text->output)))
 
 (def function make-test-projection/book->graphics/sorting ()
@@ -735,7 +740,7 @@
         (json/base (json->tree))
         (document/base (document->t 'test-factory))))
     (make-test-projection/tree->text)
-    ;; (line-numbering)
+    (line-numbering)
     (make-test-projection/text->output)))
 
 (def function make-test-projection/json->graphics/alternative ()
@@ -1110,36 +1115,74 @@
 ;;;;;;
 ;;; Demo
 
+#+nil
+(def function make-test-projection/t->text ()
+  (sequential
+    (recursive
+      (type-dispatching
+        (common-lisp/base (sequential
+                            (common-lisp->lisp-form)
+                            (lisp-form->tree)))
+        (lisp-form/base (lisp-form->tree))
+        (text/base (preserving))
+        (tree/base (preserving))
+        ((or table/base text/base xml/base css/base json/base javascript/base)
+         (invariably (tree/leaf ()
+                       (text/text ()
+                         (text/string "something")))))))
+    (make-test-projection/tree->text)
+    (line-numbering)))
+
+(def function make-test-projection/t->text ()
+  (sequential
+    (recursive
+      (type-dispatching
+        (xml/base (xml->tree))
+        (css/base (css->tree))
+        (javascript/base (javascript->tree))
+        (json/base (json->tree))
+        (common-lisp/base (sequential
+                            (common-lisp->lisp-form)
+                            (lisp-form->tree)))
+        (lisp-form/base (lisp-form->tree))
+        (table/base (sequential
+                      (recursive
+                        (type-dispatching
+                          (text/base (preserving))
+                          (table/base (table->text))))
+                      (templating
+                        (tree/leaf ()
+                          (template/evaluate-form () 'document)))))
+        (t (preserving))))
+    (make-test-projection/tree->text)
+    (line-numbering)))
+
 (def function make-test-projection/demo->text ()
   (sequential
     (make-test-projection/book->book)
-    (focusing '(or book/base json/base xml/base css/base javascript/base common-lisp/base lisp-form/base) nil)
+    (focusing '(or book/base xml/base css/base javascript/base json/base common-lisp/base lisp-form/base table/base) nil)
     (recursive
       (reference-dispatching
-        (alternative
-          (type-dispatching
-            (book/base (book->tree))
-            (document/base (document->t 'test-factory))
-            (text/text (word-wrapping 1000))
-            (xml/base (xml->tree))
-            (json/base (json->tree))
-            (css/base (css->tree))
-            (javascript/base (javascript->tree))
-            (common-lisp/base (sequential
-                                (common-lisp->lisp-form)
-                                (lisp-form->tree)))
-            (lisp-form/base (lisp-form->tree))
-            (table/base (sequential
-                          (recursive
-                            (type-dispatching
-                              (table/base (table->text))
-                              (text/base (preserving))))
-                          (text/text->tree/leaf)))
-            (t (preserving)))
-          (recursive
-            (t->tree :slot-provider 'test-slot-provider)))))
-    (make-test-projection/tree->text)
-    #+nil(word-wrapping 1280)))
+          (alternative
+            (type-dispatching
+              (document/base (document->t 'test-factory))
+              (book/paragraph (nesting
+                                (book/paragraph->tree/leaf)
+                                (text-aligning 1270)))
+              (book/base (book->tree))
+              (text/base (word-wrapping 1270))
+              (table/base (sequential
+                            (recursive
+                              (type-dispatching
+                                (text/base (text->graphics))
+                                (table/base (table->graphics))))
+                            (templating
+                              (text/text ()
+                                (text/graphics (template/evaluate-form () 'document))))))
+              (t (make-test-projection/t->text)))
+            (recursive
+              (t->tree :slot-provider 'test-slot-provider)))))
+    (make-test-projection/tree->text)))
 
 (def function make-test-projection/demo->graphics ()
   (sequential
@@ -1147,55 +1190,8 @@
     (recursive
       (type-dispatching
         (text/base (make-test-projection/text->output))
-        (image/base (image->graphics))))))
-
-#+nil
-(def function make-test-projection/demo->graphics ()
-  (sequential
-    (focusing '(or json/base xml/base book/base) nil)
-    (recursive
-      (type-dispatching
-        (book/base (book->tree))
-        (document/base (document->t 'test-factory))
-        (text/text (preserving))
-        (table/base (sequential
-                      (recursive
-                        (type-dispatching
-                          (table/base (table->text))
-                          (text/base (preserving))))
-                      (text/text->tree/leaf)))
-        (t
-         (sequential
-           (recursive
-             (type-dispatching
-               (text/base (text/text->tree/leaf))
-               (book/base (book->tree))
-               (xml/base (xml->tree))
-               (json/base (json->tree))
-               (javascript/base (javascript->tree))
-               (css/base (css->tree))
-               (table/base (sequential
-                             (recursive
-                               (type-dispatching
-                                 (table/base (table->text))
-                                 (text/base (preserving))))
-                             (text/text->tree/leaf)))
-               (common-lisp/base (sequential
-                                   (common-lisp->lisp-form)
-                                   (lisp-form->tree)))
-               (lisp-form/base (lisp-form->tree))
-               (image/file (make-projection/image/file->tree/leaf))
-               (document/base (document->t 'test-factory))
-               (evaluator/evaluator (evaluator/evaluator->tree/node))
-               (t (preserving))))
-           (make-test-projection/tree->text)
-           ;; TODO: slow due to text/split
-           ;; (line-numbering)
-           (text/text->tree/leaf)))))
-    (make-test-projection/tree->text)
-    ;; TODO: this is slow due to text/find
-    (word-wrapping 1280)
-    (make-test-projection/text->output)))
+        (image/base (image->graphics))
+        (graphics/base (preserving))))))
 
 ;;;;;;
 ;;; Documentation

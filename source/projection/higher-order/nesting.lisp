@@ -11,13 +11,13 @@
 
 (def projection nesting ()
   ((elements :type list)
-   (rest :type nesting)))
+   (recursion :type projection)))
 
 ;;;;;;
 ;;; Construction
 
-(def function make-projection/nesting (elements)
-  (make-projection 'nesting :elements elements :rest (when elements (make-projection/nesting (rest elements)))))
+(def function make-projection/nesting (elements &optional recursion)
+  (make-projection 'nesting :elements elements :recursion recursion))
 
 ;;;;;;
 ;;; Construction
@@ -31,17 +31,18 @@
 (def printer nesting (projection recursion input input-reference)
   (bind ((elements (elements-of projection))
          (output-iomap (if elements
-                           (bind ((first-element (first elements)))
-                             (call-printer first-element (rest-of projection) input input-reference))
-                           (recurse-printer recursion input input-reference))))
+                           (bind ((recursion (make-projection/nesting (rest elements) (or (recursion-of projection) recursion))))
+                             (call-printer (first elements) recursion input input-reference))
+                           (recurse-printer (recursion-of projection) input input-reference))))
     (make-iomap/compound projection recursion input input-reference (output-of output-iomap) (list output-iomap))))
 
 ;;;;;;
 ;;; Reader
 
 (def reader nesting (projection recursion input printer-iomap)
-  (bind ((elements (elements-of projection)))
+  (declare (ignore recursion))
+  (bind ((elements (elements-of projection))
+         (content-iomap (the-only-element (child-iomaps-of printer-iomap))))
     (if elements
-        (bind ((first-element (first elements)))
-          (call-reader first-element (rest-of projection) input (the-only-element (child-iomaps-of printer-iomap))))
-        (recurse-reader recursion input (the-only-element (child-iomaps-of printer-iomap))))))
+        (call-reader (first elements) (recursion-of content-iomap) input content-iomap)
+        (recurse-reader (recursion-of projection) input content-iomap))))

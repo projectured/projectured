@@ -100,6 +100,8 @@
 
 (def demo book (make-test-document/book) (make-test-projection/book->graphics))
 
+(def demo book/paragraph (make-test-document/book/paragraph) (make-test-projection/book->graphics))
+
 (def demo book/sorting (make-test-document/book) (make-test-projection/book->graphics/sorting))
 
 (def demo book/focusing (make-test-document/book) (make-test-projection/book->graphics/focusing))

@@ -29,6 +29,9 @@
 (def document text/string (text/element)
   ((content :type string)))
 
+(def document text/graphics (text/element)
+  ((content :type document)))
+
 (def document text/text (text/base)
   ((elements :type sequence)))
 
@@ -58,6 +61,13 @@
                  :line-color line-color
                  :padding padding))
 
+(def function text/make-graphics (content &key fill-color line-color padding)
+  (make-instance 'text/graphics
+                 :content content
+                 :fill-color fill-color
+                 :line-color line-color
+                 :padding padding))
+
 (def function text/make-text (elements &key selection)
   (make-instance 'text/text :elements elements :selection selection))
 
@@ -72,6 +82,9 @@
 
 (def macro text/string (content &key font font-color fill-color line-color padding)
   `(text/make-string ,content :font ,(or font '*font/default*) :font-color ,(or font-color '*color/default*) :fill-color ,fill-color :line-color ,line-color :padding ,padding))
+
+(def macro text/graphics (content &key fill-color line-color padding)
+  `(text/make-graphics ,content :fill-color ,fill-color :line-color ,line-color :padding ,padding))
 
 (def macro text/text ((&key selection) &body elements)
   `(text/make-text (list ,@elements) :selection ,selection))
@@ -381,7 +394,7 @@
     (computed-ll (value-of element))))
 
 (def function text/element-content (element)
-  (etypecase element
+  (typecase element
     (text/newline
      "
 ")
@@ -390,9 +403,17 @@
     (t
      '(nil))))
 
-;; TODO: remove and inline?
 (def function text/element-length (element)
   (length (text/element-content element)))
+
+(def function text/element-width (element)
+  (etypecase element
+    (text/newline
+     0)
+    (text/string
+     (2d-x (measure-text (text/element-content element) (font-of element))))
+    (text/spacing
+     (size-of element))))
 
 ;; TODO: what is this?
 (def function text/subbox (text start-position end-position)
@@ -439,6 +460,36 @@
            (until (text/position= position end-position))
            (summing 1)))))
 
+(def function text/width (text &optional (start-position (text/first-position text)) (end-position (text/last-position text)))
+  (etypecase (elements-of text)
+    (null 0)
+    (sequence
+     (bind ((start-element (text/element text (text/position-element start-position)))
+            (end-element (text/element text (text/position-element end-position))))
+       (if (eq start-element end-element)
+           (etypecase start-element
+             (text/string (2d-x (measure-text (subseq (content-of start-element) (text/position-index start-position) (text/position-index end-position)) (font-of start-element))))
+             ;; KLUDGE:
+             (text/graphics 100))
+           (+ (bind ((string (subseq (text/element-content start-element) (text/position-index start-position) (text/element-length start-element))))
+                (if (zerop (length string))
+                    0
+                    (etypecase start-element
+                      (text/string (2d-x (measure-text string (font-of start-element))))
+                      (text/newline 0))))
+              (iter (for element :initially (text/next-element text (text/position-element start-position)) :then (text/next-element text element))
+                    (while element)
+                    (until (eq element (text/position-element end-position)))
+                    (summing (text/element-width (text/element text element))))
+              (bind ((string (subseq (text/element-content end-element) 0 (text/position-index end-position))))
+                (if (zerop (length string))
+                    0
+                    (etypecase end-element
+                      (text/string (2d-x (measure-text string (font-of end-element))))
+                      (text/newline 0)
+                      ;; KLUDGE:
+                      (text/graphics 100))))))))))
+
 (def function text/substring (text start-position end-position)
   (bind ((start-element (text/element text (text/position-element start-position)))
          (end-element (text/element text (text/position-element end-position))))
@@ -482,11 +533,12 @@
                   (text/relative-position text (text/origin-position text) start-character-index)
                   (text/relative-position text (text/origin-position text) end-character-index)))
 
-(def function text/find (text start-position test &key (direction :forward))
+(def function text/find (text start-position test &key end-position (direction :forward))
   (iter (for position :initially start-position :then (text/sibling-position text position direction))
         (while position)
         (for character = (text/sibling-character text position direction))
-        (until (and character (funcall test character)))
+        (until (or (and character (funcall test character))
+                   (and end-position (text/position= position end-position))))
         (finally (return position))))
 
 (def function text/count (text character &optional (start-position (text/first-position text)) (end-position (text/last-position text)) )

@@ -42,28 +42,4 @@
 (def reader text/text->tree/leaf (projection recursion input printer-iomap)
   (declare (ignore projection recursion))
   (bind ((printer-input (input-of printer-iomap)))
-    (merge-commands (awhen (labels ((recurse (operation)
-                                      (typecase operation
-                                        (operation/quit operation)
-                                        (operation/functional operation)
-                                        (operation/replace-selection
-                                         (make-operation/replace-selection printer-input
-                                                                           (pattern-case (selection-of operation)
-                                                                             (((the text/text (text/subseq (the text/text document) ?character-index ?character-index))
-                                                                               (the text/text (content-of (the tree/leaf document))))
-                                                                              `((the text/text (text/subseq (the text/text document) ,?character-index ,?character-index)))))))
-                                        (operation/sequence/replace-range
-                                         (awhen (pattern-case (selection-of operation)
-                                                  (((the text/text (text/subseq (the text/text document) ?start-character-index ?end-character-index))
-                                                    (the text/text (content-of (the tree/leaf document))))
-                                                   `((the text/text (text/subseq (the text/text document) ,?start-character-index ,?end-character-index)))))
-                                           (make-operation/sequence/replace-range printer-input it (replacement-of operation))))
-                                        (operation/compound
-                                         (bind ((operations (mapcar #'recurse (elements-of operation))))
-                                           (unless (some 'null operations)
-                                             (make-operation/compound operations)))))))
-                             (recurse (operation-of input)))
-                      (make-command (gesture-of input) it
-                                    :domain (domain-of input)
-                                    :description (description-of input)))
-                    (make-command/nothing (gesture-of input)))))
+    (merge-commands (make-command/nothing (gesture-of input)))))

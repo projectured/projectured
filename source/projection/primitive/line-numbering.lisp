@@ -115,8 +115,8 @@
                                                                (push (text/make-string line-number
                                                                                        :font (font-of projection)
                                                                                        :font-color *color/solarized/content/light*
-                                                                                       :fill-color (fill-color-of projection)
-                                                                                       :line-color (line-color-of projection))
+                                                                                       ;; KLUDGE: should be :line-color but changed to :fill-color for demo to avoid padding problems
+                                                                                       :fill-color (line-color-of projection))
                                                                      elements)
                                                                (iter (for line-element-index :from 0)
                                                                      (for line-element :in-sequence (elements-of line))

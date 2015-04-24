@@ -148,6 +148,7 @@
                                                          (:file "t-to-tree")
                                                          (:file "table-to-graphics")
                                                          (:file "table-to-text")
+                                                         (:file "text-aligning")
                                                          (:file "text-to-graphics")
                                                          (:file "text-to-text-at-reverse")
                                                          (:file "line-numbering")
