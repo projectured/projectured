@@ -439,10 +439,13 @@
                                                                                            (color/lighten *color/solarized/blue* 0.75)
                                                                                            *color/solarized/blue*)))
                                                                       (tree/leaf (:selection (as (nthcdr 2 (va output-selection))))
-                                                                        (as (text/text (:selection (as (nthcdr 3 (va output-selection))))
-                                                                              (text/string (numbering-of input) :font title-font :font-color font-color :padding (make-inset :top 10))
-                                                                              (text/spacing 30)
-                                                                              (text/string (if (string= title "") "enter chapter title" title) :font title-font :font-color font-color :padding (make-inset :top 10)))))))
+                                                                        (as (bind ((numbering (numbering-of input)))
+                                                                              (if numbering
+                                                                                  (text/text (:selection (as (nthcdr 3 (va output-selection))))
+                                                                                    (text/string (numbering-of input) :font title-font :font-color font-color :padding (make-inset :top 10))
+                                                                                    (text/spacing 30)
+                                                                                    (text/string (if (string= title "") "enter chapter title" title) :font title-font :font-color font-color :padding (make-inset :top 10)))
+                                                                                  (text/make-default-text title "enter chapter title" :font title-font :font-color font-color :padding (make-inset :top 10) :selection (as (nthcdr 3 (va output-selection))))))))))
                                                            (map-ll (va element-iomaps) 'output-of))))
                                      :selection output-selection
                                      :expanded (as (expanded-p input))))))

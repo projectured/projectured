@@ -156,11 +156,13 @@
                                                          (:file "test-to-tree")
                                                          (:file "text-to-string")
                                                          (:file "text-to-tree")
+                                                         (:file "tree-to-common-lisp")
                                                          (:file "tree-to-graphics")
                                                          (:file "tree-to-text")
                                                          (:file "widget-to-graphics")
                                                          (:file "word-wrapping")
                                                          (:file "workbench-to-widget")
+                                                         (:file "write-stream-folding")
                                                          (:file "xml-to-common-lisp")
                                                          (:file "xml-to-tree")))
                                            (:module "compound"

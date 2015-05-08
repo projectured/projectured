@@ -939,7 +939,8 @@
   (recursive
     (type-dispatching
       (lisp-form/base (lisp-form->tree))
-      (document/base (document->t 'test-factory)))))
+      (document/base (document->t 'test-factory))
+      (text/text (preserving)))))
 
 (def function make-test-projection/lisp-form->text ()
   (sequential
@@ -955,11 +956,17 @@
 ;;;;;;
 ;;; Common lisp
 
+(def function make-test-projection/t->common-lisp ()
+  (recursive
+    (t->common-lisp)))
+
 (def function make-test-projection/common-lisp->lisp-form ()
   (recursive
     (type-dispatching
       (common-lisp/base (common-lisp->lisp-form))
-      (document/base (preserving)))))
+      (lisp-form/base (preserving))
+      (document/base (preserving))
+      (text/text (preserving)))))
 
 (def function make-test-projection/common-lisp->text ()
   (sequential
@@ -1115,25 +1122,7 @@
 ;;;;;;
 ;;; Demo
 
-#+nil
-(def function make-test-projection/t->text ()
-  (sequential
-    (recursive
-      (type-dispatching
-        (common-lisp/base (sequential
-                            (common-lisp->lisp-form)
-                            (lisp-form->tree)))
-        (lisp-form/base (lisp-form->tree))
-        (text/base (preserving))
-        (tree/base (preserving))
-        ((or table/base text/base xml/base css/base json/base javascript/base)
-         (invariably (tree/leaf ()
-                       (text/text ()
-                         (text/string "something")))))))
-    (make-test-projection/tree->text)
-    (line-numbering)))
-
-(def function make-test-projection/t->text ()
+(def function make-test-projection/demo->text/code ()
   (sequential
     (recursive
       (type-dispatching
@@ -1154,6 +1143,81 @@
                         (tree/leaf ()
                           (template/evaluate-form () 'document)))))
         (t (preserving))))
+    (make-test-projection/tree->text)
+    (line-numbering)))
+
+(def function make-test-projection/demo->text/code/brief ()
+  (sequential
+    (recursive
+      (type-dispatching
+        (common-lisp/base (sequential
+                            (common-lisp->lisp-form)
+                            (lisp-form->tree)))
+        (lisp-form/base (lisp-form->tree))
+        (text/base (preserving))
+        (tree/base (preserving))
+        (table/base
+         (invariably (tree/node ()
+                       (text/text ()
+                         (text/string "inline dispatch table here" :font *font/liberation/serif/italic/22* :font-color *color/solarized/content/darker*)))))
+        ((or text/base xml/base css/base json/base javascript/base)
+         (make-instance 'projection :printer (lambda (projection recursion input input-reference)
+                                               (bind ((type-name (symbol-name (form-type input)))
+                                                      (output (tree/leaf ()
+                                                                (text/text ()
+                                                                  (text/string (string+ "send " (string-downcase (subseq type-name 0 (position #\/ type-name))) " content to standard output")
+                                                                               :font *font/liberation/serif/italic/22* :font-color *color/solarized/content/darker*)))))
+                                                 (make-iomap/object projection recursion input input-reference output)))))))
+    (make-test-projection/tree->text)
+    (line-numbering)))
+
+(def function make-test-projection/demo->text/code/emit ()
+  (sequential
+    #+nil
+    (make-test-projection/t->common-lisp)
+    (recursive
+      (type-dispatching
+        (xml/base (xml->tree))
+        (css/base (css->tree))
+        (javascript/base (javascript->tree))
+        (json/base (json->tree))
+        (common-lisp/base (copying))
+        (lisp-form/base (copying))
+        (t (preserving))))
+    (recursive
+      (type-dispatching
+        (tree/base (tree->common-lisp))
+        (common-lisp/base (copying))
+        (lisp-form/base (copying))
+        (sequence (copying))
+        (text/text (preserving))))
+    (make-test-projection/common-lisp->text)
+    (make-test-projection/tree->text)
+    (line-numbering)))
+
+(def function make-test-projection/demo->text/code/folded ()
+  (sequential
+    #+nil
+    (make-test-projection/t->common-lisp)
+    (recursive
+      (type-dispatching
+        (xml/base (xml->tree))
+        (css/base (css->tree))
+        (javascript/base (javascript->tree))
+        (json/base (json->tree))
+        (common-lisp/base (copying))
+        (lisp-form/base (copying))
+        (t (preserving))))
+    (recursive
+      (type-dispatching
+        (tree/base (tree->common-lisp))
+        (common-lisp/base (copying))
+        (lisp-form/base (copying))
+        (sequence (copying))
+        (text/text (preserving))))
+    (recursive
+      (write-stream-folding))
+    (make-test-projection/common-lisp->text)
     (make-test-projection/tree->text)
     (line-numbering)))
 
@@ -1179,7 +1243,25 @@
                             (templating
                               (text/text ()
                                 (text/graphics (template/evaluate-form () 'document))))))
-              (t (make-test-projection/t->text)))
+              (web-example/natural (nesting
+                                     (web-example->t)
+                                     (make-test-projection/demo->text/code)))
+              (web-example/brief (nesting
+                                   (web-example->t)
+                                   (make-test-projection/demo->text/code/brief)))
+              (web-example/emitting (nesting
+                                      (web-example->t)
+                                      (make-test-projection/demo->text/code/emit)))
+              (web-example/folded (nesting
+                                    (web-example->t)
+                                    (make-test-projection/demo->text/code/folded)))
+              #+nil
+              (t (reference-dispatching (make-test-projection/demo->text/code/emit) #+nil (make-test-projection/demo->text/code)
+                                        (((the sequence (elements-of (the book/book document)))
+                                          (the book/chapter (elt (the sequence document) 0))
+                                          (the sequence (elements-of (the book/chapter document)))
+                                          (the book/paragraph (elt (the sequence document) 1)))
+                                         (make-test-projection/demo->text/code/brief)))))
             (recursive
               (t->tree :slot-provider 'test-slot-provider)))))
     (make-test-projection/tree->text)))

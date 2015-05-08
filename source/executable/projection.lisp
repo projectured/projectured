@@ -156,3 +156,25 @@
         (widget/base (widget->graphics))
         (document/base (document->t 'initial-factory))
         (text/text (text->graphics))))))
+
+(def projection web-example->t ()
+  ())
+
+(def macro web-example->t ()
+  '(make-projection 'web-example->t))
+
+(def printer web-example->t (projection recursion input input-reference)
+  (bind ((content-iomap (recurse-printer recursion (content-of input) `((content-of (the ,(form-type input) document))
+                                                                        ,@(typed-reference (form-type input) input-reference)))))
+    (make-iomap/compound projection recursion input input-reference (output-of content-iomap) (list content-iomap))))
+
+(def reader web-example->t (projection recursion input printer-iomap)
+  (declare (ignore projection))
+  (bind ((printer-input (input-of printer-iomap)))
+    (merge-commands (bind ((content-iomap (elt (child-iomaps-of printer-iomap) 0))
+                           (content-command (recurse-reader recursion input content-iomap)))
+                      (make-command (gesture-of input)
+                                    (operation/extend printer-input `((the ,(form-type (content-of printer-input)) (content-of (the ,(form-type (input-of printer-iomap)) document)))) (operation-of content-command))
+                                    :domain (domain-of content-command)
+                                    :description (description-of content-command)))
+                    (make-command/nothing (gesture-of input)))))

@@ -118,6 +118,14 @@
 (def macro tree->text ()
   `(make-projection/tree->text))
 
+(def function make-projection/tree->common-lisp ()
+  (type-dispatching
+    (tree/leaf (tree/leaf->common-lisp/progn))
+    (tree/node (tree/node->common-lisp/progn))))
+
+(def macro tree->common-lisp ()
+  `(make-projection/tree->common-lisp))
+
 ;;;;;;
 ;;; Graph
 
