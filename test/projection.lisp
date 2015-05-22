@@ -433,19 +433,19 @@
   '(make-projection 'test/debug->graphics/canvas))
 
 (def printer test/debug->graphics/canvas (projection recursion input input-reference)
-  (bind ((content-iomap (recurse-printer recursion (content-of input) `((content-of (the test/debug document))
-                                                                        ,@(typed-reference (form-type input) input-reference))))
-         (last-commands-iomap (awhen (last-commands-of input)
-                                (recurse-printer recursion (last-commands-of input) `((last-commands-of (the test/debug document))
-                                                                                      ,@(typed-reference (form-type input) input-reference)))))
-         (output (make-graphics/canvas (list* (output-of content-iomap)
-                                              (when last-commands-iomap
-                                                (list (make-graphics/rounded-rectangle (make-2d 0 651) (make-2d 1280 68)
-                                                                                       9
-                                                                                       :fill-color (color/lighten *color/solarized/yellow* 0.75))
-                                                      (make-graphics/canvas (list (output-of last-commands-iomap)) (make-2d 5 656)))))
-                                       (make-2d 0 0))))
-    (make-iomap/compound projection recursion input input-reference output (list content-iomap))))
+  (bind ((content-iomap (as (recurse-printer recursion (content-of input) `((content-of (the test/debug document))
+                                                                            ,@(typed-reference (form-type input) input-reference)))))
+         (last-commands-iomap (as (awhen (last-commands-of input)
+                                    (recurse-printer recursion (last-commands-of input) `((last-commands-of (the test/debug document))
+                                                                                          ,@(typed-reference (form-type input) input-reference))))))
+         (output (as (make-graphics/canvas (list* (output-of (va content-iomap))
+                                                  (when (va last-commands-iomap)
+                                                    (list (make-graphics/rounded-rectangle (make-2d 0 631) (make-2d 1280 88)
+                                                                                           9
+                                                                                           :fill-color (color/lighten *color/solarized/yellow* 0.75))
+                                                          (make-graphics/canvas (list (output-of (va last-commands-iomap))) (make-2d 5 640)))))
+                                           (make-2d 0 0)))))
+    (make-iomap/compound projection recursion input input-reference output (as (list (va content-iomap))))))
 
 (def reader test/debug->graphics/canvas (projection recursion input printer-iomap)
   (declare (ignore projection))
@@ -454,7 +454,8 @@
          (last-commands (last-commands-of printer-input))
          (new-last-commands (subseq (list* last-command last-commands) 0 (min 3 (1+ (length last-commands))))))
     ;; TODO: this breaks context-sensitive-help
-    (if (typep (operation-of last-command) 'operation/show-context-sensitive-help)
+    (if (or (not (operation-of last-command))
+            (typep (operation-of last-command) 'operation/show-context-sensitive-help))
         last-command
         (make-command (gesture-of input)
                       (make-operation/compound (optional-list (operation-of last-command)

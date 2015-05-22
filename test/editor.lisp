@@ -24,7 +24,7 @@
                        (:document
                         (make-test-document/document document))
                        (:debug
-                        (make-test-document/shell (make-test-document/debug (make-test-document/document document))))
+                        (make-test-document/debug (make-test-document/plain (make-test-document/document document))))
                        (:selection
                         (make-test-document/shell (make-test-document/debug (make-test-document/selection (make-test-document/document document)))))
                        (:generic
@@ -43,7 +43,7 @@
                                         (:document
                                          (make-test-projection/document projection))
                                         (:debug
-                                         (make-test-projection/shell (make-test-projection/debug (make-test-projection/document projection))))
+                                         (make-test-projection/debug (make-test-projection/plain (make-test-projection/document projection))))
                                         (:selection
                                          (make-test-projection/shell (make-test-projection/debug (make-test-projection/selection (make-test-projection/document projection)))))
                                         (:generic
