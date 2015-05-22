@@ -13,16 +13,9 @@
   (bind ((supers (if (or (eq name 'document) (member 'document supers))
                      supers
                      (append supers '(document)))))
-    (if *use-computed-class*
-        `(progn
-           (def computed-class* ,name ,supers
-             ,(iter (for slot :in slots)
-                    (collect (append slot (unless (find :computed-in slot) (list :computed-in 'projectured)))))
-             ,@options)
-           ,@(when (getf -options- :export) `((export ',name))))
-        `(progn
-           (def class* ,name ,supers ,slots ,@options)
-           ,@(when (getf -options- :export) `((export ',name)))))))
+    `(progn
+       (def class* ,name ,supers ,slots ,@options (:metaclass computed-class))
+       ,@(when (getf -options- :export) `((export ',name))))))
 
 ;;;;;;
 ;;; Data structure

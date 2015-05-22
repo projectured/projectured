@@ -171,7 +171,7 @@
   (text/text ()
     (text/string "First" :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/red*)
     ;;(text/spacing 10 :unit :space)
-    (image/file () (resource-pathname "image/lisp-flag.jpg"))
+    (text/graphics (image/file () (resource-pathname "image/lisp-flag.jpg")))
     (text/string "line" :font *font/ubuntu/monospace/bold/18* :font-color *color/solarized/green*)
     (text/newline)
     (text/string "Second" :font *font/ubuntu/bold/24* :font-color *color/solarized/blue*)

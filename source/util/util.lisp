@@ -17,20 +17,6 @@
 
 (def logger backend ())
 
-(def special-variable *use-computed-class* #t)
-
-(if *use-computed-class*
-    (def computed-universe projectured ()
-      ()
-      (:computed-state-factory-name as))
-    (def macro as (&body forms)
-      `(progn ,@forms)))
-
-(def function va (computed-state)
-  (if *use-computed-class*
-      (computed-state-value computed-state)
-      computed-state))
-
 (def function resource-pathname (name)
   (if (probe-file (asdf/component:component-pathname (asdf/system:find-system :projectured)))
       (asdf/system:system-relative-pathname :projectured name)
@@ -145,10 +131,41 @@
      (:measure
       (format t "MEASURING ~A~%" ,name)
       (time
-       (bind (((:values result counter)
-               (with-profiling-computation 'projectured
-                 ,@forms)))
-         (print counter)
+       (bind (((:values result validation-count recomputation-count)
+               (with-profiling-computation ,@forms)))
+         (format t "~%Validation count: ~A, recomputation count: ~A" validation-count recomputation-count)
          result)))
      (t
       ,@forms)))
+
+(def (function io) unbound-slot-marker ()
+  #*((:sbcl
+      ;; without LOAD-TIME-VALUE the compiler dies
+      (load-time-value sb-pcl::+slot-unbound+))
+     (:ccl
+      (ccl::%slot-unbound-marker))
+     (t
+      #.(not-yet-implemented/crucial-api 'unbound-slot-marker?))))
+
+(def (function io) unbound-slot-marker? (value)
+  (eq value (unbound-slot-marker)))
+
+;; TODO '(inline standard-instance-access (setf standard-instance-access))
+
+(def macro standard-instance-access-form (object slot)
+  `(standard-instance-access ,object
+    ,(if (typep slot 'effective-slot-definition)
+         (slot-definition-location slot)
+         `(slot-definition-location ,slot))))
+
+(def macro setf-standard-instance-access-form (new-value object slot)
+  #*((:sbcl `(setf (sb-pcl::clos-slots-ref (sb-pcl::std-instance-slots ,object)
+                                           ,(if (typep slot 'effective-slot-definition)
+                                                (slot-definition-location slot)
+                                                `(slot-definition-location ,slot)))
+                   ,new-value))
+     (t `(setf (standard-instance-access ,object
+                                         ,(if (typep slot 'effective-slot-definition)
+                                              (slot-definition-location slot)
+                                              `(slot-definition-location ,slot)))
+               ,new-value))))

@@ -210,6 +210,7 @@
                                                                          element-iomap-output))))
                                                  :separator (text/text () (text/string " " :font *font/ubuntu/monospace/regular/24*))
                                                  :selection output-selection))
+                       ;; KLUDGE: why do we need this here?
                        (when (typep input 'document) (selection-of input))
                        (set-selection it (va output-selection))))))
     (make-iomap/compound projection recursion input input-reference output element-iomaps)))
@@ -243,7 +244,7 @@
                                                                      slot-iomap-output))))
                                              :selection output-selection)
                        ;; KLUDGE: why do we need this here?
-                       (selection-of input)
+                       (when (typep input 'document) (selection-of input))
                        (set-selection it (va output-selection))))))
     (make-iomap/compound projection recursion input input-reference output slot-iomaps)))
 

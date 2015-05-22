@@ -8,7 +8,6 @@
 
 (def package :projectured.test
   (:use :hu.dwim.common
-        :hu.dwim.computed-class
         :hu.dwim.def
         :hu.dwim.defclass-star
         :hu.dwim.logger

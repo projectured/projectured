@@ -43,7 +43,7 @@
   (declare (ignore recursion))
   (bind ((printer-input (input-of printer-iomap)))
     (merge-commands (bind ((command (bind ((default-projection (default-projection-of projection))
-                                           (identity-projection (gethash input (identity-projection-map-of projection))))
+                                           (identity-projection (gethash printer-input (identity-projection-map-of projection))))
                                       (call-reader (or identity-projection default-projection) projection input printer-iomap))))
                       (when (and command (operation-of command))
                         command))

@@ -37,7 +37,7 @@
                                                  (iter (with location = (make-2d 0 y))
                                                        (for child :in (children-of input))
                                                        (for canvas-element = (recurse child (+ location (make-2d 0 50)) (1+ depth)))
-                                                       (for bounding-rectangle = (make-bounding-rectangle canvas-element))
+                                                       (for bounding-rectangle = (bounds-of canvas-element))
                                                        (incf location (+ (2d-x (size-of bounding-rectangle)) 10))
                                                        (collect canvas-element)))
                                           location)))

@@ -575,6 +575,7 @@
     (workbench/navigator ()
       (make-file-system/pathname (resource-pathname "example/")))
     (workbench/editor ()
+      #+nil
       (workbench/document (:title "Web" :filename (resource-pathname "example/web-example.pred"))
         (make-initial-document/web-example))
       #+nil
@@ -592,6 +593,5 @@
       #+nil
       (workbench/document (:title "Web" :filename (resource-pathname "example/web-example.pred"))
         (make-initial-document/web-example))
-      #+nil
       (workbench/document (:title "Empty" :filename (resource-pathname "example/empty-example.pred"))
         (make-initial-document/empty-example)))))

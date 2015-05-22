@@ -138,7 +138,13 @@
      :operation (make-operation/quit))
     ((make-instance 'gesture/window/quit :modifiers nil)
      :domain "Document" :description "Quits from the editor"
-     :operation (make-operation/quit))))
+     :operation (make-operation/quit))
+    ((gesture/keyboard/key-press :sdl-key-m :control)
+     :domain "Document" :description "Prints memory allocation information"
+     :operation (make-operation/functional (lambda () (room))))
+    ((gesture/keyboard/key-press :sdl-key-g :control)
+     :domain "Document" :description "Execute garbage collector"
+     :operation (make-operation/functional (lambda () (sb-ext:gc :full #t))))))
 
 ;; TODO: rename and move
 (def function make-operation/replace (document reference replacement &optional (list-replacement (list replacement)))

@@ -7,8 +7,8 @@
 (defsystem :projectured.test
   :defsystem-depends-on (:hu.dwim.asdf)
   :class "hu.dwim.asdf:hu.dwim.test-system"
-  :depends-on (:projectured
-               :hu.dwim.computed-class+hu.dwim.logger
+  :depends-on (:projectured+swank
+               :hu.dwim.logger
                :hu.dwim.stefil+hu.dwim.def+swank)
   :components ((:module "test"
                 :components ((:file "demo" :depends-on ("document" "projection"))

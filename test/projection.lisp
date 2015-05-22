@@ -1041,7 +1041,7 @@
 
 (def function test-slot-provider (instance)
   (remove-if (lambda (slot) (member (slot-definition-name slot)
-                               '(raw selection)
+                               '(raw selection annotation)
                                #+nil
                                '(raw selection font font-color stroke-color fill-color line-color)))
              (class-slots (class-of instance))))
@@ -1122,27 +1122,31 @@
 ;;;;;;
 ;;; Demo
 
-(def function make-test-projection/demo->text/code ()
+(def function make-test-projection/demo->text/code/natural ()
   (sequential
     (recursive
-      (type-dispatching
-        (xml/base (xml->tree))
-        (css/base (css->tree))
-        (javascript/base (javascript->tree))
-        (json/base (json->tree))
-        (common-lisp/base (sequential
-                            (common-lisp->lisp-form)
-                            (lisp-form->tree)))
-        (lisp-form/base (lisp-form->tree))
-        (table/base (sequential
-                      (recursive
-                        (type-dispatching
-                          (text/base (preserving))
-                          (table/base (table->text))))
-                      (templating
-                        (tree/leaf ()
-                          (template/evaluate-form () 'document)))))
-        (t (preserving))))
+      (reference-dispatching
+          (alternative
+            (type-dispatching
+              (xml/base (xml->tree))
+              (css/base (css->tree))
+              (javascript/base (javascript->tree))
+              (json/base (json->tree))
+              (common-lisp/base (sequential
+                                  (common-lisp->lisp-form)
+                                  (lisp-form->tree)))
+              (lisp-form/base (lisp-form->tree))
+              (table/base (sequential
+                            (recursive
+                              (type-dispatching
+                                (text/base (preserving))
+                                (table/base (table->text))))
+                            (templating
+                              (tree/leaf ()
+                                (template/evaluate-form () 'document)))))
+              (t (preserving)))
+            (recursive
+              (t->tree :slot-provider 'test-slot-provider)))))
     (make-test-projection/tree->text)
     (line-numbering)))
 
@@ -1245,7 +1249,7 @@
                                 (text/graphics (template/evaluate-form () 'document))))))
               (web-example/natural (nesting
                                      (web-example->t)
-                                     (make-test-projection/demo->text/code)))
+                                     (make-test-projection/demo->text/code/natural)))
               (web-example/brief (nesting
                                    (web-example->t)
                                    (make-test-projection/demo->text/code/brief)))
@@ -1255,13 +1259,7 @@
               (web-example/folded (nesting
                                     (web-example->t)
                                     (make-test-projection/demo->text/code/folded)))
-              #+nil
-              (t (reference-dispatching (make-test-projection/demo->text/code/emit) #+nil (make-test-projection/demo->text/code)
-                                        (((the sequence (elements-of (the book/book document)))
-                                          (the book/chapter (elt (the sequence document) 0))
-                                          (the sequence (elements-of (the book/chapter document)))
-                                          (the book/paragraph (elt (the sequence document) 1)))
-                                         (make-test-projection/demo->text/code/brief)))))
+              (t (make-test-projection/demo->text/code/natural)))
             (recursive
               (t->tree :slot-provider 'test-slot-provider)))))
     (make-test-projection/tree->text)))

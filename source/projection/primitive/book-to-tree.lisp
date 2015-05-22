@@ -122,7 +122,7 @@
        (when (and (eq projection ?projection) (eq recursion ?recursion))
          ?rest)))))
 
-(def function forward-mapper/book/chapter->book/chapter (printer-iomap reference)
+(def function forward-mapper/book/chapter->tree/node (printer-iomap reference)
   (bind ((projection (projection-of printer-iomap))
          (recursion (recursion-of printer-iomap)))
     (pattern-case reference
@@ -262,7 +262,7 @@
       (?
        (append `((the tree/node (printer-output (the book/book document) ,projection ,recursion))) reference)))))
 
-(def function backward-mapper/book/chapter->book/chapter (printer-iomap reference)
+(def function backward-mapper/book/chapter->tree/node (printer-iomap reference)
   (bind ((printer-input (input-of printer-iomap))
          (projection (projection-of printer-iomap))
          (recursion (recursion-of printer-iomap)))
@@ -305,32 +305,12 @@
     (pattern-case reference
       (((the tree/leaf document))
        '((the book/paragraph document)))
-      (((the text/text (content-of (the tree/leaf document))))
-       (bind ((content-iomap (content-iomap-of printer-iomap)))
-         `((the ,(form-type (input-of content-iomap)) (content-of (the book/paragraph document))))))
       (((the text/text (content-of (the tree/leaf document)))
         . ?rest)
        (bind ((content-iomap (content-iomap-of printer-iomap)))
          (if (zerop (text/length (output-of content-iomap)))
              (append `((the tree/leaf (printer-output (the book/paragraph document) ,projection ,recursion))) reference)
              (values nil ?rest content-iomap))))
-      (?
-       (append `((the tree/leaf (printer-output (the book/paragraph document) ,projection ,recursion))) reference)))
-    #+nil ;; TODO: delete
-    (pattern-case (print reference)
-      (((the tree/leaf document))
-       '((the book/paragraph document)))
-      (((the text/text (content-of (the tree/leaf document))))
-       (bind ((content-iomap (content-iomap-of printer-iomap)))
-         `((the ,(form-type (input-of content-iomap)) (content-of (the book/paragraph document))))))
-      (((the text/text (content-of (the tree/leaf document)))
-        (the text/text (text/subseq (the text/text document) ?start-character-index ?end-character-index)))
-       (bind ((content-iomap (content-iomap-of printer-iomap)))
-         (if (zerop (text/length (output-of content-iomap)))
-             (append `((the tree/leaf (printer-output (the book/paragraph document) ,projection ,recursion))) reference)
-             (values `((the ,(form-type (input-of content-iomap)) (content-of (the book/paragraph document))))
-                     `((the text/text (text/subseq (the text/text document) ,?start-character-index ,?end-character-index)))
-                     content-iomap))))
       (?
        (append `((the tree/leaf (printer-output (the book/paragraph document) ,projection ,recursion))) reference)))))
 
@@ -419,7 +399,7 @@
                                                             :input input :input-reference input-reference
                                                             :element-iomaps (va element-iomaps))
                                                 (selection-of input)
-                                                'forward-mapper/book/chapter->book/chapter)))
+                                                'forward-mapper/book/chapter->tree/node)))
          (output (as (make-tree/node (bind ((title-font (pattern-case input-reference
                                                           (((elt (the sequence document) ?subindex)
                                                             (the sequence (elements-of (the book/chapter document)))
@@ -455,10 +435,7 @@
                 :element-iomaps element-iomaps)))
 
 (def printer book/paragraph->tree/leaf (projection recursion input input-reference)
-  (bind ((content-iomap (as (recurse-printer recursion input input-reference))
-                        #+nil
-                        (as (recurse-printer recursion (content-of input) `((content-of (the book/paragraph document))
-                                                                            ,@(typed-reference (form-type input) input-reference)))))
+  (bind ((content-iomap (as (recurse-printer recursion input input-reference)))
          (output-selection (as (print-selection (make-iomap 'iomap/book/paragraph->tree/leaf
                                                             :projection projection :recursion recursion
                                                             :input input :input-reference input-reference
@@ -631,7 +608,7 @@
                                      (make-operation/sequence/replace-range printer-input `((the sequence (elements-of (the book/chapter document)))
                                                                                             (the sequence (subseq (the sequence document) ,?index ,(1+ ?index))))
                                                                             nil)))))
-                    (command/read-selection recursion input printer-iomap 'forward-mapper/book/chapter->book/chapter 'backward-mapper/book/chapter->book/chapter)
+                    (command/read-selection recursion input printer-iomap 'forward-mapper/book/chapter->tree/node 'backward-mapper/book/chapter->tree/node)
                     (gesture-case (gesture-of input)
                       ((gesture/keyboard/key-press :sdl-key-insert)
                        :domain "Book" :description "Starts an insertion into the elements of the chapter"
@@ -656,7 +633,7 @@
                                                                                                                                              (the text/text (text/subseq (the text/text document) 0 0))))
                                                                                                                  (text/text (:selection '((the text/text (text/subseq (the text/text document) 0 0))))
                                                                                                                    (text/string "" :font *font/liberation/serif/regular/24* :font-color *color/solarized/content/darker*))))))))))
-                    (command/read-backward recursion input printer-iomap 'backward-mapper/book/chapter->book/chapter operation-mapper)
+                    (command/read-backward recursion input printer-iomap 'backward-mapper/book/chapter->tree/node operation-mapper)
                     (make-command/nothing (gesture-of input)))))
 
 (def reader book/paragraph->tree/leaf (projection recursion input printer-iomap)

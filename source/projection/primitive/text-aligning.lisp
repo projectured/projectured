@@ -31,12 +31,12 @@
   (bind ((projection (projection-of printer-iomap))
          (recursion (recursion-of printer-iomap)))
     (pattern-case reference
-      (((the text/text (content-of (the book/paragraph document)))
+      (((the ?type (content-of (the book/paragraph document)))
         . ?rest)
        (values nil
                ?rest
                (elt (child-iomaps-of printer-iomap) 0)))
-      (((the text/text (printer-output (the text/text document) ?projection ?recursion)) . ?rest)
+      (((the text/text (printer-output (the book/paragraph document) ?projection ?recursion)) . ?rest)
        (when (and (eq projection ?projection) (eq recursion ?recursion))
          ?rest)))))
 
@@ -47,12 +47,12 @@
   (bind ((projection (projection-of printer-iomap))
          (recursion (recursion-of printer-iomap)))
     (pattern-case reference
-      (((the text/text (text/subseq (the text/text document) ?start-index ?end-index)))
-       (values `((the text/text (content-of (the book/paragraph document))))
+      ((?or nil ((the text/text (text/subseq (the text/text document) ?start-index ?end-index))))
+       (values `((the ,(form-type (content-of (input-of printer-iomap))) (content-of (the book/paragraph document))))
                reference
                (elt (child-iomaps-of printer-iomap) 0)))
       (?a
-       (append `((the text/text (printer-output (the text/text document) ,projection ,recursion))) reference)))))
+       (append `((the text/text (printer-output (the book/paragraph document) ,projection ,recursion))) reference)))))
 
 ;;;;;;
 ;;; Printer

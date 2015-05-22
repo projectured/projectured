@@ -330,7 +330,8 @@
     (lisp-form/string (make-projection/lisp-form/string->string))
     (lisp-form/symbol (make-projection/lisp-form/symbol->symbol))
     (lisp-form/quote (make-projection/lisp-form/quote->list))
-    (lisp-form/list (make-projection/lisp-form/list->list))))
+    (lisp-form/list (make-projection/lisp-form/list->list))
+    (lisp-form/top-level (make-projection/lisp-form/top-level->list))))
 
 (def macro lisp-form->form ()
   '(make-projection/lisp-form->form))

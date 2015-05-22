@@ -186,8 +186,7 @@
          :content content
          :location location
          :size size
-         ;; TODO: make all slots of computed-class computed by default
-         :scroll-position (as (make-2d 0 0))
+         :scroll-position (make-2d 0 0)
          args))
 
 ;;;;;;

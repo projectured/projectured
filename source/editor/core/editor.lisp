@@ -67,10 +67,8 @@
 
 (def method print-to-devices ((editor editor) document projection)
   (bind ((output-devices (remove-if-not (of-type 'device/output) (devices-of editor)))
-         (printer-iomap (if *use-computed-class*
-                            (if (slot-boundp editor 'printer-iomap)
-                                (printer-iomap-of editor)
-                                (setf (printer-iomap-of editor) (apply-printer document projection)))
+         (printer-iomap (if (slot-boundp editor 'printer-iomap)
+                            (printer-iomap-of editor)
                             (setf (printer-iomap-of editor) (apply-printer document projection)))))
     (when output-devices
       (iter (for device :in-sequence output-devices)

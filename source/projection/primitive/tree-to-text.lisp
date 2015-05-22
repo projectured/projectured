@@ -28,7 +28,9 @@
 
 (def function find-child-character-index (iomap parent-character-index)
   (iter (for index :from 0)
-        (for child-iomap :in-sequence (child-iomaps-of iomap))
+        (for child-iomap-ll :initially (child-iomaps-of iomap) :then (next-element-of child-iomap-ll))
+        (while child-iomap-ll)
+        (for child-iomap = (value-of child-iomap-ll))
         (for first-character-index = (first-character-index-of child-iomap))
         (for last-character-index = (last-character-index-of child-iomap))
         (when (<= first-character-index parent-character-index last-character-index)
@@ -388,6 +390,9 @@
                          (awhen (operation/extend printer-input `((the ,?content-type (content-of (the tree/leaf document)))) output-operation)
                            (make-command/clone input it)))))
                     (gesture-case gesture
+                      ((gesture/keyboard/key-press :sdl-key-i :control)
+                       :domain "Tree" :description "Describes the node at the selection"
+                       :operation (when tree-selection? (make-operation/describe (selection-of printer-input))))
                       ((gesture/keyboard/key-press :sdl-key-space :control)
                        :domain "Tree" :description "Turns the selection into a text selection"
                        :operation (when tree-selection?
@@ -404,7 +409,13 @@
                        :operation (bind ((new-selection `((the tree/leaf document))))
                                     (unless (equal new-selection selection)
                                       (make-operation/replace-selection printer-input new-selection)))))
-                    (command/read-backward recursion input printer-iomap 'backward-mapper/tree/leaf->text/text nil)
+                    (bind ((command (command/read-backward recursion input printer-iomap 'backward-mapper/tree/leaf->text/text nil))
+                           (operation (when command (operation-of command))))
+                      (if (and (typep gesture 'gesture/mouse/button/click)
+                               (typep operation 'operation/replace-selection)
+                               (equal (selection-of operation) (selection-of printer-input)))
+                          (make-command/clone command (make-operation/replace-selection printer-input '((the tree/leaf document))))
+                          command))
                     (make-command/nothing gesture))))
 
 (def reader tree/node->text/text (projection recursion input printer-iomap)
@@ -423,6 +434,9 @@
                                                   output-operation)
                            (make-command/clone input it)))))
                     (gesture-case gesture
+                      ((gesture/keyboard/key-press :sdl-key-i :control)
+                       :domain "Tree" :description "Describes the node at the selection"
+                       :operation (when tree-selection? (make-operation/describe (selection-of printer-input))))
                       ((gesture/keyboard/key-press :sdl-key-space :control)
                        :domain "Tree" :description "Turns the selection into a text position selection"
                        :operation (when tree-selection?
@@ -605,7 +619,7 @@
                                        (when (< ?child-index (1- (length (child-iomaps-of printer-iomap))))
                                          (make-operation/replace-selection printer-input (tree/make-text-reference projection recursion printer-iomap (1+ ?child-index))))))))
                       ((gesture/keyboard/key-press :sdl-key-delete)
-                       :domain "Book" :description "Deletes the selected child from the node"
+                       :domain "Tree" :description "Deletes the selected child from the node"
                        :operation (pattern-case selection
                                     (((the sequence (children-of (the tree/node document)))
                                       (the ?type (elt (the sequence document) ?index))
@@ -614,7 +628,7 @@
                                                                                             (the sequence (subseq (the sequence document) ,?index ,(1+ ?index))))
                                                                             nil))))
                       ((gesture/keyboard/key-press :sdl-key-k :control)
-                       :domain "Book" :description "Deletes the selected child from the node"
+                       :domain "Tree" :description "Deletes the selected child from the node"
                        :operation (pattern-case selection
                                     (((the sequence (children-of (the tree/node document)))
                                       (the ?type (elt (the sequence document) ?index))
@@ -622,5 +636,11 @@
                                      (make-operation/sequence/replace-range printer-input `((the sequence (children-of (the tree/node document)))
                                                                                             (the sequence (subseq (the sequence document) ,?index ,(1+ ?index))))
                                                                             nil)))))
-                    (command/read-backward recursion input printer-iomap 'backward-mapper/tree/node->text/text nil)
+                    (bind ((command (command/read-backward recursion input printer-iomap 'backward-mapper/tree/node->text/text nil))
+                           (operation (when command (operation-of command))))
+                      (if (and (typep gesture 'gesture/mouse/button/click)
+                               (typep operation 'operation/replace-selection)
+                               (equal (selection-of operation) (selection-of printer-input)))
+                          (make-command/clone command (make-operation/replace-selection printer-input '((the tree/node document))))
+                          command))
                     (make-command/nothing gesture))))

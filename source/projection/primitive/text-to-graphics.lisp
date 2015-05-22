@@ -126,7 +126,7 @@
                                             0))))
                          (t
                           (bind ((graphics (output-of (recurse-printer recursion (content-of text-element) nil)))
-                                 (bounding-rectangle (make-bounding-rectangle graphics)))
+                                 (bounding-rectangle (bounds-of graphics)))
                             (maximize (+ (2d-y (size-of bounding-rectangle))
                                          (aif (padding-of text-element)
                                               (inset/height it)
@@ -174,7 +174,7 @@
                     (values (+ location offset) height)))
                  (graphics/base
                   (bind ((location (+ (location-of graphics-element) (make-2d 0 (line-y-of line-iomap))))
-                         (size (size-of (make-bounding-rectangle graphics-element)))
+                         (size (size-of (bounds-of graphics-element)))
                          (offset (if (zerop graphics-character-index) 0 (2d-x size)))
                          (height (2d-y size)))
                     (values (+ location offset) height))))))
@@ -192,7 +192,7 @@
                        (bottom (+ (max (+ (2d-y start-location) start-height) (+ (2d-y end-location) end-height)) padding)))
                   (iter (for line-iomap-element :initially start-line-iomap-element :then (next-element-of line-iomap-element))
                         (unless (eq line-iomap-element end-line-iomap-element)
-                          (bind ((rectangle (make-bounding-rectangle (last-elt (elements-of (output-of (value-of line-iomap-element)))))))
+                          (bind ((rectangle (bounds-of (last-elt (elements-of (output-of (value-of line-iomap-element)))))))
                             (setf right (max right (2d-x (+ (location-of rectangle) (size-of rectangle)))))))
                         (until (eq line-iomap-element end-line-iomap-element)))
                   (list (make-graphics/rounded-rectangle (make-2d left top)
@@ -264,7 +264,7 @@
                                                    (t
                                                     (bind ((element-iomap (recurse-printer recursion (content-of text-element) nil))
                                                            (graphics (output-of element-iomap))
-                                                           (bounding-rectangle (make-bounding-rectangle graphics)))
+                                                           (bounding-rectangle (bounds-of graphics)))
                                                       (push element-iomap element-iomaps)
                                                       (push graphics-element-index graphics-element-indices)
                                                       (push character-index first-character-indices)

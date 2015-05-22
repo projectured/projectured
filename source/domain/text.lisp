@@ -20,7 +20,7 @@
    (padding :type inset)))
 
 (def document text/newline (text/element)
-  ((content (string #\NewLine) :type string :allocation :class :computed-in nil)))
+  ((content (string #\NewLine) :type string :allocation :class)))
 
 (def document text/spacing (text/element)
   ((size :type number)

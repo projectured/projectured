@@ -31,7 +31,7 @@
   (labels ((recurse (input)
              (pattern-case input
                (()
-                (list (text/string "")))
+                nil)
                (((the ?a document) . ?rest)
                 (list* (text/string "The whole " :font *font/default* :font-color *color/black*)
                        (text/string (symbol-name ?a) :font *font/default* :font-color *color/solarized/blue*)
@@ -103,8 +103,9 @@
                (?a
                 (warn "Unknown reference part ~A" input)
                 (list (text/string "Unknown reference part: " :font *font/default* :font-color *color/black*)
-                      (text/string (write-to-string input) :font *font/default* :font-color *color/solarized/blue*))))))
-    (bind ((output (text/make-text (recurse input))))
+                      (text/string (write-to-string input) :font *font/default* :font-color *color/solarized/blue*)
+                      (text/newline))))))
+    (bind ((output (text/make-text (butlast (recurse (reverse input))))))
       (make-iomap/object projection recursion input input-reference output))))
 
 ;;;;;;

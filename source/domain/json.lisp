@@ -14,15 +14,15 @@
 
 ;; TODO: rename and generalize?
 (def document json/insertion (json/base)
-  ((value "" :type string :allocation :class :computed-in nil)))
+  ((value "" :type string :allocation :class)))
 
 (def document json/null (json/base)
-  ((value "null" :type string :allocation :class :computed-in nil)))
+  ((value "null" :type string :allocation :class)))
 
 (def document json/boolean (json/base)
   ((value :type boolean)
-   (true-value "true" :type string :allocation :class :computed-in nil)
-   (false-value "false" :type string :allocation :class :computed-in nil)))
+   (true-value "true" :type string :allocation :class)
+   (false-value "false" :type string :allocation :class)))
 
 (def document json/number (json/base)
   ((value :type number)))

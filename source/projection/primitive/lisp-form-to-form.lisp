@@ -24,6 +24,9 @@
 (def projection lisp-form/list->list ()
   ())
 
+(def projection lisp-form/top-level->list ()
+  ())
+
 ;;;;;;
 ;;; Construction
 
@@ -41,6 +44,9 @@
 
 (def function make-projection/lisp-form/list->list ()
   (make-projection 'lisp-form/list->list))
+
+(def function make-projection/lisp-form/top-level->list ()
+  (make-projection 'lisp-form/top-level->list))
 
 ;;;;;;
 ;;; Printer
@@ -69,6 +75,13 @@
                                                                                 ,@(typed-reference (form-type input) input-reference))))))))
     (make-iomap/object projection recursion input input-reference output)))
 
+(def printer lisp-form/top-level->list (projection recursion input input-reference)
+  (bind ((output (iter (for index :from 0)
+                       (for element :in (elements-of input))
+                       (collect (output-of (recurse-printer recursion element `((elt (the sequence document) ,index)
+                                                                                ,@(typed-reference (form-type input) input-reference))))))))
+    (make-iomap/object projection recursion input input-reference output)))
+
 ;;;;;;
 ;;; Reader
 
@@ -89,5 +102,9 @@
   input)
 
 (def reader lisp-form/list->list (projection recursion input printer-iomap)
+  (declare (ignore projection recursion printer-iomap))
+  input)
+
+(def reader lisp-form/top-level->list (projection recursion input printer-iomap)
   (declare (ignore projection recursion printer-iomap))
   input)

@@ -23,7 +23,7 @@
                (bind ((character-position (text/relative-position printer-input (text/origin-position printer-input) character-index))
                       (line-count (text/count printer-input #\NewLine (text/first-position printer-input) character-position)))
                  (+ character-index
-                    1
+                    (text/length printer-input (text/first-position printer-input) (text/origin-position printer-input))
                     (* (1+ (line-number-length-of printer-iomap))
                        (1+ line-count))))))
       (pattern-case reference
@@ -40,16 +40,18 @@
 
 (def function backward-mapper/line-numbering (printer-iomap reference)
   (bind ((projection (projection-of printer-iomap))
-         (recursion (recursion-of printer-iomap)))
+         (recursion (recursion-of printer-iomap))
+         (printer-input (input-of printer-iomap)))
     (labels ((map-character-index (character-index)
                (bind ((output-string (text/as-string (output-of printer-iomap)))
                       (line-number-length (line-number-length-of printer-iomap))
                       (line-start-character-index (or (position #\NewLine output-string :from-end #t :end character-index) 0))
                       (line-number? (<= (- character-index line-start-character-index) line-number-length))
-                      (new-line-count (count #\NewLine output-string :end character-index)))
+                      (new-line-count (count #\NewLine output-string :end character-index))
+                      (origin-character-index (text/length printer-input (text/first-position printer-input) (text/origin-position printer-input))))
                  (values line-number? new-line-count (if line-number?
-                                                         (- character-index line-start-character-index)
-                                                         (- character-index (* (1+ line-number-length) (1+ new-line-count))))))))
+                                                         (- character-index origin-character-index line-start-character-index)
+                                                         (- character-index origin-character-index (* (1+ line-number-length) (1+ new-line-count))))))))
       (pattern-case reference
         (((the text/text (text/subseq (the text/text ?a) ?b ?b)))
          (bind (((:values line-number? line-index input-character-index) (map-character-index ?b)))
@@ -67,7 +69,7 @@
          ;; TODO:
          `((the text/text (text/subbox (the text/text document) ,(map-character-index ?b) ,(map-character-index ?c)))))
         (?a
-         (append reference `((the text/text (printer-output (the text/text document) ,projection ,recursion)))))))))
+         (append `((the text/text (printer-output (the text/text document) ,projection ,recursion))) reference))))))
 
 ;;;;;;
 ;;; Projection
@@ -118,8 +120,7 @@
                                                                                        ;; KLUDGE: should be :line-color but changed to :fill-color for demo to avoid padding problems
                                                                                        :fill-color (line-color-of projection))
                                                                      elements)
-                                                               (iter (for line-element-index :from 0)
-                                                                     (for line-element :in-sequence (elements-of line))
+                                                               (iter (for line-element :in-sequence (elements-of line))
                                                                      (push line-element elements))
                                                                (push (text/newline) elements)
                                                                (incf line-index))))

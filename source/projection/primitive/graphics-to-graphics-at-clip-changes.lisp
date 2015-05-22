@@ -30,11 +30,11 @@
 (def function froxxx (start-element)
   (if (typep start-element 'computed-ll)
       (iter (with class = (find-class 'computed-ll))
-            (with next-element-location = (slot-definition-location (find-slot class 'hu.dwim.computed-class::next-element)))
-            (with value-location = (slot-definition-location (find-slot class 'hu.dwim.computed-class::value)))
-            (for element :initially start-element :then (hu.dwim.computed-class::cs-value (standard-instance-access element next-element-location)))
+            (with next-element-location = (slot-definition-location (find-slot class 'next-element)))
+            (with value-location = (slot-definition-location (find-slot class 'value)))
+            (for element :initially start-element :then (cs-value (standard-instance-access element next-element-location)))
             (while element)
-            (collect (hu.dwim.computed-class::cs-value (standard-instance-access element value-location))))
+            (collect (cs-value (standard-instance-access element value-location))))
       start-element))
 
 (def printer graphics/canvas->graphics/canvas@clip-changes (projection recursion input input-reference)
@@ -46,7 +46,7 @@
                                                                                      (typecase element
                                                                                        (graphics/canvas
                                                                                         ;; TODO: lazy compare?!
-                                                                                        (bind ((old-child-elements (coerce (froxxx (hu.dwim.computed-class::cs-value (standard-instance-access element (slot-definition-location (find-slot (class-of element) 'elements))))) 'list))
+                                                                                        (bind ((old-child-elements (coerce (froxxx (cs-value (standard-instance-access element (slot-definition-location (find-slot (class-of element) 'elements))))) 'list))
                                                                                                (new-child-elements (coerce (elements-of element) 'list))
                                                                                                (added-child-elements (set-difference new-child-elements old-child-elements))
                                                                                                (removed-child-elements (set-difference old-child-elements new-child-elements))
@@ -62,9 +62,9 @@
                                                                                                           (not (= index 1)))
                                                                                                   (setf change-rectangle (rectangle-union* change-rectangle (recurse child-element)))))
                                                                                           (iter (for child-element :in added-child-elements)
-                                                                                                (setf change-rectangle (rectangle-union* change-rectangle (make-bounding-rectangle child-element))))
+                                                                                                (setf change-rectangle (rectangle-union* change-rectangle (bounds-of child-element))))
                                                                                           (iter (for child-element :in removed-child-elements)
-                                                                                                (setf change-rectangle (rectangle-union* change-rectangle (make-bounding-rectangle child-element))))
+                                                                                                (setf change-rectangle (rectangle-union* change-rectangle (bounds-of child-element))))
                                                                                           (when change-rectangle
                                                                                             (incf (location-of change-rectangle) (location-of element)))
                                                                                           change-rectangle))

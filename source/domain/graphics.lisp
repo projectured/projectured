@@ -77,7 +77,7 @@
 ;;; Graphics document classes
 
 (def document graphics/base ()
-  ()
+  ((bounds (as (make-bounding-rectangle -self-)) :type rectangle))
   (:documentation "Base class for graphics elements."))
 
 (def document graphics/point (graphics/base)
@@ -225,7 +225,7 @@
   (:method ((instance graphics/canvas))
     (iter (with canvas-rectangle = nil)
           (for element :in-sequence (elements-of instance))
-          (for element-rectangle = (make-bounding-rectangle element))
+          (for element-rectangle = (bounds-of element))
           (setf canvas-rectangle (if canvas-rectangle
                                      (rectangle-union canvas-rectangle element-rectangle)
                                      element-rectangle))
@@ -301,18 +301,15 @@
     (not-yet-implemented)))
 
 (def methods make-reference
-  (:method :around ((instance graphics/base) location reference)
-    (when (rectangle-contains-point? (make-bounding-rectangle instance) location)
-      (call-next-method)))
-
-  (:method ((instance graphics/point) location reference)
-    nil)
+    (:method ((instance graphics/point) location reference)
+      nil)
 
   (:method ((instance graphics/line) location reference)
     nil)
 
   (:method ((instance graphics/rectangle) location reference)
-    reference)
+    (when (rectangle-contains-point? instance location)
+      reference))
 
   (:method ((instance graphics/polygon) location reference)
     (not-yet-implemented))
@@ -325,31 +322,44 @@
 
   (:method ((instance graphics/text) location reference)
     ;; TODO: figure out which
-    (iter (with text = (text-of instance))
-          (with font = (font-of instance))
-          (for index :from 0 :to (length text))
-          (for size = (measure-text (subseq text 0 index) font))
-          (when (rectangle-contains-point? (make-rectangle (location-of instance) size) location)
-            (return
-              (append reference
-                      `((the string (text-of (the graphics/text document)))
-                        (the string (subseq (the string document) ,(1- index) ,(1- index)))))))))
+    (when (rectangle-contains-point? (bounds-of instance) location)
+      (iter (with text = (text-of instance))
+            (with font = (font-of instance))
+            (for index :from 0 :to (length text))
+            (for size = (measure-text (subseq text 0 index) font))
+            (when (rectangle-contains-point? (make-rectangle (location-of instance) size) location)
+              (return
+                (append reference
+                        `((the string (text-of (the graphics/text document)))
+                          (the string (subseq (the string document) ,(1- index) ,(1- index))))))))))
 
   (:method ((instance graphics/image) location reference)
-    reference)
+    (when (rectangle-contains-point? (bounds-of instance) location)
+      reference))
 
   (:method ((instance graphics/viewport) location reference)
-    (make-reference (content-of instance) (- location (location-of instance))
-                    (append reference
-                            `((the ,(form-type (content-of instance)) (content-of (the graphics/viewport document)))))))
+    (when (rectangle-contains-point? instance location)
+      (make-reference (content-of instance) (- location (location-of instance))
+                      (append reference
+                              `((the ,(form-type (content-of instance)) (content-of (the graphics/viewport document))))))))
 
   (:method ((instance graphics/canvas) location reference)
-    (iter (for index :from 0)
-          (for element :in-sequence (elements-of instance))
-          (thereis (make-reference element (- location (location-of instance))
-                                   (append reference
-                                           `((the sequence (elements-of (the graphics/canvas document)))
-                                             (the ,(form-type element) (elt (the sequence document) ,index)))))))))
+    (bind ((elements (elements-of instance)))
+      (if (typep elements 'computed-ll)
+          (iter (for index :from 0)
+                (for element-ll :initially elements :then (next-element-of element-ll))
+                (while element-ll)
+                (for element = (value-of element-ll))
+                (thereis (make-reference element (- location (location-of instance))
+                                         (append reference
+                                                 `((the sequence (elements-of (the graphics/canvas document)))
+                                                   (the ,(form-type element) (elt (the sequence document) ,index)))))))
+          (iter (for index :from (1- (length elements)) :downto 0)
+                (for element = (elt elements index))
+                (thereis (make-reference element (- location (location-of instance))
+                                         (append reference
+                                                 `((the sequence (elements-of (the graphics/canvas document)))
+                                                   (the ,(form-type element) (elt (the sequence document) ,index)))))))))))
 
 ;;;;;;
 ;;; Graphics operation classes

@@ -10,5 +10,4 @@
 ;;; Toplevel
 
 (def function executable-toplevel ()
-  (bind ((*measure-printer* #t))
-    (run-read-evaluate-print-loop (make-editor) (make-initial-document) (make-initial-projection))))
+  (run-read-evaluate-print-loop (make-editor) (make-initial-document) (make-initial-projection) :measure-printer #t))

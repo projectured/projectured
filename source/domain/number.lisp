@@ -56,10 +56,6 @@
                                       (subseq old-sequence 0 start) (replacement-of operation) (subseq old-sequence end))))
       (setf (eval-reference document flat-reference) (unless (string= new-sequence "")
                                                        (parse-number:parse-number new-sequence)))
-      #+nil
-      (when *use-computed-class*
-        ;; KLUDGE: forece recomputation
-        (invalidate-computed-slot document 'content))
       ;; KLUDGE: can't do this in a separate operation
       (bind ((character-index (+ start (length (replacement-of operation)))))
         (run-operation (make-operation/replace-selection document (append (butlast reference)

@@ -46,7 +46,7 @@
                                 (the text/text (content-of (the tree/leaf document)))))))
          (output (tree/leaf (:selection output-selection)
                    (text/text (:selection (butlast output-selection 1))
-                     (image/file () (resource-pathname "image/file.png"))
+                     ;; (text/graphics (image/file () (resource-pathname "image/file.png")))
                      (text/string (string+ " " (file-namestring pathname)) :font *font/ubuntu/regular/24* :font-color *color/solarized/blue*)))))
     (make-iomap/compound projection recursion input input-reference output nil)))
 
@@ -70,7 +70,7 @@
                                           (the sequence (children-of (the tree/node document)))))))))
          (output (make-tree/node (list* (tree/leaf (:selection (butlast output-selection 2))
                                           (text/text ()
-                                            (image/file () (resource-pathname "image/directory.png"))
+                                            ;; (text/graphics (image/file () (resource-pathname "image/directory.png")))
                                             (text/string (string+ " " (last-elt (pathname-directory pathname))) :font *font/ubuntu/regular/24* :font-color *color/solarized/red*)))
                                         (mapcar 'output-of element-iomaps))
                                  :selection output-selection)))

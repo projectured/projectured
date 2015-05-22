@@ -17,12 +17,12 @@
    (content :type t)))
 
 (def document document/nothing (document/base)
-  ((value "Empty document" :type string :allocation :class :computed-in nil)))
+  ((value "Empty document" :type string :allocation :class)))
 
 (def document document/insertion (document/base)
-  ((prefix "Insert a new " :type string :allocation :class :computed-in nil)
+  ((prefix "Insert a new " :type string :allocation :class)
    (value :type string)
-   (suffix " here" :type string :allocation :class :computed-in nil)
+   (suffix " here" :type string :allocation :class)
    (font nil :type style/font)))
 
 (def document document/search (document/base)

@@ -9,7 +9,6 @@
 (def package :projectured
   (:use :hu.dwim.asdf
         :hu.dwim.common
-        :hu.dwim.computed-class
         :hu.dwim.def
         :hu.dwim.defclass-star
         :hu.dwim.logger
