@@ -18,10 +18,10 @@
 
 (def namespace demo)
 
-(def definer demo (name document projection)
+(def definer demo (name document projection &rest args)
   `(progn
      (def test ,(format-symbol :projectured.test "TEST/EDITOR/~A" name) (&rest args &key &allow-other-keys)
-       (apply 'test/editor/run-read-evaluate-print-loop :demo ',name args))
+       (apply 'test/editor/run-read-evaluate-print-loop :demo ',name ,@args args))
      (setf (find-demo ',name)
            (make-instance 'demo :name ',name
                           :document ,document :document-factory (lambda () ,document)
@@ -56,11 +56,11 @@
 
 (def demo string/sorting (make-test-document/string) (make-test-projection/string->graphics/sorting))
 
-(def demo text (make-test-document/text) (make-test-projection/text->graphics))
+(def demo text (make-test-document/text) (preserving))
 
-(def demo text/empty (make-test-document/text/empty) (make-test-projection/text->graphics))
+(def demo text/empty (make-test-document/text/empty) (preserving))
 
-(def demo text/ll (make-test-document/text/ll 1000 500) (make-test-projection/text->output))
+(def demo text/ll (make-test-document/text/ll 1000 500) (preserving))
 
 (def demo text/searching/ll (document/search (:selection '((the text/text (content-of (the document/search document)))
                                                                          (the text/text (text/subseq (the text/text document) 0 0)))
@@ -82,7 +82,7 @@
 
 (def demo tree (make-test-document/tree) (make-test-projection/tree->graphics))
 
-(def demo tree/ll (make-test-document/tree/ll 10 5 2) (make-test-projection/tree->graphics))
+(def demo tree/ll (make-test-document/tree/ll 10 5 1) (make-test-projection/tree->graphics))
 
 (def demo tree/leaf (make-test-document/tree/leaf) (make-test-projection/tree->graphics))
 
@@ -98,23 +98,21 @@
 
 (def demo state-machine (make-test-document/state-machine) (make-test-projection/state-machine->graphics))
 
-(def demo book (make-test-document/book) (make-test-projection/book->graphics))
+(def demo book (make-test-document/book) (make-test-projection/book->text))
 
-(def demo book/paragraph (make-test-document/book/paragraph) (make-test-projection/book->graphics))
+(def demo book/paragraph (make-test-document/book/paragraph) (make-test-projection/book->text))
 
 (def demo book/sorting (make-test-document/book) (make-test-projection/book->graphics/sorting))
 
 (def demo book/focusing (make-test-document/book) (make-test-projection/book->graphics/focusing))
 
-(def demo xml (make-test-document/xml) (make-test-projection/xml->graphics))
+(def demo xml (make-test-document/xml) (make-test-projection/xml->text))
 
-(def demo xml/empty (make-test-document/xml/empty) (make-test-projection/xml->graphics))
+(def demo xml/empty (make-test-document/xml/empty) (make-test-projection/xml->text))
 
-(def demo xml/ll (make-test-document/xml/ll 200 100 3) (make-test-projection/xml->graphics))
+(def demo xml/ll (make-test-document/xml/ll 200 100 3) (make-test-projection/xml->text))
 
-(def demo json (make-test-document/json) (make-test-projection/json->graphics))
-
-(def demo json/alternative (make-test-document/json) (make-test-projection/json->graphics/alternative))
+(def demo json (make-test-document/json) (make-test-projection/json->text))
 
 (def demo json/focusing (make-test-document/json) (make-test-projection/json->graphics/focusing))
 
@@ -126,17 +124,17 @@
 
 (def demo json/templating (make-test-document/json) (make-test-projection/json->graphics/templating))
 
-(def demo css (make-test-document/css) (make-test-projection/css->graphics))
+(def demo css (make-test-document/css) (make-test-projection/css->text))
 
-(def demo file-system (make-test-document/file-system) (make-test-projection/file-system->graphics))
+(def demo file-system (make-test-document/file-system) (make-test-projection/file-system->text))
 
-(def demo java (make-test-document/java) (make-test-projection/java->graphics))
+(def demo java (make-test-document/java) (make-test-projection/java->text))
 
-(def demo javascript (make-test-document/javascript) (make-test-projection/javascript->graphics))
+(def demo javascript (make-test-document/javascript) (make-test-projection/javascript->text))
 
-(def demo lisp-form (make-test-document/lisp-form) (make-test-projection/lisp-form->graphics))
+(def demo lisp-form (make-test-document/lisp-form) (make-test-projection/lisp-form->text))
 
-(def demo common-lisp (make-test-document/common-lisp) (make-test-projection/common-lisp->graphics))
+(def demo common-lisp (make-test-document/common-lisp) (make-test-projection/common-lisp->text))
 
 (def demo common-lisp/inliner (make-test-document/common-lisp) (make-test-projection/common-lisp/inliner->graphics))
 
@@ -144,7 +142,7 @@
 
 (def demo evaluator (make-test-document/evaluator) (make-test-projection/evaluator))
 
-(def demo sql (make-test-document/sql) (make-test-projection/sql->graphics))
+(def demo sql (make-test-document/sql) (make-test-projection/sql->text))
 
 (def demo t/null (make-test-document/t/null) (make-test-projection/t->graphics/tree))
 
@@ -172,7 +170,7 @@
 
 (def demo inspector/object/nested (make-test-document/inspector/object/nested) (make-test-projection/inspector->graphics))
 
-(def demo demo (make-initial-document/web-example) (make-test-projection/demo->graphics))
+(def demo demo (make-initial-document/web-example) (make-test-projection/demo->text))
 
 (def demo documentation (make-test-document/documentation) (make-test-projection/documentation->graphics))
 

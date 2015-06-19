@@ -12,20 +12,11 @@
 (def class computed-class (standard-class)
   ())
 
-(def class computed-object ()
+(def class computed-object (standard-object)
   ())
 
 (def class computed-slot-definition (standard-slot-definition)
-  ((computed-readers
-    :initform nil
-    :type list
-    :accessor computed-readers-of
-    :initarg :computed-readers)
-   (computed-writers
-    :initform nil
-    :type list
-    :accessor computed-writers-of
-    :initarg :computed-writers)))
+  ())
 
 (def class computed-direct-slot-definition (computed-slot-definition standard-direct-slot-definition)
   ())
@@ -79,22 +70,7 @@
                         direct-slot-definitions)
            'computed-effective-slot-definition)))
     (declare (special %effective-slot-definition-class%))
-    (aprog1 (call-next-method)
-      ;; We collect and copy the readers and writers to the effective-slot, so we can access it
-      ;; later when generating custom accessors.
-      (cond ((typep it 'computed-effective-slot-definition)
-             (setf (computed-readers-of it)
-                   (remove-duplicates (loop for direct-slot-definition :in direct-slot-definitions
-                                            appending (if (typep direct-slot-definition 'computed-direct-slot-definition)
-                                                          (computed-readers-of direct-slot-definition)
-                                                          (slot-definition-readers direct-slot-definition)))
-                                      :test #'equal))
-             (setf (computed-writers-of it)
-                   (remove-duplicates (loop for direct-slot-definition :in direct-slot-definitions
-                                            appending (if (typep direct-slot-definition 'computed-direct-slot-definition)
-                                                          (computed-writers-of direct-slot-definition)
-                                                          (slot-definition-writers direct-slot-definition)))
-                                      :test #'equal)))))))
+    (call-next-method)))
 
 (def macro slot-value-using-class-body (object slot)
   (declare (type (or symbol effective-slot-definition) slot))
@@ -106,37 +82,29 @@
                          `(quote ,(slot-definition-name slot)))
               :instance ,object))
      (if (computed-state-p slot-value)
-         (%computed-state-value slot-value)
+         (computed-state-value slot-value)
          slot-value)))
 
 (def macro setf-slot-value-using-class-body (new-value object slot)
   (declare (type (or symbol effective-slot-definition) slot))
   `(let ((slot-value (standard-instance-access-form ,object ,slot)))
-    ;; an equivalent cond is compiled into considerably slower code on sbcl (?!).
-    (if (computed-state-p ,new-value)
-        (progn
-          (if (computed-state-p slot-value)
-              (copy-place-independent-slots-of-computed-state ,new-value slot-value)
-              (progn
-                (setf slot-value new-value)
-                (setf (cs-object ,new-value) ,object)
-                (debug-only
-                  (setf (cs-place-descriptor ,new-value) ,slot))
-                (setf-standard-instance-access-form slot-value ,object ,slot)))
-          ;; TODO: do we need this here? (invalidate-computed-state slot-value)
-          slot-value)
-        (if (computed-state-p slot-value)
-            ;; it also clears the dependency list, making it basically an uncomputed slot. but this slot will still be recorded
-            ;; in dependencies and invalidate its dependencies when it gets updated. (c-in in Cells)
-            ;; TODO: this will neither clear nor set the cs-compute-as to a constantly lambda, which is probably a bad thing.
-            ;; TODO: e.g. currently :always computed-state's silently ignore setf-ing a constant in them.
-            (setf (%computed-state-value slot-value) ,new-value)
-            ;; we just write the non computed-state new value in the slot that currently holds a non computed-state value or is unbound
-            ;; TODO we could automatically wrap the value in a computed state but it's not trivial and we don't need it right now
-            (setf-standard-instance-access-form (make-computed-state :recomputation-mode :on-demand :compute-as (constantly ,new-value) :object ,object
-                                                                     :valid #t :value ,new-value
-                                                                     #+debug :form #+debug ,new-value #+debug :place-descriptor #+debug ,slot)
-                                                ,object ,slot)))))
+     ;; an equivalent cond is compiled into considerably slower code on sbcl (?!).
+     (if (computed-state-p ,new-value)
+         (progn
+           (if (computed-state-p slot-value)
+               (copy-place-independent-slots-of-computed-state ,new-value slot-value)
+               (progn
+                 (setf slot-value new-value)
+                 (setf (cs-object ,new-value) ,object)
+                 (debug-only
+                   (setf (cs-place-descriptor ,new-value) ,slot))
+                 (setf-standard-instance-access-form slot-value ,object ,slot)))
+           slot-value)
+         (if (computed-state-p slot-value)
+             (setf (computed-state-value slot-value) ,new-value)
+             (setf-standard-instance-access-form (make-computed-state :recomputation-mode :on-demand :compute-as nil :object ,object :valid #t :value ,new-value
+                                                                      #+debug :form #+debug ,new-value #+debug :place-descriptor #+debug ,slot)
+                                                 ,object ,slot)))))
 
 (def method slot-value-using-class ((class computed-class) (object computed-object) (slot computed-effective-slot-definition))
   (declare #.(optimize-declaration))
@@ -189,7 +157,11 @@
   #+debug
   (form
    nil
-   :type (or atom list)))
+   :type (or atom list))
+  #+debug
+  (debug-invalidation
+   #f
+   :type boolean))
 
 (define-dynamic-context recompute-state-contex
   ((computed-state nil
@@ -215,61 +187,40 @@
        value)
     (values)))
 
-(def (function io) invalidate-computed-state-depends-on-me (computed-state)
-  (declare (type computed-state computed-state)
-           #+sbcl(sb-ext:muffle-conditions sb-ext:compiler-note))
-  (labels ((recurse (instance)
-             (bind ((purge-needed? #f))
-               (loop for element :across (cs-depends-on-me instance) :do
-                     (bind ((element (sb-ext:weak-pointer-value element)))
-                       (if element
-                           (progn
-                             (setf (cs-valid element) #f)
-                             (recurse element))
-                           (setf purge-needed? #t))))
-               (when purge-needed?
-                 (purge-computed-state-depends-on-me instance)))))
-    (recurse computed-state)))
-
 (def (function o) invalidate-computed-slot (object slot)
   (invalidate-computed-state (standard-instance-access-form object (find-slot (class-of object) slot))))
 
 (def (function o) purge-computed-state-depends-on-me (computed-state)
-  (bind ((depends-on-me (make-array 0 :adjustable #t :fill-pointer 0)))
-    (loop for element :across (cs-depends-on-me computed-state) :do
-          (when (nth-value 1 (sb-ext:weak-pointer-value element))
-            (vector-push-extend element depends-on-me)))
-    ;;(format t "~%Purged from ~A to ~A" (length (cs-depends-on-me computed-state)) (length depends-on-me))
-    (setf (cs-depends-on-me computed-state) depends-on-me)))
+  (bind ((original-depends-on-me (cs-depends-on-me computed-state)))
+    (when (find-if-not #'sb-ext:weak-pointer-value original-depends-on-me)
+      (bind ((purged-depends-on-me (make-array 0 :adjustable #t :fill-pointer 0)))
+        (loop for element :across (cs-depends-on-me computed-state) :do
+              (when (sb-ext:weak-pointer-value element)
+                (vector-push-extend element purged-depends-on-me)))
+        ;;(format t "~%Purged from ~A to ~A" (length (cs-depends-on-me computed-state)) (length depends-on-me))
+        (setf (cs-depends-on-me computed-state) purged-depends-on-me)))))
 
 (def (function io) computed-state-value (computed-state)
   "Read the value, recalculate when needed."
   (declare (type computed-state computed-state)
            #.(optimize-declaration))
-  (%computed-state-value computed-state))
-
-(def (function io) (setf computed-state-value) (new-value computed-state)
-  "Set the value, invalidate and recalculate as needed."
-  (declare (type computed-state computed-state)
-           #.(optimize-declaration))
-  (setf (%computed-state-value computed-state) new-value)
-  (setf (cs-compute-as computed-state) nil))
-
-(def (function io) %computed-state-value (computed-state)
   (declare (type computed-state computed-state)
            #.(optimize-declaration))
   (when (has-recompute-state-contex?)
     (bind ((computed-state-being-recomputed (rsc-computed-state *recompute-state-contex*)))
       (unless (find computed-state-being-recomputed (cs-depends-on-me computed-state) :key #'sb-ext:weak-pointer-value)
-        (vector-push-extend (sb-ext:make-weak-pointer computed-state-being-recomputed) (cs-depends-on-me computed-state)))))
+        (vector-push-extend (sb-ext:make-weak-pointer computed-state-being-recomputed) (cs-depends-on-me computed-state))
+        (purge-computed-state-depends-on-me computed-state))))
   (ensure-computed-state-is-valid computed-state)
   (cs-value computed-state))
 
-(def (function io) (setf %computed-state-value) (new-value computed-state)
+(def (function io) (setf computed-state-value) (new-value computed-state)
+  "Set the value, invalidate and recalculate as needed."
   (declare (type computed-state computed-state)
            #.(optimize-declaration))
-  (invalidate-computed-state-depends-on-me computed-state)
+  (invalidate-computed-state computed-state)
   (setf (cs-valid computed-state) #t)
+  (setf (cs-compute-as computed-state) nil)
   (setf (cs-value computed-state) new-value))
 
 (def (function io) ensure-computed-state-is-valid (computed-state)
@@ -293,8 +244,7 @@
     (bind ((old-value (cs-value computed-state))
            (new-value (aif (cs-compute-as computed-state)
                            (funcall it (cs-object computed-state) old-value)
-                           (error "Now, this is bad: we encoutered an invalid computed-state ~A which is holding a constant and therefore has no compute-as lambda"
-                                  computed-state)))
+                           (cs-value computed-state)))
            (store-new-value-p (if (and (primitive-p old-value)
                                        (primitive-p new-value))
                                   (not (equal old-value new-value))
@@ -306,6 +256,12 @@
           (setf (cs-value computed-state) new-value)
           #+nil(log.dribble "Not storing fresh recomputed value for ~A because it was equal to the cached value." computed-state))
       new-value)))
+
+(def (function io) primitive-p (object)
+  (or (numberp object)
+      (stringp object)
+      (symbolp object)
+      (characterp object)))
 
 (def (function io) computed-state-valid-p (computed-state)
   (declare (type computed-state computed-state)
@@ -330,12 +286,24 @@
                           (append (list computed-state)
                                   (loop for parent-context = context :then (rsc-parent-context parent-context)
                                         while parent-context
-                                        collect (rsc-computed-state parent-context))))))))))
+                                        collect (rsc-computed-state parent-context)))))))))
+  (values))
 
-(def (function io) invalidate-computed-state (computed-state)
+(def (function o) invalidate-computed-state (computed-state)
   (declare (type computed-state computed-state))
-  (invalidate-computed-state-depends-on-me computed-state)
-  (setf (cs-valid computed-state) #f))
+  (labels ((recurse (instance)
+             #+debug
+             (when (cs-debug-invalidation instance)
+               (break "Computed state ~A is being invalidated" instance))
+             (setf (cs-valid instance) #f)
+             (loop for element :across (cs-depends-on-me instance) :do
+                   (awhen (sb-ext:weak-pointer-value element)
+                     (recurse it)))
+             #+debug
+             (assert (not (has-recompute-state-contex?)))
+             (adjust-array (cs-depends-on-me instance) 0 :fill-pointer 0)))
+    (recurse computed-state))
+  (values))
 
 (def function print-computed-state (computed-state stream)
   (declare (type computed-state computed-state))
@@ -352,9 +320,9 @@
       (format stream "<#computed-state ~A :value ~A>"
               (if (cs-valid computed-state) "valid" "invalid") (cs-value computed-state)))))
 
-(def macro as* ((&key (recomputation-mode ':on-demand)) &body form)
+(def macro as* ((&key (recomputation-mode ':on-demand) #+debug (debug-invalidation #f)) &body form)
   (bind ((self-variable-name '-self-))
-    `(make-computed-state :recomputation-mode ',recomputation-mode #+debug :form #+debug ',form
+    `(make-computed-state :recomputation-mode ',recomputation-mode #+debug :form #+debug ',form #+debug :debug-invalidation #+debug ,debug-invalidation
                           :compute-as (named-lambda as/compute-as*/a-computation-body
                                           (,self-variable-name -current-value-)
                                         (declare (ignorable ,self-variable-name -current-value-))
@@ -363,17 +331,14 @@
 (def macro as (&body body)
   `(as* ,nil ,@body))
 
+(def macro asd (&body body)
+  `(as* (:debug-invalidation #t) ,@body))
+
 (def macro va (computed-state)
   `(computed-state-value ,computed-state))
 
 ;;;;;;
-;;; Helper methods
-
-(def (function io) primitive-p (object)
-  (or (numberp object)
-      (stringp object)
-      (symbolp object)
-      (characterp object)))
+;;; Profiling
 
 (def special-variable *profile-context* nil)
 
@@ -489,7 +454,6 @@
 
 (def special-variable *check-ll* nil)
 
-;; TODO: rename to coerce-ll?
 (def function ll (sequence &optional (index 0))
   (if (typep sequence 'computed-ll)
       sequence
@@ -515,20 +479,19 @@
           (make-list length :initial-element initial-element)
           (concatenate 'list initial-contents (make-list (- length (length initial-contents)))))))
 
-;; TODO: rename to last-elt-ll?
 (def function last-element (sequence)
   (iter (for e :initially sequence :then (next-element-of e))
         (for previous-e :previous e)
         (while e)
         (finally (return previous-e))))
 
-;; TODO: rename to first-elt-ll?
 (def function first-element (sequence)
   (iter (for e :initially sequence :then (previous-element-of e))
         (for previous-e :previous e)
         (while e)
         (finally (return previous-e))))
 
+#+debug
 (def function check-ll (sequence)
   (when *check-ll*
     (assert (eq (first-element sequence) (first-element (last-element sequence))))
@@ -541,6 +504,7 @@
                                   (collect element)))))))
 
 (def function map-ll (sequence function)
+  #+debug
   (check-ll sequence)
   (when sequence
     (labels ((recurse (element previous-element next-element)
@@ -554,6 +518,7 @@
       (recurse sequence nil nil))))
 
 (def function map-ll* (sequence function)
+  #+debug
   (check-ll sequence)
   (when sequence
     (labels ((recurse (element previous-element next-element index)
@@ -568,12 +533,12 @@
 
 
 (def function subseq-ll (sequence start end)
+  #+debug
   (check-ll sequence)
   (if (zerop start)
       (unless (zerop end)
         (make-computed-ll (as (value-of sequence))
-                          ;; TODO:
-                          (as nil)
+                          (as (not-yet-implemented))
                           (as (subseq-ll (next-element-of sequence) 0 (1- end)))))
       (subseq-ll (next-element-of sequence) (1- start) (1- end))))
 
@@ -583,6 +548,7 @@
 (def function append-ll (sequences)
   (when sequences
     (labels ((recurse (sequence sequence-element previous-sequence-element next-sequence-element previous-element next-element)
+               #+debug
                (check-ll sequence)
                (when sequence
                  (make-computed-ll (as (value-of sequence))
@@ -603,6 +569,7 @@
       (recurse (value-of sequences) sequences (previous-element-of sequences) (next-element-of sequences) nil nil))))
 
 (def function separate-elements-ll (sequence separator)
+  #+debug
   (check-ll sequence)
   (when sequence
     (labels ((recurse (sequence previous-element next-element)

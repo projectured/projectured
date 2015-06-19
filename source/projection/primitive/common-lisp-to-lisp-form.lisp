@@ -171,7 +171,7 @@
        `((the string (value-of (the lisp-form/insertion document)))
          (the string (subseq (the string document) ,?start-index ,?end-index))))
       (((the lisp-form/insertion (printer-output (the common-lisp/insertion document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 (def function forward-mapper/common-lisp/constant->lisp-form/string (printer-iomap reference)
@@ -209,7 +209,7 @@
                  ?rest
                  slot-iomap)))
       (((the lisp-form/list (printer-output (the common-lisp/if document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 (def function forward-mapper/common-lisp/the->lisp-form/list (printer-iomap reference)
@@ -231,7 +231,7 @@
                  ?rest
                  element-iomap)))
       (((the lisp-form/list (printer-output (the common-lisp/progn document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 (def function forward-mapper/common-lisp/lexical-variable-binding->lisp-form/list (printer-iomap reference)
@@ -252,7 +252,7 @@
                  ?rest
                  value-iomap)))
       (((the lisp-form/list (printer-output (the common-lisp/lexical-variable-binding document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 (def function forward-mapper/common-lisp/let->lisp-form/list (printer-iomap reference)
@@ -280,7 +280,7 @@
                  ?rest
                  body-element-iomap)))
       (((the lisp-form/list (printer-output (the common-lisp/let document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 (def function forward-mapper/common-lisp/application->lisp-form/list (printer-iomap reference)
@@ -313,7 +313,7 @@
                  ?rest
                  argument-iomap)))
       (((the lisp-form/list (printer-output (the common-lisp/application document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 (def function forward-mapper/common-lisp/special-variable-definition->lisp-form/list (printer-iomap reference)
@@ -336,7 +336,7 @@
                  ?rest
                  value-iomap)))
       (((the lisp-form/list (printer-output (the common-lisp/special-variable-definition document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 (def function forward-mapper/common-lisp/function-definition->lisp-form/list (printer-iomap reference)
@@ -380,7 +380,7 @@
                  ?rest
                  body-iomap)))
       (((the lisp-form/list (printer-output (the common-lisp/function-definition document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 (def function forward-mapper/common-lisp/lambda-function->lisp-form/list (printer-iomap reference)
@@ -398,7 +398,7 @@
        `((the string (name-of (the lisp-form/symbol document)))
          (the string (subseq (the string document) ,?start-index ,?end-index))))
       (((the lisp-form/symbol (printer-output (the common-lisp/function-argument document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 (def function forward-mapper/common-lisp/comment->lisp-form/comment (printer-iomap reference)
@@ -774,7 +774,7 @@
                                     (the string (write-to-string (the number document)))
                                     (the string (subseq (the string document) ,?start-index ,?end-index))))
                                  (((the lisp-form/string (printer-output (the common-lisp/constant document) ?projection ?recursion)) . ?rest)
-                                  (when (and (eq projection ?projection) (eq recursion ?recursion))
+                                  (when (eq projection ?projection)
                                     ?rest)))))
          (output (as (bind ((value (value-of input)))
                        (etypecase value
@@ -794,7 +794,7 @@
                                   `((the string (name-of (the lisp-form/symbol document)))
                                     (the string (subseq (the string document) ,?start-index ,?end-index))))
                                  (((the lisp-form/symbol (printer-output (the common-lisp/variable-reference document) ?projection ?recursion)) . ?rest)
-                                  (when (and (eq projection ?projection) (eq recursion ?recursion))
+                                  (when (eq projection ?projection)
                                     ?rest)))))
          (output (as (bind ((variable-name (name-of (variable-of input))))
                        (make-lisp-form/symbol (name-of variable-name) (package-of variable-name) :default-value "enter variable name" :font-color *color/solarized/orange* :selection output-selection)))))
@@ -809,7 +809,7 @@
                                   `((the string (name-of (the lisp-form/symbol document)))
                                     (the string (subseq (the string document) ,?start-index ,?end-index))))
                                  (((the lisp-form/symbol (printer-output (the common-lisp/function-reference document) ?projection ?recursion)) . ?rest)
-                                  (when (and (eq projection ?projection) (eq recursion ?recursion))
+                                  (when (eq projection ?projection)
                                     ?rest)))))
          (output (as (bind ((function-name (name-of (function-of input))))
                        (make-lisp-form/symbol (name-of function-name) (package-of function-name) :default-value "enter function name" :font-color *color/solarized/blue* :selection output-selection)))))
@@ -835,18 +835,18 @@
                                               (the ,(form-type slot-output) (elt (the sequence document) ,index)))
                                             (selection-of slot-output))))
                                  (((the lisp-form/list (printer-output (the common-lisp/if document) ?projection ?recursion)) . ?rest)
-                                  (when (and (eq projection ?projection) (eq recursion ?recursion))
+                                  (when (eq projection ?projection)
                                     ?rest)))))
          (output (as (make-lisp-form/list (list* (make-lisp-form/symbol* 'if :font-color *color/solarized/blue* :selection (as (nthcdr 2 (va output-selection))))
                                                  (output-of (va condition-iomap))
                                                  (bind ((then-output (output-of (va then-iomap))))
-                                                   (when (typep then-output '(or tree/base lisp-form/base))
-                                                     (setf (indentation-of then-output) 4))
-                                                   then-output)
+                                                   (etypecase then-output
+                                                     (lisp-form/base (lisp-form/clone then-output :indentation 4))
+                                                     (tree/base (tree/clone then-output :indentation 4))))
                                                  (awhen (output-of (va else-iomap))
-                                                   (when (typep it '(or tree/base lisp-form/base))
-                                                     (setf (indentation-of it) 4))
-                                                   (list it)))
+                                                   (list (etypecase it
+                                                           (lisp-form/base (lisp-form/clone it :indentation 4))
+                                                           (tree/base (tree/clone it :indentation 4))))))
                                           :selection output-selection))))
     (make-iomap/compound projection recursion input input-reference output (as (list (va condition-iomap) (va then-iomap) (va else-iomap))))))
 
@@ -869,15 +869,14 @@
                                               (the lisp-form/list (elt (the sequence document) ,(1+ ?index))))
                                             (selection-of element-output))))
                                  (((the lisp-form/list (printer-output (the common-lisp/progn document) ?projection ?recursion)) . ?rest)
-                                  (when (and (eq projection ?projection) (eq recursion ?recursion))
+                                  (when (eq projection ?projection)
                                     ?rest)))))
          (output (as (make-lisp-form/list (list* (make-lisp-form/symbol* 'progn :font-color *color/solarized/blue* :selection (as (nthcdr 2 (va output-selection))))
                                                  (iter (for body-iomap :in-sequence (va body-iomaps))
                                                        (for body-output = (output-of body-iomap))
-                                                       ;; KLUDGE:
-                                                       (when (typep body-output '(or tree/base lisp-form/base))
-                                                         (setf (indentation-of body-output) 2))
-                                                       (collect body-output)))
+                                                       (collect (etypecase body-output
+                                                                  (lisp-form/base (lisp-form/clone body-output :indentation 2))
+                                                                  (tree/base (tree/clone body-output :indentation 2))))))
                                           :selection output-selection))))
     (make-iomap/compound projection recursion input input-reference output body-iomaps)))
 
@@ -901,17 +900,18 @@
          (output (as (make-lisp-form/list (list* (make-lisp-form/symbol* 'let :selection (as (nthcdr 2 (va output-selection))) :font-color *color/solarized/blue*)
                                                  (make-lisp-form/list (iter (for binding-iomap :in-sequence (va binding-iomaps))
                                                                             (for binding-output = (output-of binding-iomap))
-                                                                            ;; KLUDGE:
-                                                                            (unless (first-iteration-p)
-                                                                              (setf (indentation-of binding-output) 1))
-                                                                            (collect binding-output))
+                                                                            (collect (if (first-iteration-p)
+                                                                                         binding-output
+                                                                                         (etypecase binding-output
+                                                                                           (lisp-form/base (lisp-form/clone binding-output :indentation 1))
+                                                                                           (tree/base (tree/clone binding-output :indentation 1))))))
                                                                       :selection (as (nthcdr 2 (va output-selection))))
                                                  (iter (for body-iomap :in-sequence (va body-iomaps))
                                                        (for body-output = (output-of body-iomap))
-                                                       ;; KLUDGE:
-                                                       (when (typep body-output '(or tree/base lisp-form/base))
-                                                         (setf (indentation-of body-output) 2))
-                                                       (collect body-output)))
+                                                       (collect (when body-output
+                                                                  (etypecase body-output
+                                                                    (lisp-form/base (lisp-form/clone body-output :indentation 2))
+                                                                    (tree/base (tree/clone body-output :indentation 2)))))))
                                           :selection output-selection))))
     (make-iomap/compound projection recursion input input-reference output (as (append (va binding-iomaps) (va body-iomaps))))))
 
@@ -944,7 +944,7 @@
                                               (the lisp-form/list (elt (the sequence document) ,(1+ ?index))))
                                             (selection-of argument-output))))
                                  (((the lisp-form/list (printer-output (the common-lisp/application document) ?projection ?recursion)) . ?rest)
-                                  (when (and (eq projection ?projection) (eq recursion ?recursion))
+                                  (when (eq projection ?projection)
                                     ?rest)))))
          (output (as (bind ((operator (operator-of input))
                             ((:values operator-name operator-package) (etypecase operator
@@ -956,10 +956,6 @@
                        (make-lisp-form/list (cons (make-lisp-form/symbol operator-name operator-package :default-value "enter function name" :font-color *color/solarized/violet* :selection (as (nthcdr 2 (va output-selection))))
                                                   (iter (for argument-iomap :in-sequence (va argument-iomaps))
                                                         (for argument-output = (output-of argument-iomap))
-                                                        ;; KLUDGE:
-                                                        #+nil
-                                                        (unless (first-iteration-p)
-                                                          (setf (indentation-of argument-output) (+ 2 (length (symbol-name (operator-of input))))))
                                                         (collect argument-output)))
                                             :selection output-selection)))))
     (make-iomap/compound projection recursion input input-reference output argument-iomaps)))
@@ -973,10 +969,9 @@
                        (make-lisp-form/list (list (make-lisp-form/symbol* 'defvar :font-color *color/solarized/blue* :selection (as (nthcdr 2 (va output-selection))))
                                                   (make-lisp-form/symbol (name-of variable-name) (package-of variable-name) :font *font/ubuntu/monospace/italic/24* :font-color *color/solarized/violet* :selection (as (nthcdr 2 (va output-selection))))
                                                   (bind ((value-output (output-of (va value-iomap))))
-                                                    ;; KLUDGE:
-                                                    (when (typep value-output '(or tree/base lisp-form/base))
-                                                      (setf (indentation-of value-output) 2))
-                                                    (output-of (va value-iomap))))
+                                                    (etypecase value-output
+                                                      (lisp-form/base (lisp-form/clone value-output :indentation 2))
+                                                      (tree/base (tree/clone value-output :indentation 2)))))
                                             :selection output-selection)))))
     (make-iomap/compound projection recursion input input-reference output (as (list (va value-iomap))))))
 
@@ -998,10 +993,9 @@
                                                     (when documentation (list (make-lisp-form/string documentation :default-value "enter function documentation" :indentation 2 :selection (as (nthcdr 2 (va output-selection))))))
                                                     (iter (for body-iomap :in-sequence (va body-iomaps))
                                                           (for body-output = (output-of body-iomap))
-                                                          ;; KLUDGE:
-                                                          (when (typep body-output '(or tree/base lisp-form/base))
-                                                            (setf (indentation-of body-output) 2))
-                                                          (collect body-output)))
+                                                          (collect (etypecase body-output
+                                                                     (lisp-form/base (lisp-form/clone body-output :indentation 2))
+                                                                     (tree/base (tree/clone body-output :indentation 2))))))
                                             :selection output-selection)))))
     (make-iomap/compound projection recursion input input-reference output (as (append (va binding-iomaps) (va body-iomaps))))))
 
@@ -1012,10 +1006,9 @@
                                                  (make-lisp-form/list (mapcar 'output-of (va binding-iomaps)))
                                                  (iter (for body-iomap :in-sequence (va body-iomaps))
                                                        (for body-output = (output-of body-iomap))
-                                                       ;; KLUDGE:
-                                                       (when (typep body-output '(or tree/base lisp-form/base))
-                                                         (setf (indentation-of body-output) 2))
-                                                       (collect body-output)))))))
+                                                       (collect (etypecase body-output
+                                                                  (lisp-form/base (lisp-form/clone body-output :indentation 2))
+                                                                  (tree/base (tree/clone body-output :indentation 2))))))))))
     (make-iomap/compound projection recursion input input-reference output (as (append (va binding-iomaps) (va body-iomaps))))))
 
 (def printer common-lisp/function-argument->lisp-form/symbol (projection recursion input input-reference)
@@ -1036,10 +1029,11 @@
   (bind ((body-iomaps (as (recurse/slot recursion input 'body input-reference)))
          (output (as (make-lisp-form/top-level (iter (for body-iomap :in-sequence (va body-iomaps))
                                                      (for body-output = (output-of body-iomap))
-                                                     ;; KLUDGE:
-                                                     (when (typep body-output '(or tree/base lisp-form/base))
-                                                       (setf (indentation-of body-output) 0))
-                                                     (collect body-output))))))
+                                                     (collect (if (first-iteration-p)
+                                                                  body-output
+                                                                  (etypecase body-output
+                                                                    (lisp-form/base (lisp-form/clone body-output :indentation 0))
+                                                                    (tree/base (tree/clone body-output :indentation 0))))))))))
     (make-iomap/compound projection recursion input input-reference output
                          (list (make-iomap/object projection recursion input input-reference output)))))
 

@@ -37,7 +37,7 @@
          `((the text/text (content-of (the widget/text document)))
            (the text/text (text/subseq (the text/text document) ,(+ ?start-index offset) ,(+ ?end-index offset))))))
       (((the widget/text (printer-output (the document/search document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 ;;;;;;
@@ -63,19 +63,21 @@
 ;;; Printer
 
 (def printer document/search->widget/text (projection recursion input input-reference)
-  (bind ((search-string (search-of input))
-         (empty? (zerop (length search-string)))
-         (output-selection (print-selection (make-iomap/object projection recursion input input-reference nil)
-                                            (selection-of input)
-                                            'forward-mapper/document/search->widget/text))
-         (output (widget/text (:selection output-selection :location (make-2d 0 0) :margin (make-inset :all 5))
-                   (text/text (:selection (nthcdr 1 output-selection))
-                     (text/string "Search: " :font *font/ubuntu/regular/24* :font-color *color/solarized/gray*)
-                     (text/string (if empty?
-                                      "enter search text"
-                                      search-string)
-                                  :font *font/ubuntu/regular/24*
-                                  :font-color (if empty? (color/lighten *color/solarized/blue* 0.75) *color/solarized/blue*))))))
+  (bind ((output-selection (as (print-selection (make-iomap/object projection recursion input input-reference nil)
+                                                (selection-of input)
+                                                'forward-mapper/document/search->widget/text)))
+         (output (as (bind ((search-string (search-of input))
+                            (empty? (zerop (length search-string))))
+                       (widget/text (:selection output-selection :location 0 :margin (make-inset :all 5)
+                                     :margin-color (color/lighten *color/solarized/yellow* 0.75)
+                                     :content-fill-color (color/lighten *color/solarized/yellow* 0.75))
+                         (text/text (:selection (as (nthcdr 1 (va output-selection))))
+                           (text/string "Search: " :font *font/ubuntu/regular/24* :font-color *color/solarized/gray*)
+                           (text/string (if empty?
+                                            "enter search text"
+                                            search-string)
+                                        :font *font/ubuntu/regular/24*
+                                        :font-color (if empty? (color/lighten *color/solarized/blue* 0.75) *color/solarized/blue*))))))))
     (make-iomap/object projection recursion input input-reference output)))
 
 ;;;;;;

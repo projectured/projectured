@@ -146,7 +146,7 @@
                                              (subseq ?rest (length reference)))
                                      index)))))
             (((the tree/node (printer-output (the document/search document) ?projection ?recursion)) . ?rest)
-             (when (and (eq projection ?projection) (eq recursion ?recursion))
+             (when (eq projection ?projection)
                ?rest))))
          (output (make-tree/node (iter (for index :from 0)
                                        (for reference :in result)

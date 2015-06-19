@@ -56,7 +56,7 @@
              (the string (value-of (the common-lisp/constant document)))
              (the string (subseq (the string document) ,?start-index ,?end-index)))))
       (((the common-lisp/progn (printer-output (the tree/leaf document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 (def function forward-mapper/tree/node->common-lisp/progn (printer-iomap reference)
@@ -74,7 +74,7 @@
                  ?rest
                  (elt (child-iomaps-of printer-iomap) index))))
       (((the common-lisp/progn (printer-output (the tree/node document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 ;;;;;;

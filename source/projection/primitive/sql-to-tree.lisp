@@ -64,7 +64,7 @@
        `((the text/text (content-of (the tree/leaf document)))
          (the text/text (text/subseq (the text/text document) ,?start-index ,?end-index))))
       (((the tree/leaf (printer-output (the sql/column-reference document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 (def function forward-mapper/sql/table-reference->tree/leaf (printer-iomap reference)
@@ -79,7 +79,7 @@
        `((the text/text (content-of (the tree/leaf document)))
          (the text/text (text/subseq (the text/text document) ,?start-index ,?end-index))))
       (((the tree/leaf (printer-output (the sql/table-reference document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 (def function forward-mapper/sql/select->tree/node (printer-iomap reference)
@@ -111,7 +111,7 @@
                  ?rest
                  table-iomap)))
       (((the tree/node (printer-output (the sql/select document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 ;;;;;;

@@ -119,7 +119,7 @@
                  ?rest
                  element-iomap)))
       (((the tree/node (printer-output (the book/book document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 (def function forward-mapper/book/chapter->tree/node (printer-iomap reference)
@@ -151,7 +151,7 @@
                  ?rest
                  element-iomap)))
       (((the tree/node (printer-output (the book/chapter document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 (def function forward-mapper/book/paragraph->tree/leaf (printer-iomap reference)
@@ -169,7 +169,7 @@
                  ?rest
                  content-iomap)))
       (((the tree/leaf (printer-output (the book/paragraph document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 (def function forward-mapper/book/list->tree/node (printer-iomap reference)
@@ -190,7 +190,7 @@
                  ?rest
                  element-iomap)))
       (((the tree/node (printer-output (the book/list document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 (def function forward-mapper/book/picture->tree/leaf (printer-iomap reference)
@@ -205,7 +205,7 @@
        `((the text/text (content-of (the tree/leaf document)))
          (the text/text (text/subseq (the text/text document) ,?start-character-index ,?end-character-index))))
       (((the tree/leaf (printer-output (the book/picture document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 ;;;;;;
@@ -356,18 +356,14 @@
 
 (def printer book/book->tree/node (projection recursion input input-reference)
   (bind ((element-iomaps (as (map-ll* (ll (elements-of input)) (lambda (element index)
-                                                                 (bind ((element-iomap (recurse-printer recursion (value-of element)
-                                                                                                        `((elt (the sequence document) ,index)
-                                                                                                          (the sequence (elements-of (the book/book document)))
-                                                                                                          ,@(typed-reference (form-type input) input-reference))))
-                                                                        (element-output (output-of element-iomap)))
-                                                                   (unless (indentation-of element-output)
-                                                                     (setf (indentation-of element-output) 0))
-                                                                   element-iomap)))))
+                                                                 (recurse-printer recursion (value-of element)
+                                                                                  `((elt (the sequence document) ,index)
+                                                                                    (the sequence (elements-of (the book/book document)))
+                                                                                    ,@(typed-reference (form-type input) input-reference)))))))
          (output-selection (as (print-selection (make-iomap 'iomap/book/book->tree/node
                                                             :projection projection :recursion recursion
                                                             :input input :input-reference input-reference
-                                                            :element-iomaps (va element-iomaps))
+                                                            :element-iomaps element-iomaps)
                                                 (selection-of input)
                                                 'forward-mapper/book/book->tree/node)))
          (output (make-tree/node (as (append-ll (list-ll (ll (append (list (tree/leaf (:selection (as (nthcdr 2 (va output-selection))))
@@ -377,7 +373,12 @@
                                                                                              :opening-delimiter (text/make-simple-text "Written by " :font *font/liberation/serif/italic/14* :font-color *color/solarized/content/darker*)
                                                                                              :indentation 0
                                                                                              :selection (as (nthcdr 2 (va output-selection))))))))
-                                                         (map-ll (va element-iomaps) 'output-of))))
+                                                         (map-ll (va element-iomaps) (lambda (element-iomap)
+                                                                                       (bind ((element-output (output-of element-iomap)))
+                                                                                         (etypecase element-output
+                                                                                           (tree/leaf (tree/clone-leaf element-output :indentation 0 :selection (as (nthcdr 2 (va output-selection)))))
+                                                                                           (tree/node (tree/clone-node element-output :indentation 0 :selection (as (nthcdr 2 (va output-selection)))))
+                                                                                           (t element-output))))))))
                                  :selection output-selection)))
     (make-iomap 'iomap/book/book->tree/node
                 :projection projection :recursion recursion
@@ -386,49 +387,50 @@
 
 (def printer book/chapter->tree/node (projection recursion input input-reference)
   (bind ((element-iomaps (as (map-ll* (ll (elements-of input)) (lambda (element index)
-                                                                 (bind ((element-iomap (recurse-printer recursion (value-of element)
-                                                                                                        `((elt (the sequence document) ,index)
-                                                                                                          (the sequence (elements-of (the book/chapter document)))
-                                                                                                          ,@(typed-reference (form-type input) input-reference))))
-                                                                        (element-output (output-of element-iomap)))
-                                                                   (unless (indentation-of element-output)
-                                                                     (setf (indentation-of element-output) 0))
-                                                                   element-iomap)))))
+                                                                 (recurse-printer recursion (value-of element)
+                                                                                  `((elt (the sequence document) ,index)
+                                                                                    (the sequence (elements-of (the book/chapter document)))
+                                                                                    ,@(typed-reference (form-type input) input-reference)))))))
          (output-selection (as (print-selection (make-iomap 'iomap/book/chapter->tree/node
                                                             :projection projection :recursion recursion
                                                             :input input :input-reference input-reference
-                                                            :element-iomaps (va element-iomaps))
+                                                            :element-iomaps element-iomaps)
                                                 (selection-of input)
                                                 'forward-mapper/book/chapter->tree/node)))
-         (output (as (make-tree/node (bind ((title-font (pattern-case input-reference
-                                                          (((elt (the sequence document) ?subindex)
-                                                            (the sequence (elements-of (the book/chapter document)))
-                                                            (the book/chapter (elt (the sequence document) ?index))
-                                                            (the sequence (elements-of (the book/chapter document)))
-                                                            . ?rest)
-                                                           *font/liberation/serif/regular/24*)
-                                                          (((elt (the sequence document) ?index)
-                                                            (the sequence (elements-of (the book/chapter document)))
-                                                            . ?rest)
-                                                           *font/liberation/serif/regular/30*)
-                                                          (?
-                                                           *font/liberation/serif/bold/36*))))
-                                       (append-ll (list-ll (list-ll (bind ((title (title-of input))
-                                                                           (title? (string= title ""))
-                                                                           (font-color (if title?
-                                                                                           (color/lighten *color/solarized/blue* 0.75)
-                                                                                           *color/solarized/blue*)))
-                                                                      (tree/leaf (:selection (as (nthcdr 2 (va output-selection))))
-                                                                        (as (bind ((numbering (numbering-of input)))
-                                                                              (if numbering
-                                                                                  (text/text (:selection (as (nthcdr 3 (va output-selection))))
-                                                                                    (text/string (numbering-of input) :font title-font :font-color font-color :padding (make-inset :top 10))
-                                                                                    (text/spacing 30)
-                                                                                    (text/string (if (string= title "") "enter chapter title" title) :font title-font :font-color font-color :padding (make-inset :top 10)))
-                                                                                  (text/make-default-text title "enter chapter title" :font title-font :font-color font-color :padding (make-inset :top 10) :selection (as (nthcdr 3 (va output-selection))))))))))
-                                                           (map-ll (va element-iomaps) 'output-of))))
-                                     :selection output-selection
-                                     :expanded (as (expanded-p input))))))
+         (title-output (as (bind ((title (title-of input))
+                                  (title? (string= title ""))
+                                  (title-font (pattern-case input-reference
+                                                (((elt (the sequence document) ?subindex)
+                                                  (the sequence (elements-of (the book/chapter document)))
+                                                  (the book/chapter (elt (the sequence document) ?index))
+                                                  (the sequence (elements-of (the book/chapter document)))
+                                                  . ?rest)
+                                                 *font/liberation/serif/regular/24*)
+                                                (((elt (the sequence document) ?index)
+                                                  (the sequence (elements-of (the book/chapter document)))
+                                                  . ?rest)
+                                                 *font/liberation/serif/regular/30*)
+                                                (?
+                                                 *font/liberation/serif/bold/36*)))
+                                  (font-color (if title?
+                                                  (color/lighten *color/solarized/blue* 0.75)
+                                                  *color/solarized/blue*))
+                                  (numbering (numbering-of input)))
+                             (if numbering
+                                 (text/text (:selection (as (nthcdr 3 (va output-selection))))
+                                   (text/string numbering :font title-font :font-color font-color :padding (make-inset :top 10))
+                                   (text/spacing 30)
+                                   (text/string (if (string= title "") "enter chapter title" title) :font title-font :font-color font-color :padding (make-inset :top 10)))
+                                 (text/make-default-text title "enter chapter title" :font title-font :font-color font-color :padding (make-inset :top 10) :selection (as (nthcdr 3 (va output-selection))))))))
+         (output (make-tree/node (as (append-ll (list-ll (list-ll (tree/leaf (:selection (as (nthcdr 2 (va output-selection)))) title-output))
+                                                         (map-ll (va element-iomaps) (lambda (element-iomap)
+                                                                                       (bind ((element-output (output-of element-iomap)))
+                                                                                         (etypecase element-output
+                                                                                           (tree/leaf (tree/clone-leaf element-output :indentation 0 :selection (as (nthcdr 2 (va output-selection)))))
+                                                                                           (tree/node (tree/clone-node element-output :indentation 0 :selection (as (nthcdr 2 (va output-selection)))))
+                                                                                           (t element-output))))))))
+                                 :collapsed (as (collapsed-p input))
+                                 :selection output-selection)))
     (make-iomap 'iomap/book/chapter->tree/node
                 :projection projection :recursion recursion
                 :input input :input-reference input-reference :output output
@@ -439,7 +441,7 @@
          (output-selection (as (print-selection (make-iomap 'iomap/book/paragraph->tree/leaf
                                                             :projection projection :recursion recursion
                                                             :input input :input-reference input-reference
-                                                            :content-iomap (va content-iomap))
+                                                            :content-iomap content-iomap)
                                                 (selection-of input)
                                                 'forward-mapper/book/paragraph->tree/leaf)))
          (output (as (bind ((content-output (output-of (va content-iomap))))
@@ -447,11 +449,14 @@
                          (if (zerop (text/length content-output))
                              (text/text (:selection (as (nthcdr 1 (va output-selection))))
                                (text/string "enter paragraph text" :font *font/liberation/serif/regular/24* :font-color (color/lighten *color/solarized/content/darker* 0.75) :padding (make-inset :top 10)))
-                             (bind ((first-element (first-elt (elements-of content-output))))
-                               ;; KLUDGE:
-                               (when (typep first-element 'text/base)
-                                 (setf (padding-of first-element) (make-inset :top 10)))
-                               content-output)))))))
+                             (text/make-text (map-ll* (ll (elements-of content-output)) (lambda (element index)
+                                                                                          (bind ((value (value-of element)))
+                                                                                            (if (previous-element-of element)
+                                                                                                value
+                                                                                                (etypecase value
+                                                                                                  (text/string (text/clone-string value :padding (make-inset :top 10)))
+                                                                                                  (text/graphics value))))))
+                                             :selection (as (nthcdr 1 (va output-selection))))))))))
     (make-iomap 'iomap/book/paragraph->tree/leaf
                 :projection projection :recursion recursion
                 :input input :input-reference input-reference :output output

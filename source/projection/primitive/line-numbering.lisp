@@ -32,7 +32,7 @@
         (((the text/text (text/subbox (the text/text document) ?start-character-index ?end-character-index)))
          `((the text/text (text/subbox (the text/text document) ,(map-character-index ?start-character-index) ,(map-character-index ?end-character-index)))))
         (((the text/text (printer-output (the text/text document) ?projection ?recursion)) . ?rest)
-         (when (and (eq projection ?projection) (eq recursion ?recursion))
+         (when (eq projection ?projection)
            ?rest))))) )
 
 ;;;;;;

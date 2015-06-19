@@ -37,12 +37,12 @@
 ;;; Printer
 
 (def printer image/file->graphics/image (projection recursion input input-reference)
-  (bind ((output (make-graphics/image (make-2d 0 0) input)))
+  (bind ((output (make-graphics/image 0 input)))
     (make-iomap/compound projection recursion input input-reference output
                          (list (make-iomap/object projection recursion input input-reference output)))))
 
 (def printer image/memory->graphics/image (projection recursion input input-reference)
-  (bind ((output (make-graphics/image (make-2d 0 0) input)))
+  (bind ((output (make-graphics/image 0 input)))
     (make-iomap/compound projection recursion input input-reference output
                          (list (make-iomap/object projection recursion input input-reference output)))))
 

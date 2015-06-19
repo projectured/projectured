@@ -30,7 +30,8 @@
 
 (def document widget/text (widget/base)
   ((location :type 2d)
-   (content :type t)))
+   (content :type t)
+   (content-fill-color nil :type style/color)))
 
 (def document widget/checkbox (widget/base)
   ((location :type 2d)
@@ -102,8 +103,8 @@
          :content content
          args))
 
-(def function make-widget/text (location content &rest args &key margin margin-color border border-color padding padding-color selection)
-  (declare (ignore margin margin-color border border-color padding padding-color))
+(def function make-widget/text (location content &rest args &key content-fill-color margin margin-color border border-color padding padding-color selection)
+  (declare (ignore content-fill-color margin margin-color border border-color padding padding-color))
   (apply #'make-instance 'widget/text
          :location location
          :content content
@@ -155,7 +156,7 @@
   (declare (ignore content-fill-color size margin margin-color border border-color padding padding-color selection))
   (apply #'make-instance 'widget/shell
          :content content
-         :tooltip (make-widget/tooltip (make-2d 0 0) nil :margin (make-inset :all 5))
+         :tooltip (make-widget/tooltip 0 nil :margin (make-inset :all 5))
          args))
 
 (def function make-widget/title-pane (title content &rest args &key content-fill-color margin margin-color border border-color padding padding-color title-fill-color selection)
@@ -186,7 +187,7 @@
          :content content
          :location location
          :size size
-         :scroll-position (make-2d 0 0)
+         :scroll-position 0
          args))
 
 ;;;;;;
@@ -196,8 +197,8 @@
   (declare (ignore margin margin-color border border-color padding padding-color fill-color))
   `(make-widget/label ,location ,(first content) ,@(remove-from-plist args :location)))
 
-(def macro widget/text ((&rest args &key location margin margin-color border border-color padding padding-color fill-color selection) &body content)
-  (declare (ignore margin margin-color border border-color padding padding-color fill-color))
+(def macro widget/text ((&rest args &key location content-fill-color margin margin-color border border-color padding padding-color fill-color selection) &body content)
+  (declare (ignore content-fill-color margin margin-color border border-color padding padding-color fill-color))
   `(make-widget/text ,location ,(first content) ,@(remove-from-plist args :location)))
 
 (def macro widget/checkbox ((&rest args &key location margin margin-color border border-color padding padding-color fill-color) &body content)

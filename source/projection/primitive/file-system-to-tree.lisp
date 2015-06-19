@@ -57,7 +57,6 @@
                                (for element-iomap = (recurse-printer recursion element
                                                                      `((elt (the sequence (elements-of document)) ,index)
                                                                        ,@(typed-reference (form-type input) input-reference))))
-                               (setf (indentation-of (output-of element-iomap)) 2)
                                (collect element-iomap)))
          (output-selection (pattern-case (reverse (selection-of input))
                              (((the sequence (elements-of (the file-system/directory document)))
@@ -72,7 +71,9 @@
                                           (text/text ()
                                             ;; (text/graphics (image/file () (resource-pathname "image/directory.png")))
                                             (text/string (string+ " " (last-elt (pathname-directory pathname))) :font *font/ubuntu/regular/24* :font-color *color/solarized/red*)))
-                                        (mapcar 'output-of element-iomaps))
+                                        (mapcar (lambda (element-iomap)
+                                                  (tree/clone (output-of element-iomap) :indentation 2))
+                                                element-iomaps))
                                  :selection output-selection)))
     (make-iomap/compound projection recursion input input-reference output element-iomaps)))
 
@@ -114,7 +115,7 @@
                                                                           (list (list (widget/label (:location (make-2d 5 5) :margin (make-inset :all 5))
                                                                                         (text/text ()
                                                                                           (text/string (file-namestring pathname) :font *font/ubuntu/regular/24* :font-color *color/solarized/content/darker*)))
-                                                                                      (widget/scroll-pane (:location (make-2d 0 0) :size (make-2d 1075 689) :margin (make-inset :all 5))
+                                                                                      (widget/scroll-pane (:location 0 :size (make-2d 1075 689) :margin (make-inset :all 5))
                                                                                         (document/document (:filename pathname)
                                                                                           document))))))))))
                     input)))

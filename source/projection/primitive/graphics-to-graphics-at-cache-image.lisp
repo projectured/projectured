@@ -76,13 +76,13 @@
          (output (as (if t ;; TODO: conditional
                          (make-graphics/viewport (output-of (va content-iomap)) (location-of input) (size-of input))
                          (make-graphics/image (as (location-of input)) (make-image/memory (as (bind ((size (size-of input))
-                                                                                                     (*translation* (make-2d 0 0)))
+                                                                                                     (*translation* 0))
                                                                                                 (declare (special *translation*))
                                                                                                 (printer.debug "Creating image of viewport")
                                                                                                 ;; TODO: KLUDGE: when do we destroy this surface?
                                                                                                 (sdl:with-surface (surface (sdl:create-surface (2d-x size) (2d-y size) :color-key sdl:*white* :type :hw) #f)
                                                                                                   (sdl:fill-surface sdl:*white*)
-                                                                                                  (print-to-device (make-graphics/viewport (output-of (va content-iomap)) (make-2d 0 0) (size-of input))
+                                                                                                  (print-to-device (make-graphics/viewport (output-of (va content-iomap)) 0 (size-of input))
                                                                                                                    (make-device/display/sdl (2d-x size) (2d-y size)))
                                                                                                   (when (debug-p projection)
                                                                                                     (sdl:draw-aa-line-* 0 0 (2d-x size) (1-(2d-y size)) :color (raw-of *color/solarized/gray*))

@@ -21,6 +21,7 @@
 
 (def function make-command (gesture operation &key domain icon description)
   (assert domain)
+  (assert (not (and operation (string= "Does nothing" description))))
   (make-instance 'command
                  :gesture gesture :operation operation
                  :domain domain :icon icon :description description))
@@ -29,6 +30,7 @@
   (make-command gesture nil :domain "Default" :description "Does nothing"))
 
 (def function make-command/clone (command &optional operation)
+  (assert (not (and operation (string= "Does nothing" (description-of command)))))
   (make-command (gesture-of command) operation :domain (domain-of command) :description (description-of command)))
 
 ;;;;;;

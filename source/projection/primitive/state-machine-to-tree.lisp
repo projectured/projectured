@@ -48,8 +48,6 @@
                                                                                           (for iomap = (recurse-printer recursion iomap state
                                                                                                                         `(elt (the sequence (states-of ,typed-input-reference)) ,index)))
                                                                                           (push iomap child-iomaps)
-                                                                                          ;; KLUDGE:
-                                                                                          (setf (indentation-of (output-of iomap)) 2)
                                                                                           (collect (output-of iomap))))
                                                                              :indentation 2)
                                                              (make-tree/node (list* (bind ((label "transitions:"))
@@ -59,8 +57,6 @@
                                                                                           (for iomap = (recurse-printer recursion iomap transition
                                                                                                                         `(elt (the sequence (transitions-of ,typed-input-reference)) ,index)))
                                                                                           (push iomap child-iomaps)
-                                                                                          ;; KLUDGE:
-                                                                                          (setf (indentation-of (output-of iomap)) 2)
                                                                                           (collect (output-of iomap))))
                                                                              :indentation 2))
                                                        :opening-delimiter (text/make-string "{" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*)

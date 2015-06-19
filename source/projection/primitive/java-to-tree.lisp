@@ -151,9 +151,7 @@
                                        (for iomap = (recurse-printer recursion element `((elt (elements-of (the sequence document)) ,index)
                                                                                          ,@(typed-reference (form-type input) input-reference))))
                                        (push iomap child-iomaps)
-                                       ;; KLUDGE:
-                                       (setf (indentation-of (output-of iomap)) 2)
-                                       (collect (output-of iomap)))
+                                       (collect (tree/clone (output-of iomap) :indentation 2)))
                                  :opening-delimiter (text/text () (text/string "{" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
                                  ;; KLUDGE:
                                  :closing-delimiter (text/text () (text/string "
@@ -173,14 +171,11 @@
                                                         :opening-delimiter (text/text () (text/string "(" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
                                                         :closing-delimiter (text/text () (text/string ")" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
                                                         :separator (text/text () (text/string " " :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*)))
-                                        (output-of then-branch-iomap)
+                                        (tree/clone (output-of then-branch-iomap) :indentation 4)
                                         (make-tree/leaf (text/text () (text/string "else" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/blue*)) :indentation 0)
                                         (when (else-of input)
-                                          (list (output-of else-branch-iomap))))
+                                          (list (tree/clone (output-of else-branch-iomap) :indentation 4))))
                                  :separator (text/text () (text/string " " :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*)))))
-    ;; KLUDGE:
-    (setf (indentation-of (output-of then-branch-iomap)) 4)
-    (setf (indentation-of (output-of else-branch-iomap)) 4)
     (make-iomap/compound projection recursion input input-reference output
                          (list (make-iomap/object projection recursion input input-reference output)
                                condition-iomap
@@ -275,10 +270,8 @@
                                                              (collect (output-of iomap)))
                                                        :opening-delimiter (text/text () (text/string "(" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
                                                        :closing-delimiter (text/text () (text/string ")" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*)))
-                                       (output-of body-iomap))
+                                       (tree/clone (output-of body-iomap) :indentation 0))
                                  :separator (text/text () (text/string " " :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*)))))
-    ;; KLUDGE:
-    (setf (indentation-of (output-of body-iomap)) 0)
     (make-iomap/compound projection recursion input input-reference output
                          (list* (make-iomap/object projection recursion input input-reference output)
                                 qualifier-iomap

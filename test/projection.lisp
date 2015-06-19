@@ -12,6 +12,10 @@
 (def function make-test-projection/document (projection)
   (nesting
     (document->t nil)
+    projection))
+
+(def function make-test-projection/clipboard (projection)
+  (nesting
     (document/clipboard->t)
     projection))
 
@@ -28,7 +32,7 @@
                           (make-test-projection/text->output))))
       (t projection))))
 
-(def function make-test-projection/plain (projection)
+(def function make-test-projection/scroll (projection)
   (nesting
     (widget->graphics)
     (type-dispatching
@@ -81,24 +85,14 @@
                                                (widget->graphics)
                                                (text->graphics)))))))))))
 
-(def function make-test-projection/selection (projection)
-  (nesting
-    (widget->graphics)
-    (reference-dispatching ()
-      (((the widget/scroll-pane (elt (the sequence document) 0)))
-       (nesting
-         (widget->graphics)
-         projection))
-      (((the widget/scroll-pane (elt (the sequence document) 1)))
-       (nesting
-         (widget->graphics)
-         (sequential
-           (make-instance 'projection
-                          :reader (constantly nil)
-                          :printer (lambda (projection recursion input input-reference)
-                                     (make-iomap/object projection recursion input input-reference (selection-of input))))
-           (reference->text)
-           (text->graphics)))))))
+(def function make-test-projection/generic (projection)
+  (alternative
+    projection
+    (sequential
+      (recursive
+        (t->tree :slot-provider 'test-slot-provider))
+      (make-test-projection/tree->text)
+      (make-test-projection/text->output))))
 
 (def function make-test-projection/split (projection-1 projection-2)
   (nesting
@@ -113,160 +107,6 @@
        (nesting
          (widget->graphics)
          projection-2)))))
-
-(def function make-test-projection/generic (projection)
-  (nesting
-    (widget->graphics)
-    (type-dispatching
-      (widget/tooltip (nesting
-                        (widget->graphics)
-                        (sequential
-                          (type-dispatching
-                            (text/base (preserving))
-                            (t (reference->text)))
-                          (make-test-projection/text->output))))
-      (widget/split-pane (nesting
-                           (widget->graphics)
-                           (reference-dispatching ()
-                             (((the widget/scroll-pane (elt (the sequence document) 0)))
-                              (nesting
-                                (widget->graphics)
-                                projection))
-                             (((the widget/scroll-pane (elt (the sequence document) 1)))
-                              (nesting
-                                (widget->graphics)
-                                (make-test-projection/t->graphics/tree)
-                                #+nil(make-test-projection/t->graphics/table)))))))))
-
-(def function make-test-projection/reflection (projection)
-  (nesting
-    (widget->graphics)
-    (type-dispatching
-      (widget/tooltip (nesting
-                        (widget->graphics)
-                        (sequential
-                          (type-dispatching
-                            (text/base (preserving))
-                            (t (reference->text)))
-                          (make-test-projection/text->output))))
-      (widget/tabbed-pane (nesting
-                            (widget->graphics)
-                            (reference-dispatching ()
-                              ;; TODO: this is very fragile, create a class for tabbed-pane selectors would probably help
-                              (((the sequence (elt (the sequence document) 0))
-                                (the widget/label (elt (the sequence document) 0)))
-                               (recursive
-                                 (type-dispatching
-                                   (widget/base (widget/label->graphics/canvas))
-                                   (text/base (text->graphics)))))
-                              (((the sequence (elt (the sequence document) 1))
-                                (the widget/label (elt (the sequence document) 0)))
-                               (recursive
-                                 (type-dispatching
-                                   (widget/base (widget/label->graphics/canvas))
-                                   (text/base (text->graphics)))))
-                              (((the sequence (elt (the sequence document) 2 ))
-                                (the widget/label (elt (the sequence document) 0)))
-                               (recursive
-                                 (type-dispatching
-                                   (widget/base (widget/label->graphics/canvas))
-                                   (text/base (text->graphics)))))
-                              (((the sequence (elt (the sequence document) 3))
-                                (the widget/label (elt (the sequence document) 0)))
-                               (recursive
-                                 (type-dispatching
-                                   (widget/base (widget/label->graphics/canvas))
-                                   (text/base (text->graphics)))))
-                              (((the sequence (elt (the sequence document) 0))
-                                (the widget/scroll-pane (elt (the sequence document) 1)))
-                               (nesting
-                                 (widget->graphics)
-                                 projection))
-                              (((the sequence (elt (the sequence document) 1))
-                                (the widget/scroll-pane (elt (the sequence document) 1)))
-                               (nesting
-                                 (widget->graphics)
-                                 (sequential
-                                   (recursive (t->table))
-                                   (recursive
-                                     (type-dispatching
-                                       (table/base (table->text))
-                                       (t (preserving))))
-                                   (make-test-projection/text->output))))
-                              (((the sequence (elt (the sequence document) 2))
-                                (the widget/scroll-pane (elt (the sequence document) 1)))
-                               (nesting
-                                 (widget->graphics)
-                                 (sequential
-                                   (recursive (t->table))
-                                   (recursive
-                                     (type-dispatching
-                                       (table/base (table->text))
-                                       (t (preserving))))
-                                   (make-test-projection/text->output))))
-                              (((the sequence (elt (the sequence document) 3))
-                                (the widget/tabbed-pane (elt (the sequence document) 1)))
-                               (nesting
-                                 (widget->graphics)
-                                 ;; TODO: this is very fragile, create a class for tabbed-pane selectors would probably help
-                                 ;; TODO: add more stages?
-                                 (reference-dispatching ()
-                                   (((the sequence (elt (the sequence document) 0))
-                                     (the widget/label (elt (the sequence document) 0)))
-                                    (recursive
-                                      (type-dispatching
-                                        (widget/base (widget/label->graphics/canvas))
-                                        (text/base (text->graphics)))))
-                                   (((the sequence (elt (the sequence document) 0))
-                                     (the widget/scroll-pane (elt (the sequence document) 1)))
-                                    (nesting
-                                      (widget->graphics)
-                                      (sequential
-                                        #+nil (elt (elements-of projection) 0)
-                                        (recursive (t->table))
-                                        (recursive
-                                          (type-dispatching
-                                            (table/base (table->text))
-                                            (t (preserving))))
-                                        (make-test-projection/text->output)))))))))))))
-
-(def function make-test-projection/ide (projection)
-  (nesting
-    (widget->graphics)
-    (type-dispatching
-      (widget/tooltip (nesting
-                        (widget->graphics)
-                        (sequential
-                          (type-dispatching
-                            (text/base (preserving))
-                            (t (reference->text)))
-                          (make-test-projection/text->output))))
-      (widget/split-pane (nesting
-                           (widget->graphics)
-                           (type-dispatching
-                             (widget/base
-                              (nesting
-                                (widget->graphics)
-                                (reference-dispatching ()
-                                  ;; TODO: this is very fragile, create a class for tabbed-pane selectors would probably help
-                                  (((the sequence (elt (the sequence document) 0))
-                                    (the widget/label (elt (the sequence document) 0)))
-                                   (recursive
-                                     (type-dispatching
-                                       (widget/base (widget/label->graphics/canvas))
-                                       (text/base (text->graphics)))))
-                                  (((the sequence (elt (the sequence document) 0))
-                                    (the widget/scroll-pane (elt (the sequence document) 1)))
-                                   (nesting
-                                     (widget->graphics)
-                                     projection)))))
-                             (t
-                              (sequential
-                                (recursive (file-system->tree))
-                                (recursive (type-dispatching
-                                             (tree/base (tree->text))
-                                             (t (preserving))))
-                                (text->graphics)))))))))
 
 (def macro test-projection (&body projection)
   `(make-test-projection/reflection ,(first projection)))
@@ -287,7 +127,11 @@
   ;; KLUDGE:
   (if (search "SLIME" (symbol-name (class-name (class-of (make-editor)))))
       (preserving)
-      (text->graphics)))
+      (recursive
+        (type-dispatching
+          (text/base (text->graphics))
+          (image/base (image->graphics))
+          (graphics/base (preserving))))))
 
 (def function test-factory (name)
   (completion-prefix-switch name
@@ -423,31 +267,76 @@
                               (search-ignorecase search (name-of (name-of instance))))))
                 :slot-provider 'test-slot-provider))
 
-;;;;;;
-;;; Debug
 
-(def projection test/debug->graphics/canvas ()
+;;;;;;
+;;; Selection
+
+(def projection test/selection->graphics/canvas ()
   ())
 
-(def macro test/debug->graphics/canvas ()
-  '(make-projection 'test/debug->graphics/canvas))
+(def macro test/selection->graphics/canvas ()
+  '(make-projection 'test/selection->graphics/canvas))
 
-(def printer test/debug->graphics/canvas (projection recursion input input-reference)
-  (bind ((content-iomap (as (recurse-printer recursion (content-of input) `((content-of (the test/debug document))
-                                                                            ,@(typed-reference (form-type input) input-reference)))))
-         (last-commands-iomap (as (awhen (last-commands-of input)
-                                    (recurse-printer recursion (last-commands-of input) `((last-commands-of (the test/debug document))
-                                                                                          ,@(typed-reference (form-type input) input-reference))))))
-         (output (as (make-graphics/canvas (list* (output-of (va content-iomap))
-                                                  (when (va last-commands-iomap)
-                                                    (list (make-graphics/rounded-rectangle (make-2d 0 631) (make-2d 1280 88)
-                                                                                           9
-                                                                                           :fill-color (color/lighten *color/solarized/yellow* 0.75))
-                                                          (make-graphics/canvas (list (output-of (va last-commands-iomap))) (make-2d 5 640)))))
-                                           (make-2d 0 0)))))
+(def printer test/selection->graphics/canvas (projection recursion input input-reference)
+  (bind ((content-iomap (as (recurse-printer recursion (content-of input)
+                                             `((content-of (the test/selection document))
+                                               ,@(typed-reference (form-type input) input-reference)))))
+         (selection-iomap (as (recurse-printer recursion (selection-of (content-of input))
+                                               `((selection-of (the test/selection document))
+                                                 ,@(typed-reference (form-type input) input-reference)))))
+         (output (as (make-graphics/canvas (list (output-of (va content-iomap))
+                                                 (make-graphics/canvas (as (when (selection-of (content-of input))
+                                                                             (bind ((height (2d-y (size-of (bounds-of (output-of (va selection-iomap)))))))
+                                                                               (list (make-graphics/rounded-rectangle (make-2d 0 (- 710 height)) (make-2d 1280 (+ 10 height))
+                                                                                                                      9
+                                                                                                                      :fill-color (color/lighten *color/solarized/yellow* 0.75))
+                                                                                     (make-graphics/canvas (list (output-of (va selection-iomap))) (make-2d 5 (- 715 height)))))))
+                                                                       0)) 0))))
     (make-iomap/compound projection recursion input input-reference output (as (list (va content-iomap))))))
 
-(def reader test/debug->graphics/canvas (projection recursion input printer-iomap)
+(def reader test/selection->graphics/canvas (projection recursion input printer-iomap)
+  (declare (ignore projection))
+  (recurse-reader recursion input (elt (child-iomaps-of printer-iomap) 0)))
+
+(def function make-test-projection/selection (projection)
+  (nesting
+    (test/selection->graphics/canvas)
+    (reference-dispatching ()
+      (((the sequence (selection-of (the test/selection document))))
+       (sequential
+         (reference->text)
+         (text->graphics)))
+      (t
+       projection))))
+
+;;;;;;
+;;; Gesture
+
+(def projection test/gesture->graphics/canvas ()
+  ())
+
+(def macro test/gesture->graphics/canvas ()
+  '(make-projection 'test/gesture->graphics/canvas))
+
+(def printer test/gesture->graphics/canvas (projection recursion input input-reference)
+  (bind ((content-iomap (as (recurse-printer recursion (content-of input)
+                                             `((content-of (the test/gesture document))
+                                               ,@(typed-reference (form-type input) input-reference)))))
+         (last-commands-iomap (as (awhen (last-commands-of input)
+                                    (recurse-printer recursion (last-commands-of input)
+                                                     `((last-commands-of (the test/gesture document))
+                                                       ,@(typed-reference (form-type input) input-reference))))))
+         (output (as (make-graphics/canvas (list (output-of (va content-iomap))
+                                                 (make-graphics/canvas (as (when (va last-commands-iomap)
+                                                                             (list (make-graphics/rounded-rectangle (make-2d 0 631) (make-2d 1280 88)
+                                                                                                                    9
+                                                                                                                    :fill-color (color/lighten *color/solarized/yellow* 0.75))
+                                                                                   (make-graphics/canvas (list (output-of (va last-commands-iomap))) (make-2d 5 640)))))
+                                                                       0))
+                                           0))))
+    (make-iomap/compound projection recursion input input-reference output (as (list (va content-iomap))))))
+
+(def reader test/gesture->graphics/canvas (projection recursion input printer-iomap)
   (declare (ignore projection))
   (bind ((printer-input (input-of printer-iomap))
          (last-command (recurse-reader recursion input (elt (child-iomaps-of printer-iomap) 0)))
@@ -460,16 +349,16 @@
         (make-command (gesture-of input)
                       (make-operation/compound (optional-list (operation-of last-command)
                                                               (make-operation/replace-target (input-of printer-iomap)
-                                                                                             '((the sequence (last-commands-of (the test/debug document))))
+                                                                                             '((the sequence (last-commands-of (the test/gesture document))))
                                                                                              new-last-commands)))
                       :domain (domain-of last-command)
                       :description (description-of last-command)))))
 
-(def function make-test-projection/debug (projection)
+(def function make-test-projection/gesture (projection)
   (nesting
-    (test/debug->graphics/canvas)
+    (test/gesture->graphics/canvas)
     (reference-dispatching ()
-      (((the sequence (last-commands-of (the test/debug document))))
+      (((the sequence (last-commands-of (the test/gesture document))))
        (sequential
          (nesting
            (sequence->text :opening-delimiter nil :closing-delimiter nil :indentation nil :separator (text/text () (text/newline)))
@@ -713,19 +602,6 @@
       (json/base (json->tree))
       (document/base (document->t 'test-factory)))))
 
-(def function make-test-projection/json->tree/alternative ()
-  (recursive
-    (reference-dispatching
-      (alternative
-        (type-dispatching
-          (json/base (json->tree))
-          (t (t->tree :slot-provider 'test-slot-provider)))
-        (t->tree :slot-provider 'test-slot-provider)
-        (recursive
-          (json->tree))
-        (recursive
-          (t->tree :slot-provider 'test-slot-provider))))))
-
 (def function make-test-projection/json->text ()
   (sequential
     (recursive
@@ -742,13 +618,6 @@
         (document/base (document->t 'test-factory))))
     (make-test-projection/tree->text)
     (line-numbering)
-    (make-test-projection/text->output)))
-
-(def function make-test-projection/json->graphics/alternative ()
-  (sequential
-    (make-test-projection/json->tree/alternative)
-    (make-test-projection/tree->text)
-    ;; (line-numbering)
     (make-test-projection/text->output)))
 
 (def function make-test-projection/json->graphics/focusing ()
@@ -1042,7 +911,7 @@
 
 (def function test-slot-provider (instance)
   (remove-if (lambda (slot) (member (slot-definition-name slot)
-                               '(raw selection annotation)
+                               '(raw selection annotation reader printer part-evaluator)
                                #+nil
                                '(raw selection font font-color stroke-color fill-color line-color)))
              (class-slots (class-of instance))))
@@ -1268,11 +1137,7 @@
 (def function make-test-projection/demo->graphics ()
   (sequential
     (make-test-projection/demo->text)
-    (recursive
-      (type-dispatching
-        (text/base (make-test-projection/text->output))
-        (image/base (image->graphics))
-        (graphics/base (preserving))))))
+    (make-test-projection/text->output)))
 
 ;;;;;;
 ;;; Documentation

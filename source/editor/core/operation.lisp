@@ -175,6 +175,8 @@
                 (make-operation/text/replace-range printer-input (append path (selection-of operation)) (replacement-of operation)))
                (operation/replace-target
                 (make-operation/replace-target printer-input (append path (selection-of operation)) (replacement-of operation)))
+               (operation/tree/toggle-collapsed
+                (make-operation/tree/toggle-collapsed printer-input (append path (selection-of operation))))
                (operation/describe
                 (make-operation/describe (append path (selection-of operation))))
                (operation/show-annotation
@@ -245,6 +247,16 @@
                                    (output-element-operation (operation-of output-child-command)))
                               (operation/extend printer-input selection output-element-operation))
                             (make-operation/number/replace-range printer-input selection (replacement-of operation))))))
+                 (operation/tree/toggle-collapsed
+                  (bind (((:values selection child-selection child-iomap) (funcall backward-mapper printer-iomap (selection-of operation))))
+                    (or (when operation-mapper (funcall operation-mapper operation selection child-selection child-iomap))
+                        (if (and child-iomap child-selection)
+                            (bind ((input-child-operation (make-operation/tree/toggle-collapsed (input-of child-iomap) child-selection))
+                                   (input-child-command (make-command/clone input input-child-operation))
+                                   (output-child-command (recurse-reader recursion input-child-command child-iomap))
+                                   (output-element-operation (operation-of output-child-command)))
+                              (operation/extend printer-input selection output-element-operation))
+                            (make-operation/tree/toggle-collapsed printer-input selection)))))
                  (operation/describe
                   (bind (((:values selection child-selection child-iomap) (funcall backward-mapper printer-iomap (selection-of operation))))
                     (or (when operation-mapper (funcall operation-mapper operation selection child-selection child-iomap))
@@ -289,7 +301,7 @@
              (child-output-operation (operation-of child-output-command))
              (extended-operation (operation/extend printer-input (funcall backward-mapper printer-iomap selection) child-output-operation)))
         (when extended-operation
-          (make-command/clone input extended-operation))))))
+          (make-command/clone child-output-command extended-operation))))))
 
 (def function command/read-backward (recursion input printer-iomap backward-mapper operation-mapper)
   (awhen (operation/read-backward recursion input printer-iomap backward-mapper operation-mapper)

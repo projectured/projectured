@@ -40,7 +40,11 @@
 ;;; Forward mapper
 
 (def function forward-mapper/document/search->text/text (printer-iomap reference)
-  )
+  (bind ((line-iomaps (line-iomaps-of printer-iomap)))
+    (pattern-case reference
+      (((the text/text (text/subseq (the text/text document) ?start-character-index ?end-character-index)))
+       (awhen (document/search->text/text/map-forward line-iomaps ?start-character-index)
+         `((the text/text (text/subseq (the text/text document) ,it ,it))))))))
 
 ;;;;;;
 ;;; Backward mapper
@@ -51,8 +55,7 @@
      (bind ((start-index (document/search->text/text/map-backward (line-iomaps-of printer-iomap) ?start-index))
             (end-index (document/search->text/text/map-backward (line-iomaps-of printer-iomap) ?end-index)))
        (when (and start-index end-index)
-         `((the text/text (content-of (the document/search document)))
-           (the text/text (text/subseq (the text/text document) ,start-index ,end-index))))))))
+         `((the text/text (text/subseq (the text/text document) ,start-index ,end-index))))))))
 
 ;;;;;;
 ;;; Printer
@@ -80,61 +83,60 @@
                      (input-first-character-index-of line-iomap))))))
 
 (def printer document/search->text/text (projection recursion input input-reference)
-  (bind ((content-iomap (recurse-printer recursion (content-of input) `((content-of (the document/document document))
-                                                                        ,@(typed-reference (form-type input) input-reference))))
-         (text (output-of content-iomap))
-         (search-string (search-of input)))
-    (if (zerop (length search-string))
+  (bind ((content-iomap (as (recurse-printer recursion (content-of input) `((content-of (the document/document document))
+                                                                            ,@(typed-reference (form-type input) input-reference))))))
+    (if (zerop (length (search-of input)))
         (make-iomap 'iomap/document/search->text/text
                     :projection projection :recursion recursion
-                    :input input :input-reference input-reference :output text
+                    :input input :input-reference input-reference :output (output-of (va content-iomap))
                     :content-iomap content-iomap
                     :line-iomaps nil)
-        (bind ((search-string (search-of input))
-               (line-iomaps (labels ((search-line (start-position direction input-start-character-index output-character-index)
-                                       (bind ((line-start-position (text/line-start-position text start-position))
-                                              (line-end-position (text/line-end-position text start-position))
-                                              (line (text/substring text line-start-position line-end-position))
-                                              (line-string (text/as-string line))
-                                              (line-start-character-index (- input-start-character-index (text/length text line-start-position start-position)))
-                                              (line-length (length line-string)))
-                                         (if (search search-string line-string)
-                                             (make-computed-ll (as (make-iomap 'iomap/document/search->text/text/line
-                                                                               :projection projection :recursion recursion
-                                                                               :input input :input-reference input-reference
-                                                                               :output (ll (append (iter (with first-position = (text/first-position line))
-                                                                                                         (for index :initially 0 :then (+ match-index (length search-string)))
-                                                                                                         (for match-index = (search search-string line-string :start2 index))
-                                                                                                         (for position = (text/relative-position line first-position index))
-                                                                                                         (unless match-index
-                                                                                                           (appending (elements-of (text/substring line position (text/last-position line)))))
-                                                                                                         (while match-index)
-                                                                                                         (for match-position = (text/relative-position line first-position match-index))
-                                                                                                         (unless (= index match-index)
-                                                                                                           (appending (elements-of (text/substring line position match-position))))
-                                                                                                         (appending (elements-of (text/replace-style (text/substring line match-position (text/relative-position line match-position (length search-string))) :line-color *color/solarized/background/lighter*))))
-                                                                                                   (list (text/newline))))
-                                                                               :input-first-character-index line-start-character-index
-                                                                               :output-first-character-index output-character-index
-                                                                               :length line-length))
-                                                               (as (awhen (text/previous-position text line-start-position)
-                                                                     (search-line it :backward (1- line-start-character-index) (- output-character-index line-length 1))))
-                                                               (as (awhen (text/next-position text line-end-position)
-                                                                     (search-line it :forward (+ line-start-character-index line-length 1) (+ output-character-index line-length 1)))))
-                                             (awhen (ecase direction
-                                                      (:backward (text/previous-position text line-start-position))
-                                                      (:forward (text/next-position text line-end-position)))
-                                               (search-line it direction
-                                                            (ecase direction
-                                                              (:backward (1- input-start-character-index))
-                                                              (:forward (+ input-start-character-index line-length 1)))
-                                                            output-character-index))))))
-                              (search-line (text/origin-position text) :forward 0 0)))
-               (output-selection (as (pattern-case (selection-of text)
+        (bind ((line-iomaps (as (bind ((search-string (search-of input))
+                                       (text (output-of (va content-iomap))))
+                                  (labels ((search-line (start-position direction input-start-character-index output-character-index)
+                                             (bind ((line-start-position (text/line-start-position text start-position))
+                                                    (line-end-position (text/line-end-position text start-position))
+                                                    (line (text/substring text line-start-position line-end-position))
+                                                    (line-string (text/as-string line))
+                                                    (line-start-character-index (- input-start-character-index (text/length text line-start-position start-position)))
+                                                    (line-length (length line-string)))
+                                               (if (search search-string line-string)
+                                                   (make-computed-ll (as (make-iomap 'iomap/document/search->text/text/line
+                                                                                     :projection projection :recursion recursion
+                                                                                     :input input :input-reference input-reference
+                                                                                     :output (ll (append (iter (with first-position = (text/first-position line))
+                                                                                                               (for index :initially 0 :then (+ match-index (length search-string)))
+                                                                                                               (for match-index = (search search-string line-string :start2 index))
+                                                                                                               (for position = (text/relative-position line first-position index))
+                                                                                                               (unless match-index
+                                                                                                                 (appending (elements-of (text/substring line position (text/last-position line)))))
+                                                                                                               (while match-index)
+                                                                                                               (for match-position = (text/relative-position line first-position match-index))
+                                                                                                               (unless (= index match-index)
+                                                                                                                 (appending (elements-of (text/substring line position match-position))))
+                                                                                                               (appending (elements-of (text/replace-style (text/substring line match-position (text/relative-position line match-position (length search-string))) :line-color *color/solarized/background/lighter*))))
+                                                                                                         (list (text/newline))))
+                                                                                     :input-first-character-index line-start-character-index
+                                                                                     :output-first-character-index output-character-index
+                                                                                     :length line-length))
+                                                                     (as (awhen (text/previous-position text line-start-position)
+                                                                           (search-line it :backward (1- line-start-character-index) (- output-character-index line-length 1))))
+                                                                     (as (awhen (text/next-position text line-end-position)
+                                                                           (search-line it :forward (+ line-start-character-index line-length 1) (+ output-character-index line-length 1)))))
+                                                   (awhen (ecase direction
+                                                            (:backward (text/previous-position text line-start-position))
+                                                            (:forward (text/next-position text line-end-position)))
+                                                     (search-line it direction
+                                                                  (ecase direction
+                                                                    (:backward (1- input-start-character-index))
+                                                                    (:forward (+ input-start-character-index line-length 1)))
+                                                                  output-character-index))))))
+                                    (search-line (text/origin-position text) :forward 0 0)))))
+               (output-selection (as (pattern-case (selection-of (output-of (va content-iomap)))
                                        (((the text/text (text/subseq (the text/text document) ?start-character-index ?end-character-index)))
-                                        (awhen (document/search->text/text/map-forward line-iomaps ?start-character-index)
+                                        (awhen (document/search->text/text/map-forward (va line-iomaps) ?start-character-index)
                                           `((the text/text (text/subseq (the text/text document) ,it ,it))))))))
-               (output (text/make-text (append-ll (map-ll line-iomaps 'output-of)) :selection output-selection)))
+               (output (as (text/make-text (append-ll (map-ll (va line-iomaps) 'output-of)) :selection output-selection))))
           (make-iomap 'iomap/document/search->text/text
                       :projection projection :recursion recursion
                       :input input :input-reference input-reference :output output
@@ -148,11 +150,10 @@
   (declare (ignore projection))
   (bind ((gesture (gesture-of input))
          (printer-input (input-of printer-iomap)))
-    (merge-commands (command/extend (recurse-reader recursion (if (zerop (length (search-of printer-input)))
-                                                                  input
-                                                                  (merge-commands (command/read-backward recursion input printer-iomap 'backward-mapper/document/search->text/text nil)
-                                                                                  (make-command/nothing gesture)))
-                                                    (content-iomap-of printer-iomap))
-                                    printer-input
-                                    `((the ,(form-type (content-of printer-input)) (content-of (the document/search document)))))
+    (merge-commands (if (zerop (length (search-of printer-input)))
+                        (command/extend (recurse-reader recursion input (content-iomap-of printer-iomap)) printer-input
+                                        `((the ,(form-type (content-of printer-input)) (content-of (the document/search document)))))
+                        (awhen (command/read-backward recursion input printer-iomap 'backward-mapper/document/search->text/text nil)
+                          (command/extend (recurse-reader recursion it (content-iomap-of printer-iomap)) printer-input
+                                          `((the ,(form-type (content-of printer-input)) (content-of (the document/search document)))))))
                     (make-command/nothing gesture))))

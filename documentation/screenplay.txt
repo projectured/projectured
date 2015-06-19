@@ -1,0 +1,64 @@
+Things to demonstrate:
+ - text and tree selection
+ - text and tree navigation
+ - focusing
+ - alternative generic notation
+ - basic text editing
+ - basic tree editing
+ - compilation and execution
+
+Hello dear visitor,
+
+In this video, I'm going to demonstrate how a web page is implemented
+using a projectional data structure editor, called ProjecturEd. This
+is my hobby project for a long time now, and I think it slowly evolved
+to a point where it's worth looking at it.
+
+I'm not going to read out loud the text in this document, you can stop
+the video anytime and read it yourself if you want to. I would rather
+focus on demonstrating certain features of the editor instead.
+
+So, first of all, I'd like to stress that the document you see is here
+not just styled sequence of characters. It's rather a complex data
+structure that is just projected to the screen as styled text with
+this particular projection. In fact, I can show you the underlying
+data structure by switching from the natural notation to a generic
+tree notation.
+
+* switch the whole document to generic tree notation [Control + Shift + N]
+
+As you can see this is a completely different notation from the
+previous one. This notation directly expresses the underlying data
+structure, showing every minute detail of the objects. The red texts
+specify the type of the objects, the cyan texts express the name of
+object slots.
+
+You might notice the topmost green text is the title of the book. The
+first chapter starts just below the title. And if I scroll down a
+little bit more you'll see the underlying data structure of the first
+paragraph.
+
+* delete the title of the book
+* switch back to the natural notation [Control + Shift + N]
+
+* customize a CSS attribute [Control + Shift + C]
+* switch the CSS attribute notation to generic tree notation [Control + Shift + N]
+* edit the name of the CSS attribute
+* switch back to the natural notation [Control + Shift + N]
+* edit
+
+* compile *HTTP-SERVER*
+* compile and evaluate STARTUP-SERVER
+
+* show error message at localhost:8080
+
+* compile PROCESS-HTTP-REQUEST
+* compile HANDLE-HTTP-REQUEST
+
+* show http://localhost:8080/style
+* show http://localhost:8080/script
+* show http://localhost:8080/data
+* show http://localhost:8080/page
+* show http://localhost:8080/foo
+
+Thank you for watching!

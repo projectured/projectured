@@ -84,7 +84,7 @@
                  ?rest
                  element-iomap)))
       (((the tree/node (printer-output (the javascript/statement/block document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 (def function forward-mapper/javascript/statement/top-level->tree/node (printer-iomap reference)
@@ -102,7 +102,7 @@
                  ?rest
                  element-iomap)))
       (((the tree/node (printer-output (the javascript/statement/top-level document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 (def function forward-mapper/javascript/expression/variable-reference->tree/leaf (printer-iomap reference)
@@ -114,7 +114,7 @@
        `((the text/text (content-of (the tree/leaf document)))
          (the text/text (text/subseq (the text/text document) ,?start-index ,?end-index))))
       (((the tree/leaf (printer-output (the javascript/expression/variable-reference document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 (def function forward-mapper/javascript/expression/property-access->tree/node (printer-iomap reference)
@@ -137,7 +137,7 @@
                  ?rest
                  object-iomap)))
       (((the tree/node (printer-output (the javascript/expression/property-access document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 (def function forward-mapper/javascript/expression/constructor-invocation->tree/node (printer-iomap reference)
@@ -162,7 +162,7 @@
                  ?rest
                  argument-iomap)))
       (((the tree/node (printer-output (the javascript/expression/constructor-invocation document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 (def function forward-mapper/javascript/expression/method-invocation->tree/node (printer-iomap reference)
@@ -197,7 +197,7 @@
                  ?rest
                  object-iomap)))
       (((the tree/node (printer-output (the javascript/expression/method-invocation document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 (def function forward-mapper/javascript/literal/string->tree/leaf (printer-iomap reference)
@@ -209,7 +209,7 @@
        `((the text/text (content-of (the tree/leaf document)))
          (the text/text (text/subseq (the text/text document) ,?start-index ,?end-index))))
       (((the tree/leaf (printer-output (the javascript/literal/string document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 (def function forward-mapper/javascript/definition/variable->tree/node (printer-iomap reference)
@@ -230,7 +230,7 @@
                  ?rest
                  body-iomap)))
       (((the tree/node (printer-output (the javascript/definition/variable document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 (def function forward-mapper/javascript/definition/function->tree/node (printer-iomap reference)
@@ -251,7 +251,7 @@
                  ?rest
                  body-iomap)))
       (((the tree/node (printer-output (the javascript/definition/function document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 ;;;;;;
@@ -439,13 +439,12 @@
                                    (for element :in-sequence (elements-of input))
                                    (for element-iomap = (recurse-printer recursion element `((elt (elements-of (the javascript/statement/block document)) ,index)
                                                                                              ,@(typed-reference (form-type input) input-reference))))
-                                   (setf (indentation-of (output-of element-iomap)) 2)
                                    (collect element-iomap))))
          (output-selection (as (print-selection (make-iomap/compound projection recursion input input-reference nil element-iomaps)
                                                 (selection-of input)
                                                 'forward-mapper/javascript/statement/block->tree/node)))
          (output (as (make-tree/node (iter (for element-iomap :in-sequence (va element-iomaps))
-                                           (collect (output-of element-iomap))
+                                           (collect (tree/clone (output-of element-iomap) :indentation 2))
                                            (collect (tree/leaf ()
                                                       (text/text () (text/string ";" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*)))))
                                      :indentation 2
@@ -459,14 +458,14 @@
                                    (for element :in-sequence (elements-of input))
                                    (for element-iomap = (recurse-printer recursion element `((elt (elements-of (the javascript/statement/top-level document)) ,index)
                                                                                              ,@(typed-reference (form-type input) input-reference))))
-                                   (unless (first-iteration-p)
-                                     (setf (indentation-of (output-of element-iomap)) 0))
                                    (collect element-iomap))))
          (output-selection (as (print-selection (make-iomap/compound projection recursion input input-reference nil element-iomaps)
                                                 (selection-of input)
                                                 'forward-mapper/javascript/statement/top-level->tree/node)))
          (output (as (make-tree/node (iter (for element-iomap :in-sequence (va element-iomaps))
-                                           (collect (output-of element-iomap))
+                                           (collect (if (first-iteration-p)
+                                                        (output-of element-iomap)
+                                                        (tree/clone (output-of element-iomap) :indentation 0)))
                                            (collect (tree/leaf ()
                                                       (text/text () (text/string ";" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*)))))
                                      :indentation 2
@@ -593,10 +592,9 @@
                                                            :opening-delimiter (text/text () (text/string "(" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
                                                            :closing-delimiter (text/text () (text/string ")" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
                                                            :selection (as (nthcdr 2 (va output-selection))))
-                                           (output-of (va body-iomap)))
+                                           (tree/clone (output-of (va body-iomap)) :indentation 0))
                                      :separator (text/text () (text/string " " :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
                                      :selection output-selection))))
-    (setf (indentation-of (output-of (va body-iomap))) 0)
     (make-iomap/compound projection recursion input input-reference output (as (list* (va body-iomap) (va argument-iomaps))))))
 
 ;;;;;;

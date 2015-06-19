@@ -32,15 +32,18 @@
 
 (def document json/array (json/base)
   ;; TODO: json/array-elements?
-  ((elements :type sequence)))
+  ((elements :type sequence)
+   (collapsed :type boolean)))
 
 (def document json/object-entry (json/base)
   ;; TODO: json/object-entry-key?
   ((key :type string)
-   (value :type json/base)))
+   (value :type json/base)
+   (collapsed :type boolean)))
 
 (def document json/object (json/base)
-  ((entries :type sequence)))
+  ((entries :type sequence)
+   (collapsed :type boolean)))
 
 ;;;;;;
 ;;; Construction
@@ -60,14 +63,14 @@
 (def function make-json/string (value &key selection)
   (make-instance 'json/string :value value :selection selection))
 
-(def function make-json/array (elements &key selection)
-  (make-instance 'json/array :elements elements :selection selection))
+(def function make-json/array (elements &key collapsed selection)
+  (make-instance 'json/array :elements elements :collapsed collapsed :selection selection))
 
-(def function make-json/object-entry (key value &key selection)
-  (make-instance 'json/object-entry :key key :value value :selection selection))
+(def function make-json/object-entry (key value &key collapsed selection)
+  (make-instance 'json/object-entry :key key :value value :collapsed collapsed :selection selection))
 
-(def function make-json/object (entries &key selection)
-  (make-instance 'json/object :entries entries :selection selection))
+(def function make-json/object (entries &key collapsed selection)
+  (make-instance 'json/object :entries entries :collapsed collapsed :selection selection))
 
 ;;;;;;
 ;;; Construction
@@ -87,15 +90,18 @@
 (def macro json/string ((&key selection) &body value)
   `(make-json/string ,(first value) :selection ,selection))
 
-(def macro json/array ((&key selection) &body elements)
-  `(make-json/array (document/sequence () ,@elements) :selection ,selection))
+(def macro json/array ((&key selection collapsed) &body elements)
+  `(make-json/array (document/sequence () ,@elements)
+                    :collapsed ,collapsed
+                    :selection ,selection))
 
-(def macro json/object-entry ((&key selection) key value)
-  `(make-json/object-entry ,key ,value :selection ,selection))
+(def macro json/object-entry ((&key collapsed selection) key value)
+  `(make-json/object-entry ,key ,value :collapsed ,collapsed :selection ,selection))
 
-(def macro json/object ((&key selection) &body key-value-pairs)
+(def macro json/object ((&key selection collapsed) &body key-value-pairs)
   `(make-json/object (document/sequence () ,@(iter (for (key value) :in key-value-pairs)
                                                    (collect `(make-json/object-entry ,key ,value))))
+                     :collapsed ,collapsed
                      :selection ,selection))
 
 ;;;;;;

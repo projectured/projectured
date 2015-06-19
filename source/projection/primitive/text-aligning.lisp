@@ -37,7 +37,7 @@
                ?rest
                (elt (child-iomaps-of printer-iomap) 0)))
       (((the text/text (printer-output (the book/paragraph document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 ;;;;;;
@@ -86,23 +86,22 @@
                                                                (ecase (car part)
                                                                  (:word
                                                                   (cond ((= index 0)
-                                                                         ;; KLUDGE: type checks?
-                                                                         (when (typep (first-elt elements) 'text/string)
-                                                                           (setf (padding-of (first-elt elements)) (make-inset :left (* extra-width line-alignment (- 1 line-expansion))))))
+                                                                         (collect (text/clone (first-elt elements) :padding (make-inset :left (* extra-width line-alignment (- 1 line-expansion)))))
+                                                                         (appending (subseq elements 1)))
                                                                         ((= index (1- part-count))
-                                                                         (when (typep (last-elt elements) 'text/string)
-                                                                           (setf (padding-of (last-elt elements)) (make-inset :right (* extra-width (1- line-alignment) (- 1 line-expansion))))))))
+                                                                         (appending (subseq elements 0 (1- (length elements))))
+                                                                         (collect (text/clone (last-elt elements) :padding (make-inset :right (* extra-width (1- line-alignment) (- 1 line-expansion))))))
+                                                                        (t (appending elements))))
                                                                  (:whitespace
                                                                   (cond ((= index 0)
-                                                                         (when (typep (first-elt elements) 'text/string)
-                                                                           (setf (padding-of (first-elt elements)) (make-inset :left (* extra-width line-alignment (- 1 line-expansion))))))
+                                                                         (appending (subseq elements 1))
+                                                                         (collect (text/clone (first-elt elements) :padding (make-inset :left (* extra-width line-alignment (- 1 line-expansion))))))
                                                                         ((= index (1- part-count))
-                                                                         (when (typep (last-elt elements) 'text/string)
-                                                                           (setf (padding-of (last-elt elements)) (make-inset :right (* extra-width (1- line-alignment) (- 1 line-expansion))))))
+                                                                         (appending (subseq elements 0 (1- (length elements))))
+                                                                         (collect (text/clone (last-elt elements) :padding (make-inset :right (* extra-width (1- line-alignment) (- 1 line-expansion))))))
                                                                         (t
-                                                                         (when (typep (last-elt elements) 'text/string)
-                                                                           (setf (padding-of (last-elt elements)) (make-inset :right spacing-size)))))))
-                                                               (appending elements))))
+                                                                         (appending (subseq elements 0 (1- (length elements))))
+                                                                         (collect (text/clone (last-elt elements) :padding (make-inset :right spacing-size))))))))))
                                    (ll (if (text/last-position? input line-end-position)
                                            output-elements
                                            (append output-elements (list (text/newline)))))))

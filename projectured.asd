@@ -7,6 +7,8 @@
 (defsystem :projectured
   :defsystem-depends-on (:hu.dwim.asdf)
   :class "hu.dwim.asdf:hu.dwim.system"
+  :licence "BSD"
+  :author "Levente Mészáros"
   :description "A generic purpose projectional editor."
   :depends-on (:cl-json
                :hu.dwim.common

@@ -38,12 +38,12 @@
 
 (def printer inspector/object->table/table (projection recursion input input-reference)
   (bind ((instance (instance-of input))
-         (expanded? (expanded-p input))
+         (collapsed? (collapsed-p input))
          (class-name (class-name (class-of instance)))
          (type-label "TYPE")
          (type-label-text (text/make-text (list (text/make-string type-label :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/blue*))))
          (type-text (text/make-text (list (text/make-string (symbol-name class-name) :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/red*))))
-         (output (if expanded?
+         (output (if collapsed?
                      (make-table/table (list* (make-table/row (list (make-table/cell type-label-text) (make-table/cell type-text)))
                                               (iter (for index :from 0)
                                                     (for slot-value :in-sequence (slot-values-of input))

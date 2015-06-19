@@ -66,7 +66,7 @@
                  ?rest
                  element-iomap)))
       (((the graphics/canvas (printer-output (the text/text document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 ;;;;;;
@@ -115,7 +115,7 @@
   (labels ((line-height (line-start-position line-end-position)
              (or (iter (for element :initially (text/position-element line-start-position) :then (text/next-element input element))
                        (for text-element = (text/element input element))
-                       (typecase text-element
+                       (etypecase text-element
                          (text/spacing)
                          (text/newline
                           (maximize (2d-y (measure-text " " (font-of text-element)))))
@@ -124,7 +124,7 @@
                                        (aif (padding-of text-element)
                                             (inset/height it)
                                             0))))
-                         (t
+                         (text/graphics
                           (bind ((graphics (output-of (recurse-printer recursion (content-of text-element) nil)))
                                  (bounding-rectangle (bounds-of graphics)))
                             (maximize (+ (2d-y (size-of bounding-rectangle))
@@ -150,7 +150,7 @@
                    (when (<= first-character-index character-index last-character-index)
                      (return (values (elt (graphics-element-indices-of line-iomap) index) (- character-index first-character-index))))))
            (make-cursor-elements (location height)
-             (list (make-graphics/line (+ location (make-2d 0 0))
+             (list (make-graphics/line (+ location 0)
                                        (+ location (make-2d 0 height))
                                        :stroke-color *color/black*)
                    (make-graphics/line (+ location (make-2d -2 0))
@@ -219,7 +219,7 @@
                                              (push 0 first-character-indices)
                                              (push 1 last-character-indices)
                                              (push 0 graphics-element-indices)
-                                             (list (make-graphics/text (make-2d 0 0) ""
+                                             (list (make-graphics/text 0 ""
                                                                        :font (font-of (text/element input (text/position-element line-start-position)))
                                                                        :font-color *color/default*
                                                                        :fill-color nil)))
@@ -230,7 +230,9 @@
                                                  (until (text/position= position line-end-position))
                                                  (for text-element = (text/element input (text/position-element position)))
                                                  (for previous-text-element :previous text-element)
-                                                 (typecase text-element
+                                                 (awhen (padding-of text-element)
+                                                   (incf x (left-of it)))
+                                                 (etypecase text-element
                                                    (text/spacing
                                                     (push graphics-element-index graphics-element-indices)
                                                     (push character-index first-character-indices)
@@ -241,8 +243,6 @@
                                                     (incf x (size-of text-element)))
                                                    (text/string
                                                     (unless (eq text-element previous-text-element)
-                                                      (awhen (padding-of text-element)
-                                                        (incf x (left-of it)))
                                                       (bind ((content (content-of text-element))
                                                              (size (measure-text content (font-of text-element))))
                                                         (push character-index first-character-indices)
@@ -258,10 +258,8 @@
                                                                                      :font (font-of text-element)
                                                                                      :font-color (font-color-of text-element)
                                                                                      :fill-color (fill-color-of text-element)))
-                                                        (incf x (2d-x size)))
-                                                      (awhen (padding-of text-element)
-                                                        (incf x (right-of it)))))
-                                                   (t
+                                                        (incf x (2d-x size)))))
+                                                   (text/graphics
                                                     (bind ((element-iomap (recurse-printer recursion (content-of text-element) nil))
                                                            (graphics (output-of element-iomap))
                                                            (bounding-rectangle (bounds-of graphics)))
@@ -272,7 +270,9 @@
                                                       (push character-index last-character-indices)
                                                       (incf graphics-element-index)
                                                       (collect (make-graphics/canvas (list graphics) (make-2d x (- line-height (2d-y (size-of bounding-rectangle))))))
-                                                      (incf x (2d-x (size-of bounding-rectangle))))))))))
+                                                      (incf x (2d-x (size-of bounding-rectangle))))))
+                                                 (awhen (padding-of text-element)
+                                                   (incf x (right-of it)))))))
                (make-iomap 'iomap/text/text->graphics/canvas/line
                            :projection projection :recursion recursion
                            :input input :output (make-graphics/canvas graphics-elements (make-2d 0 line-y))
@@ -302,10 +302,10 @@
                                                                   (text/length input (text/line-start-position input origin-position) origin-position))))
                               (when origin-position
                                 (print-containing-line origin-position (as (- origin-line-character-index)) (as nil) 0 nil nil)))))
-           (output (as (make-graphics/canvas (list (make-graphics/canvas (as (print-selection-below (va line-iomaps))) (make-2d 0 0))
-                                                   (make-graphics/canvas (as (map-ll (va line-iomaps) 'output-of)) (make-2d 0 0))
-                                                   (make-graphics/canvas (as (print-selection-above (va line-iomaps))) (make-2d 0 0)))
-                                             (make-2d 0 0)))))
+           (output (as (make-graphics/canvas (list (make-graphics/canvas (as (print-selection-below (va line-iomaps))) 0)
+                                                   (make-graphics/canvas (as (map-ll (va line-iomaps) 'output-of)) 0)
+                                                   (make-graphics/canvas (as (print-selection-above (va line-iomaps))) 0))
+                                             0))))
       (make-iomap 'iomap/text/text->graphics/canvas/text
                   :projection projection :recursion recursion
                   :input input :input-reference input-reference :output output

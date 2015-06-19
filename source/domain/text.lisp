@@ -101,6 +101,26 @@
     (if (zerop (length content))
         (text/string default-content :font font :font-color (color/lighten font-color 0.75) :fill-color fill-color :line-color line-color :padding padding)
         (text/string content :font font :font-color font-color :fill-color fill-color :line-color line-color :padding padding))))
+
+(def function text/clone-string (element &key font font-color fill-color line-color (padding nil padding?))
+  (text/make-string (content-of element)
+                    :font (font-of element)
+                    :font-color (font-color-of element)
+                    :fill-color (fill-color-of element)
+                    :line-color (line-color-of element)
+                    :padding (if padding? padding (padding-of element))))
+
+(def function text/clone-graphics (element &key fill-color line-color (padding nil padding?))
+  (text/make-graphics (content-of element)
+                      :fill-color (fill-color-of element)
+                      :line-color (line-color-of element)
+                      :padding (if padding? padding (padding-of element))))
+
+(def function text/clone (element &rest args &key &allow-other-keys)
+  (typecase element
+    (text/string (apply #'text/clone-string element args))
+    (text/graphics (apply #'text/clone-graphics element args))))
+
 ;;;;;;
 ;;; Operation
 
@@ -470,7 +490,7 @@
            (etypecase start-element
              (text/string (2d-x (measure-text (subseq (content-of start-element) (text/position-index start-position) (text/position-index end-position)) (font-of start-element))))
              ;; KLUDGE:
-             (text/graphics 100))
+             (text/graphics 600))
            (+ (bind ((string (subseq (text/element-content start-element) (text/position-index start-position) (text/element-length start-element))))
                 (if (zerop (length string))
                     0
@@ -488,7 +508,7 @@
                       (text/string (2d-x (measure-text string (font-of end-element))))
                       (text/newline 0)
                       ;; KLUDGE:
-                      (text/graphics 100))))))))))
+                      (text/graphics 600))))))))))
 
 (def function text/substring (text start-position end-position)
   (bind ((start-element (text/element text (text/position-element start-position)))

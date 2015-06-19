@@ -99,7 +99,7 @@
        `((the text/text (content-of (the tree/leaf document)))
          (the text/text (text/subseq (the text/text document) 0 0))))
       (((the tree/leaf (printer-output (the json/insertion document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 (def function forward-mapper/json/null->tree/leaf (printer-iomap reference)
@@ -113,7 +113,7 @@
        `((the text/text (content-of (the tree/leaf document)))
          (the text/text (text/subseq (the text/text document) ,?start-index ,?end-index))))
       (((the tree/leaf (printer-output (the json/null document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 (def function forward-mapper/json/boolean->tree/leaf (printer-iomap reference)
@@ -127,7 +127,7 @@
        `((the text/text (content-of (the tree/leaf document)))
          (the text/text (text/subseq (the text/text document) ,?start-index ,?end-index))))
       (((the tree/leaf (printer-output (the json/boolean document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 (def function forward-mapper/json/number->tree/leaf (printer-iomap reference)
@@ -142,7 +142,7 @@
        `((the text/text (content-of (the tree/leaf document)))
          (the text/text (text/subseq (the text/text document) ,?start-index ,?end-index))))
       (((the tree/leaf (printer-output (the json/number document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 (def function forward-mapper/json/string->tree/leaf (printer-iomap reference)
@@ -156,7 +156,7 @@
        `((the text/text (content-of (the tree/leaf document)))
          (the text/text (text/subseq (the text/text document) ,?start-index ,?end-index))))
       (((the tree/leaf (printer-output (the json/string document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 (def function forward-mapper/json/array->tree/node (printer-iomap reference)
@@ -175,7 +175,7 @@
                  ?rest
                  element-iomap)))
       (((the tree/node (printer-output (the json/array document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 (def function forward-mapper/json/object-entry->tree/node (printer-iomap reference)
@@ -202,7 +202,7 @@
                ?rest
                (first-elt (child-iomaps-of printer-iomap))))
       (((the tree/node (printer-output (the json/object-entry document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 (def function forward-mapper/json/object->tree/node (printer-iomap reference)
@@ -220,7 +220,7 @@
                  ?rest
                  entry-iomap)))
       (((the tree/node (printer-output (the json/object document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 ;;;;;;
@@ -426,18 +426,22 @@
   (bind ((deep-array (find-if-not (of-type '(or json/insertion json/null json/boolean json/number json/string)) (elements-of input)))
          (element-iomaps (as (iter (for element-index :from 0)
                                    (for element :in-sequence (elements-of input))
-                                   (for element-iomap = (recurse-printer recursion element
-                                                                         `((elt (the sequence document) ,element-index)
-                                                                           (the sequence (elements-of (the json/array document)))
-                                                                           ,@(typed-reference (form-type input) input-reference))))
-                                   (when (and deep-array (not (first-iteration-p)))
-                                     (setf (indentation-of (output-of element-iomap)) 1))
-                                   (collect element-iomap))))
+                                   (collect (recurse-printer recursion element
+                                                             `((elt (the sequence document) ,element-index)
+                                                               (the sequence (elements-of (the json/array document)))
+                                                               ,@(typed-reference (form-type input) input-reference)))))))
          (output-selection (as (print-selection (make-iomap/compound projection recursion input input-reference nil element-iomaps) (selection-of input) 'forward-mapper/json/array->tree/node)))
-         (output (as (make-tree/node (as (mapcar 'output-of (va element-iomaps)))
+         (output (as (make-tree/node (as (map-ll* (ll (va element-iomaps)) (lambda (element index)
+                                                                             (bind ((element-output (output-of (value-of element))))
+                                                                               (if (and deep-array (previous-element-of element))
+                                                                                   (typecase element-output
+                                                                                     (tree/leaf (tree/clone-leaf element-output :indentation 1 :selection (as (nthcdr 2 (va output-selection)))))
+                                                                                     (tree/node (tree/clone-node element-output :indentation 1 :selection (as (nthcdr 2 (va output-selection))))))
+                                                                                   element-output)))))
                                      :opening-delimiter (text/text () (text/string "[" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
                                      :closing-delimiter (text/text () (text/string "]" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
                                      :separator (text/text () (text/string (if deep-array "," ", ") :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
+                                     :collapsed (as (collapsed-p input))
                                      :selection output-selection))))
     (make-iomap/compound projection recursion input input-reference output element-iomaps)))
 
@@ -447,6 +451,7 @@
                                              ,@(typed-reference (form-type input) input-reference)))))
          (output-selection (as (print-selection (make-iomap/compound projection recursion input input-reference nil (as (list (va value-iomap)))) (selection-of input) 'forward-mapper/json/object-entry->tree/node)))
          (output (as (tree/node (:separator (text/text () (text/string " : " :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
+                                 :collapsed (as (collapsed-p input))
                                  :selection output-selection)
                        (tree/leaf (:opening-delimiter (text/text () (text/string "\"" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
                                    :closing-delimiter (text/text () (text/string "\"" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
@@ -458,18 +463,22 @@
 (def printer json/object->tree/node (projection recursion input input-reference)
   (bind ((entry-iomaps (as (iter (for index :from 0)
                                  (for entry :in-sequence (entries-of input))
-                                 (for entry-iomap = (recurse-printer recursion entry
-                                                                     `((elt (the sequence document) ,index)
-                                                                       (the sequence (entries-of (the json/object document)))
-                                                                       ,@(typed-reference (form-type input) input-reference))))
-                                 (unless (first-iteration-p)
-                                   (setf (indentation-of (output-of entry-iomap)) 1))
-                                 (collect entry-iomap))))
+                                 (collect (recurse-printer recursion entry
+                                                           `((elt (the sequence document) ,index)
+                                                             (the sequence (entries-of (the json/object document)))
+                                                             ,@(typed-reference (form-type input) input-reference)))))))
          (output-selection (as (print-selection (make-iomap/compound projection recursion input input-reference nil entry-iomaps) (selection-of input) 'forward-mapper/json/object->tree/node)))
-         (output (as (make-tree/node (as (mapcar 'output-of (va entry-iomaps)))
+         (output (as (make-tree/node (as (map-ll* (ll (va entry-iomaps)) (lambda (element index)
+                                                                           (bind ((entry-output (output-of (value-of element))))
+                                                                             (if (previous-element-of element)
+                                                                                 (typecase entry-output
+                                                                                   (tree/leaf (tree/clone-leaf entry-output :indentation 1 :selection (as (nthcdr 2 (va output-selection)))))
+                                                                                   (tree/node (tree/clone-node entry-output :indentation 1 :selection (as (nthcdr 2 (va output-selection))))))
+                                                                                 entry-output)))))
                                      :opening-delimiter (text/text () (text/string "{" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
                                      :closing-delimiter (text/text () (text/string "}" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
                                      :separator (text/text () (text/string "," :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
+                                     :collapsed (as (collapsed-p input))
                                      :selection output-selection))))
     (make-iomap/compound projection recursion input input-reference output entry-iomaps)))
 

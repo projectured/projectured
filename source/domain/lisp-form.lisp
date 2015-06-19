@@ -112,3 +112,18 @@
 
 (def function make-lisp-form/symbol* (symbol &rest args)
   (apply 'make-lisp-form/symbol (symbol-name symbol) (package-name (symbol-package symbol)) args))
+
+(def function lisp-form/clone (document &key (indentation nil indentation?))
+  (etypecase document
+    (lisp-form/comment (make-lisp-form/comment (content-of document)
+                                               :indentation (if indentation? indentation (indentation-of document))
+                                               :selection (selection-of document)))
+    (lisp-form/number (make-lisp-form/number (value-of document)
+                                             :indentation (if indentation? indentation (indentation-of document))
+                                             :selection (selection-of document)))
+    (lisp-form/list (make-lisp-form/list (elements-of document)
+                                         :indentation (if indentation? indentation (indentation-of document))
+                                         :selection (selection-of document)))
+    (lisp-form/top-level (make-lisp-form/top-level (elements-of document)
+                                                   :indentation (if indentation? indentation (indentation-of document))
+                                                   :selection (selection-of document)))))

@@ -44,7 +44,7 @@
          (the text/text (content-of (the tree/leaf document)))
          (the text/text (text/subseq (the text/text document) ,?character-index ,?character-index))))
       (((the tree/leaf (printer-output (the css/attribute document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 (def function forward-mapper/css/rule->tree/node (printer-iomap reference)
@@ -69,7 +69,7 @@
                  ?rest
                  attribute-iomap)))
       (((the tree/node (printer-output (the css/rule document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 ;;;;;;
@@ -174,8 +174,10 @@
                                                (text/text (:selection (as (nthcdr 3 (va output-selection))))
                                                  (text/string selector-value :font *font/ubuntu/monospace/regular/24* :font-color selector-color)))
                                              (make-tree/node (iter (for attribute-iomap :in (va attribute-iomaps))
-                                                                   (setf (indentation-of (output-of attribute-iomap)) 2)
-                                                                   (collect (output-of attribute-iomap)))
+                                                                   (for attribute-output = (output-of attribute-iomap))
+                                                                   (collect (typecase attribute-output
+                                                                              (tree/leaf (tree/clone-leaf attribute-output :indentation 2))
+                                                                              (tree/node (tree/clone-node attribute-output :indentation 2)))))
                                                              :indentation 0
                                                              :selection (as (nthcdr 2 (va output-selection)))
                                                              :opening-delimiter (text/text () (text/string "{" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))

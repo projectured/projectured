@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; Printer
 
-(def special-variable *translation* (make-2d 0 0))
+(def special-variable *translation* 0)
 
 (def method print-to-device ((instance graphics/canvas) (display device/display/web))
   (iter (for element :in-sequence (elements-of instance))

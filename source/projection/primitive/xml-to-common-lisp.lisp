@@ -56,7 +56,7 @@
          (the string (value-of (the common-lisp/constant document)))
          (the string (subseq (the string document) ,?start-index ,?end-index))))
       (((the common-lisp/application (printer-output (the xml/text document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 (def function forward-mapper/xml/attribute->common-lisp/application (printer-iomap reference)
@@ -64,7 +64,7 @@
          (recursion (recursion-of printer-iomap)))
     (pattern-case reference
       (((the common-lisp/application (printer-output (the xml/attribute document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 (def function forward-mapper/xml/element->common-lisp/application (printer-iomap reference)
@@ -90,7 +90,7 @@
                  ?rest
                  body-iomap)))
       (((the common-lisp/application (printer-output (the xml/element document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 ;;;;;;

@@ -37,11 +37,11 @@
 ;;; Printer
 
 (def printer style/color->graphics/rectangle (projection recursion input input-reference)
-  (bind ((output (make-graphics/rounded-rectangle (make-2d 0 0) (make-2d 100 50) 9 :fill-color input)))
+  (bind ((output (make-graphics/rounded-rectangle 0 (make-2d 100 50) 9 :fill-color input)))
     (make-iomap/object projection recursion input input-reference output)))
 
 (def printer style/font->graphics/text (projection recursion input input-reference)
-  (bind ((output (make-graphics/text (make-2d 0 0) "lorem ipsum" :font input :font-color *color/default*)))
+  (bind ((output (make-graphics/text 0 "lorem ipsum" :font input :font-color *color/default*)))
     (make-iomap/object projection recursion input input-reference output)))
 
 ;;;;;;

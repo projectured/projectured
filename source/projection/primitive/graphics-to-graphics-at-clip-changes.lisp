@@ -74,12 +74,12 @@
                                                                                             (incf (location-of change-rectangle) (location-of element)))
                                                                                           change-rectangle)))))
                                                                             (recurse input))
-                                                                          (make-rectangle (make-2d 0 0) (make-2d 0 0))))
+                                                                          (make-rectangle 0 0)))
                                                   (clipped-content (make-graphics/viewport input (location-of clipping-rectangle) (size-of clipping-rectangle))))
                                              (append (list clipped-content)
                                                      (when (debug-p projection)
                                                        (list (make-graphics/rectangle (location-of clipping-rectangle) (size-of clipping-rectangle) :stroke-color *color/solarized/gray*))))))
-                                       (make-2d 0 0))))
+                                       0)))
     (make-iomap/object projection recursion input input-reference output)))
 
 ;;;;;;

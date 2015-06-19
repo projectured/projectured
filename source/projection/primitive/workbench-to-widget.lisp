@@ -95,7 +95,7 @@
                    (widget/scroll-pane (:size (make-2d 224 659)
                                         :padding (make-inset :all 5)
                                         :padding-color *color/white*)
-                     (make-widget/composite (make-2d 0 0) (mapcar 'output-of folder-iomaps))))))
+                     (make-widget/composite 0 (mapcar 'output-of folder-iomaps))))))
     (make-iomap/compound projection recursion input input-reference output folder-iomaps)))
 
 (def printer workbench/console->widget/title-pane (projection recursion input input-reference)

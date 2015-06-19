@@ -155,6 +155,8 @@
                                                             (setf (slot-value-using-class class copy slot) (recurse (slot-value-using-class class instance slot)))))
                                                     copy)))))
                                       (recurse (template-of projection)))))
+                       ;; KLUDGE: breaks computed
+                       #+nil
                        (set-selection output (va output-selection))
                        output))))
     (make-iomap 'iomap/templating

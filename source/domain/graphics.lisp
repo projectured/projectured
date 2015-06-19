@@ -347,6 +347,7 @@
     (bind ((elements (elements-of instance)))
       (if (typep elements 'computed-ll)
           (iter (for index :from 0)
+                ;; TODO: previous-element-of
                 (for element-ll :initially elements :then (next-element-of element-ll))
                 (while element-ll)
                 (for element = (value-of element-ll))
@@ -394,6 +395,10 @@
 (def function graphics/read-operation (graphics gesture)
   (gesture-case gesture
     ((make-instance 'gesture/mouse/button/click :button :button-left :modifiers nil)
+     :domain "Graphics" :description "Moves the selection to where the mouse is pointing at"
+     :operation (make-operation/replace-selection graphics (make-reference graphics (location-of gesture) nil)))
+    ;; KLUDGE: for toggle collapsed tree node operation
+    ((make-instance 'gesture/mouse/button/click :button :button-left :modifiers '(:control))
      :domain "Graphics" :description "Moves the selection to where the mouse is pointing at"
      :operation (make-operation/replace-selection graphics (make-reference graphics (location-of gesture) nil)))
     ((gesture/keyboard/key-press :sdl-key-i :control)

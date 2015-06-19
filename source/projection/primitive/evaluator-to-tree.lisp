@@ -54,7 +54,7 @@
                                           `((the ,(form-type (output-of (va form-iomap))) (elt (the sequence document) 0))
                                             (the sequence (children-of (the tree/node document))))))
                                  (((the tree/node (printer-output (the evaluator/evaluator document) ?projection ?recursion)) . ?rest)
-                                  (when (and (eq projection ?projection) (eq recursion ?recursion))
+                                  (when (eq projection ?projection)
                                     (reverse ?rest))))))
          (output (as (make-tree/node (append #+nil
                                              (when (on-demand-p input)
@@ -63,14 +63,8 @@
                                                          (image/file () (resource-pathname "image/refresh.png"))
                                                          (text/string "Evaluate" :font *font/liberation/serif/regular/24* :font-color *color/solarized/green*)))))
                                              (list (output-of (va form-iomap)))
-                                             (when result (list (output-of (va result-iomap)))))
+                                             (when result (list (tree/clone (output-of (va result-iomap)) :indetnation 0))))
                                      :selection output-selection))))
-    #+nil
-    (when (on-demand-p input)
-      (setf (indentation-of (output-of form-iomap)) 0))
-    ;; KLUDGE:
-    (when (typep (output-of (va result-iomap)) 'tree/base)
-      (setf (indentation-of (output-of (va result-iomap))) 0))
     (set-selection (output-of (va form-iomap)) (butlast (va output-selection) 2))
     (unless (on-demand-p input)
       (set-selection (output-of (va result-iomap)) (butlast (va output-selection) 2)))

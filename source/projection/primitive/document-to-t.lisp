@@ -39,12 +39,12 @@
 (def printer document/document->t (projection recursion input input-reference)
   (bind ((content-iomap (as (recurse-printer recursion (content-of input) `((content-of (the document/document document))
                                                                             ,@(typed-reference (form-type input) input-reference))))))
-    (make-iomap/compound projection recursion input input-reference (make-graphics/canvas (as (list (output-of (va content-iomap)))) (make-2d 0 0)) (as (list (va content-iomap))))))
+    (make-iomap/compound projection recursion input input-reference (make-graphics/canvas (as (list (output-of (va content-iomap)))) 0) (as (list (va content-iomap))))))
 
 (def printer document/clipboard->t (projection recursion input input-reference)
   (bind ((content-iomap (as (recurse-printer recursion (content-of input) `((content-of (the document/clipboard document))
                                                                             ,@(typed-reference (form-type input) input-reference))))))
-    (make-iomap/compound projection recursion input input-reference (make-graphics/canvas (as (list (output-of (va content-iomap)))) (make-2d 0 0)) (as (list (va content-iomap))))))
+    (make-iomap/compound projection recursion input input-reference (make-graphics/canvas (as (list (output-of (va content-iomap)))) 0) (as (list (va content-iomap))))))
 
 ;;;;;;
 ;;; Reader

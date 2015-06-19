@@ -65,7 +65,7 @@
 
 (def printer t/null->tree/leaf (projection recursion input input-reference)
   (bind ((output (tree/leaf ()
-                   (text/make-simple-text "NIL" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/red*))))
+                   (text/make-simple-text "NIL" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/magenta*))))
     (make-iomap/object projection recursion input input-reference output)))
 
 (def printer t/number->tree/leaf (projection recursion input input-reference)
@@ -81,7 +81,7 @@
 
 (def printer t/symbol->tree/leaf (projection recursion input input-reference)
   (bind ((output (tree/leaf ()
-                   (text/make-default-text (symbol-name input) "enter symbol" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/green*))))
+                   (text/make-default-text (write-to-string input) "enter symbol" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/blue*))))
     (make-iomap/object projection recursion input input-reference output)))
 
 (def printer t/pathname->tree/leaf (projection recursion input input-reference)

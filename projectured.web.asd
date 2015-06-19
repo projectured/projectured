@@ -8,6 +8,8 @@
   :defsystem-depends-on (:hu.dwim.asdf)
   :class "hu.dwim.asdf:hu.dwim.system"
   :package-name :projectured
+  :licence "BSD"
+  :author "Levente Mészáros"
   :description "The web backend for the generic purpose projectional editor."
   :depends-on (:hu.dwim.util.production+swank
                :hu.dwim.web-server.application

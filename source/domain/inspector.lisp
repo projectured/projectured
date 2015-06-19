@@ -14,7 +14,7 @@
 
 (def document inspector/object (inspector/base)
   ((instance :type t)
-   (expanded :type boolean)
+   (collapsed :type boolean)
    (slot-values :type sequence)))
 
 (def document inspector/object-slot (inspector/base)
@@ -25,10 +25,10 @@
 ;;;;;;
 ;;; Construction
 
-(def function make-inspector/object (instance &key (expanded #t))
+(def function make-inspector/object (instance &key collapsed)
   (make-instance 'inspector/object
                  :instance instance
-                 :expanded expanded
+                 :collapsed collapsed
                  :slot-values (iter (for slot :in (class-slots (class-of instance)))
                                     (collect (make-inspector/object-slot instance slot)))))
 
@@ -40,7 +40,7 @@
                    :instance instance
                    :slot slot
                    :value (bind ((value (slot-value-using-class (class-of instance) instance slot)))
-                            (make-inspector/object value :expanded #f)))))
+                            (make-inspector/object value :collapsed #t)))))
 
 ;;;;;;
 ;;; Construction

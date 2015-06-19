@@ -15,7 +15,8 @@
 (def document xml/element (xml/base)
   ((name :type string)
    (attributes :type sequence)
-   (children :type sequence)))
+   (children :type sequence)
+   (collapsed :type boolean)))
 
 (def document xml/attribute (xml/base)
   ((name :type string)
@@ -27,8 +28,8 @@
 ;;;;;;
 ;;; Construction
 
-(def function make-xml/element (name attributes children &key selection)
-  (make-instance 'xml/element :name name :attributes attributes :children (ll children) :selection selection))
+(def function make-xml/element (name attributes children &key collapsed selection)
+  (make-instance 'xml/element :name name :attributes attributes :children (ll children) :collapsed collapsed :selection selection))
 
 (def function make-xml/attribute (name value &key selection)
   (make-instance 'xml/attribute :name name :value value :selection selection))
@@ -39,8 +40,8 @@
 ;;;;;;
 ;;; Construction
 
-(def macro xml/element ((name attributes &key selection) &body children)
-  `(make-xml/element ,name (document/sequence () ,@attributes) (document/sequence () ,@children) :selection ,selection))
+(def macro xml/element ((name attributes &key collapsed selection) &body children)
+  `(make-xml/element ,name (document/sequence () ,@attributes) (document/sequence () ,@children) :collapsed ,collapsed :selection ,selection))
 
 (def macro xml/attribute ((&key selection) name value)
   `(make-xml/attribute ,name ,value :selection ,selection))

@@ -123,7 +123,19 @@
 
 (def function forward-mapper/widget/text->graphics/canvas (printer-iomap reference)
   (bind ((projection (projection-of printer-iomap))
-         (recursion (recursion-of printer-iomap)))))
+         (recursion (recursion-of printer-iomap)))
+    (pattern-case reference
+      (((the ?type (content-of (the widget/text document)))
+        . ?rest)
+       (values `((the sequence (elements-of (the graphics/canvas document)))
+                 (the graphics/canvas (elt (the sequence document) 1))
+                 (the sequence (elements-of (the graphics/canvas document)))
+                 (the graphics/canvas (elt (the sequence document) 0)))
+               ?rest
+               (elt (child-iomaps-of printer-iomap) 0)))
+      (((the graphics/canvas (printer-output (the widget/text document) ?projection ?recursion)) . ?rest)
+       (when (eq projection ?projection)
+         ?rest)))))
 
 (def function forward-mapper/widget/tooltip->graphics/canvas (printer-iomap reference)
   (bind ((projection (projection-of printer-iomap))
@@ -151,7 +163,7 @@
                  ?rest
                  element-iomap)))
       (((the graphics/canvas (printer-output (the widget/composite document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 (def function forward-mapper/widget/shell->graphics/canvas (printer-iomap reference)
@@ -183,7 +195,18 @@
 
 (def function backward-mapper/widget/text->graphics/canvas (printer-iomap reference)
   (bind ((projection (projection-of printer-iomap))
-         (recursion (recursion-of printer-iomap)))))
+         (recursion (recursion-of printer-iomap)))
+    (pattern-case reference
+      (((the sequence (elements-of (the graphics/canvas document)))
+        (the graphics/canvas (elt (the sequence document) 1))
+        (the sequence (elements-of (the graphics/canvas document)))
+        (the graphics/canvas (elt (the sequence document) 0))
+        . ?rest)
+       (values `((the ,(form-type (content-of (input-of printer-iomap))) (content-of (the widget/text document))))
+               ?rest
+               (elt (child-iomaps-of printer-iomap) 0)))
+      (?
+       (append `((the graphics/canvas (printer-output (the widget/text document) ,projection ,recursion))) reference)))))
 
 (def function backward-mapper/widget/tooltip->graphics/canvas (printer-iomap reference)
   (bind ((projection (projection-of printer-iomap))
@@ -248,12 +271,12 @@
          (padding-color (padding-color-of widget)))
     (append (when margin-color
               (list (if margin-corners
-                        (make-graphics/rounded-rectangle (make-2d 0 0)
+                        (make-graphics/rounded-rectangle 0
                                                          (+ content-size border-extra-size (inset/size margin) (inset/size border) (inset/size padding))
                                                          9
                                                          :corners margin-corners
                                                          :fill-color margin-color)
-                        (make-graphics/rectangle (make-2d 0 0)
+                        (make-graphics/rectangle 0
                                                  (+ content-size border-extra-size (inset/size margin) (inset/size border) (inset/size padding))
                                                  :fill-color margin-color))))
             (when border-color
@@ -304,13 +327,15 @@
     (make-iomap/compound projection recursion input input-reference output (list content-iomap))))
 
 (def printer widget/text->graphics/canvas (projection recursion input input-reference)
-  (bind ((content (content-of input))
-         (content-iomap (recurse-printer recursion content
-                                         `((content-of (the widget/label document))
-                                           ,@(typed-reference (form-type input) input-reference))))
-         (content-output (output-of content-iomap))
-         (output (make-graphics/canvas (list content-output) (location-of input))))
-    (make-iomap/compound projection recursion input input-reference output (list  content-iomap))))
+  (bind ((content-iomap (as (recurse-printer recursion (content-of input)
+                                             `((content-of (the widget/label document))
+                                               ,@(typed-reference (form-type input) input-reference)))))
+         (output (as (bind ((content-output (output-of (va content-iomap)))
+                            (content-bounding-rectangle (bounds-of (output-of (va content-iomap)))))
+                       (make-graphics/canvas (list (make-graphics/canvas (widget/make-surrounding-graphics input (size-of content-bounding-rectangle) (content-fill-color-of input) :margin-corners '(nil)) 0)
+                                                   (make-graphics/canvas (list content-output) (widget/content-top-left input)))
+                                             (location-of input))))))
+    (make-iomap/compound projection recursion input input-reference output (as (list (va content-iomap))))))
 
 (def printer widget/tooltip->graphics/canvas (projection recursion input input-reference)
   (bind ((content-iomap (as (recurse-printer recursion (content-of input)
@@ -327,7 +352,7 @@
                                                                                         :fill-color (color/lighten *color/solarized/yellow* 0.75))
                                                        content-output)
                                                  (location-of input)))
-                         (make-graphics/canvas nil (make-2d 0 0))))))
+                         (make-graphics/canvas nil 0)))))
     (make-iomap/compound projection recursion input input-reference output (as (list (va content-iomap))))))
 
 (def printer widget/menu->graphics/canvas (projection recursion input input-reference)
@@ -344,11 +369,11 @@
                                              (maximizing (2d-x (size-of bounding-rectangle)) :into width)
                                              (collect (make-graphics/canvas (list (output-of element-iomap)) (make-2d 0 y)) :into result)
                                              (incf y (2d-y (size-of bounding-rectangle)))
-                                             (finally (return (list* (make-graphics/rectangle (make-2d 0 0) (make-2d width y)
+                                             (finally (return (list* (make-graphics/rectangle 0 (make-2d width y)
                                                                                               :stroke-color *color/solarized/content/darker*
                                                                                               :fill-color *color/solarized/yellow*)
                                                                      result))))
-                                       (make-2d 0 0))))
+                                       0)))
     (make-iomap/compound projection recursion input input-reference output
                          (list (make-iomap/object projection recursion input input-reference output)))))
 
@@ -392,20 +417,20 @@
          (output (as (make-graphics/canvas (as (append (widget/make-surrounding-graphics input (size-of content-bounding-rectangle) (content-fill-color-of input))
                                                        (list (make-graphics/canvas (list (output-of (va content-iomap))) (widget/content-top-left input))
                                                              (output-of (va tooltip-iomap)))))
-                                           (make-2d 0 0)))))
+                                           0))))
     (make-iomap/compound projection recursion input input-reference output (as (list (va content-iomap))))))
 
 (def printer widget/title-pane->graphics/canvas (projection recursion input input-reference)
   (bind ((margin (margin-of input))
          (title-iomap (recurse-printer recursion (title-of input) nil))
          (title-bounding-rectangle (bounds-of (output-of title-iomap)))
-         (title-graphics (make-graphics/canvas (list (make-graphics/rounded-rectangle (make-2d 0 0)
+         (title-graphics (make-graphics/canvas (list (make-graphics/rounded-rectangle 0
                                                                                       (+ (size-of title-bounding-rectangle) (make-2d 15 10))
                                                                                       9
                                                                                       :corners '(:bottom-left :bottom-right)
                                                                                       :fill-color (title-fill-color-of input))
                                                      (make-graphics/canvas (list (output-of title-iomap)) (make-2d 8 5)))
-                                               (make-2d 0 0)))
+                                               0))
          (title-bounding-rectangle (bounds-of title-graphics))
          (content-iomap (recurse-printer recursion (content-of input)
                                          `((content-of (the widget/scroll-pane document))
@@ -417,7 +442,7 @@
                                                (list (make-graphics/canvas (list title-graphics) (inset/top-left margin)))
                                                (list (make-graphics/canvas (list (output-of content-iomap))
                                                                            (+ (widget/content-top-left input) border-extra-size))))
-                                       (make-2d 0 0))))
+                                       0)))
     (make-iomap/compound projection recursion input input-reference output (list content-iomap))))
 
 (def printer widget/split-pane->graphics/canvas (projection recursion input input-reference)
@@ -451,7 +476,7 @@
                                              (incf d (ecase orientation
                                                        (:horizontal (2d-x size))
                                                        (:vertical (2d-y size)))))
-                                       (make-2d 0 0))))
+                                       0)))
     (make-iomap/compound projection recursion input input-reference output element-iomaps)))
 
 (def printer widget/tabbed-pane->graphics/canvas (projection recursion input input-reference)
@@ -494,20 +519,20 @@
                                                                                                     :border-corners '(:top-left) :border-extra-size border-extra-size)
                                                                   (when content-iomap
                                                                     (list (make-graphics/canvas (list (output-of content-iomap)) (+ border-extra-size (widget/content-top-left input)))))))))))
-                                       (make-2d 0 0))))
+                                       0)))
     (make-iomap/compound projection recursion input input-reference output (list content-iomap))))
 
 (def printer widget/scroll-pane->graphics/canvas (projection recursion input input-reference)
   (bind ((content-iomap (recurse-printer recursion (content-of input)
                                          `((content-of (the widget/scroll-pane document))
                                            ,@(typed-reference (form-type input) input-reference))))
-         (location (or (location-of input) (make-2d 0 0)))
+         (location (or (location-of input) 0))
          (size (size-of input))
          (content (make-graphics/canvas (list (output-of content-iomap)) (as (scroll-position-of input))))
          (output (make-graphics/canvas (append (widget/make-surrounding-graphics input size (content-fill-color-of input)
                                                                                  :padding-corners nil)
                                                (list (make-graphics/canvas (list (make-graphics/viewport content location size)) (widget/content-top-left input))))
-                                       (make-2d 0 0))))
+                                       0)))
     (make-iomap/compound projection recursion input input-reference output (list content-iomap))))
 
 ;;;;;;
@@ -523,11 +548,11 @@
 
 (def reader widget/text->graphics/canvas (projection recursion input printer-iomap)
   (declare (ignore projection))
-  (bind ((printer-input (input-of printer-iomap)))
-    (merge-commands (command/extend (recurse-reader recursion input (elt (child-iomaps-of printer-iomap) 0))
-                                    printer-input
-                                    `((the ,(form-type (content-of printer-input)) (content-of (the widget/text document)))))
-                    (make-command/nothing (gesture-of input)))))
+  (merge-commands (command/read-selection recursion input printer-iomap 'forward-mapper/widget/text->graphics/canvas 'backward-mapper/widget/text->graphics/canvas)
+                  (command/read-backward recursion input printer-iomap 'backward-mapper/widget/text->graphics/canvas nil)
+                  (awhen (graphics/read-operation (output-of printer-iomap) (gesture-of input))
+                    (command/read-backward recursion it printer-iomap 'backward-mapper/widget/text->graphics/canvas nil))
+                  (make-command/nothing (gesture-of input))))
 
 (def reader widget/tooltip->graphics/canvas (projection recursion input printer-iomap)
   (declare (ignore projection recursion))
@@ -547,21 +572,12 @@
 
 (def reader widget/composite->graphics/canvas (projection recursion input printer-iomap)
   (declare (ignore projection))
-  (bind ((printer-input (input-of printer-iomap))
-         (gesture (gesture-of input)))
-    (merge-commands (command/read-selection recursion input printer-iomap 'forward-mapper/widget/composite->graphics/canvas 'backward-mapper/widget/composite->graphics/canvas)
+  (bind ((gesture (gesture-of input)))
+    (merge-commands (unless (typep gesture 'gesture/mouse)
+                      (command/read-selection recursion input printer-iomap 'forward-mapper/widget/composite->graphics/canvas 'backward-mapper/widget/composite->graphics/canvas))
                     (command/read-backward recursion input printer-iomap 'backward-mapper/widget/composite->graphics/canvas nil)
-                    (iter (for index :from 0)
-                          (for element :in-sequence (elements-of (input-of printer-iomap)))
-                          ;; KLUDGE:
-                          (setf (location-of gesture) (- (location-of gesture) #+nil(widget/content-top-left element) (location-of (elt (elements-of (output-of printer-iomap)) index))))
-                          (for element-command = (recurse-reader recursion input (elt (child-iomaps-of printer-iomap) index)))
-                          (awhen (and element-command
-                                      (command/extend element-command
-                                                      printer-input
-                                                      `((the sequence (elements-of (the widget/composite document)))
-                                                        (the ,(form-type element) (elt (the sequence document) ,index)))))
-                            (return it)))
+                    (awhen (graphics/read-operation (output-of printer-iomap) (gesture-of input))
+                      (command/read-backward recursion it printer-iomap 'backward-mapper/widget/composite->graphics/canvas nil))
                     (make-command/nothing (gesture-of input)))))
 
 (def reader widget/shell->graphics/canvas (projection recursion input printer-iomap)

@@ -49,7 +49,7 @@
                  ?rest
                  cell-iomap)))
       (((the graphics/canvas (printer-output (the table/table document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 ;;;;;;
@@ -139,7 +139,7 @@
                                                      (incf x (+ column-width spacing))
                                                      (collect (make-graphics/line (make-2d x 0) (make-2d x row-height) :stroke-color *color/black*))
                                                      (incf x spacing)))
-                                       (make-2d 0 0)
+                                       0
                                        :selection output-selection)))
     (make-iomap/compound projection recursion input input-reference output cell-iomaps)))
 

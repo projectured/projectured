@@ -54,7 +54,7 @@
                                         (the tree/node (elt (the sequence document) 0))
                                         (the sequence (arguments-of (the common-lisp/application document))))))
                              (((the common-lisp/application (printer-output (the test/check document) ?projection ?recursion)) . ?rest)
-                              (when (and (eq projection ?projection) (eq recursion ?recursion))
+                              (when (eq projection ?projection)
                                 (reverse ?rest)))))
          (output (make-common-lisp/application (make-lisp-form/symbol "IS" "HU.DWIM.STEFIL")
                                                (list (tree/node (:separator (text/text () (text/string " ")) :selection (butlast output-selection 2))

@@ -7,6 +7,9 @@
 (defsystem :projectured+swank
   :defsystem-depends-on (:hu.dwim.asdf)
   :class "hu.dwim.asdf:hu.dwim.system"
+  :licence "BSD"
+  :author "Levente Mészáros"
+  :description "Projectured with swank."
   :depends-on (:projectured
                :swank)
   :components ((:module "source"

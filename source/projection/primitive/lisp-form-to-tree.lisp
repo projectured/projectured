@@ -108,7 +108,7 @@
        `((the text/text (content-of (the tree/leaf document)))
          (the text/text (text/subseq (the text/text document) ,?start-index ,?end-index))))
       (((the tree/leaf (printer-output (the lisp-form/insertion document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 (def function forward-mapper/lisp-form/comment->tree/node (printer-iomap reference)
@@ -116,7 +116,7 @@
          (recursion (recursion-of printer-iomap)))
     (pattern-case reference
       (((the tree/node (printer-output (the lisp-form/comment document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 (def function forward-mapper/lisp-form/number->tree/leaf (printer-iomap reference)
@@ -129,7 +129,7 @@
        `((the text/text (content-of (the tree/leaf document)))
          (the text/text (text/subseq (the text/text document) ,?start-index ,?end-index))))
       (((the tree/leaf (printer-output (the lisp-form/number document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 (def function forward-mapper/lisp-form/symbol->tree/leaf (printer-iomap reference)
@@ -141,7 +141,7 @@
        `((the text/text (content-of (the tree/leaf document)))
          (the text/text (text/subseq (the text/text document) ,?start-index ,?end-index))))
       (((the tree/leaf (printer-output (the lisp-form/symbol document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 (def function forward-mapper/lisp-form/string->tree/leaf (printer-iomap reference)
@@ -153,7 +153,7 @@
        `((the text/text (content-of (the tree/leaf document)))
          (the text/text (text/subseq (the text/text document) ,?start-index ,?end-index))))
       (((the tree/leaf (printer-output (the lisp-form/string document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 (def function forward-mapper/lisp-form/quote->tree/node (printer-iomap reference)
@@ -161,7 +161,7 @@
          (recursion (recursion-of printer-iomap)))
     (pattern-case reference
       (((the tree/node (printer-output (the lisp-form/quote document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 (def function forward-mapper/lisp-form/list->tree/node (printer-iomap reference)
@@ -178,7 +178,7 @@
                  ?rest
                  element-iomap)))
       (((the tree/node (printer-output (the lisp-form/list document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 (def function forward-mapper/lisp-form/object->tree/leaf (printer-iomap reference)
@@ -186,7 +186,7 @@
          (recursion (recursion-of printer-iomap)))
     (pattern-case reference
       (((the tree/leaf (printer-output (the lisp-form/object document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 (def function forward-mapper/lisp-form/top-level->tree/node (printer-iomap reference)
@@ -194,7 +194,7 @@
          (recursion (recursion-of printer-iomap)))
     (pattern-case reference
       (((the tree/node (printer-output (the lisp-form/top-level document) ?projection ?recursion)) . ?rest)
-       (when (and (eq projection ?projection) (eq recursion ?recursion))
+       (when (eq projection ?projection)
          ?rest)))))
 
 ;;;;;;
@@ -319,7 +319,7 @@
          (output (as (bind (((:values nil completion) (funcall (factory-of input) (value-of input)))
                             (commitable? (not (null (funcall (factory-of input) (string+ (value-of input) completion)))))
                             (value-color (if commitable? *color/solarized/green* *color/solarized/red*)))
-                       (tree/leaf (:selection output-selection
+                       (tree/leaf (:selection output-selection :indentation (indentation-of input)
                                    :opening-delimiter (text/text () (text/string "(" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
                                    :closing-delimiter (text/text () (text/string ")" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*)))
                          (text/text (:selection (as (nthcdr 1 (va output-selection)))) (text/string (value-of input) :font *font/ubuntu/monospace/regular/24* :font-color value-color)
@@ -335,6 +335,7 @@
          (output (as (make-tree/node (list (tree/leaf ()
                                              (output-of (va content-iomap))))
                                      #+nil(text/make-string content :font *font/ubuntu/regular/24* :font-color *color/solarized/gray*)
+                                     :indentation (indentation-of input)
                                      :opening-delimiter (text/text () (text/string ";; " :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))))))
     (make-iomap/object projection recursion input input-reference output)))
 
@@ -342,7 +343,7 @@
   (bind ((output-selection (as (print-selection (make-iomap/object projection recursion input input-reference nil)
                                                 (selection-of input)
                                                 'forward-mapper/lisp-form/number->tree/leaf)))
-         (output (as (tree/leaf (:selection output-selection)
+         (output (as (tree/leaf (:selection output-selection :indentation (indentation-of input))
                        (text/make-default-text (aif (value-of input) (write-to-string it) "") "enter lisp number" :selection (as (nthcdr 1 (va output-selection))) :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/magenta*)))))
     (make-iomap/object projection recursion input input-reference output)))
 
@@ -354,7 +355,7 @@
          (output (as (bind ((font-color (or (font-color-of input) *color/solarized/violet*))
                             (name (name-of input))
                             (name-string (string-downcase (if (string= "KEYWORD" (package-of input)) (string+ ":" name) name))))
-                       (tree/leaf (:selection output-selection)
+                       (tree/leaf (:selection output-selection :indentation (indentation-of input))
                          (text/make-default-text name-string (or (default-value-of input) "enter lisp symbol") :selection (as (nthcdr 1 (va output-selection))) :font (or (font-of input) *font/ubuntu/monospace/regular/24*) :font-color font-color)
                          ;; TODO: parameter
                          #+nil
@@ -368,7 +369,7 @@
          (output-selection (as (print-selection (make-iomap/object projection recursion input input-reference nil)
                                                 (selection-of input)
                                                 'forward-mapper/lisp-form/string->tree/leaf)))
-         (output (as (tree/leaf (:selection output-selection
+         (output (as (tree/leaf (:selection output-selection :indentation (indentation-of input)
                                  :opening-delimiter (text/text () (text/string "\"" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
                                  :closing-delimiter (text/text () (text/string "\"" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*)))
                        (text/make-default-text (subseq value 1 (1- (length value))) (or (default-value-of input) "enter lisp string") :selection (as (nthcdr 1 (va output-selection))) :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/green*)))))
@@ -381,7 +382,7 @@
          (output-selection (as (print-selection (make-iomap/object projection recursion input input-reference nil)
                                                 (selection-of input)
                                                 'forward-mapper/lisp-form/quote->tree/node)))
-         (output (as (tree/node (:opening-delimiter (text/text () (text/string "'" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*)))
+         (output (as (tree/node (:indentation (indentation-of input) :opening-delimiter (text/text () (text/string "'" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*)))
                        (output-of (va value-iomap))))))
     (make-iomap/object projection recursion input input-reference output)))
 
@@ -389,22 +390,31 @@
   (bind ((deep-list (find-if (of-type 'lisp-form/list) (elements-of input)))
          (element-iomaps (as (iter (for index :from 0)
                                    (for element :in-sequence (elements-of input))
-                                   (for element-iomap = (recurse-printer recursion element
-                                                                         `((elt (the sequence document) ,index)
-                                                                           (the sequence (elements-of (the document list-form/list)))
-                                                                           ,@(typed-reference (form-type input) input-reference))))
-                                   (for element-output = (output-of element-iomap))
-                                   (setf (indentation-of element-output)
-                                         (typecase element
-                                           (tree/base (indentation-of element))
-                                           (lisp-form/base (indentation-of element))
-                                           (t (when (and deep-list (not (first-iteration-p)))
-                                                2))))
-                                   (collect element-iomap))))
+                                   (collect (recurse-printer recursion element
+                                                             `((elt (the sequence document) ,index)
+                                                               (the sequence (elements-of (the document list-form/list)))
+                                                               ,@(typed-reference (form-type input) input-reference)))))))
          (output-selection (as (print-selection (make-iomap/compound projection recursion input input-reference nil element-iomaps)
                                                 (selection-of input)
                                                 'forward-mapper/lisp-form/list->tree/node)))
-         (output (as (bind ((separator-font-color (as (color/darken/selection *color/solarized/gray* (va output-selection))))
+         (output (as (bind ((separator-font-color *color/solarized/gray*)
+                            (separator-fill-color nil))
+                       (make-tree/node (mapcar (lambda (element-iomap)
+                                                 (bind ((element-output (output-of element-iomap)))
+                                                   (typecase element-output
+                                                     (tree/base (tree/clone element-output :indentation (indentation-of element-output)))
+                                                     (lisp-form/base (lisp-form/clone element-output :indentation (indentation-of element-output)))
+                                                     (t (when (and deep-list (not (first-iteration-p)))
+                                                          (break "~A" element-output)
+                                                          2)))))
+                                               (va element-iomaps))
+                                       :indentation (indentation-of input)
+                                       :selection output-selection
+                                       :opening-delimiter (text/text () (text/string "(" :font *font/ubuntu/monospace/regular/24* :font-color separator-font-color :fill-color separator-fill-color))
+                                       :closing-delimiter (text/text () (text/string ")" :font *font/ubuntu/monospace/regular/24* :font-color separator-font-color :fill-color separator-fill-color))
+                                       :separator (text/text () (text/string " " :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))))
+                     #+nil ;; TODO: to colorize
+                     (bind ((separator-font-color (as (color/darken/selection *color/solarized/gray* (va output-selection))))
                             (separator-fill-color (as (color/lighten/selection (color/lighten *color/solarized/cyan* 0.75) (va output-selection) nil))))
                        (make-tree/node (mapcar 'output-of (va element-iomaps))
                                        :selection output-selection
@@ -429,18 +439,19 @@
                                                                          `((elt (the sequence document) ,index)
                                                                            (the sequence (elements-of (the lisp-form/top-level document)))
                                                                            ,@(typed-reference (form-type input) input-reference))))
-                                   (for element-output = (output-of element-iomap))
-                                   (setf (indentation-of element-output)
-                                         (typecase element
-                                           (lisp-form/base (indentation-of element))
-                                           (t 0)))
-                                   (collect element-iomap))))
+                                   (for element-output = (output-of element-iomap)) (collect element-iomap))))
          (output-selection (as (print-selection (make-iomap/compound projection recursion input input-reference nil element-iomaps)
                                                 (selection-of input)
                                                 'forward-mapper/lisp-form/top-level->tree/node)))
-         (output (as (make-tree/node (mapcar 'output-of (va element-iomaps))
+         (output (as (make-tree/node (mapcar (lambda (element-iomap)
+                                               (bind ((element-output (output-of element-iomap)))
+                                                 (etypecase element-output
+                                                   (tree/base (tree/clone element-output :indentation (indentation-of element-output)))
+                                                   (lisp-form/base element-output))))
+                                             (va element-iomaps))
+                                     :indentation (indentation-of input)
                                      :separator (text/text () (text/string " " :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
-                                     :indentation 2))))
+                                     :selection output-selection))))
     (make-iomap/compound projection recursion input input-reference output element-iomaps)))
 
 ;;;;;;

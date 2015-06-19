@@ -56,7 +56,7 @@
         (((the text/text (text/subseq (the text/text document) ?start-index ?end-index)))
          `((the text/text (text/subseq (the text/text document) ,(find-output-index ?start-index) ,(find-output-index ?end-index)))))
         (((the text/text (printer-output (the text/text document) ?projection ?recursion)) . ?rest)
-         (when (and (eq projection ?projection) (eq recursion ?recursion))
+         (when (eq projection ?projection)
            ?rest))))))
 
 ;;;;;;

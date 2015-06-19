@@ -47,11 +47,11 @@
                                                    :font *font/default*
                                                    :font-color *color/default*
                                                    :fill-color nil))
-                         (rectangle (make-graphics/rectangle (make-2d 0 0) (+ (measure-text (text-of text) (font-of text)) (* 2 (make-2d inset inset)))
+                         (rectangle (make-graphics/rectangle 0 (+ (measure-text (text-of text) (font-of text)) (* 2 (make-2d inset inset)))
                                                              :stroke-color *color/black*
                                                              :fill-color *color/light-cyan*)))
                     (make-graphics/canvas (list rectangle text) location))))))
-      (bind ((output (recurse input (make-2d 0 0) 0)))
+      (bind ((output (recurse input 0 0)))
         (make-iomap/compound projection recursion input input-reference output
                               (list* (make-iomap/object projection recursion input input-reference output) (nreverse child-iomaps)))))))
 
