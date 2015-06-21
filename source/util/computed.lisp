@@ -192,10 +192,10 @@
 
 (def (function o) purge-computed-state-depends-on-me (computed-state)
   (bind ((original-depends-on-me (cs-depends-on-me computed-state)))
-    (when (find-if-not #'sb-ext:weak-pointer-value original-depends-on-me)
+    (when (find-if-not #'trivial-garbage:weak-pointer-value original-depends-on-me)
       (bind ((purged-depends-on-me (make-array 0 :adjustable #t :fill-pointer 0)))
         (loop for element :across (cs-depends-on-me computed-state) :do
-              (when (sb-ext:weak-pointer-value element)
+              (when (trivial-garbage:weak-pointer-value element)
                 (vector-push-extend element purged-depends-on-me)))
         ;;(format t "~%Purged from ~A to ~A" (length (cs-depends-on-me computed-state)) (length depends-on-me))
         (setf (cs-depends-on-me computed-state) purged-depends-on-me)))))
@@ -208,8 +208,8 @@
            #.(optimize-declaration))
   (when (has-recompute-state-contex?)
     (bind ((computed-state-being-recomputed (rsc-computed-state *recompute-state-contex*)))
-      (unless (find computed-state-being-recomputed (cs-depends-on-me computed-state) :key #'sb-ext:weak-pointer-value)
-        (vector-push-extend (sb-ext:make-weak-pointer computed-state-being-recomputed) (cs-depends-on-me computed-state))
+      (unless (find computed-state-being-recomputed (cs-depends-on-me computed-state) :key #'trivial-garbage:weak-pointer-value)
+        (vector-push-extend (trivial-garbage:make-weak-pointer computed-state-being-recomputed) (cs-depends-on-me computed-state))
         (purge-computed-state-depends-on-me computed-state))))
   (ensure-computed-state-is-valid computed-state)
   (cs-value computed-state))
@@ -297,7 +297,7 @@
                (break "Computed state ~A is being invalidated" instance))
              (setf (cs-valid instance) #f)
              (loop for element :across (cs-depends-on-me instance) :do
-                   (awhen (sb-ext:weak-pointer-value element)
+                   (awhen (trivial-garbage:weak-pointer-value element)
                      (recurse it)))
              #+debug
              (assert (not (has-recompute-state-contex?)))

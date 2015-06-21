@@ -144,7 +144,7 @@
      :operation (make-operation/functional (lambda () (room))))
     ((gesture/keyboard/key-press :sdl-key-g :control)
      :domain "Document" :description "Execute garbage collector"
-     :operation (make-operation/functional (lambda () (sb-ext:gc :full #t))))))
+     :operation (make-operation/functional (lambda () (trivial-garbage:gc :full #t))))))
 
 ;; TODO: rename and move
 (def function make-operation/replace (document reference replacement &optional (list-replacement (list replacement)))

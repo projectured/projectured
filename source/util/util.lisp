@@ -18,9 +18,12 @@
 (def logger backend ())
 
 (def function resource-pathname (name)
-  (if (probe-file (asdf/component:component-pathname (asdf/system:find-system :projectured)))
-      (asdf/system:system-relative-pathname :projectured name)
-      (pathname (string+ (directory-namestring sb-ext:*runtime-pathname*) name))))
+  (flet ((try (path)
+           (awhen (probe-file path)
+             (return-from resource-pathname it))))
+    (try (asdf:system-relative-pathname :projectured name))
+    (awhen (uiop:argv0)
+      (try (uiop:merge-pathnames* (directory-namestring it) name)))))
 
 (def function form-type (form)
   (typecase form
@@ -103,7 +106,7 @@
 (def function deep-copy (instance)
   (labels ((recurse (instance)
              (etypecase instance
-               ((or number string symbol pathname function sb-sys:system-area-pointer)
+               ((or number string symbol pathname function #+sbcl sb-sys:system-area-pointer)
                 instance)
                (document/sequence
                 (make-document/sequence (iter (for element :in-sequence instance)

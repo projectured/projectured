@@ -19,7 +19,8 @@
                :hu.dwim.syntax-sugar
                :hu.dwim.util
                :parse-number
-               :s-xml)
+               :s-xml
+               :trivial-garbage)
   :components ((:module "source"
                 :components ((:file "package")
                              (:module "util"

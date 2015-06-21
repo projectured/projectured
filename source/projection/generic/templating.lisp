@@ -39,7 +39,7 @@
     ;; TODO: do forward mapping based on the template
     (labels ((recurse (instance)
                (etypecase instance
-                 ((or number string symbol pathname function sb-sys:system-area-pointer))
+                 ((or number string symbol pathname function #+sbcl sb-sys:system-area-pointer))
                  (document/sequence
                      (iter (for element :in-sequence instance)
                            (recurse element)))
@@ -121,7 +121,7 @@
          (slot-value-iomaps (make-hash-table))
          (output (as (bind ((output (labels ((recurse (instance)
                                                (etypecase instance
-                                                 ((or number string symbol pathname function sb-sys:system-area-pointer)
+                                                 ((or number string symbol pathname function #+sbcl sb-sys:system-area-pointer)
                                                   instance)
                                                  (document/sequence
                                                      (make-document/sequence (iter (for element :in-sequence instance)
