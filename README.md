@@ -12,35 +12,15 @@ It also supports multiple projections of the same object, and thus it can simult
 
 The easiest way to run the ProjecturEd demos is to install it using [Quicklisp](http://quicklisp.org).
 
-### 1. Get an SBCL with a fairly new ASDF ###
+### 1. Get a reasonably fresh SBCL ###
 
-At the time of writing (2014-02-17) the [ASDF](http://common-lisp.net/project/asdf/) version in most packaged lisp implementations is not recent enough for PrEd. If you don't want to compile SBCL yourself, then you can follow these instructions to have an SBCL with a fairly new ASDF:
-
-```
-sudo apt-get install sbcl rlwrap
-mkdir -p ~/quicklisp/local-projects/
-cd ~/quicklisp/local-projects/
-git clone git://common-lisp.net/projects/asdf/asdf.git
-cd asdf
-git checkout 3.1.0.65
-make
-```
-
-Then fire up your favorite editor and make sure the following is part of your ```~/.sbclrc``` file:
+On Debian Jessie:
 
 ```
-;;; -*- mode: common-lisp -*-
-
-(require :asdf)
-
-(funcall (read-from-string "asdf:initialize-source-registry")
-        `(:source-registry
-          (:directory ,(merge-pathnames "quicklisp/local-projects/asdf/" (user-homedir-pathname)))
-          :inherit-configuration))
-
-;; initiate asdf upgrade
-(asdf:load-system :asdf)
+sudo apt-get install sbcl rlwrap libsdl2-2.0-0
 ```
+
+Otherwise visit the [SBCL website](http://sbcl.org/platform-table.html) for instructions, and make sure you have libSDL installed for the SDL backend.
 
 ### 2. Install Quicklisp ###
 
@@ -70,6 +50,16 @@ Start SBCL with ```rlwrap sbcl```, and copy these into its REPL:
 ```
 
 If everything went fine, then you should see a window presenting a json test document.
+
+### 4. If something goes wrong with loading ###
+
+If you have some Common Lisp libraries installed somewhere, then try to make sure that nothing besides the quicklisp installed libs get loaded. You can achieve that by adding this to the beginning of your .sbclrc:
+
+```
+(require :asdf)
+(funcall (read-from-string "asdf:initialize-source-registry")
+         '(:source-registry :ignore-inherited-configuration))
+```
 
 # Collaboration #
 
