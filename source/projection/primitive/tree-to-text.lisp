@@ -32,11 +32,12 @@
         (while child-iomap-ll)
         (for child-iomap = (value-of child-iomap-ll))
         (for first-character-index = (first-character-index-of child-iomap))
-        (for last-character-index = (last-character-index-of child-iomap))
-        (when (<= first-character-index parent-character-index last-character-index)
-          (bind ((line-indentation (line-indentation-of child-iomap))
-                 (indented-child (indented-child-of child-iomap))
-                 (indented-character-index (- parent-character-index (origin-character-index-of child-iomap)))
+        (for origin-character-index = (origin-character-index-of child-iomap))
+        (for indented-child = (indented-child-of child-iomap))
+        ;; TODO: kills laziness (for last-character-index = (last-character-index-of child-iomap))
+        (when (and (<= first-character-index parent-character-index) ;; TODO: used to be this, it but kills laziness (<= first-character-index parent-character-index last-character-index)
+                   (text/origin-relative-position indented-child (- parent-character-index origin-character-index)))
+          (bind ((line-indentation (line-indentation-of child-iomap)) (indented-character-index (- parent-character-index origin-character-index))
                  (indented-origin-position (text/origin-position indented-child))
                  (indented-character-position (text/relative-position indented-child indented-origin-position indented-character-index))
                  (indented-line-start-position (text/line-start-position indented-child indented-character-position))
@@ -231,19 +232,19 @@
                                                   (child-output (output-of child-iomap))
                                                   (child-length (as (text/length child-output)))
                                                   (separator-length (aif (separator-of input) (text/length it) 0))
-                                                  (last-line-length (iter (for current-element :initially (previous-element-of element) :then (previous-element-of current-element))
-                                                                          (while current-element)
-                                                                          (for text = (output-of (value-of current-element)))
-                                                                          (for position = (text/find text (text/last-position text) (lambda (ch) (char= ch #\NewLine)) :direction :backward))
-                                                                          (if position
-                                                                              (return (- (text/length text) (text/length text position (text/last-position text))))
-                                                                              (summing (text/length text) :into result))
-                                                                          (summing separator-length :into result)
-                                                                          (awhen (indentation-of (input-of (value-of current-element)))
-                                                                            (return (+ result it)))
-                                                                          (finally (return (+ result (aif (opening-delimiter-of input) (text/length it) 0))))))
+                                                  (last-line-length (as (iter (for current-element :initially (previous-element-of element) :then (previous-element-of current-element))
+                                                                              (while current-element)
+                                                                              (for text = (output-of (value-of current-element)))
+                                                                              (for position = (text/find text (text/last-position text) (lambda (ch) (char= ch #\NewLine)) :direction :backward))
+                                                                              (if position
+                                                                                  (return (- (text/length text) (text/length text position (text/last-position text))))
+                                                                                  (summing (text/length text) :into result))
+                                                                              (summing separator-length :into result)
+                                                                              (awhen (indentation-of (input-of (value-of current-element)))
+                                                                                (return (+ result it)))
+                                                                              (finally (return (+ result (aif (opening-delimiter-of input) (text/length it) 0)))))))
                                                   (indentation (when (typep child-input 'tree/base) (indentation-of child-input)))
-                                                  (line-indentation (or indentation last-line-length))
+                                                  (line-indentation (or indentation (va last-line-length)))
                                                   (indentation-length (as (bind ((child-line-count (text/count-lines child-output)))
                                                                             (+ (* line-indentation (1- child-line-count))
                                                                                (if indentation (1+ indentation) 0))))))
@@ -273,28 +274,28 @@
                                                                                  :indented-child indented-child
                                                                                  :line-indentation line-indentation
                                                                                  :origin-character-index (as (or child-origin-character-index
-                                                                                                                 (and child-first-character-index
-                                                                                                                      (+ child-first-character-index (va indented-child-origin-preceding-length)))
-                                                                                                                 (and child-last-character-index
-                                                                                                                      (- child-last-character-index (va indented-child-origin-following-length)))))
-                                                                                 :first-character-index (as (or child-first-character-index
+                                                                                                                 (and (va child-first-character-index)
+                                                                                                                      (+ (va child-first-character-index) (va indented-child-origin-preceding-length)))
+                                                                                                                 (and (va child-last-character-index)
+                                                                                                                      (- (va child-last-character-index) (va indented-child-origin-following-length)))))
+                                                                                 :first-character-index (as (or (va child-first-character-index)
                                                                                                                 (and child-origin-character-index
                                                                                                                      (- child-origin-character-index (va indented-child-origin-preceding-length)))
-                                                                                                                (and child-last-character-index
-                                                                                                                     (- child-last-character-index (va child-length) (va indentation-length)))))
-                                                                                 :last-character-index (as (or child-last-character-index
+                                                                                                                (and (va child-last-character-index)
+                                                                                                                     (- (va child-last-character-index) (va child-length) (va indentation-length)))))
+                                                                                 :last-character-index (as (or (va child-last-character-index)
                                                                                                                (and child-origin-character-index
                                                                                                                     (+ child-origin-character-index (va indented-child-origin-following-length)))
-                                                                                                               (and child-first-character-index
-                                                                                                                    (+ child-first-character-index (va child-length) (va indentation-length))))))))
+                                                                                                               (and (va child-first-character-index)
+                                                                                                                    (+ (va child-first-character-index) (va child-length) (va indentation-length))))))))
                                                                (as (or previous-element
                                                                        (awhen (previous-element-of element)
-                                                                         (recurse it nil -self- nil nil (- (first-character-index-of (value-of -self-)) separator-length)))))
+                                                                         (recurse it nil -self- nil (as nil) (bind ((outer-self -self-)) (as (- (first-character-index-of (value-of outer-self)) separator-length)))))))
                                                                (as (or next-element
                                                                        (awhen (next-element-of element)
-                                                                         (recurse it -self- nil nil (+ (last-character-index-of (value-of -self-)) separator-length) nil))))))))
+                                                                         (recurse it -self- nil nil (bind ((outer-self -self-)) (as (+ (last-character-index-of (value-of outer-self)) separator-length))) (as nil)))))))))
                                   (awhen (va child-iomaps)
-                                    (recurse it nil nil 0 nil nil)))))
+                                    (recurse it nil nil 0 (as nil) (as nil))))))
          (output-elements (as (bind ((output-delimiters? (output-delimiters-p projection))
                                      (opening-delimiter (opening-delimiter-of input))
                                      (closing-delimiter (closing-delimiter-of input)))

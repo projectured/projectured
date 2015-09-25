@@ -247,8 +247,8 @@
 (def function make-projection/t->tree (&key slot-provider)
   (type-dispatching
     (null (make-projection/t/null->tree/leaf))
-    (number (make-projection/t/number->tree/leaf))
-    (string (make-projection/t/string->tree/leaf))
+    ((or number document/number) (make-projection/t/number->tree/leaf))
+    ((or string document/string) (make-projection/t/string->tree/leaf))
     (symbol (make-projection/t/symbol->tree/leaf))
     (pathname (make-projection/t/pathname->tree/leaf))
     (sequence (make-projection/t/sequence->tree/node))
@@ -331,7 +331,10 @@
     (lisp-form/symbol (make-projection/lisp-form/symbol->symbol))
     (lisp-form/quote (make-projection/lisp-form/quote->list))
     (lisp-form/list (make-projection/lisp-form/list->list))
-    (lisp-form/top-level (make-projection/lisp-form/top-level->list))))
+    (lisp-form/top-level (make-projection/lisp-form/top-level->list))
+    (document/string (document/string->string))
+    (document/number (document/number->number))
+    ((or number symbol string) (preserving))))
 
 (def macro lisp-form->form ()
   '(make-projection/lisp-form->form))

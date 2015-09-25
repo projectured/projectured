@@ -64,11 +64,12 @@
 (def method print-to-device ((instance graphics/line) (display device/sdl))
   (bind ((begin (+ *translation* (begin-of instance)))
          (end (+ *translation* (end-of instance))))
-    (sdl:draw-aa-line-* (round (2d-x begin))
-                        (round (2d-y begin))
-                        (round (2d-x end))
-                        (round (2d-y end))
-                        :color (raw-of (stroke-color-of instance)))))
+    ;; TODO: draw-aa-line-* is broken
+    (sdl:draw-line-* (round (2d-x begin))
+                     (round (2d-y begin))
+                     (round (2d-x end))
+                     (round (2d-y end))
+                     :color (raw-of (stroke-color-of instance)))))
 
 (def method print-to-device ((instance graphics/rectangle) (display device/sdl))
   (bind ((location (+ *translation* (location-of instance)))
@@ -214,7 +215,7 @@
 
 (def method print-to-device ((instance graphics/text) (display device/sdl))
   (unless (zerop (length (text-of instance)))
-    (bind ((text (text-of instance))
+    (bind ((text (coerce (text-of instance) 'string))
            (font (font-of instance))
            (fill-color (fill-color-of instance))
            (location (+ *translation* (location-of instance))))
@@ -225,7 +226,7 @@
                           (round (2d-x size))
                           (round (2d-y size))
                           :color (raw-of fill-color))))
-      (unless (or (every 'whitespace? (text-of instance))
+      (unless (or (every 'whitespace? text)
                   (< (2d-y location) (- (sdl:get-font-size text :size :h :font (raw-of font))))
                   (> (2d-y location) (sdl:height sdl:*default-surface*)))
         (sdl:draw-string-blended-* text

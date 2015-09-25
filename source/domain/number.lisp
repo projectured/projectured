@@ -6,22 +6,28 @@
 
 (in-package :projectured)
 
-;;;;;;;;
-;;;; Number domain provides:
-;;;;  - number classes provided by the Common Lisp implementation
+;;;;;;
+;;; Document
+
+(def document document/number ()
+  ((value :type (or null number)))
+  (:documentation "This class represents a domain independent plain old number which is editable and has selection and identity."))
 
 ;;;;;;
-;;; Number document classes
-;;;
-;;; The number document classes are provided by the Common Lisp implementation.
+;;; Construction
+
+(def function make-document/number (value &key selection)
+  (make-instance 'document/number :value value :selection selection))
 
 ;;;;;;
-;;; Number document constructors
-;;;
-;;; The number document constructores are provided by the Common Lisp implementation.
+;;; Construction
+
+(def macro document/number ((&key selection) &body value)
+  (assert (length= 1 value))
+  `(make-document/number ,(first value) :selection ,selection))
 
 ;;;;;;
-;;; Number operation classes
+;;; Operation
 
 (def operation operation/number/replace-range ()
   ((document :type document)
@@ -29,7 +35,7 @@
    (replacement :type sequence)))
 
 ;;;;;;
-;;; Number operation constructors
+;;; Construction
 
 (def function make-operation/number/replace-range (document selection replacement)
   (make-instance 'operation/number/replace-range
@@ -38,26 +44,37 @@
                  :replacement replacement))
 
 ;;;;;;
-;;; Number operation API implementation
+;;; API
+
+(def method print-object ((instance document/number) stream)
+  (awhen (value-of instance)
+    (write it :stream stream)))
 
 (def method run-operation ((operation operation/number/replace-range))
-  (bind (((:values reference start end)
-          (pattern-case (reverse (selection-of operation))
-            (((the string (subseq (the string document) ?b ?c))
-              (the string (write-to-string (the number document)))
-              . ?rest)
-             (values `(,@(reverse ?rest) (the sequence document)) ?b ?c)))))
-    (bind ((document (document-of operation))
-           (flat-reference (reference/flatten reference))
-           (old-sequence (aif (eval-reference document flat-reference)
-                              (write-to-string it)
-                              ""))
-           (new-sequence (concatenate (form-type old-sequence)
-                                      (subseq old-sequence 0 start) (replacement-of operation) (subseq old-sequence end))))
-      (setf (eval-reference document flat-reference) (unless (string= new-sequence "")
-                                                       (parse-number:parse-number new-sequence)))
-      ;; KLUDGE: can't do this in a separate operation
-      (bind ((character-index (+ start (length (replacement-of operation)))))
-        (run-operation (make-operation/replace-selection document (append (butlast reference)
-                                                                          `((the string (write-to-string (the number document)))
-                                                                            (the string (subseq (the string document) ,character-index ,character-index))))))))))
+  (bind ((document (document-of operation))
+         (selection (selection-of operation))
+         (replacement (replacement-of operation)))
+    (pattern-case (reverse selection)
+      (((the string (subseq (the string document) ?start-index ?end-index))
+        (the string (write-to-string (the ?type document)))
+        . ?rest)
+       (bind ((reference (reverse ?rest))
+              (flat-reference (reference/flatten reference))
+              (old-document (eval-reference document flat-reference))
+              (old-number (if (typep old-document 'document/number)
+                              (value-of old-document)
+                              old-document))
+              (old-sequence (write-number old-number nil))
+              (new-sequence (concatenate (form-type old-sequence)
+                                         (subseq old-sequence 0 ?start-index) replacement (subseq old-sequence ?end-index)))
+              (new-number (unless (string= new-sequence "")
+                            (parse-number:parse-number new-sequence)))
+              (new-index (+ ?start-index (length replacement)))
+              (new-selection (append reference `((the string (write-to-string (the ,?type document)))
+                                                 (the string (subseq (the string document) ,new-index ,new-index))))))
+         (if (typep old-document 'document/number)
+             (setf (value-of (eval-reference document flat-reference)) new-number)
+             (setf (eval-reference document flat-reference) new-number))
+         (run-operation (make-operation/replace-selection document new-selection))))
+      (?a
+       (error "Unknown selection ~A" selection)))))

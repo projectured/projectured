@@ -199,10 +199,10 @@
                                 (pattern-case selection
                                   (((the string (name-of (the css/attribute document)))
                                     (the string (subseq (the string document) ?start-index ?end-index)))
-                                   (make-operation/sequence/replace-range printer-input selection (replacement-of operation)))
+                                   (make-operation/string/replace-range printer-input selection (replacement-of operation)))
                                   (((the string (value-of (the css/attribute document)))
                                     (the string (subseq (the string document) ?start-index ?end-index)))
-                                   (make-operation/sequence/replace-range printer-input selection (replacement-of operation)))))))))
+                                   (make-operation/string/replace-range printer-input selection (replacement-of operation)))))))))
     (merge-commands (gesture-case (gesture-of input)
                       ((gesture/keyboard/key-press :sdl-key-tab)
                        :domain "CSS" :description "Moves the selection to the value"
@@ -222,12 +222,12 @@
                                 (pattern-case selection
                                   (((the string (selector-of (the css/rule document)))
                                     (the string (subseq (the string document) ?start-index ?end-index)))
-                                   (make-operation/sequence/replace-range printer-input selection (replacement-of operation)))
+                                   (make-operation/string/replace-range printer-input selection (replacement-of operation)))
                                   (((the tree/node (printer-output (the css/rule document) ?projection ?recursion)) . ?rest)
-                                   (make-operation/sequence/replace-range printer-input
-                                                                          '((the string (selector-of (the css/rule document)))
-                                                                            (the string (subseq (the string document) 0 0)))
-                                                                          (replacement-of operation)))))))))
+                                   (make-operation/string/replace-range printer-input
+                                                                        '((the string (selector-of (the css/rule document)))
+                                                                          (the string (subseq (the string document) 0 0)))
+                                                                        (replacement-of operation)))))))))
     (merge-commands (command/read-selection recursion input printer-iomap 'forward-mapper/css/rule->tree/node 'backward-mapper/css/rule->tree/node)
                     (gesture-case (gesture-of input)
                       ((gesture/keyboard/key-press :sdl-key-insert)

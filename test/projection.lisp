@@ -397,7 +397,7 @@
 
 (def function make-test-projection/string->graphics/sorting ()
   (sequential
-    (sorting 'identity 'char<)
+    (sorting :key 'identity :predicate 'char<)
     (make-test-projection/string->output)))
 
 ;;;;;;
@@ -495,7 +495,7 @@
     ;; TODO: make really recursive
     (recursive
       (type-dispatching
-        (list (sorting (lambda (element) (when (typep element 'tree/leaf) (content-of element))) 'string<))
+        (list (sorting :key (lambda (element) (when (typep element 'tree/leaf) (content-of element))) :predicate 'string<))
         (t (copying))))
     (make-test-projection/tree->text)
     ;; (line-numbering)
@@ -557,7 +557,7 @@
     (nesting
       (copying)
       (type-dispatching
-        (document/sequence (sorting 'title-of 'string>))
+        (document/sequence (sorting :key 'title-of :predicate 'string>))
         (t (preserving)))
       (preserving))
     (make-test-projection/book->text)
@@ -600,22 +600,17 @@
   (recursive
     (type-dispatching
       (json/base (json->tree))
+      (document/sequence (copying))
       (document/base (document->t 'test-factory)))))
 
 (def function make-test-projection/json->text ()
   (sequential
-    (recursive
-      (type-dispatching
-        (json/base (json->tree))
-        (document/base (document->t 'test-factory))))
+    (make-test-projection/json->tree)
     (make-test-projection/tree->text)))
 
 (def function make-test-projection/json->graphics ()
   (sequential
-    (recursive
-      (type-dispatching
-        (json/base (json->tree))
-        (document/base (document->t 'test-factory))))
+    (make-test-projection/json->tree)
     (make-test-projection/tree->text)
     (line-numbering)
     (make-test-projection/text->output)))
@@ -674,7 +669,7 @@
           (nesting
             (copying)
             (type-dispatching
-              (document/sequence (sorting 'key-of 'string<))
+              (document/sequence (sorting :key 'key-of :predicate 'string<))
               (t (preserving)))))
         (t (copying))))
     (nesting
@@ -682,13 +677,13 @@
       (copying)
       (copying)
       (type-dispatching
-        (document/sequence (sorting 'key-of 'string<))
+        (document/sequence (sorting :key 'key-of :predicate 'string<))
         (t (preserving)))
       (preserving))
     #+nil
     (recursive
       (type-dispatching
-        (list (sorting 'object-class-symbol-name 'string>)))
+        (list (sorting :key 'object-class-symbol-name :predicate 'string>)))
       (t (copying))))
   (recursive (json->tree))
   (make-test-projection/tree->text)
@@ -1014,6 +1009,7 @@
                             (templating
                               (tree/leaf ()
                                 (template/evaluate-form () 'document)))))
+              (document/sequence (sorting))
               (t (preserving)))
             (recursive
               (t->tree :slot-provider 'test-slot-provider)))))
@@ -1045,54 +1041,42 @@
     (make-test-projection/tree->text)
     (line-numbering)))
 
-(def function make-test-projection/demo->text/code/emit ()
+(def function make-test-projection/demo->text/code/common-lisp ()
   (sequential
-    #+nil
-    (make-test-projection/t->common-lisp)
     (recursive
       (type-dispatching
+        (table/base
+         (invariably (tree/node ())))
         (xml/base (xml->tree))
         (css/base (css->tree))
         (javascript/base (javascript->tree))
         (json/base (json->tree))
-        (common-lisp/base (copying))
-        (lisp-form/base (copying))
-        (t (preserving))))
+        ((or common-lisp/base lisp-form/base document/number sequence) (copying))
+        ((or number string text/text) (preserving))))
     (recursive
       (type-dispatching
         (tree/base (tree->common-lisp))
-        (common-lisp/base (copying))
-        (lisp-form/base (copying))
-        (sequence (copying))
-        (text/text (preserving))))
+        ((or common-lisp/base lisp-form/base document/number sequence) (copying))
+        ((or text/text number) (preserving))))))
+
+(def function make-test-projection/demo->text/code/emit ()
+  (sequential
+    (make-test-projection/demo->text/code/common-lisp)
     (make-test-projection/common-lisp->text)
     (make-test-projection/tree->text)
     (line-numbering)))
 
 (def function make-test-projection/demo->text/code/folded ()
   (sequential
-    #+nil
-    (make-test-projection/t->common-lisp)
+    (make-test-projection/demo->text/code/common-lisp)
     (recursive
       (type-dispatching
-        (xml/base (xml->tree))
-        (css/base (css->tree))
-        (javascript/base (javascript->tree))
-        (json/base (json->tree))
-        (common-lisp/base (copying))
-        (lisp-form/base (copying))
-        (t (preserving))))
-    (recursive
-      (type-dispatching
-        (tree/base (tree->common-lisp))
+        (common-lisp/progn (write-stream-folding))
         (common-lisp/base (copying))
         (lisp-form/base (copying))
         (sequence (copying))
-        (text/text (preserving))))
-    (recursive
-      (write-stream-folding))
+        (t (preserving))))
     (make-test-projection/common-lisp->text)
-    (make-test-projection/tree->text)
     (line-numbering)))
 
 (def function make-test-projection/demo->text ()

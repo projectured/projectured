@@ -52,11 +52,13 @@
 ;;; Printer
 
 (def printer lisp-form/number->number (projection recursion input input-reference)
-  (bind ((output (value-of input)))
+  (bind ((output (output-of (recurse-printer recursion (value-of input) `((value-of (the sequence document))
+                                                                          ,@(typed-reference (form-type input) input-reference))))))
     (make-iomap/object projection recursion input input-reference output)))
 
 (def printer lisp-form/string->string (projection recursion input input-reference)
-  (bind ((output (value-of input)))
+  (bind ((output (output-of (recurse-printer recursion (value-of input) `((value-of (the sequence document))
+                                                                          ,@(typed-reference (form-type input) input-reference))))))
     (make-iomap/object projection recursion input input-reference output)))
 
 (def printer lisp-form/symbol->symbol (projection recursion input input-reference)

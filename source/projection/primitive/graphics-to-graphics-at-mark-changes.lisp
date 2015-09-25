@@ -40,11 +40,14 @@
   (if (typep start-element 'computed-ll)
       (iter (for element :initially start-element :then (cs-value (standard-instance-access element (slot-definition-location (find-slot (class-of element) 'next-element)))))
             (while element)
+            (until (eq element +invalid-value+))
             (collect (cs-value (standard-instance-access element (slot-definition-location (find-slot (class-of element) 'value))))))
-      start-element))
+      (if (eq start-element +invalid-value+)
+          nil
+          start-element)))
 
 (def printer graphics/canvas->graphics/canvas@mark-changes (projection recursion input input-reference)
-  (bind ((output (as (make-graphics/canvas (as* (:recomputation-mode :always)
+  (bind ((output (as (make-graphics/canvas (as () ;; TODO: was recomputation-mode always but needs to be done differently to avoid wasting memory
                                              (bind ((old-elements (coerce (froxxx (cs-value (standard-instance-access input (slot-definition-location (find-slot (class-of input) 'elements))))) 'list))
                                                     (new-elements (coerce (elements-of input) 'list))
                                                     (added-elements (set-difference new-elements old-elements))

@@ -599,6 +599,8 @@
                                                 (make-operation/replace-selection printer-input (append `((the ,(form-type (content-of printer-input)) (content-of (the widget/shell document)))) (selection-of operation))))
                                                (operation/sequence/replace-range
                                                 (make-operation/sequence/replace-range printer-input (append `((the ,(form-type (content-of printer-input)) (content-of (the widget/shell document)))) (selection-of operation)) (replacement-of operation)))
+                                               (operation/string/replace-range
+                                                (make-operation/string/replace-range printer-input (append `((the ,(form-type (content-of printer-input)) (content-of (the widget/shell document)))) (selection-of operation)) (replacement-of operation)))
                                                (operation/number/replace-range
                                                 (make-operation/number/replace-range printer-input (append `((the ,(form-type (content-of printer-input)) (content-of (the widget/shell document)))) (selection-of operation)) (replacement-of operation)))
                                                (operation/replace-target

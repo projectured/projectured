@@ -102,7 +102,7 @@
            slot-value)
          (if (computed-state-p slot-value)
              (setf (computed-state-value slot-value) ,new-value)
-             (setf-standard-instance-access-form (make-computed-state :recomputation-mode :on-demand :compute-as nil :object ,object :valid #t :value ,new-value
+             (setf-standard-instance-access-form (make-computed-state :compute-as nil :object ,object :value ,new-value
                                                                       #+debug :form #+debug ,new-value #+debug :place-descriptor #+debug ,slot)
                                                  ,object ,slot)))))
 
@@ -126,38 +126,30 @@
 ;;;;;;
 ;;; Computed state
 
-(def type recomputation-mode ()
-  `(member :always :on-demand))
+(def constant +invalid-value+ 'invalid-value)
 
 (def structure (computed-state (:conc-name cs-) (:print-object print-computed-state))
-  (valid
-   #f
-   :type boolean)
   (depends-on-me
-   (make-array 0 :adjustable #t :fill-pointer 0)
+   nil
    :type (or null vector))
   ;; direct values have nil compute-as
   (compute-as
    nil
    :type (or null symbol function))
-  (recomputation-mode
-   :on-demand
-   :type recomputation-mode)
-  ;; these two are used for object slots
   (object
    nil
    :type (or null computed-object))
   (value
-   nil
-   :type t)
+   +invalid-value+
+   :type (or (eql +invalid-value+) t))
   #+debug
   (place-descriptor ; contains the name of the computed variable, or the slot definition
    nil
-   :type (or null symbol computed-effective-slot-definition))
+   :type (or null computed-effective-slot-definition))
   #+debug
   (form
    nil
-   :type (or atom list))
+   :type (or atom cons))
   #+debug
   (debug-invalidation
    #f
@@ -180,8 +172,7 @@
                     ,@(loop for name :in names
                             for accessor = (symbolicate '#:cs- name)
                             collect `(setf (,accessor into) (,accessor from)))))))
-    (x valid
-       depends-on-me
+    (x depends-on-me
        compute-as
        #+debug form
        value)
@@ -207,9 +198,13 @@
   (declare (type computed-state computed-state)
            #.(optimize-declaration))
   (when (has-recompute-state-contex?)
-    (bind ((computed-state-being-recomputed (rsc-computed-state *recompute-state-contex*)))
-      (unless (find computed-state-being-recomputed (cs-depends-on-me computed-state) :key #'trivial-garbage:weak-pointer-value)
-        (vector-push-extend (trivial-garbage:make-weak-pointer computed-state-being-recomputed) (cs-depends-on-me computed-state))
+    (bind ((computed-state-being-recomputed (rsc-computed-state *recompute-state-contex*))
+           (depends-on-me (cs-depends-on-me computed-state)))
+      (unless (find computed-state-being-recomputed depends-on-me :key #'trivial-garbage:weak-pointer-value)
+        (unless depends-on-me
+          (setf depends-on-me (make-array 0 :adjustable #t :fill-pointer 0))
+          (setf (cs-depends-on-me computed-state) depends-on-me))
+        (vector-push-extend (trivial-garbage:make-weak-pointer computed-state-being-recomputed) depends-on-me)
         (purge-computed-state-depends-on-me computed-state))))
   (ensure-computed-state-is-valid computed-state)
   (cs-value computed-state))
@@ -219,7 +214,6 @@
   (declare (type computed-state computed-state)
            #.(optimize-declaration))
   (invalidate-computed-state computed-state)
-  (setf (cs-valid computed-state) #t)
   (setf (cs-compute-as computed-state) nil)
   (setf (cs-value computed-state) new-value))
 
@@ -245,13 +239,11 @@
            (new-value (aif (cs-compute-as computed-state)
                            (funcall it (cs-object computed-state) old-value)
                            (cs-value computed-state)))
-           (store-new-value-p (if (and (primitive-p old-value)
-                                       (primitive-p new-value))
-                                  (not (equal old-value new-value))
-                                  #t)))
-      (when (or store-new-value-p
-                (not (cs-valid computed-state)))
-        (setf (cs-valid computed-state) #t))
+           (store-new-value-p (or (eq old-value +invalid-value+)
+                                  (if (and (primitive-p old-value)
+                                           (primitive-p new-value))
+                                      (not (equal old-value new-value))
+                                      #t))))
       (if store-new-value-p
           (setf (cs-value computed-state) new-value)
           #+nil(log.dribble "Not storing fresh recomputed value for ~A because it was equal to the cached value." computed-state))
@@ -269,8 +261,7 @@
   #+debug
   (when *profile-context*
     (incf (validation-count-of *profile-context*)))
-  (and (not (eq :always (cs-recomputation-mode computed-state)))
-       (cs-valid computed-state)))
+  (not (eq +invalid-value+ (cs-value computed-state))))
 
 #+debug
 (def (function o) check-circularity (computed-state)
@@ -295,13 +286,15 @@
              #+debug
              (when (cs-debug-invalidation instance)
                (break "Computed state ~A is being invalidated" instance))
-             (setf (cs-valid instance) #f)
-             (loop for element :across (cs-depends-on-me instance) :do
-                   (awhen (trivial-garbage:weak-pointer-value element)
-                     (recurse it)))
+             (setf (cs-value instance) +invalid-value+)
+             (bind ((depends-on-me (cs-depends-on-me instance)))
+               (when depends-on-me
+                 (loop for element :across depends-on-me :do
+                       (awhen (trivial-garbage:weak-pointer-value element)
+                         (recurse it)))))
              #+debug
              (assert (not (has-recompute-state-contex?)))
-             (adjust-array (cs-depends-on-me instance) 0 :fill-pointer 0)))
+             (setf (cs-depends-on-me instance) nil)))
     (recurse computed-state))
   (values))
 
@@ -313,16 +306,14 @@
           (computed-effective-slot-definition
            (setf name (slot-definition-name name))))
         (format stream "~A / " (cs-object computed-state))
-        (format stream "<#~A ~A :value ~A>"
-                name (if (cs-valid computed-state) "valid" "invalid") (cs-value computed-state))))
+        (format stream "<#~A ~A>" name (cs-value computed-state))))
      (t
       (format stream "~A / " (cs-object computed-state))
-      (format stream "<#computed-state ~A :value ~A>"
-              (if (cs-valid computed-state) "valid" "invalid") (cs-value computed-state)))))
+      (format stream "<#computed-state ~A>" (cs-value computed-state)))))
 
-(def macro as* ((&key (recomputation-mode ':on-demand) #+debug (debug-invalidation #f)) &body form)
+(def macro as* ((&key #+debug (debug-invalidation #f)) &body form)
   (bind ((self-variable-name '-self-))
-    `(make-computed-state :recomputation-mode ',recomputation-mode #+debug :form #+debug ',form #+debug :debug-invalidation #+debug ,debug-invalidation
+    `(make-computed-state #+debug :form #+debug ',form #+debug :debug-invalidation #+debug ,debug-invalidation
                           :compute-as (named-lambda as/compute-as*/a-computation-body
                                           (,self-variable-name -current-value-)
                                         (declare (ignorable ,self-variable-name -current-value-))

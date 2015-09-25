@@ -95,16 +95,18 @@
                       (content-of document))
                   :opening-delimiter (opening-delimiter-of document) :closing-delimiter (closing-delimiter-of document)
                   :indentation (if indentation? indentation (indentation-of document))
-                  :selection (if selection? selection (selection-of document))))
+                  :selection (if selection? selection (as (selection-of document)))))
 
 (def function tree/clone-node (document &key collapsed separator opening-delimiter closing-delimiter (indentation nil indentation?) (selection nil selection?))
-  (make-tree/node (if selection?
+  (make-tree/node (children-of document)
+                  #+nil ;; TODO: this breaks common-lisp nested into json for some reason
+                  (if selection?
                       (map-ll (ll (children-of document)) (lambda (element) (tree/clone element :selection (as (nthcdr 2 (va selection))))))
                       (children-of document))
                   :collapsed (collapsed-p document)
                   :opening-delimiter (opening-delimiter-of document) :closing-delimiter (closing-delimiter-of document) :separator (separator-of document)
                   :indentation (if indentation? indentation (indentation-of document))
-                  :selection (if selection? selection (selection-of document))))
+                  :selection (if selection? selection (as (selection-of document)))))
 
 (def function tree/clone (document &rest args &key &allow-other-keys)
   (etypecase document

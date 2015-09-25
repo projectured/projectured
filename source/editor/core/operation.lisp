@@ -167,10 +167,12 @@
                ;; TODO: base type for these ones with 1 reference?
                (operation/replace-selection
                 (make-operation/replace-selection printer-input (append path (selection-of operation))))
-               (operation/sequence/replace-range
-                (make-operation/sequence/replace-range printer-input (append path (selection-of operation)) (replacement-of operation)))
                (operation/number/replace-range
                 (make-operation/number/replace-range printer-input (append path (selection-of operation)) (replacement-of operation)))
+               (operation/string/replace-range
+                (make-operation/string/replace-range printer-input (append path (selection-of operation)) (replacement-of operation)))
+               (operation/sequence/replace-range
+                (make-operation/sequence/replace-range printer-input (append path (selection-of operation)) (replacement-of operation)))
                (operation/text/replace-range
                 (make-operation/text/replace-range printer-input (append path (selection-of operation)) (replacement-of operation)))
                (operation/replace-target
@@ -217,16 +219,6 @@
                                    (output-element-operation (operation-of output-child-command)))
                               (operation/extend printer-input selection output-element-operation))
                             (make-operation/replace-target printer-input selection (replacement-of operation))))))
-                 (operation/sequence/replace-range
-                  (bind (((:values selection child-selection child-iomap) (funcall backward-mapper printer-iomap (selection-of operation))))
-                    (or (when operation-mapper (funcall operation-mapper operation selection child-selection child-iomap))
-                        (if (and child-iomap child-selection)
-                            (bind ((input-child-operation (make-operation/sequence/replace-range (input-of child-iomap) child-selection (replacement-of operation)))
-                                   (input-child-command (make-command/clone input input-child-operation))
-                                   (output-child-command (recurse-reader recursion input-child-command child-iomap))
-                                   (output-element-operation (operation-of output-child-command)))
-                              (operation/extend printer-input selection output-element-operation))
-                            (make-operation/sequence/replace-range printer-input selection (replacement-of operation))))))
                  (operation/text/replace-range
                   (bind (((:values selection child-selection child-iomap) (funcall backward-mapper printer-iomap (selection-of operation))))
                     (or (when operation-mapper (funcall operation-mapper operation selection child-selection child-iomap))
@@ -237,6 +229,26 @@
                                    (output-element-operation (operation-of output-child-command)))
                               (operation/extend printer-input selection output-element-operation))
                             (make-operation/text/replace-range printer-input selection (replacement-of operation))))))
+                 (operation/sequence/replace-range
+                  (bind (((:values selection child-selection child-iomap) (funcall backward-mapper printer-iomap (selection-of operation))))
+                    (or (when operation-mapper (funcall operation-mapper operation selection child-selection child-iomap))
+                        (if (and child-iomap child-selection)
+                            (bind ((input-child-operation (make-operation/sequence/replace-range (input-of child-iomap) child-selection (replacement-of operation)))
+                                   (input-child-command (make-command/clone input input-child-operation))
+                                   (output-child-command (recurse-reader recursion input-child-command child-iomap))
+                                   (output-element-operation (operation-of output-child-command)))
+                              (operation/extend printer-input selection output-element-operation))
+                            (make-operation/sequence/replace-range printer-input selection (replacement-of operation))))))
+                 (operation/string/replace-range
+                  (bind (((:values selection child-selection child-iomap) (funcall backward-mapper printer-iomap (selection-of operation))))
+                    (or (when operation-mapper (funcall operation-mapper operation selection child-selection child-iomap))
+                        (if (and child-iomap child-selection)
+                            (bind ((input-child-operation (make-operation/string/replace-range (input-of child-iomap) child-selection (replacement-of operation)))
+                                   (input-child-command (make-command/clone input input-child-operation))
+                                   (output-child-command (recurse-reader recursion input-child-command child-iomap))
+                                   (output-element-operation (operation-of output-child-command)))
+                              (operation/extend printer-input selection output-element-operation))
+                            (make-operation/string/replace-range printer-input selection (replacement-of operation))))))
                  (operation/number/replace-range
                   (bind (((:values selection child-selection child-iomap) (funcall backward-mapper printer-iomap (selection-of operation))))
                     (or (when operation-mapper (funcall operation-mapper operation selection child-selection child-iomap))

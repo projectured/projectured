@@ -26,8 +26,8 @@
                                                                (merge-pathnames filename (hu.dwim.asdf:system-pathname :projectured))) :alpha 255)))))))
 
 (def method measure-text (text font)
-  (make-2d (sdl:get-font-size text :size :w :font (raw-of font))
-           (sdl:get-font-size text :size :h :font (raw-of font))))
+  (make-2d (sdl:get-font-size (coerce text 'string) :size :w :font (raw-of font))
+           (sdl:get-font-size (coerce text 'string) :size :h :font (raw-of font))))
 
 (def method make-bounding-rectangle ((instance graphics/image))
   (bind ((image (image-of instance))

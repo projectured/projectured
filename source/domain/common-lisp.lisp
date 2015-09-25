@@ -10,7 +10,7 @@
 ;;; Document
 
 (def document common-lisp/base ()
-  ())
+  ((collapsed :type boolean)))
 
 (def document common-lisp/insertion (common-lisp/base)
   ((value :type string)
@@ -95,60 +95,63 @@
 (def function make-common-lisp/insertion (value factory &key selection)
   (make-instance 'common-lisp/insertion :value value :factory factory :selection selection))
 
-(def function make-common-lisp/comment (content)
-  (make-instance 'common-lisp/comment :content content))
+(def function make-common-lisp/comment (content &key collapsed)
+  (make-instance 'common-lisp/comment :content content :collapsed collapsed))
 
-(def function make-common-lisp/constant (value &key selection)
-  (make-instance 'common-lisp/constant :value value :selection selection))
+(def function make-common-lisp/constant (value &key collapsed selection)
+  (make-instance 'common-lisp/constant :value value :collapsed collapsed :selection selection))
 
-(def function make-common-lisp/variable-reference (variable &key selection)
-  (make-instance 'common-lisp/variable-reference :variable variable :selection selection))
+(def function make-common-lisp/variable-reference (variable &key collapsed selection)
+  (make-instance 'common-lisp/variable-reference :variable variable :collapsed collapsed :selection selection))
 
-(def function make-common-lisp/function-reference (function &key selection)
-  (make-instance 'common-lisp/function-reference :function function :selection selection))
+(def function make-common-lisp/function-reference (function &key collapsed selection)
+  (make-instance 'common-lisp/function-reference :function function :collapsed collapsed :selection selection))
 
-(def function make-common-lisp/if (condition then else &key selection)
-  (make-instance 'common-lisp/if :condition condition :then then :else else :selection selection))
+(def function make-common-lisp/if (condition then else &key collapsed selection)
+  (make-instance 'common-lisp/if :condition condition :then then :else else :collapsed collapsed :selection selection))
 
-(def function make-common-lisp/progn (body &key selection)
-  (make-instance 'common-lisp/progn :body body :selection selection))
+(def function make-common-lisp/progn (body &key collapsed selection)
+  (make-instance 'common-lisp/progn :body body :collapsed collapsed :selection selection))
 
-(def function make-common-lisp/lexical-variable-binding (name value &key selection)
-  (make-instance 'common-lisp/lexical-variable-binding :name name :value value :selection selection))
+(def function make-common-lisp/lexical-variable-binding (name value &key collapsed selection)
+  (make-instance 'common-lisp/lexical-variable-binding :name name :value value :collapsed collapsed :selection selection))
 
-(def function make-common-lisp/let (bindings body &key selection)
-  (make-instance 'common-lisp/let :bindings bindings :body body :selection selection))
+(def function make-common-lisp/let (bindings body &key collapsed selection)
+  (make-instance 'common-lisp/let :bindings bindings :body body :collapsed collapsed :selection selection))
 
-(def function make-common-lisp/required-function-argument (name &key selection)
-  (make-instance 'common-lisp/required-function-argument :name name :selection selection))
+(def function make-common-lisp/required-function-argument (name &key collapsed selection)
+  (make-instance 'common-lisp/required-function-argument :name name :collapsed collapsed :selection selection))
 
-(def function make-common-lisp/special-variable-definition (name value &key selection)
+(def function make-common-lisp/special-variable-definition (name value &key collapsed selection)
   (make-instance 'common-lisp/special-variable-definition
                  :name name
                  :value value
+                 :collapsed collapsed
                  :selection selection))
 
-(def function make-common-lisp/function-definition (name bindings body &key allow-other-keys documentation selection)
+(def function make-common-lisp/function-definition (name bindings body &key allow-other-keys documentation collapsed selection)
   (make-instance 'common-lisp/function-definition
                  :name name
                  :bindings bindings
                  :allow-other-keys allow-other-keys
                  :documentation documentation
                  :body body
+                 :collapsed collapsed
                  :selection selection))
 
-(def function make-common-lisp/lambda-function (bindings body &key allow-other-keys selection)
+(def function make-common-lisp/lambda-function (bindings body &key allow-other-keys collapsed selection)
   (make-instance 'common-lisp/lambda-function
                  :bindings bindings
                  :allow-other-keys allow-other-keys
                  :body body
+                 :collapsed collapsed
                  :selection selection))
 
-(def function make-common-lisp/application (operator arguments &key selection)
-  (make-instance 'common-lisp/application :operator operator :arguments arguments :selection selection))
+(def function make-common-lisp/application (operator arguments &key collapsed selection)
+  (make-instance 'common-lisp/application :operator operator :arguments arguments :collapsed collapsed :selection selection))
 
-(def function make-common-lisp/top-level (body)
-  (make-instance 'common-lisp/top-level :body body))
+(def function make-common-lisp/top-level (body &key collapsed)
+  (make-instance 'common-lisp/top-level :body body :collapsed collapsed))
 
 ;;;;;
 ;;; API

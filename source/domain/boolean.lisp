@@ -6,28 +6,34 @@
 
 (in-package :projectured)
 
-;;;;;;;;
-;;;; Boolean domain provides:
-;;;;  - boolean classes provided by the Common Lisp implementation
+;;;;;;
+;;; Document
+
+(def document document/boolean ()
+  ((value :type (or null boolean)))
+  (:documentation "This class represents a domain independent plain old boolean which is editable and has selection and identity."))
 
 ;;;;;;
-;;; Boolean document classes
-;;;
-;;; The boolean document classes are provided by the Common Lisp implementation.
+;;; Construction
+
+(def function make-document/boolean (value &key selection)
+  (make-instance 'document/boolean :value value :selection selection))
 
 ;;;;;;
-;;; Boolean document constructors
-;;;
-;;; The boolean document constructores are provided by the Common Lisp implementation.
+;;; Construction
+
+(def macro document/boolean ((&key selection) &body value)
+  (assert (length= 1 value))
+  `(make-document/boolean ,(first value) :selection ,selection))
 
 ;;;;;;
-;;; Boolean operation classes
+;;; Operation
 
 (def operation operation/boolean/negate ()
   ((selection :type selection)))
 
 ;;;;;;
-;;; Boolean operation API implementation
+;;; API
 
 (def method run-operation ((operation operation/boolean/negate))
   (not-yet-implemented))

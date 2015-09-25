@@ -19,7 +19,7 @@
   ())
 
 (def projection lisp-form/symbol->tree/leaf ()
-  ())
+  ((fully-qualified :type boolean)))
 
 (def projection lisp-form/string->tree/leaf ()
   ())
@@ -49,7 +49,7 @@
   (make-projection 'lisp-form/number->tree/leaf))
 
 (def function make-projection/lisp-form/symbol->tree/leaf ()
-  (make-projection 'lisp-form/symbol->tree/leaf))
+  (make-projection 'lisp-form/symbol->tree/leaf :fully-qualified #f))
 
 (def function make-projection/lisp-form/string->tree/leaf ()
   (make-projection 'lisp-form/string->tree/leaf))
@@ -115,6 +115,12 @@
   (bind ((projection (projection-of printer-iomap))
          (recursion (recursion-of printer-iomap)))
     (pattern-case reference
+      (((the text/text (content-of (the lisp-form/comment document)))
+        (the text/text (text/subseq (the text/text document) ?start-index ?end-index)))
+       `((the sequence (children-of (the tree/node document)))
+         (the tree/leaf (elt (the sequence document) 0))
+         (the text/text (content-of (the tree/leaf document)))
+         (the text/text (text/subseq (the text/text document) ,?start-index ,?end-index))))
       (((the tree/node (printer-output (the lisp-form/comment document) ?projection ?recursion)) . ?rest)
        (when (eq projection ?projection)
          ?rest)))))
@@ -123,8 +129,8 @@
   (bind ((projection (projection-of printer-iomap))
          (recursion (recursion-of printer-iomap)))
     (pattern-case reference
-      (((the number (value-of (the lisp-form/number document)))
-        (the string (write-to-string (the number document)))
+      (((the ?type (value-of (the lisp-form/number document)))
+        (the string (write-to-string (the ?type document)))
         (the string (subseq (the string document) ?start-index ?end-index)))
        `((the text/text (content-of (the tree/leaf document)))
          (the text/text (text/subseq (the text/text document) ,?start-index ,?end-index))))
@@ -134,12 +140,14 @@
 
 (def function forward-mapper/lisp-form/symbol->tree/leaf (printer-iomap reference)
   (bind ((projection (projection-of printer-iomap))
-         (recursion (recursion-of printer-iomap)))
+         (recursion (recursion-of printer-iomap))
+         (printer-input (input-of printer-iomap)))
     (pattern-case reference
       (((the string (name-of (the lisp-form/symbol document)))
         (the string (subseq (the string document) ?start-index ?end-index)))
-       `((the text/text (content-of (the tree/leaf document)))
-         (the text/text (text/subseq (the text/text document) ,?start-index ,?end-index))))
+       (bind ((offset (if (fully-qualified-p projection) (+ 2 (length (package-of printer-input))) 0)))
+         `((the text/text (content-of (the tree/leaf document)))
+           (the text/text (text/subseq (the text/text document) ,(+ ?start-index offset) ,(+ ?end-index offset))))))
       (((the tree/leaf (printer-output (the lisp-form/symbol document) ?projection ?recursion)) . ?rest)
        (when (eq projection ?projection)
          ?rest)))))
@@ -168,6 +176,8 @@
   (bind ((projection (projection-of printer-iomap))
          (recursion (recursion-of printer-iomap)))
     (pattern-case reference
+      (((the lisp-form/list document))
+       `((the tree/node document)))
       (((the sequence (elements-of (the lisp-form/list document)))
         (the ?element-type (elt (the sequence document) ?element-index))
         . ?rest)
@@ -193,6 +203,16 @@
   (bind ((projection (projection-of printer-iomap))
          (recursion (recursion-of printer-iomap)))
     (pattern-case reference
+      (((the lisp-form/top-level document))
+       `((the tree/node document)))
+      (((the sequence (elements-of (the lisp-form/top-level document)))
+        (the ?type (elt (the sequence document) ?child-index))
+        . ?rest)
+       (bind ((child-iomap (elt (child-iomaps-of printer-iomap) ?child-index)))
+         (values `((the sequence (children-of (the tree/node document)))
+                   (the ,(form-type (output-of child-iomap)) (elt (the sequence document) ,?child-index)))
+                 ?rest
+                 child-iomap)))
       (((the tree/node (printer-output (the lisp-form/top-level document) ?projection ?recursion)) . ?rest)
        (when (eq projection ?projection)
          ?rest)))))
@@ -215,6 +235,12 @@
   (bind ((projection (projection-of printer-iomap))
          (recursion (recursion-of printer-iomap)))
     (pattern-case reference
+      (((the sequence (children-of (the tree/node document)))
+        (the tree/leaf (elt (the sequence document) 0))
+        (the text/text (content-of (the tree/leaf document)))
+        (the text/text (text/subseq (the text/text document) ?start-index ?end-index)))
+       `((the text/text (content-of (the lisp-form/comment document)))
+         (the text/text (text/subseq (the text/text document) ,?start-index ,?end-index))))
       (?a
        (append `((the tree/node (printer-output (the lisp-form/comment document) ,projection ,recursion))) reference)))))
 
@@ -225,11 +251,12 @@
     (pattern-case reference
       (((the text/text (content-of (the tree/leaf document)))
         (the text/text (text/subseq (the text/text document) ?start-index ?end-index)))
-       (if (not (value-of printer-input))
+       (if (string= "" (write-number (value-of printer-input) nil))
            (append `((the tree/leaf (printer-output (the lisp-form/number document) ,projection ,recursion))) reference)
-           `((the number (value-of (the lisp-form/number document)))
-             (the string (write-to-string (the number document)))
-             (the string (subseq (the string document) ,?start-index ,?end-index)))))
+           (bind ((type (form-type (value-of printer-input))))
+             `((the ,type (value-of (the lisp-form/number document)))
+               (the string (write-to-string (the ,type document)))
+               (the string (subseq (the string document) ,?start-index ,?end-index))))))
       (?a
        (append `((the tree/leaf (printer-output (the lisp-form/number document) ,projection ,recursion))) reference)))))
 
@@ -242,8 +269,9 @@
         (the text/text (text/subseq (the text/text document) ?start-index ?end-index)))
        (if (string= (name-of printer-input) "")
            (append `((the tree/leaf (printer-output (the lisp-form/symbol document) ,projection ,recursion))) reference)
-           `((the string (name-of (the lisp-form/symbol document)))
-             (the string (subseq (the string document) ,?start-index ,?end-index)))))
+           (bind ((offset (if (fully-qualified-p projection) (+ 2 (length (package-of printer-input))) 0)))
+             `((the string (name-of (the lisp-form/symbol document)))
+               (the string (subseq (the string document) ,(- ?start-index offset) ,(- ?end-index offset)))))))
       (?a
        (append `((the tree/leaf (printer-output (the lisp-form/symbol document) ,projection ,recursion))) reference)))))
 
@@ -273,6 +301,8 @@
          (projection (projection-of printer-iomap))
          (recursion (recursion-of printer-iomap)))
     (pattern-case reference
+      (((the tree/node document))
+       `((the lisp-form/list document)))
       (((the sequence (children-of (the tree/node document)))
         (the ?type (elt (the sequence document) ?child-index))
         . ?rest)
@@ -297,6 +327,8 @@
          (projection (projection-of printer-iomap))
          (recursion (recursion-of printer-iomap)))
     (pattern-case reference
+      (((the tree/node document))
+       `((the lisp-form/top-level document)))
       (((the sequence (children-of (the tree/node document)))
         (the ?type (elt (the sequence document) ?child-index))
         . ?rest)
@@ -332,11 +364,11 @@
                                                 (selection-of input)
                                                 'forward-mapper/lisp-form/comment->tree/node)))
          ;; TODO:
-         (output (as (make-tree/node (list (tree/leaf ()
+         (output (as (make-tree/node (list (tree/leaf (:selection (as (nthcdr 2 (va output-selection))))
                                              (output-of (va content-iomap))))
-                                     #+nil(text/make-string content :font *font/ubuntu/regular/24* :font-color *color/solarized/gray*)
                                      :indentation (indentation-of input)
-                                     :opening-delimiter (text/text () (text/string ";; " :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))))))
+                                     :opening-delimiter (text/text () (text/string ";; " :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
+                                     :selection output-selection))))
     (make-iomap/object projection recursion input input-reference output)))
 
 (def printer lisp-form/number->tree/leaf (projection recursion input input-reference)
@@ -344,7 +376,7 @@
                                                 (selection-of input)
                                                 'forward-mapper/lisp-form/number->tree/leaf)))
          (output (as (tree/leaf (:selection output-selection :indentation (indentation-of input))
-                       (text/make-default-text (aif (value-of input) (write-to-string it) "") "enter lisp number" :selection (as (nthcdr 1 (va output-selection))) :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/magenta*)))))
+                       (text/make-default-text (write-number (value-of input) nil) "enter lisp number" :selection (as (nthcdr 1 (va output-selection))) :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/magenta*)))))
     (make-iomap/object projection recursion input input-reference output)))
 
 (def printer lisp-form/symbol->tree/leaf (projection recursion input input-reference)
@@ -356,12 +388,11 @@
                             (name (name-of input))
                             (name-string (string-downcase (if (string= "KEYWORD" (package-of input)) (string+ ":" name) name))))
                        (tree/leaf (:selection output-selection :indentation (indentation-of input))
-                         (text/make-default-text name-string (or (default-value-of input) "enter lisp symbol") :selection (as (nthcdr 1 (va output-selection))) :font (or (font-of input) *font/ubuntu/monospace/regular/24*) :font-color font-color)
-                         ;; TODO: parameter
-                         #+nil
-                         (text/text (:selection (nthcdr 1 output-selection))
-                           (text/string (string+ (string-downcase (package-of input)) "::" ) :font (or (font-of input) *font/ubuntu/monospace/regular/24*) :font-color (color/lighten font-color 0.5))
-                           (text/string name-string :font (or (font-of input) *font/ubuntu/monospace/bold/24*) :font-color font-color)))))))
+                         (if (fully-qualified-p projection)
+                             (text/text (:selection (as (nthcdr 1 (va output-selection))))
+                               (text/string (string+ (string-downcase (package-of input)) "::" ) :font (or (font-of input) *font/ubuntu/monospace/regular/24*) :font-color (color/lighten font-color 0.5))
+                               (text/string name-string :font (or (font-of input) *font/ubuntu/monospace/bold/24*) :font-color font-color))
+                             (text/make-default-text name-string (or (default-value-of input) "enter lisp symbol") :selection (as (nthcdr 1 (va output-selection))) :font (or (font-of input) *font/ubuntu/monospace/regular/24*) :font-color font-color)))))))
     (make-iomap/object projection recursion input input-reference output)))
 
 (def printer lisp-form/string->tree/leaf (projection recursion input input-reference)
@@ -399,16 +430,17 @@
                                                 'forward-mapper/lisp-form/list->tree/node)))
          (output (as (bind ((separator-font-color *color/solarized/gray*)
                             (separator-fill-color nil))
-                       (make-tree/node (mapcar (lambda (element-iomap)
-                                                 (bind ((element-output (output-of element-iomap)))
-                                                   (typecase element-output
-                                                     (tree/base (tree/clone element-output :indentation (indentation-of element-output)))
-                                                     (lisp-form/base (lisp-form/clone element-output :indentation (indentation-of element-output)))
-                                                     (t (when (and deep-list (not (first-iteration-p)))
-                                                          (break "~A" element-output)
-                                                          2)))))
-                                               (va element-iomaps))
+                       (make-tree/node (as (map-ll (ll (va element-iomaps))
+                                                   (lambda (element-iomap)
+                                                     (bind ((element-output (output-of element-iomap)))
+                                                       (typecase element-output
+                                                         (tree/base (tree/clone element-output :indentation (indentation-of element-output)))
+                                                         (lisp-form/base (lisp-form/clone element-output :indentation (indentation-of element-output)))
+                                                         (t (when (and deep-list (not (first-iteration-p)))
+                                                              (break "~A" element-output)
+                                                              2)))))))
                                        :indentation (indentation-of input)
+                                       :collapsed (as (collapsed-p input))
                                        :selection output-selection
                                        :opening-delimiter (text/text () (text/string "(" :font *font/ubuntu/monospace/regular/24* :font-color separator-font-color :fill-color separator-fill-color))
                                        :closing-delimiter (text/text () (text/string ")" :font *font/ubuntu/monospace/regular/24* :font-color separator-font-color :fill-color separator-fill-color))
@@ -450,6 +482,7 @@
                                                    (lisp-form/base element-output))))
                                              (va element-iomaps))
                                      :indentation (indentation-of input)
+                                     :collapsed (as (collapsed-p input))
                                      :separator (text/text () (text/string " " :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
                                      :selection output-selection))))
     (make-iomap/compound projection recursion input input-reference output element-iomaps)))
@@ -467,7 +500,7 @@
                                 (pattern-case selection
                                   (((the string (value-of (the lisp-form/insertion document)))
                                     (the string (subseq (the string document) ?start-index ?end-index)))
-                                   (make-operation/sequence/replace-range printer-input selection (replacement-of operation)))))))))
+                                   (make-operation/string/replace-range printer-input selection (replacement-of operation)))))))))
     (merge-commands (command/read-backward recursion input printer-iomap 'backward-mapper/lisp-form/insertion->tree/leaf operation-mapper)
                     (make-command/nothing (gesture-of input)))))
 
@@ -484,23 +517,25 @@
                              (typecase operation
                                (operation/text/replace-range
                                 (pattern-case selection
-                                  (((the number (value-of (the lisp-form/number document)))
-                                    (the string (write-to-string (the number document)))
+                                  (((the ?type (value-of (the lisp-form/number document)))
+                                    (the string (write-to-string (the ?type document)))
                                     (the string (subseq (the string document) ?start-index ?end-index)))
                                    (when (every 'digit-char-p (replacement-of operation))
                                      (make-operation/number/replace-range printer-input selection (replacement-of operation))))
                                   (((the tree/leaf (printer-output (the lisp-form/number document) ?projection ?recursion)) . ?rest)
                                    (when (every 'digit-char-p (replacement-of operation))
-                                     (make-operation/number/replace-range printer-input
-                                                                          '((the number (value-of (the lisp-form/number document)))
-                                                                            (the string (write-to-string (the number document)))
-                                                                            (the string (subseq (the string document) 0 0)))
-                                                                          (replacement-of operation))))))))))
+                                     (bind ((type (etypecase (value-of printer-input)
+                                                    ((or null number) 'number)
+                                                    (document/number 'document/number))))
+                                       (make-operation/number/replace-range printer-input
+                                                                            `((the ,type (value-of (the lisp-form/number document)))
+                                                                              (the string (write-to-string (the ,type document)))
+                                                                              (the string (subseq (the string document) 0 0)))
+                                                                            (replacement-of operation)))))))))))
     (merge-commands (command/read-backward recursion input printer-iomap 'backward-mapper/lisp-form/number->tree/leaf operation-mapper)
                     (make-command/nothing (gesture-of input)))))
 
 (def reader lisp-form/symbol->tree/leaf (projection recursion input printer-iomap)
-  (declare (ignore projection))
   (bind ((printer-input (input-of printer-iomap))
          (operation-mapper (lambda (operation selection child-selection child-iomap)
                              (declare (ignore child-selection child-iomap))
@@ -509,13 +544,17 @@
                                 (pattern-case selection
                                   (((the string (name-of (the lisp-form/symbol document)))
                                     (the string (subseq (the string document) ?start-index ?end-index)))
-                                   (make-operation/sequence/replace-range printer-input selection (replacement-of operation)))
+                                   (make-operation/string/replace-range printer-input selection (replacement-of operation)))
                                   (((the tree/leaf (printer-output (the lisp-form/symbol document) ?projection ?recursion)) . ?rest)
-                                   (make-operation/sequence/replace-range printer-input
-                                                                          '((the string (name-of (the lisp-form/symbol document)))
-                                                                            (the string (subseq (the string document) 0 0)))
-                                                                          (replacement-of operation)))))))))
-    (merge-commands (command/read-backward recursion input printer-iomap 'backward-mapper/lisp-form/symbol->tree/leaf operation-mapper)
+                                   (make-operation/string/replace-range printer-input
+                                                                        '((the string (name-of (the lisp-form/symbol document)))
+                                                                          (the string (subseq (the string document) 0 0)))
+                                                                        (replacement-of operation)))))))))
+    (merge-commands (gesture-case (gesture-of input)
+                      ((gesture/keyboard/key-press :sdl-key-q :control)
+                       :domain "Lisp form" :description "Toggles displaying fully qualified symbol names."
+                       :operation (make-operation/functional (lambda () (notf (fully-qualified-p projection))))))
+                    (command/read-backward recursion input printer-iomap 'backward-mapper/lisp-form/symbol->tree/leaf operation-mapper)
                     (make-command/nothing (gesture-of input)))))
 
 (def reader lisp-form/string->tree/leaf (projection recursion input printer-iomap)
@@ -528,12 +567,12 @@
                                 (pattern-case selection
                                   (((the string (value-of (the lisp-form/string document)))
                                     (the string (subseq (the string document) ?start-index ?end-index)))
-                                   (make-operation/sequence/replace-range printer-input selection (replacement-of operation)))
+                                   (make-operation/string/replace-range printer-input selection (replacement-of operation)))
                                   (((the tree/leaf (printer-output (the lisp-form/string document) ?projection ?recursion)) . ?rest)
-                                   (make-operation/sequence/replace-range printer-input
-                                                                          '((the string (value-of (the lisp-form/string document)))
-                                                                            (the string (subseq (the string document) 0 0)))
-                                                                          (replacement-of operation)))))))))
+                                   (make-operation/string/replace-range printer-input
+                                                                        '((the string (value-of (the lisp-form/string document)))
+                                                                          (the string (subseq (the string document) 0 0)))
+                                                                        (replacement-of operation)))))))))
     (merge-commands (command/read-backward recursion input printer-iomap 'backward-mapper/lisp-form/string->tree/leaf operation-mapper)
                     (make-command/nothing (gesture-of input)))))
 

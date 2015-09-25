@@ -42,10 +42,12 @@
   ((value :type standard-object)))
 
 (def document lisp-form/list (lisp-form/base)
-  ((elements :type sequence)))
+  ((elements :type sequence)
+   (collapsed :type boolean)))
 
 (def document lisp-form/top-level (lisp-form/base)
-  ((elements :type sequence)))
+  ((elements :type sequence)
+   (collapsed :type boolean)))
 
 ;;;;;;
 ;;; Construction
@@ -71,11 +73,11 @@
 (def function make-lisp-form/object (value &key indentation selection)
   (make-instance 'lisp-form/object :value value :indentation indentation :selection selection))
 
-(def function make-lisp-form/list (elements &key indentation selection)
-  (make-instance 'lisp-form/list :elements elements :indentation indentation :selection selection))
+(def function make-lisp-form/list (elements &key indentation collapsed selection)
+  (make-instance 'lisp-form/list :elements elements :indentation indentation :collapsed collapsed :selection selection))
 
-(def function make-lisp-form/top-level (elements &key indentation selection)
-  (make-instance 'lisp-form/top-level :elements elements :indentation indentation :selection selection))
+(def function make-lisp-form/top-level (elements &key indentation collapsed selection)
+  (make-instance 'lisp-form/top-level :elements elements :indentation indentation :collapsed collapsed :selection selection))
 
 ;;;;;;
 ;;; Construction
@@ -101,11 +103,11 @@
 (def macro lisp-form/object ((&key indentation selection) &body value)
   `(make-lisp-form/object ,(first value) :indentation ,indentation :selection ,selection))
 
-(def macro lisp-form/list ((&key indentation selection) &body elements)
-  `(make-lisp-form/list (list ,@elements) :indentation ,indentation :selection ,selection))
+(def macro lisp-form/list ((&key indentation collapsed selection) &body elements)
+  `(make-lisp-form/list (list ,@elements) :indentation ,indentation :collapsed ,collapsed :selection ,selection))
 
-(def macro lisp-form/top-level ((&key indentation selection) &body elements)
-  `(make-lisp-form/top-level (list ,@elements) :indentation ,indentation :selection ,selection))
+(def macro lisp-form/top-level ((&key indentation collapsed selection) &body elements)
+  `(make-lisp-form/top-level (list ,@elements) :indentation ,indentation :collapsed ,collapsed :selection ,selection))
 
 ;;;;;;
 ;;; API
@@ -117,13 +119,15 @@
   (etypecase document
     (lisp-form/comment (make-lisp-form/comment (content-of document)
                                                :indentation (if indentation? indentation (indentation-of document))
-                                               :selection (selection-of document)))
+                                               :selection (as (selection-of document))))
     (lisp-form/number (make-lisp-form/number (value-of document)
                                              :indentation (if indentation? indentation (indentation-of document))
-                                             :selection (selection-of document)))
+                                             :selection (as (selection-of document))))
     (lisp-form/list (make-lisp-form/list (elements-of document)
                                          :indentation (if indentation? indentation (indentation-of document))
-                                         :selection (selection-of document)))
+                                         :collapsed (collapsed-p document)
+                                         :selection (as (selection-of document))))
     (lisp-form/top-level (make-lisp-form/top-level (elements-of document)
                                                    :indentation (if indentation? indentation (indentation-of document))
-                                                   :selection (selection-of document)))))
+                                                   :collapsed (collapsed-p document)
+                                                   :selection (as (selection-of document))))))

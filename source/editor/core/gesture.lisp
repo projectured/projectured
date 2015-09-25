@@ -96,7 +96,10 @@
                           :character (iter (for event :in-sequence events)
                                            (when (and (typep event 'event/keyboard/key-down)
                                                       (eq (key-of event0) (key-of event)))
-                                             (return (character-of event))))))
+                                             ;; KLUDGE: workaround bug in SDL unicode handling
+                                             (return (if (member :shift (modifiers-of event0))
+                                                         (char-upcase (character-of event))
+                                                         (character-of event)))))))
           ((typep event0 'event/mouse/button/release)
            (make-instance 'gesture/mouse/button/click
                           :modifiers (modifiers-of event0)

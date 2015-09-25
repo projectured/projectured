@@ -34,6 +34,8 @@
     (vector 'vector)
     (computed-ll 'sequence)
     (document/sequence 'sequence)
+    (document/string 'document/string)
+    (sequence 'sequence)
     (t (type-of form))))
 
 (def function object-class-name (object)
@@ -47,6 +49,17 @@
 (def function find-slot-reader (class slot)
   (bind ((direct-slot (some (lambda (super) (find-direct-slot super (slot-definition-name slot) :otherwise nil)) (class-precedence-list class))))
     (first (slot-definition-readers direct-slot))))
+
+(def function write-number (object &optional (stream *standard-output*))
+  ;; TODO: format stream doesn't work with hu.dwim.web-server network streams for some reason
+  (if (eq stream *standard-output*)
+      (write-string (format nil "~A" (or object "")) stream)
+      (format stream "~A" (or object ""))))
+
+(def function reference/flatten (reference &optional (result 'document))
+  (if (consp reference)
+      (reference/flatten (rest reference) (tree-replace (car reference) 'document result))
+      result))
 
 (def function tree-replace (tree element replacement)
   (cond ((equal tree element)

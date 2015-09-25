@@ -9,22 +9,38 @@
 ;;;;;;
 ;;; Document
 
-(def document document/sequence (computed-sequence)
-  ())
+(def document document/sequence (sequence)
+  ((elements :type sequence)
+   (key :type function)
+   (predicate :type function))
+  (:documentation "This class represents a domain independent plain old sequence which is editable and has selection and identity."))
 
 ;;;;;;
 ;;; Construction
 
-(def function make-document/sequence (elements &key selection)
+(def function make-document/sequence (elements &key key predicate selection)
   (make-instance 'document/sequence
                  :elements elements
+                 :key key :predicate predicate
                  :selection selection))
 
 ;;;;;;
 ;;; Construction
 
-(def macro document/sequence ((&key selection) &body elements)
-  `(make-document/sequence (list-ll ,@elements) :selection ,selection))
+(def macro document/sequence ((&key key predicate selection) &body elements)
+  `(make-document/sequence (list-ll ,@elements) :key ,key :predicate ,predicate :selection ,selection))
+
+;;;;;;
+;;; API
+
+(def method sb-sequence:length ((instance document/sequence))
+  (length (elements-of instance)))
+
+(def method sb-sequence:elt ((instance document/sequence) index)
+  (elt (elements-of instance) index))
+
+(def method (setf sb-sequence:elt) (new-value (instance document/sequence) index)
+  (setf (elt (elements-of instance) index) new-value))
 
 (def method sb-sequence:make-sequence-like ((instance document/sequence) length &key (initial-element nil initial-element?) initial-contents)
   (make-instance 'document/sequence
@@ -33,22 +49,8 @@
                                (make-array (list length) :initial-contents (append initial-contents (make-list (- length (length initial-contents))))))
                  :selection (when (slot-boundp instance 'selection) (selection-of instance))))
 
-;;;;;;;;
-;;;; Sequence domain provides:
-;;;;  - sequence
-
 ;;;;;;
-;;; Sequence document classes
-;;;
-;;; The sequence document classes are provided by the Common Lisp implementation.
-
-;;;;;;
-;;; Sequence document constructors
-;;;
-;;; The sequence document constructores are provided by the Common Lisp implementation.
-
-;;;;;;
-;;; Sequence operation classes
+;;; Operation
 
 (def operation operation/sequence/replace-range ()
   ((document :type t)
@@ -56,7 +58,7 @@
    (replacement :type sequence)))
 
 ;;;;;;
-;;; Sequence operation constructors
+;;; Construction
 
 (def function make-operation/sequence/replace-range (document selection replacement)
   (make-instance 'operation/sequence/replace-range
@@ -65,7 +67,7 @@
                  :replacement replacement))
 
 ;;;;;;
-;;; Sequence operation API implementation
+;;; API
 
 (def method hu.dwim.serializer:write-object-slots ((class standard-class) (object document/sequence) context)
   (bind ((class (class-of object))
@@ -98,50 +100,37 @@
                           value)))))
     object))
 
-;; KLUDGE: TODO: this!
-(def function reference/flatten (reference &optional (result 'document))
-  (if (consp reference)
-      (reference/flatten (rest reference) (tree-replace (car reference) 'document result))
-      result))
-
 (def method run-operation ((operation operation/sequence/replace-range))
-  (bind (((:values reference start end)
-          (pattern-case (reverse (selection-of operation))
-            (((the string (subseq (the ?type (?if (subtypep ?type 'string)) ?a) ?b ?c)) . ?rest)
-             (values `(,@(reverse ?rest) (the string ,?a)) ?b ?c))
-            (((the sequence (subseq (the ?type (?if (subtypep ?type 'sequence)) ?a) ?b ?c)) . ?rest)
-             (values `(,@(reverse ?rest) (the sequence ,?a)) ?b ?c))
-            (?a
-             (not-yet-implemented))))
-         (document (document-of operation))
-         (flat-reference (reference/flatten reference))
-         (old-sequence (eval-reference document flat-reference))
-         (new-sequence (etypecase old-sequence
-                         (document/sequence (make-document/sequence (concatenate 'vector
-                                                                                 (subseq (elements-of old-sequence) 0 start)
-                                                                                 (replacement-of operation)
-                                                                                 (subseq (elements-of old-sequence) end))
-                                                                    :selection (selection-of old-sequence)))
-                         (sequence (concatenate (form-type old-sequence)
-                                                (subseq old-sequence 0 start) (replacement-of operation) (subseq old-sequence end))))))
-    ;; KLUDGE: to make sure we always end up with a computed-ll sequence
-    (unless (typep new-sequence 'string)
-      (setf new-sequence (ll new-sequence)))
-    ;; KLUDGE: somewhat kludgie to keep the original identity of the string
-    (cond ((and (arrayp old-sequence) (adjustable-array-p old-sequence))
-           (progn
-             (adjust-array old-sequence (length new-sequence))
-             (replace old-sequence new-sequence)))
-          (t
-           (setf (eval-reference document flat-reference) new-sequence)))
-    ;; KLUDGE: can't do this in a separate operation
-    (bind ((index (+ start (length (replacement-of operation)))))
-      (run-operation (make-operation/replace-selection document
-                                                       (if (eq 'sequence (form-type new-sequence))
-                                                           (when (<= 0 start (1- (length new-sequence)))
-                                                             (bind ((type (form-type (elt new-sequence start))))
-                                                               (append (butlast reference)
-                                                                       `(#+nil (the ,type document) ;; TODO: to make delete from sequence work, but breaks insertion
-                                                                         (the ,type (elt (the ,(form-type old-sequence) document) ,start))))))
-                                                           (append (butlast reference)
-                                                                   `((the ,(form-type new-sequence) (subseq (the ,(form-type old-sequence) document) ,index ,index))))))))))
+  (bind ((document (document-of operation))
+         (selection (selection-of operation))
+         (replacement (replacement-of operation)))
+    (pattern-case (reverse selection)
+      (((the sequence (subseq (the sequence document) ?start-index ?end-index))
+        . ?rest)
+       (bind ((reference (reverse ?rest))
+              (flat-reference (reference/flatten reference))
+              (old-document (eval-reference document flat-reference))
+              (old-sequence (if (typep old-document 'document/sequence)
+                                (elements-of old-document)
+                                old-document))
+              (new-sequence (concatenate
+                             ;; KLUDGE: etypecase computed-ll doesn't work for some reason
+                             (if (eq (type-of old-sequence) 'computed-ll)
+                                 'computed-ll
+                                 (etypecase old-sequence
+                                   (list 'list)
+                                   (vector 'vector)))
+                             (subseq old-sequence 0 ?start-index) replacement (subseq old-sequence ?end-index)))
+              (new-index (+ ?start-index (length replacement)))
+              (new-selection (when (<= 0 ?start-index (length new-sequence))
+                               (bind ((index (min ?start-index (1- (length new-sequence))))
+                                      (type (form-type (elt new-sequence index))))
+                                 (append reference `((the ,type (elt (the sequence document) ,index))
+                                                     (the ,type document)))))))
+         ;; KLUDGE: to make sure we always end up with a computed-ll sequence
+         (if (typep old-document 'document/sequence)
+             (setf (elements-of (eval-reference document flat-reference)) (ll new-sequence))
+             (setf (eval-reference document flat-reference) (ll new-sequence)))
+         (run-operation (make-operation/replace-selection document new-selection))))
+      (?a
+       (error "Unknown selection ~A" selection)))))

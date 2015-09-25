@@ -345,6 +345,9 @@
         (while position)
         (finally (return position))))
 
+(def function text/origin-relative-position (text distance)
+  (text/relative-position text (text/origin-position text) distance))
+
 (def function text/previous-character (text position)
   (bind ((normalized-position (text/normalize-backward text position)))
     (when normalized-position
@@ -476,6 +479,7 @@
     (sequence
      (iter (with end-position = (text/normalize-position text end-position))
            (for position :initially start-position :then (text/next-position text position))
+           (for index :from 0)
            (while position)
            (until (text/position= position end-position))
            (summing 1)))))
@@ -585,7 +589,7 @@
             (text/newline
              (terpri stream))
             (text/string
-             (write-string (content-of element) stream))))))
+             (write-string (coerce (content-of element) 'string) stream))))))
 
 (def function text/split (text split-character)
   (iter (for start-position :initially (text/first-position text) :then (text/next-position text end-position))
@@ -780,13 +784,13 @@
          :domain "Text" :description "Deletes the character following the selection"
          :operation (pattern-case (selection-of text)
                       (((the text/text (text/subseq (the text/text document) ?b ?b)))
-                       (when (< ?b (text/length text))
+                       (when (text/origin-relative-position text ?b)
                          (make-operation/text/replace-range text `((the text/text (text/subseq (the text/text document) ,?b ,(1+ ?b)))) "")))))
         ((gesture/keyboard/key-press :sdl-key-delete :control)
          :domain "Text" :description "Deletes the word following the selection"
          :operation (pattern-case (selection-of text)
                       (((the text/text (text/subseq (the text/text document) ?b ?b)))
-                       (bind ((start-position (text/relative-position text (text/origin-position text) ?b))
+                       (bind ((start-position (text/origin-relative-position text ?b))
                               (end-position (or (awhen (text/find text start-position (lambda (c) (alphanumericp c)))
                                                   (text/find text it (lambda (c) (not (alphanumericp c)))))
                                                 (text/last-position text))))
@@ -835,7 +839,8 @@
          (selection (selection-of operation))
          (replacement (replacement-of operation)))
     (pattern-case (reverse selection)
-      (((the text/text (text/subseq (the text/text document) ?start-character-index ?end-character-index)) . ?rest)
+      (((the text/text (text/subseq (the text/text document) ?start-character-index ?end-character-index))
+        . ?rest)
        (bind ((text-reference (reference/flatten (reverse ?rest)))
               (text (eval-reference document text-reference))
               (origin-position (text/origin-position text))
@@ -851,4 +856,6 @@
                             (subseq start-content 0 (text/position-index start-position))
                             replacement
                             (subseq start-content (+ (text/position-index start-position) (text/length text start-position end-position)))))
-         (set-selection document (append (reverse ?rest) `((the text/text (text/subseq (the text/text document) ,new-character-index ,new-character-index))))))))))
+         (set-selection document (append (reverse ?rest) `((the text/text (text/subseq (the text/text document) ,new-character-index ,new-character-index)))))))
+      (?a
+       (error "Unknown selection ~A" selection)))))

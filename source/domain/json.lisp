@@ -12,7 +12,6 @@
 (def document json/base ()
   ())
 
-;; TODO: rename and generalize?
 (def document json/insertion (json/base)
   ((value "" :type string :allocation :class)))
 
@@ -31,12 +30,10 @@
   ((value :type string)))
 
 (def document json/array (json/base)
-  ;; TODO: json/array-elements?
   ((elements :type sequence)
    (collapsed :type boolean)))
 
 (def document json/object-entry (json/base)
-  ;; TODO: json/object-entry-key?
   ((key :type string)
    (value :type json/base)
    (collapsed :type boolean)))
@@ -90,17 +87,18 @@
 (def macro json/string ((&key selection) &body value)
   `(make-json/string ,(first value) :selection ,selection))
 
-(def macro json/array ((&key selection collapsed) &body elements)
-  `(make-json/array (document/sequence () ,@elements)
+(def macro json/array ((&key collapsed key predicate selection) &body elements)
+  `(make-json/array (document/sequence (:key ,key :predicate ,predicate) ,@elements)
                     :collapsed ,collapsed
                     :selection ,selection))
 
 (def macro json/object-entry ((&key collapsed selection) key value)
   `(make-json/object-entry ,key ,value :collapsed ,collapsed :selection ,selection))
 
-(def macro json/object ((&key selection collapsed) &body key-value-pairs)
-  `(make-json/object (document/sequence () ,@(iter (for (key value) :in key-value-pairs)
-                                                   (collect `(make-json/object-entry ,key ,value))))
+(def macro json/object ((&key collapsed key predicate selection) &body key-value-pairs)
+  `(make-json/object (document/sequence (:key ,key :predicate ,predicate)
+                       ,@(iter (for (key value) :in key-value-pairs)
+                               (collect `(make-json/object-entry ,key ,value))))
                      :collapsed ,collapsed
                      :selection ,selection))
 

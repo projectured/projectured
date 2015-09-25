@@ -16,6 +16,13 @@
   ())
 
 ;;;;;;
+;;; IO map
+
+(def iomap iomap/tree/node->common-lisp/progn ()
+  ((child-iomaps :type sequence)
+   (child-indices :type sequence)))
+
+;;;;;;
 ;;; Construction
 
 (def function make-projection/tree/leaf->common-lisp/progn ()
@@ -66,13 +73,12 @@
       (((the sequence (children-of (the tree/node document)))
         (the ?type (elt (the sequence document) ?index))
         . ?rest)
-       (bind ((index 0)
-              #+nil
-              (element (elt (body-of (output-of printer-iomap)) index)))
+       (bind ((index (elt (child-indices-of printer-iomap) ?index))
+              (child-iomap (elt (child-iomaps-of printer-iomap) ?index)))
          (values `((the sequence (body-of (the common-lisp/progn document)))
-                   (the common-lisp/progn (elt (the sequence document) ,index)))
+                   (the ,(form-type (output-of child-iomap)) (elt (the sequence document) ,index)))
                  ?rest
-                 (elt (child-iomaps-of printer-iomap) index))))
+                 child-iomap)))
       (((the common-lisp/progn (printer-output (the tree/node document) ?projection ?recursion)) . ?rest)
        (when (eq projection ?projection)
          ?rest)))))
@@ -108,12 +114,13 @@
       (((the sequence (body-of (the common-lisp/progn document)))
         (the ?type (elt (the sequence document) ?index))
         . ?rest)
-       (bind ((index 0)
-              (child (elt (children-of (input-of printer-iomap)) index)))
-         (values `((the sequence (children-of (the tree/node document)))
-                   (the ,(form-type child) (elt (the sequence document) ,index)))
-                 ?rest
-                 (elt (child-iomaps-of printer-iomap) index))))
+       (bind ((index (position ?index (child-indices-of printer-iomap))))
+         (when index
+           (bind ((child (elt (children-of (input-of printer-iomap)) index)))
+             (values `((the sequence (children-of (the tree/node document)))
+                       (the ,(form-type child) (elt (the sequence document) ,index)))
+                     ?rest
+                     (elt (child-iomaps-of printer-iomap) index))))))
       (?a
        (append `((the common-lisp/progn (printer-output (the tree/node document) ,projection ,recursion))) reference)))))
 
@@ -152,7 +159,20 @@
                                                                 (the sequence (children-of (the tree/node document)))
                                                                 ,@(typed-reference (form-type input) input-reference))))
                                         (recurse-printer recursion (value-of child) child-reference))))))
-         (output-selection (as (print-selection (make-iomap/compound projection recursion input input-reference nil child-iomaps)
+         (child-indices (as (iter (with index = (if (opening-delimiter-of input) 1 0))
+                                  (for child :in-sequence (coerce (va child-iomaps) 'list))
+                                  (unless (first-iteration-p)
+                                    (awhen (separator-of input)
+                                      (incf index)))
+                                  (awhen (and (typep (input-of child) 'tree/base)
+                                              (indentation-of (input-of child)))
+                                    (incf index))
+                                  (collect index)
+                                  (incf index))))
+         (output-selection (as (print-selection (make-iomap 'iomap/tree/node->common-lisp/progn
+                                                            :projection projection :recursion recursion
+                                                            :input input :input-reference input-reference
+                                                            :child-iomaps child-iomaps :child-indices child-indices)
                                                 (selection-of input)
                                                 'forward-mapper/tree/node->common-lisp/progn)))
          (output (as (make-common-lisp/progn (append (awhen (opening-delimiter-of input)
@@ -172,7 +192,10 @@
                                                        (list (make-common-lisp/application (make-lisp-form/symbol* 'write-string)
                                                                                            (list (make-common-lisp/constant (substitute #\Space #\NewLine (text/as-string it))))))))
                                              :selection output-selection))))
-    (make-iomap/compound projection recursion input input-reference output child-iomaps)))
+    (make-iomap 'iomap/tree/node->common-lisp/progn
+                :projection projection :recursion recursion
+                :input input :input-reference input-reference :output output
+                :child-iomaps child-iomaps :child-indices child-indices)))
 
 ;;;;;;
 ;;; Reader

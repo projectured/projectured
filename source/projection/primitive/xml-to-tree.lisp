@@ -320,12 +320,12 @@
                                 (pattern-case selection
                                   (((the string (value-of (the xml/text document)))
                                     (the string (subseq (the string document) ?start-character-index ?end-character-index)))
-                                   (make-operation/sequence/replace-range printer-input selection (replacement-of operation)))
+                                   (make-operation/string/replace-range printer-input selection (replacement-of operation)))
                                   (((the tree/leaf (printer-output (the xml/text document) ?projection ?recursion)) . ?rest)
-                                   (make-operation/sequence/replace-range printer-input
-                                                                          '((the string (value-of (the xml/text document)))
-                                                                            (the string (subseq (the string document) 0 0)))
-                                                                          (replacement-of operation)))))))))
+                                   (make-operation/string/replace-range printer-input
+                                                                        '((the string (value-of (the xml/text document)))
+                                                                          (the string (subseq (the string document) 0 0)))
+                                                                        (replacement-of operation)))))))))
     (merge-commands (command/read-backward recursion input printer-iomap 'backward-mapper/xml/text->tree/leaf operation-mapper)
                     (make-command/nothing gesture))))
 
@@ -339,26 +339,26 @@
                                 (pattern-case selection
                                   (((the string (name-of (the xml/attribute document)))
                                     (the string (subseq (the string document) ?start-character-index ?end-character-index)))
-                                   (make-operation/sequence/replace-range printer-input selection (replacement-of operation)))
+                                   (make-operation/string/replace-range printer-input selection (replacement-of operation)))
                                   (((the string (value-of (the xml/attribute document)))
                                     (the string (subseq (the string document) ?start-character-index ?end-character-index)))
-                                   (make-operation/sequence/replace-range printer-input selection (replacement-of operation)))
+                                   (make-operation/string/replace-range printer-input selection (replacement-of operation)))
                                   (((the tree/node (printer-output (the xml/attribute document) ?projection ?recursion))
                                     (the sequence (children-of (the tree/node document)))
                                     (the tree/leaf (elt (the sequence document) 0))
                                     . ?rest)
-                                   (make-operation/sequence/replace-range printer-input
-                                                                          '((the string (name-of (the xml/attribute document)))
-                                                                            (the string (subseq (the string document) 0 0)))
-                                                                          (replacement-of operation)))
+                                   (make-operation/string/replace-range printer-input
+                                                                        '((the string (name-of (the xml/attribute document)))
+                                                                          (the string (subseq (the string document) 0 0)))
+                                                                        (replacement-of operation)))
                                   (((the tree/node (printer-output (the xml/attribute document) ?projection ?recursion))
                                     (the sequence (children-of (the tree/node document)))
                                     (the tree/leaf (elt (the sequence document) 1))
                                     . ?rest)
-                                   (make-operation/sequence/replace-range printer-input
-                                                                          '((the string (value-of (the xml/attribute document)))
-                                                                            (the string (subseq (the string document) 0 0)))
-                                                                          (replacement-of operation)))))))))
+                                   (make-operation/string/replace-range printer-input
+                                                                        '((the string (value-of (the xml/attribute document)))
+                                                                          (the string (subseq (the string document) 0 0)))
+                                                                        (replacement-of operation)))))))))
     (merge-commands (gesture-case (gesture-of input)
                       ((gesture/keyboard/key-press #\=)
                        :domain "XML" :description "Moves the selection to the value"
@@ -381,27 +381,27 @@
                                 (pattern-case selection
                                   (((the string (xml/start-tag (the xml/element document)))
                                     (the string (subseq (the string document) ?start-character-index ?end-character-index)))
-                                   (make-operation/sequence/replace-range printer-input selection (replacement-of operation)))
+                                   (make-operation/string/replace-range printer-input selection (replacement-of operation)))
                                   (((the string (xml/end-tag (the xml/element document)))
                                     (the string (subseq (the string document) ?start-character-index ?end-character-index)))
-                                   (make-operation/sequence/replace-range printer-input selection (replacement-of operation)))
+                                   (make-operation/string/replace-range printer-input selection (replacement-of operation)))
                                   (((the tree/node (printer-output (the xml/element document) ?projection ?recursion))
                                     (the sequence (children-of (the tree/node document)))
                                     (the tree/leaf (elt (the sequence document) 0))
                                     . ?rest)
-                                   (make-operation/sequence/replace-range printer-input
-                                                                          '((the string (xml/start-tag (the xml/element document)))
-                                                                            (the string (subseq (the string document) 0 0)))
-                                                                          (replacement-of operation)))
+                                   (make-operation/string/replace-range printer-input
+                                                                        '((the string (xml/start-tag (the xml/element document)))
+                                                                          (the string (subseq (the string document) 0 0)))
+                                                                        (replacement-of operation)))
                                   (((the tree/node (printer-output (the xml/element document) ?projection ?recursion))
                                     (the sequence (children-of (the tree/node document)))
                                     (the tree/leaf (elt (the sequence document) ?child-index))
                                     . ?rest)
                                    (when (= ?child-index (1- (length (children-of (output-of printer-iomap)))))
-                                     (make-operation/sequence/replace-range printer-input
-                                                                            '((the string (xml/end-tag (the xml/element document)))
-                                                                              (the string (subseq (the string document) 0 0)))
-                                                                            (replacement-of operation))))))))))
+                                     (make-operation/string/replace-range printer-input
+                                                                          '((the string (xml/end-tag (the xml/element document)))
+                                                                            (the string (subseq (the string document) 0 0)))
+                                                                          (replacement-of operation))))))))))
     (merge-commands (command/read-selection recursion input printer-iomap 'forward-mapper/xml/element->tree/node 'backward-mapper/xml/element->tree/node)
                     (gesture-case (gesture-of input)
                       ((gesture/keyboard/key-press :sdl-key-insert)

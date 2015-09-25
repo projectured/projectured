@@ -176,22 +176,34 @@
 
 (def function forward-mapper/common-lisp/constant->lisp-form/string (printer-iomap reference)
   (bind ((projection (projection-of printer-iomap))
-         (recursion (recursion-of printer-iomap)))))
+         (recursion (recursion-of printer-iomap)))
+    (pattern-case reference
+      (((the lisp-form/string (printer-output (the common-lisp/constant document) ?projection ?recursion)) . ?rest)
+       (when (eq projection ?projection)
+         ?rest)))))
 
 (def function forward-mapper/common-lisp/variable-reference->lisp-form/symbol (printer-iomap reference)
   (bind ((projection (projection-of printer-iomap))
-         (recursion (recursion-of printer-iomap))))
-  )
+         (recursion (recursion-of printer-iomap)))
+    (pattern-case reference
+      (((the lisp-form/symbol (printer-output (the common-lisp/variable-reference document) ?projection ?recursion)) . ?rest)
+       (when (eq projection ?projection)
+         ?rest)))))
 
 (def function forward-mapper/common-lisp/function-reference->lisp-form/symbol (printer-iomap reference)
   (bind ((projection (projection-of printer-iomap))
-         (recursion (recursion-of printer-iomap))))
-  )
+         (recursion (recursion-of printer-iomap)))
+    (pattern-case reference
+      (((the lisp-form/symbol (printer-output (the common-lisp/function-reference document) ?projection ?recursion)) . ?rest)
+       (when (eq projection ?projection)
+         ?rest)))))
 
 (def function forward-mapper/common-lisp/if->lisp-form/list (printer-iomap reference)
   (bind ((projection (projection-of printer-iomap))
          (recursion (recursion-of printer-iomap)))
     (pattern-case reference
+      (((the common-lisp/if document))
+       `((the lisp-form/list document)))
       (((the ?type (?reader (the common-lisp/if document)))
         . ?rest)
        (bind ((slot-iomap (elt (child-iomaps-of printer-iomap)
@@ -214,13 +226,18 @@
 
 (def function forward-mapper/common-lisp/the->lisp-form/list (printer-iomap reference)
   (bind ((projection (projection-of printer-iomap))
-         (recursion (recursion-of printer-iomap))))
-  )
+         (recursion (recursion-of printer-iomap)))
+    (pattern-case reference
+      (((the lisp-form/list (printer-output (the common-lisp/the document) ?projection ?recursion)) . ?rest)
+       (when (eq projection ?projection)
+         ?rest)))))
 
 (def function forward-mapper/common-lisp/progn->lisp-form/list (printer-iomap reference)
   (bind ((projection (projection-of printer-iomap))
          (recursion (recursion-of printer-iomap)))
     (pattern-case reference
+      (((the common-lisp/progn document))
+       `((the lisp-form/list document)))
       (((the sequence (body-of (the common-lisp/progn document)))
         (the ?type (elt (the sequence document) ?index))
         . ?rest)
@@ -287,6 +304,8 @@
   (bind ((projection (projection-of printer-iomap))
          (recursion (recursion-of printer-iomap)))
     (pattern-case reference
+      (((the common-lisp/application document))
+       `((the lisp-form/list document)))
       (((the lisp-form/symbol (operator-of (the common-lisp/application document)))
         (the string (name-of (the lisp-form/symbol document)))
         (the string (subseq (the string document) ?start-index ?end-index)))
@@ -344,6 +363,8 @@
          (recursion (recursion-of printer-iomap))
          (printer-input (input-of printer-iomap)))
     (pattern-case reference
+      (((the common-lisp/function-definition document))
+       `((the lisp-form/list document)))
       (((the lisp-form/symbol (name-of (the common-lisp/function-definition document)))
         (the string (name-of (the lisp-form/symbol document)))
         (the string (subseq (the string document) ?start-index ?end-index)))
@@ -385,8 +406,11 @@
 
 (def function forward-mapper/common-lisp/lambda-function->lisp-form/list (printer-iomap reference)
   (bind ((projection (projection-of printer-iomap))
-         (recursion (recursion-of printer-iomap))))
-  )
+         (recursion (recursion-of printer-iomap)))
+    (pattern-case reference
+      (((the lisp-form/list (printer-output (the common-lisp/lambda-function document) ?projection ?recursion)) . ?rest)
+       (when (eq projection ?projection)
+         ?rest)))))
 
 (def function forward-mapper/common-lisp/function-argument->lisp-form/symbol (printer-iomap reference)
   (bind ((projection (projection-of printer-iomap))
@@ -403,13 +427,31 @@
 
 (def function forward-mapper/common-lisp/comment->lisp-form/comment (printer-iomap reference)
   (bind ((projection (projection-of printer-iomap))
-         (recursion (recursion-of printer-iomap))))
-  )
+         (recursion (recursion-of printer-iomap)))
+    (pattern-case reference
+      (((the text/text (content-of (the common-lisp/comment document)))
+        (the text/text (text/subseq (the text/text document) ?start-index ?end-index)))
+       `((the text/text (content-of (the lisp-form/comment document)))
+         (the text/text (text/subseq (the text/text document) ,?start-index ,?end-index))))
+      (((the lisp-form/comment (printer-output (the common-lisp/comment document) ?projection ?recursion)) . ?rest)
+       (when (eq projection ?projection)
+         ?rest)))))
 
 (def function forward-mapper/common-lisp/top-level->lisp-form/top-level (printer-iomap reference)
   (bind ((projection (projection-of printer-iomap))
-         (recursion (recursion-of printer-iomap))))
-  )
+         (recursion (recursion-of printer-iomap)))
+    (pattern-case reference
+      (((the sequence (body-of (the common-lisp/top-level document)))
+        (the ?type (elt (the sequence document) ?child-index))
+        . ?rest)
+       (bind ((element-iomap (elt (child-iomaps-of printer-iomap) ?child-index)))
+         (values `((the sequence (elements-of (the lisp-form/top-level document)))
+                   (the ,(form-type (output-of element-iomap)) (elt (the sequence document) ,?child-index)))
+                 ?rest
+                 element-iomap)))
+      (((the lisp-form/top-level (printer-output (the common-lisp/top-level document) ?projection ?recursion)) . ?rest)
+       (when (eq projection ?projection)
+         ?rest)))))
 
 ;;;;;;
 ;;; Backward mapper
@@ -433,11 +475,11 @@
         (the string (subseq (the string document) ?start-index ?end-index)))
        `((the string (value-of (the common-lisp/constant document)))
          (the string (subseq (the string document) ,?start-index ,?end-index))))
-      (((the number (value-of (the lisp-form/number document)))
-        (the string (write-to-string (the number document)))
+      (((the ?type (value-of (the lisp-form/number document)))
+        (the string (write-to-string (the ?type document)))
         (the string (subseq (the string document) ?start-index ?end-index)))
-       `((the number (value-of (the common-lisp/constant document)))
-         (the string (write-to-string (the number document)))
+       `((the ,?type (value-of (the common-lisp/constant document)))
+         (the string (write-to-string (the ,?type document)))
          (the string (subseq (the string document) ,?start-index ,?end-index))))
       (?a
        (append `((the lisp-form/string (printer-output (the common-lisp/constant document) ,projection ,recursion))) reference)))))
@@ -477,6 +519,8 @@
          (recursion (recursion-of printer-iomap))
          (printer-input (input-of printer-iomap)))
     (pattern-case reference
+      (((the lisp-form/list document))
+       `((the common-lisp/if document)))
       (((the sequence (elements-of (the lisp-form/list document)))
         (the ?type (elt (the sequence document) ?index (?if (> ?index 0))))
         . ?rest)
@@ -494,14 +538,18 @@
 
 (def function backward-mapper/common-lisp/the->lisp-form/list (printer-iomap reference)
   (bind ((projection (projection-of printer-iomap))
-         (recursion (recursion-of printer-iomap))))
-  )
+         (recursion (recursion-of printer-iomap)))
+    (pattern-case reference
+      (?a
+       (append `((the lisp-form/list (printer-output (the common-lisp/the document) ,projection ,recursion))) reference)))))
 
 (def function backward-mapper/common-lisp/progn->lisp-form/list (printer-iomap reference)
   (bind ((projection (projection-of printer-iomap))
          (recursion (recursion-of printer-iomap))
          (printer-input (input-of printer-iomap)))
     (pattern-case reference
+      (((the lisp-form/list document))
+       `((the common-lisp/progn document)))
       (((the sequence (elements-of (the lisp-form/list document)))
         (the ?type (elt (the sequence document) ?index (?if (> ?index 0))))
         . ?rest)
@@ -570,6 +618,8 @@
          (recursion (recursion-of printer-iomap))
          (printer-input (input-of printer-iomap)))
     (pattern-case reference
+      (((the lisp-form/list document))
+       `((the common-lisp/application document)))
       (((the sequence (elements-of (the lisp-form/list document)))
         (the lisp-form/symbol (elt (the sequence document) 0))
         (the string (name-of (the lisp-form/symbol document)))
@@ -624,6 +674,8 @@
          (projection (projection-of printer-iomap))
          (recursion (recursion-of printer-iomap)))
     (pattern-case reference
+      (((the lisp-form/list document))
+       `((the common-lisp/function-definition document)))
       (((the sequence (elements-of (the lisp-form/list document)))
         (the lisp-form/symbol (elt (the sequence document) 1))
         (the string (name-of (the lisp-form/symbol document)))
@@ -669,8 +721,10 @@
 
 (def function backward-mapper/common-lisp/lambda-function->lisp-form/list (printer-iomap reference)
   (bind ((projection (projection-of printer-iomap))
-         (recursion (recursion-of printer-iomap))))
-  )
+         (recursion (recursion-of printer-iomap)))
+    (pattern-case reference
+      (?a
+       (append `((the lisp-form/list (printer-output (the common-lisp/lambda-function document) ,projection ,recursion))) reference)))))
 
 (def function backward-mapper/common-lisp/function-argument->lisp-form/symbol (printer-iomap reference)
   (bind ((projection (projection-of printer-iomap))
@@ -686,13 +740,31 @@
 
 (def function backward-mapper/common-lisp/comment->lisp-form/comment (printer-iomap reference)
   (bind ((projection (projection-of printer-iomap))
-         (recursion (recursion-of printer-iomap))))
-  )
+         (recursion (recursion-of printer-iomap)))
+    (pattern-case reference
+      (((the text/text (content-of (the lisp-form/comment document)))
+        (the text/text (text/subseq (the text/text document) ?start-index ?end-index)))
+       `((the text/text (content-of (the common-lisp/comment document)))
+         (the text/text (text/subseq (the text/text document) ,?start-index ,?end-index))))
+      (?a
+       (append `((the lisp-form/comment (printer-output (the common-lisp/comment document) ,projection ,recursion))) reference)))))
 
 (def function backward-mapper/common-lisp/top-level->lisp-form/top-level (printer-iomap reference)
   (bind ((projection (projection-of printer-iomap))
-         (recursion (recursion-of printer-iomap))))
-  )
+         (recursion (recursion-of printer-iomap))
+         (printer-input (input-of printer-iomap)))
+    (pattern-case reference
+      (((the sequence (elements-of (the lisp-form/top-level document)))
+        (the ?type (elt (the sequence document) ?child-index))
+        . ?rest)
+       (bind ((element (elt (body-of printer-input) ?child-index))
+              (element-iomap (elt (child-iomaps-of printer-iomap) ?child-index)))
+         (values `((the sequence (body-of (the common-lisp/top-level document)))
+                   (the ,(form-type element) (elt (the sequence document) ,?child-index)))
+                 ?rest
+                 element-iomap)))
+      (?a
+       (append `((the lisp-form/top-level (printer-output (the common-lisp/top-level document) ,projection ,recursion))) reference)))))
 
 ;;;;;;
 ;;; Printer
@@ -767,19 +839,19 @@
                                    (the string (subseq (the string document) ?start-index ?end-index)))
                                   `((the string (value-of (the lisp-form/string document)))
                                     (the string (subseq (the string document) ,?start-index ,?end-index))))
-                                 (((the number (value-of (the common-lisp/constant document)))
-                                   (the string (write-to-string (the number document)))
+                                 (((the ?type (value-of (the common-lisp/constant document)))
+                                   (the string (write-to-string (the ?tpye document)))
                                    (the string (subseq (the string document) ?start-index ?end-index)))
-                                  `((the number (value-of (the lisp-form/number document)))
-                                    (the string (write-to-string (the number document)))
+                                  `((the ,?type (value-of (the lisp-form/number document)))
+                                    (the string (write-to-string (the ,?type document)))
                                     (the string (subseq (the string document) ,?start-index ,?end-index))))
                                  (((the lisp-form/string (printer-output (the common-lisp/constant document) ?projection ?recursion)) . ?rest)
                                   (when (eq projection ?projection)
                                     ?rest)))))
          (output (as (bind ((value (value-of input)))
                        (etypecase value
-                         (number (make-lisp-form/number value :selection output-selection))
-                         (string (make-lisp-form/string value :selection output-selection))
+                         ((or number document/number) (make-lisp-form/number value :selection output-selection))
+                         ((or string document/string) (make-lisp-form/string value :selection output-selection))
                          (symbol (if (keywordp value)
                                      (make-lisp-form/symbol (symbol-name value) (package-name (symbol-package value)) :font-color *color/solarized/magenta* :selection output-selection)
                                      (make-lisp-form/quote (make-lisp-form/symbol (symbol-name value) (package-name (symbol-package value)) :font-color *color/solarized/magenta* :selection output-selection)))))))))
@@ -819,24 +891,9 @@
   (bind ((condition-iomap (as (recurse/slot recursion input 'condition input-reference)))
          (then-iomap (as (recurse/slot recursion input 'then input-reference)))
          (else-iomap (as (recurse/slot recursion input 'else input-reference)))
-         (output-selection (as (pattern-case (selection-of input)
-                                 (((the ?type (?reader (the common-lisp/if document)))
-                                   . ?rest)
-                                  (bind ((slot-iomap (ecase ?reader
-                                                       (condition-of condition-iomap)
-                                                       (then-of then-iomap)
-                                                       (else-of else-iomap)))
-                                         (slot-output (output-of (va slot-iomap)))
-                                         (index (ecase ?reader
-                                                  (condition-of 1)
-                                                  (then-of 2)
-                                                  (else-of 3))))
-                                    (append `((the sequence (elements-of (the lisp-form/list document)))
-                                              (the ,(form-type slot-output) (elt (the sequence document) ,index)))
-                                            (selection-of slot-output))))
-                                 (((the lisp-form/list (printer-output (the common-lisp/if document) ?projection ?recursion)) . ?rest)
-                                  (when (eq projection ?projection)
-                                    ?rest)))))
+         (output-selection (as (print-selection (make-iomap/compound projection recursion input input-reference nil (as (list (va condition-iomap) (va then-iomap) (va else-iomap))))
+                                                (selection-of input)
+                                                'forward-mapper/common-lisp/if->lisp-form/list)))
          (output (as (make-lisp-form/list (list* (make-lisp-form/symbol* 'if :font-color *color/solarized/blue* :selection (as (nthcdr 2 (va output-selection))))
                                                  (output-of (va condition-iomap))
                                                  (bind ((then-output (output-of (va then-iomap))))
@@ -847,6 +904,7 @@
                                                    (list (etypecase it
                                                            (lisp-form/base (lisp-form/clone it :indentation 4))
                                                            (tree/base (tree/clone it :indentation 4))))))
+                                          :collapsed (as (collapsed-p input))
                                           :selection output-selection))))
     (make-iomap/compound projection recursion input input-reference output (as (list (va condition-iomap) (va then-iomap) (va else-iomap))))))
 
@@ -859,24 +917,16 @@
 
 (def printer common-lisp/progn->lisp-form/list (projection recursion input input-reference)
   (bind ((body-iomaps (as (recurse/slot recursion input 'body input-reference)))
-         (output-selection (as (pattern-case (selection-of input)
-                                 (((the sequence (body-of (the common-lisp/progn document)))
-                                   (the ?type (elt (the sequence document) ?index))
-                                   . ?rest)
-                                  (bind ((element-iomap (elt (va body-iomaps) ?index))
-                                         (element-output (output-of element-iomap)))
-                                    (append `((the sequence (elements-of (the lisp-form/list document)))
-                                              (the lisp-form/list (elt (the sequence document) ,(1+ ?index))))
-                                            (selection-of element-output))))
-                                 (((the lisp-form/list (printer-output (the common-lisp/progn document) ?projection ?recursion)) . ?rest)
-                                  (when (eq projection ?projection)
-                                    ?rest)))))
+         (output-selection (as (print-selection (make-iomap/compound projection recursion input input-reference nil body-iomaps)
+                                                (selection-of input)
+                                                'forward-mapper/common-lisp/progn->lisp-form/list)))
          (output (as (make-lisp-form/list (list* (make-lisp-form/symbol* 'progn :font-color *color/solarized/blue* :selection (as (nthcdr 2 (va output-selection))))
                                                  (iter (for body-iomap :in-sequence (va body-iomaps))
                                                        (for body-output = (output-of body-iomap))
                                                        (collect (etypecase body-output
                                                                   (lisp-form/base (lisp-form/clone body-output :indentation 2))
                                                                   (tree/base (tree/clone body-output :indentation 2))))))
+                                          :collapsed (as (collapsed-p input))
                                           :selection output-selection))))
     (make-iomap/compound projection recursion input input-reference output body-iomaps)))
 
@@ -918,34 +968,9 @@
 (def printer common-lisp/application->lisp-form/list (projection recursion input input-reference)
   (bind ((argument-iomaps (as (when (arguments-of input)
                                 (recurse/slot recursion input 'arguments input-reference))))
-         (output-selection (as (pattern-case (selection-of input)
-                                 (((the lisp-form/symbol (operator-of (the common-lisp/application document)))
-                                   (the string (name-of (the lisp-form/symbol document)))
-                                   (the string (subseq (the string document) ?start-index ?end-index)))
-                                  `((the sequence (elements-of (the lisp-form/list document)))
-                                    (the lisp-form/symbol (elt (the sequence document) 0))
-                                    (the string (name-of (the lisp-form/symbol document)))
-                                    (the string (subseq (the string document) ,?start-index ,?end-index))))
-                                 (((the common-lisp/function-reference (operator-of (the common-lisp/application document)))
-                                   (the common-lisp/function-definition (function-of (the common-lisp/function-reference document)))
-                                   (the lisp-form/symbol (name-of (the common-lisp/function-definition document)))
-                                   (the string (name-of (the lisp-form/symbol document)))
-                                   (the string (subseq (the string document) ?start-index ?end-index)))
-                                  `((the sequence (elements-of (the lisp-form/list document)))
-                                    (the lisp-form/symbol (elt (the sequence document) 0))
-                                    (the string (name-of (the lisp-form/symbol document)))
-                                    (the string (subseq (the string document) ,?start-index ,?end-index))))
-                                 (((the sequence (arguments-of (the common-lisp/application document)))
-                                   (the ?type (elt (the sequence document) ?index))
-                                   . ?rest)
-                                  (bind ((argument-iomap (elt (va argument-iomaps) ?index))
-                                         (argument-output (output-of argument-iomap)))
-                                    (append `((the sequence (elements-of (the lisp-form/list document)))
-                                              (the lisp-form/list (elt (the sequence document) ,(1+ ?index))))
-                                            (selection-of argument-output))))
-                                 (((the lisp-form/list (printer-output (the common-lisp/application document) ?projection ?recursion)) . ?rest)
-                                  (when (eq projection ?projection)
-                                    ?rest)))))
+         (output-selection (as (print-selection (make-iomap/compound projection recursion input input-reference nil argument-iomaps)
+                                                (selection-of input)
+                                                'forward-mapper/common-lisp/application->lisp-form/list)))
          (output (as (bind ((operator (operator-of input))
                             ((:values operator-name operator-package) (etypecase operator
                                                                         (lisp-form/symbol
@@ -957,7 +982,8 @@
                                                   (iter (for argument-iomap :in-sequence (va argument-iomaps))
                                                         (for argument-output = (output-of argument-iomap))
                                                         (collect argument-output)))
-                                            :selection output-selection)))))
+                                            :selection output-selection
+                                            :collapsed (as (collapsed-p input)))))))
     (make-iomap/compound projection recursion input input-reference output argument-iomaps)))
 
 (def printer common-lisp/special-variable-definition->lisp-form/list (projection recursion input input-reference)
@@ -996,6 +1022,7 @@
                                                           (collect (etypecase body-output
                                                                      (lisp-form/base (lisp-form/clone body-output :indentation 2))
                                                                      (tree/base (tree/clone body-output :indentation 2))))))
+                                            :collapsed (as (collapsed-p input))
                                             :selection output-selection)))))
     (make-iomap/compound projection recursion input input-reference output (as (append (va binding-iomaps) (va body-iomaps))))))
 
@@ -1021,21 +1048,27 @@
 
 (def printer common-lisp/comment->lisp-form/comment (projection recursion input input-reference)
   (bind ((content-iomap (as (recurse-printer recursion (content-of input) input-reference)))
-         (output (as (make-lisp-form/comment (output-of (va content-iomap))))))
-    (make-iomap/compound projection recursion input input-reference output
-                         (list (make-iomap/object projection recursion input input-reference output)))))
+         (output-selection (as (print-selection (make-iomap/compound projection recursion input input-reference nil (as (list (va content-iomap))))
+                                                (selection-of input)
+                                                'forward-mapper/common-lisp/comment->lisp-form/comment)))
+         (output (as (make-lisp-form/comment (output-of (va content-iomap))
+                                             :selection output-selection))))
+    (make-iomap/compound projection recursion input input-reference output (as (list (va content-iomap))))))
 
 (def printer common-lisp/top-level->lisp-form/top-level (projection recursion input input-reference)
   (bind ((body-iomaps (as (recurse/slot recursion input 'body input-reference)))
+         (output-selection (as (print-selection (make-iomap/compound projection recursion input input-reference nil body-iomaps)
+                                                (selection-of input)
+                                                'forward-mapper/common-lisp/top-level->lisp-form/top-level)))
          (output (as (make-lisp-form/top-level (iter (for body-iomap :in-sequence (va body-iomaps))
                                                      (for body-output = (output-of body-iomap))
                                                      (collect (if (first-iteration-p)
                                                                   body-output
                                                                   (etypecase body-output
                                                                     (lisp-form/base (lisp-form/clone body-output :indentation 0))
-                                                                    (tree/base (tree/clone body-output :indentation 0))))))))))
-    (make-iomap/compound projection recursion input input-reference output
-                         (list (make-iomap/object projection recursion input input-reference output)))))
+                                                                    (tree/base (tree/clone body-output :indentation 0))))))
+                                               :selection output-selection))))
+    (make-iomap/compound projection recursion input input-reference output body-iomaps)))
 
 ;;;;;;
 ;;; Reader
@@ -1057,8 +1090,8 @@
                        :operation (bind (((:values nil completion) (funcall (factory-of printer-input) (value-of printer-input)))
                                          (end (length (value-of printer-input))))
                                     (when completion
-                                      (make-operation/sequence/replace-range printer-input `((the string (value-of (the common-lisp/insertion document)))
-                                                                                             (the string (subseq (the string document) ,end ,end))) completion))))
+                                      (make-operation/string/replace-range printer-input `((the string (value-of (the common-lisp/insertion document)))
+                                                                                           (the string (subseq (the string document) ,end ,end))) completion))))
                       ((gesture/keyboard/key-press :sdl-key-return)
                        :domain "Common Lisp" :description "Inserts a new object of the provided type"
                        :operation (bind (((:values immediate-new-instance completion) (funcall (factory-of printer-input) (value-of printer-input)))
@@ -1097,8 +1130,11 @@
                   (make-command/nothing (gesture-of input))))
 
 (def reader common-lisp/the->lisp-form/list (projection recursion input printer-iomap)
-  (declare (ignore projection recursion printer-iomap))
-  input)
+  (declare (ignore projection))
+  (merge-commands (common-lisp/read-expression-command printer-iomap (gesture-of input))
+                  (command/read-selection recursion input printer-iomap 'forward-mapper/common-lisp/the->lisp-form/list 'backward-mapper/common-lisp/the->lisp-form/list)
+                  (command/read-backward recursion input printer-iomap 'backward-mapper/common-lisp/the->lisp-form/list nil)
+                  (make-command/nothing (gesture-of input))))
 
 (def reader common-lisp/progn->lisp-form/list (projection recursion input printer-iomap)
   (declare (ignore projection))
@@ -1196,8 +1232,11 @@
                     (make-command/nothing (gesture-of input)))))
 
 (def reader common-lisp/lambda-function->lisp-form/list (projection recursion input printer-iomap)
-  (declare (ignore projection recursion printer-iomap))
-  input)
+  (declare (ignore projection))
+  (merge-commands (common-lisp/read-expression-command printer-iomap (gesture-of input))
+                  (command/read-selection recursion input printer-iomap 'forward-mapper/common-lisp/lambda-function->lisp-form/list 'backward-mapper/common-lisp/lambda-function->lisp-form/list)
+                  (command/read-backward recursion input printer-iomap 'backward-mapper/common-lisp/lambda-function->lisp-form/list nil)
+                  (make-command/nothing (gesture-of input))))
 
 (def reader common-lisp/function-argument->lisp-form/symbol (projection recursion input printer-iomap)
   (declare (ignore projection))
@@ -1205,9 +1244,15 @@
                   (make-command/nothing (gesture-of input))))
 
 (def reader common-lisp/comment->lisp-form/comment (projection recursion input printer-iomap)
-  (declare (ignore projection recursion printer-iomap))
-  input)
+  (declare (ignore projection))
+  (merge-commands (common-lisp/read-expression-command printer-iomap (gesture-of input))
+                  (command/read-selection recursion input printer-iomap 'forward-mapper/common-lisp/comment->lisp-form/comment 'backward-mapper/common-lisp/comment->lisp-form/comment)
+                  (command/read-backward recursion input printer-iomap 'backward-mapper/common-lisp/comment->lisp-form/comment nil)
+                  (make-command/nothing (gesture-of input))))
 
 (def reader common-lisp/top-level->lisp-form/top-level (projection recursion input printer-iomap)
-  (declare (ignore projection recursion printer-iomap))
-  input)
+  (declare (ignore projection))
+  (merge-commands (common-lisp/read-expression-command printer-iomap (gesture-of input))
+                  (command/read-selection recursion input printer-iomap 'forward-mapper/common-lisp/top-level->lisp-form/top-level 'backward-mapper/common-lisp/top-level->lisp-form/top-level)
+                  (command/read-backward recursion input printer-iomap 'backward-mapper/common-lisp/top-level->lisp-form/top-level nil)
+                  (make-command/nothing (gesture-of input))))

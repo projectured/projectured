@@ -15,7 +15,10 @@
 
 (def iomap iomap/compound ()
   ((input-reference :type reference)
-   (child-iomaps :type list)))
+   (child-iomaps :type sequence)))
+
+(def iomap iomap/content ()
+  ((content-iomap :type iomap)))
 
 ;;;;;;
 ;;; Constuction
@@ -30,6 +33,11 @@
   (make-iomap 'iomap/compound :projection projection :recursion recursion
               :input input :input-reference (typed-reference (form-type input) input-reference)
               :output output :child-iomaps child-iomaps))
+
+(def function make-iomap/content (projection recursion input input-reference output content-iomap)
+  (make-iomap 'iomap/content :projection projection :recursion recursion
+              :input input :input-reference (typed-reference (form-type input) input-reference)
+              :output output :content-iomap content-iomap))
 
 ;;;;;;
 ;;; Projection
