@@ -76,7 +76,7 @@
                             :modifiers (modifier-keys mod-key)
                             :location (make-2d (sdl:mouse-x) (sdl:mouse-y))
                             :key key
-                            :character (unless (zerop character) (code-char character)))))
+                            :character (or (unless (zerop character) (code-char character)) #\nul))))
           (:key-up-event
            (sdl:with-key-up-event ((mod-key :mod-key) (key :key) (character :unicode)) sdl:*sdl-event*
              (make-instance 'event/keyboard/key-up
@@ -84,7 +84,7 @@
                             :modifiers (modifier-keys mod-key)
                             :location (make-2d (sdl:mouse-x) (sdl:mouse-y))
                             :key key
-                            :character (unless (zerop character) (code-char character)))))
+                            :character (or (unless (zerop character) (code-char character)) #\nul))))
           (:mouse-motion-event
            (sdl:with-mouse-motion-event ((x :x) (y :y)) sdl:*sdl-event*
              (make-instance 'event/mouse/move

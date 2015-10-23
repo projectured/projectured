@@ -140,8 +140,8 @@
     ("chapter" (book/chapter (:selection '((the string (title-of (the book/chapter document)))
                                            (the string (subseq (the string document) 0 0))))))
     ("paragraph" (book/paragraph (:alignment :justified
-                                  :selection '((the text/text (content-of (the book/paragraph document)))
-                                               (the text/text (text/subseq (the text/text document) 0 0))))
+                                             :selection '((the text/text (content-of (the book/paragraph document)))
+                                                          (the text/text (text/subseq (the text/text document) 0 0))))
                    (text/text () (text/string "" :font *font/liberation/serif/regular/24* :font-color *color/solarized/content/darker*))))
     ("list" (book/list (:selection '((the sequence (elements-of (the book/list document)))
                                      (the book/paragraph (elt (the sequence document) 0))
@@ -220,11 +220,10 @@
                                                                     (the string (name-of (the lisp-form/symbol document)))
                                                                     (the string (subseq (the string document) 0 0)))
                                                        :arguments nil))
-    ("common lisp function definition" (make-instance 'common-lisp/function-definition
-                                                      :name (make-lisp-form/symbol "" "PROJECTURED.TEST") :documentation "" :bindings nil :allow-other-keys #f :body nil
-                                                      :selection '((the lisp-form/symbol (name-of (the common-lisp/function-definition document)))
-                                                                   (the string (name-of (the lisp-form/symbol document)))
-                                                                   (the string (subseq (the string document) 0 0)))))
+    ("common lisp function definition" (make-common-lisp/function-definition (make-lisp-form/symbol "" "PROJECTURED.TEST") nil nil
+                                                                             :documentation "" :allow-other-keys #f :selection '((the lisp-form/symbol (name-of (the common-lisp/function-definition document)))
+                                                                                                                                 (the string (name-of (the lisp-form/symbol document)))
+                                                                                                                                 (the string (subseq (the string document) 0 0)))))
     ("javascript block" (make-javascript/statement/block nil))
     ("javascript function definition" (make-javascript/definition/function "" nil nil))
     ("evaluator" (make-evaluator/evaluator (make-instance 'common-lisp/progn :body nil)))
@@ -232,9 +231,9 @@
                                             (the document/insertion (elt (the sequence document) 0))
                                             (the string (value-of (the document/insertion  document)))
                                             (the string (subseq (the string document) 0 0))))
-                    (list (document/insertion :selection '((the string (value-of (the document/insertion  document)))
-                                                           (the string (subseq (the string document) 0 0)))))
-                    (list (document/insertion))))))
+                              (list (document/insertion :selection '((the string (value-of (the document/insertion  document)))
+                                                                     (the string (subseq (the string document) 0 0)))))
+                              (list (document/insertion))))))
 
 (def function test-searcher (search instance)
   (search-parts instance (lambda (instance)
@@ -1113,7 +1112,9 @@
               (web-example/folded (nesting
                                     (web-example->t)
                                     (make-test-projection/demo->text/code/folded)))
-              (t (make-test-projection/demo->text/code/natural)))
+              (t (sequential
+                   (make-test-projection/demo->text/code/natural)
+                   (text/text->tree/leaf))))
             (recursive
               (t->tree :slot-provider 'test-slot-provider)))))
     (make-test-projection/tree->text)))
@@ -1192,3 +1193,38 @@
         (widget/base (widget->graphics))
         (document/base (document->t nil))
         (text/text (text->graphics))))))
+
+
+#|
+
+(test/editor/demo :document (book/chapter (:title "Pie Chart Web Page")
+                                    (book/paragraph (:alignment :justified)
+                                      (text/text ()
+                                        (text/normal "The chart page header starts with a ")
+                                        (text/emphasis "CSS")
+                                        (text/normal " stylesheet that is to be provided by the web server at a local ")
+                                        (text/emphasis "URL")
+                                        (text/normal ". The client side ")
+                                        (text/emphasis "JavaScript")
+                                        (text/normal " program needs the ")
+                                        (text/emphasis "Google Java Script API")
+                                        (text/normal " and the ")
+                                        (text/emphasis "jQuery")
+                                        (text/normal " libraries, so they are also included first in the page header. Finally, the header includes the client side ")
+                                        (text/emphasis "JavaScript")
+                                        (text/normal " program that is also to be provided by the web server at a local ")
+                                        (text/emphasis "URL")
+                                        (text/normal ".")))
+                                    (book/paragraph (:alignment :left)
+                                      (document/insertion)))
+                        :provide-scroll #t :display-gestures #t)
+
+(def function make-projection/document->t (factory)
+  (type-dispatching
+    (document/document (document/document->t))
+    (document/nothing (sequential (document/nothing->tree/leaf) (tree/leaf->text/text)))
+    (document/insertion (sequential (document/insertion->tree/leaf factory) (tree/leaf->text/text)))
+    (document/search (document/search->text/text))
+    (document/clipboard (document/clipboard->t))))
+
+|#

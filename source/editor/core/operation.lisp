@@ -133,16 +133,16 @@
 ;; TODO: rename?
 (def function document/read-operation (gesture)
   (gesture-case gesture
-    ((gesture/keyboard/key-press :sdl-key-escape)
+    ((gesture/keyboard/key-press :key :sdl-key-escape)
      :domain "Document" :description "Quits from the editor"
      :operation (make-operation/quit))
     ((make-instance 'gesture/window/quit :modifiers nil)
      :domain "Document" :description "Quits from the editor"
      :operation (make-operation/quit))
-    ((gesture/keyboard/key-press :sdl-key-m :control)
+    ((gesture/keyboard/key-press :key :sdl-key-m :modifiers :control)
      :domain "Document" :description "Prints memory allocation information"
      :operation (make-operation/functional (lambda () (room))))
-    ((gesture/keyboard/key-press :sdl-key-g :control)
+    ((gesture/keyboard/key-press :key :sdl-key-g :modifiers :control)
      :domain "Document" :description "Execute garbage collector"
      :operation (make-operation/functional (lambda () (trivial-garbage:gc :full #t))))))
 

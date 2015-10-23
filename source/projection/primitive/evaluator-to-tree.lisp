@@ -76,7 +76,7 @@
 (def reader evaluator/evaluator->tree/node (projection recursion input printer-iomap)
   (bind ((printer-input (input-of printer-iomap)))
     (merge-commands (gesture-case (gesture-of input)
-                      ((gesture/keyboard/key-press :sdl-key-e :control)
+                      ((gesture/keyboard/key-press :key :sdl-key-e :modifiers :control)
                        :domain "Evaluator" :description "Evaluates the form"
                        :operation (make-operation/functional (lambda () (evaluate-form printer-input)))))
                     (labels ((recurse (operation)

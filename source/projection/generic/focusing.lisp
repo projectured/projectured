@@ -54,7 +54,7 @@
 
 (def function focusing/read-command (projection input printer-iomap)
   (gesture-case (gesture-of input)
-    ((gesture/keyboard/key-press #\, :control)
+    ((gesture/keyboard/key-press :key :sdl-key-comma :modifiers :control)
      :domain "Focusing" :description "Moves the focus one level up"
      :operation (when (part-of projection)
                   (make-instance 'operation/focusing/replace-part
@@ -62,7 +62,7 @@
                                  :part (iter (for selection :on (reverse (butlast (part-of projection))))
                                              (when (subtypep (second (first selection)) (part-type-of projection))
                                                (return (reverse selection)))))))
-    ((gesture/keyboard/key-press #\. :control)
+    ((gesture/keyboard/key-press :key :sdl-key-period :modifiers :control)
      :domain "Focusing" :description "Moves the focus to the selection"
      :operation (make-instance 'operation/focusing/replace-part
                                :projection projection

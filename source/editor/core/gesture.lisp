@@ -59,19 +59,21 @@
 ;;;;;;
 ;;; Construction
 
-(def function make-gesture/keyboard/key-press (key-or-character &optional modifier-or-modifiers)
-  (make-instance 'gesture/keyboard/key-press
-                 :key (when (symbolp key-or-character) key-or-character)
-                 :character (when (characterp key-or-character) key-or-character)
-                 :modifiers (if (listp modifier-or-modifiers)
-                                modifier-or-modifiers
-                                (list modifier-or-modifiers))))
+(def function make-gesture/keyboard/key-press (&key (key nil key?) (character nil character?) (modifiers nil modifiers?))
+  (prog1-bind gesture (make-instance 'gesture/keyboard/key-press)
+    (when key?
+      (setf (key-of gesture) key))
+    (when character?
+      (setf (character-of gesture) character))
+    (when modifiers?
+      (setf (modifiers-of gesture) (ensure-list modifiers)))))
 
 ;;;;;;
 ;;; Construction
 
-(def macro gesture/keyboard/key-press (key-or-character &optional modifier-or-modifiers)
-  `(make-gesture/keyboard/key-press ,key-or-character ,modifier-or-modifiers))
+(def macro gesture/keyboard/key-press (&rest args &key key character modifiers)
+  (declare (ignore key character modifiers))
+  `(make-gesture/keyboard/key-press ,@args))
 
 ;;;;;;
 ;;; Gesture API implementation
@@ -93,13 +95,11 @@
                           :modifiers (modifiers-of event0)
                           :location (location-of event0)
                           :key (key-of event0)
-                          :character (iter (for event :in-sequence events)
-                                           (when (and (typep event 'event/keyboard/key-down)
-                                                      (eq (key-of event0) (key-of event)))
-                                             ;; KLUDGE: workaround bug in SDL unicode handling
-                                             (return (if (member :shift (modifiers-of event0))
-                                                         (char-upcase (character-of event))
-                                                         (character-of event)))))))
+                          :character (or (iter (for event :in-sequence events)
+                                               (when (and (typep event 'event/keyboard/key-down)
+                                                          (eq (key-of event0) (key-of event)))
+                                                 (return (fix-character (character-of event) (modifiers-of event0)))))
+                                         #\nul)))
           ((typep event0 'event/mouse/button/release)
            (make-instance 'gesture/mouse/button/click
                           :modifiers (modifiers-of event0)
@@ -117,6 +117,15 @@
                           :modifiers (modifiers-of event0)))
           (t nil))))
 
+;; KLUDGE: workaround SDL unicode handling
+(def function fix-character (character modifiers)
+  (if (and character (member :shift modifiers))
+      (if (alpha-char-p character)
+          (char-upcase character)
+          (or (cdr (assoc character '((#\' . #\"))))
+              character))
+      character))
+
 (def function key-press? (gesture &key (key nil key?) (character nil character?) (modifier nil modifier?) (modifiers nil modifiers?))
   (and (typep gesture 'gesture/keyboard/key-press)
        (or (not key?) (eq key (key-of gesture)))
@@ -124,17 +133,20 @@
        (or (not modifier?) (equal (list modifier) (modifiers-of gesture)))
        (or (not modifiers?) (equal modifiers (modifiers-of gesture)))))
 
+(def function gesture-slot= (g1 g2 slot test)
+  (or (and (not (slot-boundp g1 slot))
+           (not (slot-boundp g2 slot)))
+      (if (and (slot-boundp g1 slot) (slot-boundp g2 slot))
+          (funcall test (slot-value g1 slot) (slot-value g2 slot))
+          #t)))
+
 (def function gesture= (g1 g2)
   (typecase g1
     (gesture/keyboard/key-press
      (and (eq (class-of g1) (class-of g2))
-          (or (and (key-of g1)
-                   (key-of g2)
-                   (eq (key-of g1) (key-of g2)))
-              (and (character-of g1)
-                   (character-of g2)
-                   (char= (character-of g1) (character-of g2))))
-          (equal (modifiers-of g1) (modifiers-of g2))))
+          (gesture-slot= g1 g2 'key 'eq)
+          (gesture-slot= g1 g2 'character 'char=)
+          (gesture-slot= g1 g2 'modifiers 'equal)))
     (gesture/mouse/button/click
      (and (eq (class-of g1) (class-of g2))
           (eq (button-of g1) (button-of g2))
@@ -144,7 +156,8 @@
           (equal (modifiers-of g1) (modifiers-of g2))))))
 
 (def function gesture/describe-modifiers (gesture)
-  (when (modifiers-of gesture)
+  (when (and (slot-boundp gesture 'modifiers)
+             (modifiers-of gesture))
     (with-output-to-string (string)
       (iter (for modifier :in (modifiers-of gesture))
             (write-string (symbol-name modifier) string)
@@ -153,13 +166,14 @@
 (def function gesture/describe-key (gesture)
   (etypecase gesture
     (gesture/keyboard/key-press
-     (bind ((character (character-of gesture)))
-       (if (and character
-                (not (whitespace? character))
-                (or (alphanumericp character)
-                    (graphic-char-p character)))
-           (string (character-of gesture))
-           (subseq (symbol-name (key-of gesture)) (length "SDL-KEY-")))))
+     (when (slot-boundp gesture 'character)
+       (bind ((character (character-of gesture)))
+         (if (and character
+                  (not (whitespace? character))
+                  (or (alphanumericp character)
+                      (graphic-char-p character)))
+             (string (character-of gesture))
+             (subseq (symbol-name (key-of gesture)) (length "SDL-KEY-"))))))
     (gesture/mouse/button/click
      (ecase (button-of gesture)
        (:button-left

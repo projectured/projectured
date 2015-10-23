@@ -1076,7 +1076,7 @@
 (def function common-lisp/read-expression-command (printer-iomap gesture)
   (bind ((printer-input (input-of printer-iomap)))
     (gesture-case gesture
-      ((gesture/keyboard/key-press :sdl-key-e :control)
+      ((gesture/keyboard/key-press :key :sdl-key-e :modifiers :control)
        :domain "Common Lisp" :description "Evaluates the common lisp form at the selection"
        :operation (make-operation/functional (lambda ()
                                                (eval (printer-output printer-input (make-projection/t->form)))))))))
@@ -1085,21 +1085,21 @@
   (declare (ignore projection))
   (bind ((printer-input (input-of printer-iomap)))
     (merge-commands (gesture-case (gesture-of input)
-                      ((gesture/keyboard/key-press :sdl-key-tab)
+                      ((gesture/keyboard/key-press :key :sdl-key-tab)
                        :domain "Common Lisp" :description "Inserts the suggested completion at the selection"
                        :operation (bind (((:values nil completion) (funcall (factory-of printer-input) (value-of printer-input)))
                                          (end (length (value-of printer-input))))
                                     (when completion
                                       (make-operation/string/replace-range printer-input `((the string (value-of (the common-lisp/insertion document)))
                                                                                            (the string (subseq (the string document) ,end ,end))) completion))))
-                      ((gesture/keyboard/key-press :sdl-key-return)
+                      ((gesture/keyboard/key-press :key :sdl-key-return)
                        :domain "Common Lisp" :description "Inserts a new object of the provided type"
                        :operation (bind (((:values immediate-new-instance completion) (funcall (factory-of printer-input) (value-of printer-input)))
                                          (new-instance (or immediate-new-instance (funcall (factory-of printer-input) (string+ (value-of printer-input) completion)))))
                                     (when new-instance
                                       (make-operation/replace-target printer-input nil new-instance))))
                       #+nil
-                      ((gesture/keyboard/key-press :sdl-key-escape)
+                      ((gesture/keyboard/key-press :key :sdl-key-escape)
                        :domain "Common Lisp" :description "Aborts the object insertion"
                        :operation (make-operation/replace-target printer-input nil (document/nothing))))
                     (command/read-backward recursion input printer-iomap 'backward-mapper/common-lisp/insertion->lisp-form/insertion nil)
@@ -1141,7 +1141,7 @@
   (bind ((printer-input (input-of printer-iomap)))
     (merge-commands (command/read-selection recursion input printer-iomap 'forward-mapper/common-lisp/progn->lisp-form/list 'backward-mapper/common-lisp/progn->lisp-form/list)
                     (gesture-case (gesture-of input)
-                      ((gesture/keyboard/key-press :sdl-key-insert)
+                      ((gesture/keyboard/key-press :key :sdl-key-insert)
                        :domain "Common lisp" :description "Starts an insertion into the elements of the form"
                        :operation (bind ((body-length (length (body-of printer-input))))
                                     (make-operation/compound (list (make-operation/sequence/replace-range printer-input `((the sequence (body-of (the common-lisp/progn document)))
@@ -1174,7 +1174,7 @@
     (merge-commands (common-lisp/read-expression-command printer-iomap (gesture-of input))
                     (command/read-selection recursion input printer-iomap 'forward-mapper/common-lisp/application->lisp-form/list 'backward-mapper/common-lisp/application->lisp-form/list)
                     (gesture-case (gesture-of input)
-                      ((gesture/keyboard/key-press #\( :shift)
+                      ((gesture/keyboard/key-press :character #\()
                        :domain "Common Lisp" :description "Starts a Common Lisp insertion into the body of the function definition"
                        :operation (bind ((arguments-length (length (arguments-of printer-input))))
                                     (make-operation/compound (list (make-operation/sequence/replace-range printer-input `((the sequence (arguments-of (the common-lisp/application document)))
@@ -1184,7 +1184,7 @@
                                                                                                                      (the document/insertion (elt (the sequence document) ,arguments-length))
                                                                                                                      (the string (value-of (the common-lisp/insertion document)))
                                                                                                                      (the string (subseq (the string document) 0 0))))))))
-                      ((gesture/keyboard/key-press :sdl-key-insert)
+                      ((gesture/keyboard/key-press :key :sdl-key-insert)
                        :domain "Common lisp" :description "Starts an insertion into the arguments of the application"
                        :operation (bind ((argument-length (length (arguments-of printer-input))))
                                     (make-operation/compound (list (make-operation/sequence/replace-range printer-input `((the sequence (arguments-of (the common-lisp/function-definition document)))
@@ -1209,7 +1209,7 @@
     (merge-commands (common-lisp/read-expression-command printer-iomap (gesture-of input))
                     (command/read-selection recursion input printer-iomap 'forward-mapper/common-lisp/function-definition->lisp-form/list 'backward-mapper/common-lisp/function-definition->lisp-form/list)
                     (gesture-case (gesture-of input)
-                      ((gesture/keyboard/key-press #\( :shift)
+                      ((gesture/keyboard/key-press :character #\()
                        :domain "Common Lisp" :description "Starts a Common Lisp insertion into the body of the function definition"
                        :operation (bind ((body-length (length (body-of printer-input))))
                                     (make-operation/compound (list (make-operation/sequence/replace-range printer-input `((the sequence (body-of (the common-lisp/function-definition document)))
@@ -1219,7 +1219,7 @@
                                                                                                                      (the document/insertion (elt (the sequence document) ,body-length))
                                                                                                                      (the string (value-of (the common-lisp/insertion document)))
                                                                                                                      (the string (subseq (the string document) 0 0))))))))
-                      ((gesture/keyboard/key-press :sdl-key-insert)
+                      ((gesture/keyboard/key-press :key :sdl-key-insert)
                        :domain "Common lisp" :description "Starts an insertion into the body of the function definition"
                        :operation (bind ((body-length (length (body-of printer-input))))
                                     (make-operation/compound (list (make-operation/sequence/replace-range printer-input `((the sequence (body-of (the common-lisp/function-definition document)))

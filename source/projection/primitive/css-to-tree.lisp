@@ -204,7 +204,7 @@
                                     (the string (subseq (the string document) ?start-index ?end-index)))
                                    (make-operation/string/replace-range printer-input selection (replacement-of operation)))))))))
     (merge-commands (gesture-case (gesture-of input)
-                      ((gesture/keyboard/key-press :sdl-key-tab)
+                      ((gesture/keyboard/key-press :key :sdl-key-tab)
                        :domain "CSS" :description "Moves the selection to the value"
                        :operation (make-operation/replace-selection printer-input
                                                                     '((the string (value-of (the css/attribute document)))
@@ -230,7 +230,7 @@
                                                                         (replacement-of operation)))))))))
     (merge-commands (command/read-selection recursion input printer-iomap 'forward-mapper/css/rule->tree/node 'backward-mapper/css/rule->tree/node)
                     (gesture-case (gesture-of input)
-                      ((gesture/keyboard/key-press :sdl-key-insert)
+                      ((gesture/keyboard/key-press :key :sdl-key-insert)
                        :domain "CSS" :description "Starts an insertion into the attributes of the CSS rule"
                        :operation (make-operation/compound (bind ((attributes-length (length (attributes-of printer-input))))
                                                              (list (make-operation/sequence/replace-range printer-input `((the sequence (attributes-of (the css/rule document)))
@@ -240,7 +240,7 @@
                                                                                                                      (the document/insertion (elt (the sequence document) ,attributes-length))
                                                                                                                      (the string (value-of (the document/insertion document)))
                                                                                                                      (the string (subseq (the string document) 0 0))))))))
-                      ((gesture/keyboard/key-press #\" :shift)
+                      ((gesture/keyboard/key-press :character #\")
                        :domain "CSS" :description "Inserts a new CSS attribute into the attributes of the CSS rule"
                        :operation (bind ((index (length (attributes-of printer-input))))
                                     (make-operation/compound (list (make-operation/sequence/replace-range printer-input `((the sequence (attributes-of (the css/rule document)))
@@ -251,7 +251,7 @@
                                                                                                                      (the css/attribute (elt (the sequence document) ,index))
                                                                                                                      (the string (name-of (the css/attribute document)))
                                                                                                                      (the string (subseq (the string document) 0 0))))))))
-                      ((gesture/keyboard/key-press :sdl-key-tab)
+                      ((gesture/keyboard/key-press :key :sdl-key-tab)
                        :domain "CSS" :description "Moves the selection to the value"
                        :operation (make-operation/replace-selection printer-input
                                                                     '((the string (value-of (the css/attribute document)))

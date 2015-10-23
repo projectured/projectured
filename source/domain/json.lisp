@@ -88,7 +88,7 @@
   `(make-json/string ,(first value) :selection ,selection))
 
 (def macro json/array ((&key collapsed key predicate selection) &body elements)
-  `(make-json/array (document/sequence (:key ,key :predicate ,predicate) ,@elements)
+  `(make-json/array (document/sequence (:key ,key :predicate ,predicate :selection (rest ,selection)) ,@elements)
                     :collapsed ,collapsed
                     :selection ,selection))
 

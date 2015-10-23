@@ -397,21 +397,21 @@
                          (awhen (operation/extend printer-input `((the ,?content-type (content-of (the tree/leaf document)))) output-operation)
                            (make-command/clone input it)))))
                     (gesture-case gesture
-                      ((gesture/keyboard/key-press :sdl-key-i :control)
+                      ((gesture/keyboard/key-press :key :sdl-key-i :modifiers :control)
                        :domain "Tree" :description "Describes the node at the selection"
                        :operation (when tree-selection? (make-operation/describe (selection-of printer-input))))
-                      ((gesture/keyboard/key-press :sdl-key-space :control)
+                      ((gesture/keyboard/key-press :key :sdl-key-space :modifiers :control)
                        :domain "Tree" :description "Turns the selection into a text selection"
                        :operation (when tree-selection?
                                     (make-operation/replace-selection printer-input (tree/make-text-reference projection recursion printer-iomap))))
-                      ((gesture/keyboard/key-press :sdl-key-space :control)
+                      ((gesture/keyboard/key-press :key :sdl-key-space :modifiers :control)
                        :domain "Tree" :description "Turns the selection into a tree selection"
                        :operation (when text-selection?
                                     (make-operation/replace-selection printer-input '((the tree/leaf document)))))
-                      ((gesture/keyboard/key-press :sdl-key-d :control)
+                      ((gesture/keyboard/key-press :key :sdl-key-d :modifiers :control)
                        :domain "Tree" :description "Toggles visibility of delimiters"
                        :operation (make-operation/functional (lambda () (setf (output-delimiters-p projection) (not (output-delimiters-p projection))))))
-                      ((gesture/keyboard/key-press :sdl-key-home (list :control :alt))
+                      ((gesture/keyboard/key-press :key :sdl-key-home :modifiers '(:control :alt))
                        :domain "Tree" :description "Moves the selection to the root node"
                        :operation (bind ((new-selection `((the tree/leaf document))))
                                     (unless (equal new-selection selection)
@@ -443,14 +443,14 @@
                                                   output-operation)
                            (make-command/clone child-output-command it)))))
                     (gesture-case gesture
-                      ((gesture/keyboard/key-press :sdl-key-i :control)
+                      ((gesture/keyboard/key-press :key :sdl-key-i :modifiers :control)
                        :domain "Tree" :description "Describes the node at the selection"
                        :operation (when tree-selection? (make-operation/describe (selection-of printer-input))))
-                      ((gesture/keyboard/key-press :sdl-key-space :control)
+                      ((gesture/keyboard/key-press :key :sdl-key-space :modifiers :control)
                        :domain "Tree" :description "Turns the selection into a text position selection"
                        :operation (when tree-selection?
                                     (make-operation/replace-selection printer-input (tree/make-text-reference projection recursion printer-iomap))))
-                      ((gesture/keyboard/key-press :sdl-key-space :control)
+                      ((gesture/keyboard/key-press :key :sdl-key-space :modifiers :control)
                        :domain "Tree" :description "Turns the selection into a tree node selection"
                        :operation (when text-selection?
                                     (pattern-case selection
@@ -459,18 +459,18 @@
                                             ((the text/text (opening-delimiter-of (the tree/node document)))
                                              (the text/text (text/subseq (the text/text document) ?start-index ?end-index))))
                                        (make-operation/replace-selection printer-input '((the tree/node document)))))))
-                      ((gesture/keyboard/key-press :sdl-key-d :control)
+                      ((gesture/keyboard/key-press :key :sdl-key-d :modifiers :control)
                        :domain "Tree" :description "Toggles visibility of delimiters"
                        :operation (make-operation/functional (lambda () (setf (output-delimiters-p projection) (not (output-delimiters-p projection))))))
-                      ((gesture/keyboard/key-press :sdl-key-tab :control)
+                      ((gesture/keyboard/key-press :key :sdl-key-tab :modifiers :control)
                        :domain "Tree" :description "Expands or collapses the selected ndoe"
                        :operation (make-operation/tree/toggle-collapsed printer-input '((the tree/node document))))
-                      ((gesture/keyboard/key-press :sdl-key-home (list :control :alt))
+                      ((gesture/keyboard/key-press :key :sdl-key-home :modifiers '(:control :alt))
                        :domain "Tree" :description "Moves the selection to the root node"
                        :operation (bind ((new-selection '((the tree/node document))))
                                     (unless (equal new-selection (selection-of printer-input))
                                       (make-operation/replace-selection printer-input new-selection))))
-                      ((gesture/keyboard/key-press :sdl-key-up)
+                      ((gesture/keyboard/key-press :key :sdl-key-up :modifiers nil)
                        :domain "Tree" :description "Moves the selection to the parent node"
                        :operation (when tree-selection?
                                     (pattern-case selection
@@ -478,7 +478,7 @@
                                         (the ?child-type (elt (the sequence document) ?child-index))
                                         (the ?child-type document))
                                        (make-operation/replace-selection printer-input '((the tree/node document)))))))
-                      ((gesture/keyboard/key-press :sdl-key-down)
+                      ((gesture/keyboard/key-press :key :sdl-key-down :modifiers nil)
                        :domain "Tree" :description "Moves the selection to the first child node"
                        :operation (when tree-selection?
                                     (pattern-case selection
@@ -487,7 +487,7 @@
                                          (make-operation/replace-selection printer-input `((the sequence (children-of (the tree/node document)))
                                                                                            (the ,child-type (elt (the sequence document) 0))
                                                                                            (the ,child-type document))))))))
-                      ((gesture/keyboard/key-press :sdl-key-home)
+                      ((gesture/keyboard/key-press :key :sdl-key-home :modifiers nil)
                        :domain "Tree" :description "Moves the selection to the first sibling node"
                        :operation (when tree-selection?
                                     (pattern-case selection
@@ -498,7 +498,7 @@
                                          (make-operation/replace-selection printer-input `((the sequence (children-of (the tree/node document)))
                                                                                            (the ,child-type (elt (the sequence document) 0))
                                                                                            (the ,child-type document))))))))
-                      ((gesture/keyboard/key-press :sdl-key-end)
+                      ((gesture/keyboard/key-press :key :sdl-key-end :modifiers nil)
                        :domain "Tree" :description "Moves the selection to the last sibling node"
                        :operation (when tree-selection?
                                     (pattern-case selection
@@ -510,7 +510,7 @@
                                          (make-operation/replace-selection printer-input `((the sequence (children-of (the tree/node document)))
                                                                                            (the ,child-type (elt (the sequence document) ,index))
                                                                                            (the ,child-type document))))))))
-                      ((gesture/keyboard/key-press :sdl-key-left)
+                      ((gesture/keyboard/key-press :key :sdl-key-left :modifiers nil)
                        :domain "Tree" :description "Moves the selection to the preceding sibling node"
                        :operation (when tree-selection?
                                     (pattern-case selection
@@ -522,7 +522,7 @@
                                            (make-operation/replace-selection printer-input `((the sequence (children-of (the tree/node document)))
                                                                                              (the ,child-type (elt (the sequence document) ,(1- ?child-index)))
                                                                                              (the ,child-type document)))))))))
-                      ((gesture/keyboard/key-press :sdl-key-right)
+                      ((gesture/keyboard/key-press :key :sdl-key-right :modifiers nil)
                        :domain "Tree" :description "Moves the selection to the following sibling node"
                        :operation (when tree-selection?
                                     (pattern-case selection
@@ -534,7 +534,7 @@
                                            (make-operation/replace-selection printer-input `((the sequence (children-of (the tree/node document)))
                                                                                              (the ,child-type (elt (the sequence document) ,(1+ ?child-index)))
                                                                                              (the ,child-type document)))))))))
-                      ((gesture/keyboard/key-press :sdl-key-up :alt)
+                      ((gesture/keyboard/key-press :key :sdl-key-up :modifiers :alt)
                        :domain "Tree" :description "Moves the selection to the first character of the parent node"
                        :operation (when text-selection?
                                     (pattern-case selection
@@ -550,7 +550,7 @@
                                              (the text/text (opening-delimiter-of (the tree/node document)))
                                              . ?rest))
                                        (make-operation/replace-selection printer-input (tree/make-text-reference projection recursion printer-iomap))))))
-                      ((gesture/keyboard/key-press :sdl-key-down :alt)
+                      ((gesture/keyboard/key-press :key :sdl-key-down :modifiers :alt)
                        :domain "Tree" :description "Moves the selection to the first character of the first child node"
                        :operation (when text-selection?
                                     (pattern-case selection
@@ -561,7 +561,7 @@
                                             ((the text/text (closing-delimiter-of (the tree/node document)))
                                              . ?rest))
                                        (make-operation/replace-selection printer-input (tree/make-text-reference projection recursion printer-iomap 0))))))
-                      ((gesture/keyboard/key-press :sdl-key-home :alt)
+                      ((gesture/keyboard/key-press :key :sdl-key-home :modifiers :alt)
                        :domain "Tree" :description "Moves the selection to the first character of the first sibling node"
                        :operation (when text-selection?
                                     (pattern-case selection
@@ -577,7 +577,7 @@
                                              (the tree/leaf (elt (the sequence document) ?child-index))
                                              . ?rest))
                                        (make-operation/replace-selection printer-input (tree/make-text-reference projection recursion printer-iomap 0))))))
-                      ((gesture/keyboard/key-press :sdl-key-end :alt)
+                      ((gesture/keyboard/key-press :key :sdl-key-end :modifiers :alt)
                        :domain "Tree" :description "Moves the selection to the first character of the last sibling node"
                        :operation (when text-selection?
                                     (pattern-case selection
@@ -593,7 +593,7 @@
                                              (the tree/leaf (elt (the sequence document) ?child-index))
                                              . ?rest))
                                        (make-operation/replace-selection printer-input (tree/make-text-reference projection recursion printer-iomap (1- (length (children-of printer-input)))))))))
-                      ((gesture/keyboard/key-press :sdl-key-left :alt)
+                      ((gesture/keyboard/key-press :key :sdl-key-left :modifiers :alt)
                        :domain "Tree" :description "Moves the selection to the first character of the preceding sibling node"
                        :operation (when text-selection?
                                     (pattern-case selection
@@ -610,7 +610,7 @@
                                              . ?rest))
                                        (when (> ?child-index 0)
                                          (make-operation/replace-selection printer-input (tree/make-text-reference projection recursion printer-iomap (1- ?child-index))))))))
-                      ((gesture/keyboard/key-press :sdl-key-right :alt)
+                      ((gesture/keyboard/key-press :key :sdl-key-right :modifiers :alt)
                        :domain "Tree" :description "Moves the selection to the first character of the following sibling node"
                        :operation (when text-selection?
                                     (pattern-case selection
@@ -627,7 +627,7 @@
                                              . ?rest))
                                        (when (< ?child-index (1- (length (child-iomaps-of printer-iomap))))
                                          (make-operation/replace-selection printer-input (tree/make-text-reference projection recursion printer-iomap (1+ ?child-index))))))))
-                      ((gesture/keyboard/key-press :sdl-key-delete)
+                      ((gesture/keyboard/key-press :key :sdl-key-delete :modifiers nil)
                        :domain "Tree" :description "Deletes the selected child from the node"
                        :operation (pattern-case selection
                                     (((the sequence (children-of (the tree/node document)))
@@ -636,7 +636,7 @@
                                      (make-operation/sequence/replace-range printer-input `((the sequence (children-of (the tree/node document)))
                                                                                             (the sequence (subseq (the sequence document) ,?index ,(1+ ?index))))
                                                                             nil))))
-                      ((gesture/keyboard/key-press :sdl-key-k :control)
+                      ((gesture/keyboard/key-press :key :sdl-key-k :modifiers :control)
                        :domain "Tree" :description "Deletes the selected child from the node"
                        :operation (pattern-case selection
                                     (((the sequence (children-of (the tree/node document)))

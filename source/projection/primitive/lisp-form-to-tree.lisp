@@ -551,7 +551,7 @@
                                                                           (the string (subseq (the string document) 0 0)))
                                                                         (replacement-of operation)))))))))
     (merge-commands (gesture-case (gesture-of input)
-                      ((gesture/keyboard/key-press :sdl-key-q :control)
+                      ((gesture/keyboard/key-press :key :sdl-key-q :modifiers :control)
                        :domain "Lisp form" :description "Toggles displaying fully qualified symbol names."
                        :operation (make-operation/functional (lambda () (notf (fully-qualified-p projection))))))
                     (command/read-backward recursion input printer-iomap 'backward-mapper/lisp-form/symbol->tree/leaf operation-mapper)
@@ -586,7 +586,7 @@
   (bind ((printer-input (input-of printer-iomap)))
     (merge-commands (command/read-selection recursion input printer-iomap 'forward-mapper/lisp-form/list->tree/node 'backward-mapper/lisp-form/list->tree/node)
                     (gesture-case (gesture-of input)
-                      ((gesture/keyboard/key-press :sdl-key-insert)
+                      ((gesture/keyboard/key-press :key :sdl-key-insert)
                        :domain "Lisp form" :description "Starts an insertion into the elements of the list"
                        :operation (bind ((elements-length (length (elements-of printer-input))))
                                     (make-operation/sequence/replace-range printer-input `((the sequence (elements-of (the lisp-form/list document)))

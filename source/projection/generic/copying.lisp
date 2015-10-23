@@ -148,5 +148,6 @@
 
 (def reader copying (projection recursion input printer-iomap)
   (declare (ignore projection))
-  (merge-commands (command/read-backward recursion input printer-iomap 'backward-mapper/copying nil)
+  (merge-commands (command/read-selection recursion input printer-iomap 'forward-mapper/copying 'backward-mapper/copying)
+                  (command/read-backward recursion input printer-iomap 'backward-mapper/copying nil)
                   (make-command/nothing (gesture-of input))))

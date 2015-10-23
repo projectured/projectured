@@ -155,14 +155,14 @@
   (declare (ignore projection))
   (bind ((printer-input (input-of printer-iomap)))
     (merge-commands (gesture-case (gesture-of input)
-                      ((gesture/keyboard/key-press :sdl-key-t :control)
+                      ((gesture/keyboard/key-press :key :sdl-key-t :modifiers :control)
                        :domain "Workbench" :description "Inserts a new empty document"
                        :operation (make-operation/functional (lambda ()
                                                                (setf (documents-of printer-input) (append (documents-of printer-input)
                                                                                                           (list (workbench/document (:title "Untitled")
                                                                                                                   (document/nothing)))))))))
                     (gesture-case (gesture-of input)
-                      ((gesture/keyboard/key-press :sdl-key-f4 :control)
+                      ((gesture/keyboard/key-press :key :sdl-key-f4 :modifiers :control)
                        :domain "Workbench" :description "Closes the current document"
                        :operation (make-operation/functional (lambda ()
                                                                (setf (documents-of printer-input) (rest (documents-of printer-input)))))))

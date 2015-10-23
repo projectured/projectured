@@ -742,51 +742,51 @@
 
 (def function text/read-operation (text gesture)
   (or (gesture-case gesture
-        ((gesture/keyboard/key-press :sdl-key-left)
+        ((gesture/keyboard/key-press :key :sdl-key-left :modifiers nil)
          :domain "Text" :description "Moves the selection one character to the left"
          :operation (text/read-replace-selection-operation text :sdl-key-left))
-        ((gesture/keyboard/key-press :sdl-key-right)
+        ((gesture/keyboard/key-press :key :sdl-key-right :modifiers nil)
          :domain "Text" :description "Moves the selection one character to the right"
          :operation (text/read-replace-selection-operation text :sdl-key-right))
-        ((gesture/keyboard/key-press :sdl-key-left :control)
+        ((gesture/keyboard/key-press :key :sdl-key-left :modifiers :control)
          :domain "Text" :description "Moves the selection one word to the left"
          :operation (text/read-replace-selection-operation text :sdl-key-left :control))
-        ((gesture/keyboard/key-press :sdl-key-right :control)
+        ((gesture/keyboard/key-press :key :sdl-key-right :modifiers :control)
          :domain "Text" :description "Moves the selection one word to the right"
          :operation (text/read-replace-selection-operation text :sdl-key-right :control))
-        ((gesture/keyboard/key-press :sdl-key-up)
+        ((gesture/keyboard/key-press :key :sdl-key-up :modifiers nil)
          :domain "Text" :description "Moves the selection one line up"
          :operation (text/read-replace-selection-operation text :sdl-key-up))
-        ((gesture/keyboard/key-press :sdl-key-down)
+        ((gesture/keyboard/key-press :key :sdl-key-down :modifiers nil)
          :domain "Text" :description "Moves the selection one line down"
          :operation (text/read-replace-selection-operation text :sdl-key-down))
         #+nil
-        ((gesture/keyboard/key-press :sdl-key-pageup)
+        ((gesture/keyboard/key-press :key :sdl-key-pageup :modifiers nil)
          :domain "Text" :description "Moves the selection one page up"
          :operation (text/read-replace-selection-operation text :sdl-key-pageup))
         #+nil
-        ((gesture/keyboard/key-press :sdl-key-pagedown)
+        ((gesture/keyboard/key-press :key :sdl-key-pagedown :modifiers nil)
          :domain "Text" :description "Moves the selection one page down"
          :operation (text/read-replace-selection-operation text :sdl-key-pagedown))
-        ((gesture/keyboard/key-press :sdl-key-home)
+        ((gesture/keyboard/key-press :key :sdl-key-home :modifiers nil)
          :domain "Text" :description "Moves the selection to the beginning of the line"
          :operation (text/read-replace-selection-operation text :sdl-key-home))
-        ((gesture/keyboard/key-press :sdl-key-end)
+        ((gesture/keyboard/key-press :key :sdl-key-end :modifiers nil)
          :domain "Text" :description "Moves the selection to the end of the line"
          :operation (text/read-replace-selection-operation text :sdl-key-end))
-        ((gesture/keyboard/key-press :sdl-key-home :control)
+        ((gesture/keyboard/key-press :key :sdl-key-home :modifiers :control)
          :domain "Text" :description "Moves the selection to the beginning of the first line"
          :operation (text/read-replace-selection-operation text :sdl-key-home :control))
-        ((gesture/keyboard/key-press :sdl-key-end :control)
+        ((gesture/keyboard/key-press :key :sdl-key-end :modifiers :control)
          :domain "Text" :description "Moves the selection to the end of the last line"
          :operation (text/read-replace-selection-operation text :sdl-key-end :control))
-        ((gesture/keyboard/key-press :sdl-key-delete)
+        ((gesture/keyboard/key-press :key :sdl-key-delete :modifiers nil)
          :domain "Text" :description "Deletes the character following the selection"
          :operation (pattern-case (selection-of text)
                       (((the text/text (text/subseq (the text/text document) ?b ?b)))
                        (when (text/origin-relative-position text ?b)
                          (make-operation/text/replace-range text `((the text/text (text/subseq (the text/text document) ,?b ,(1+ ?b)))) "")))))
-        ((gesture/keyboard/key-press :sdl-key-delete :control)
+        ((gesture/keyboard/key-press :key :sdl-key-delete :modifiers :control)
          :domain "Text" :description "Deletes the word following the selection"
          :operation (pattern-case (selection-of text)
                       (((the text/text (text/subseq (the text/text document) ?b ?b)))
@@ -796,12 +796,12 @@
                                                 (text/last-position text))))
                          (when end-position
                            (make-operation/text/replace-range text `((the text/text (text/subseq (the text/text document) ,?b ,(+ ?b (text/length text start-position end-position))))) ""))))))
-        ((gesture/keyboard/key-press :sdl-key-backspace)
+        ((gesture/keyboard/key-press :key :sdl-key-backspace :modifiers nil)
          :domain "Text" :description "Deletes the character preceding the selection"
          :operation (pattern-case (selection-of text)
                       (((the text/text (text/subseq (the text/text document) ?b ?b)))
                        (make-operation/text/replace-range text `((the text/text (text/subseq (the text/text document) ,(1- ?b) ,?b))) ""))))
-        ((gesture/keyboard/key-press :sdl-key-backspace :control)
+        ((gesture/keyboard/key-press :key :sdl-key-backspace :modifiers :control)
          :domain "Text" :description "Deletes the word preceding the selection"
          :operation (pattern-case (selection-of text)
                       (((the text/text (text/subseq (the text/text document) ?b ?b)))
@@ -811,10 +811,10 @@
                                                   (text/first-position text))))
                          (when start-position
                            (make-operation/text/replace-range text `((the text/text (text/subseq (the text/text document) ,(- ?b (text/length text start-position end-position)) ,?b))) ""))))))
-        ((gesture/keyboard/key-press :sdl-key-i :control)
+        ((gesture/keyboard/key-press :key :sdl-key-i :modifiers :control)
          :domain "Text" :description "Describes the character at the selection"
          :operation (make-operation/describe (selection-of text)))
-        ((gesture/keyboard/key-press :sdl-key-a :control)
+        ((gesture/keyboard/key-press :key :sdl-key-a :modifiers :control)
          :domain "Text" :description "TODO"
          :operation (make-instance 'operation/show-annotation :document text :selection (selection-of text))))
       ;; TODO: move into gesture-case

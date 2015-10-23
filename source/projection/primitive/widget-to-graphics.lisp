@@ -601,6 +601,8 @@
                                                 (make-operation/sequence/replace-range printer-input (append `((the ,(form-type (content-of printer-input)) (content-of (the widget/shell document)))) (selection-of operation)) (replacement-of operation)))
                                                (operation/string/replace-range
                                                 (make-operation/string/replace-range printer-input (append `((the ,(form-type (content-of printer-input)) (content-of (the widget/shell document)))) (selection-of operation)) (replacement-of operation)))
+                                               (operation/text/replace-range
+                                                (make-operation/text/replace-range printer-input (append `((the ,(form-type (content-of printer-input)) (content-of (the widget/shell document)))) (selection-of operation)) (replacement-of operation)))
                                                (operation/number/replace-range
                                                 (make-operation/number/replace-range printer-input (append `((the ,(form-type (content-of printer-input)) (content-of (the widget/shell document)))) (selection-of operation)) (replacement-of operation)))
                                                (operation/replace-target
@@ -736,12 +738,12 @@
                                                                       (setf (selector-element-pairs-of printer-input)
                                                                             (append (subseq selector-element-pairs 0 index)
                                                                                     (subseq selector-element-pairs (1+ index) (length selector-element-pairs)))))))))))
-                      ((gesture/keyboard/key-press :sdl-key-tab :control)
+                      ((gesture/keyboard/key-press :key :sdl-key-tab :modifiers :control)
                        :domain "Widget" :description "Selects the next page in the tabbed pane"
                        :operation (make-instance 'operation/widget/tabbed-pane/select-page
                                                  :tabbed-pane printer-input
                                                  :selected-index (mod (1+ (selected-index-of printer-input)) (length (selector-element-pairs-of printer-input)))))
-                      ((gesture/keyboard/key-press :sdl-key-tab '(:shift :control))
+                      ((gesture/keyboard/key-press :key :sdl-key-tab :modifiers '(:shift :control))
                        :domain "Widget" :description "Selects the previous page in the tabbed pane"
                        :operation (make-instance 'operation/widget/tabbed-pane/select-page
                                                  :tabbed-pane printer-input

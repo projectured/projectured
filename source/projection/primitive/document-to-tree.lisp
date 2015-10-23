@@ -170,7 +170,7 @@
   (declare (ignore projection recursion))
   (bind ((printer-input (input-of printer-iomap)))
     (merge-commands (gesture-case (gesture-of input)
-                      ((gesture/keyboard/key-press :sdl-key-insert)
+                      ((gesture/keyboard/key-press :key :sdl-key-insert)
                        :domain "Document" :description "Starts an insertion into the document"
                        :operation (make-operation/compound (list (make-operation/replace-target printer-input nil (document/insertion))
                                                                  (make-operation/replace-selection printer-input `((the string (value-of (the document/insertion document)))
@@ -209,15 +209,15 @@
   (declare (ignore recursion))
   (bind ((printer-input (input-of printer-iomap)))
     (merge-commands (gesture-case (gesture-of input)
-                      ((gesture/keyboard/key-press :sdl-key-tab)
+                      ((gesture/keyboard/key-press :key :sdl-key-tab)
                        :domain "Document" :description "Inserts the suggested completion at the selection"
                        :operation (bind (((:values nil completion) (funcall (factory-of projection) (value-of printer-input)))
                                          (end (length (value-of printer-input))))
                                     (values (when completion
-                                              (make-operation/sequence/replace-range printer-input `((the string (value-of (the document/insertion document)))
-                                                                                                     (the string (subseq (the string document) ,end ,end))) completion))
+                                              (make-operation/string/replace-range printer-input `((the string (value-of (the document/insertion document)))
+                                                                                                   (the string (subseq (the string document) ,end ,end))) completion))
                                             #t)))
-                      ((gesture/keyboard/key-press :sdl-key-return)
+                      ((gesture/keyboard/key-press :key :sdl-key-return)
                        :domain "Document" :description "Inserts a new object of the provided type"
                        :operation (bind (((:values immediate-new-instance completion) (funcall (factory-of projection) (value-of printer-input)))
                                          (new-instance (or immediate-new-instance
@@ -227,7 +227,7 @@
                                                                              #+nil ;; TODO: causes the initial selection to fail
                                                                              (make-operation/replace-selection printer-input nil))))
                                             #t)))
-                      ((gesture/keyboard/key-press :sdl-key-escape)
+                      ((gesture/keyboard/key-press :key :sdl-key-escape)
                        :domain "Document" :description "Aborts the object insertion"
                        :operation (make-operation/replace-target printer-input nil (document/nothing))))
                     (make-command (gesture-of input)
@@ -267,7 +267,7 @@
                                                             (when (and (<= value-start-index ?start-character-index value-end-index) (<= value-start-index ?end-character-index value-end-index))
                                                               `((the string (value-of (the document/insertion document)))
                                                                 (the string (subseq (the string document) ,(- ?start-character-index value-start-index) ,(- ?end-character-index value-start-index))))))))
-                                                  (make-operation/sequence/replace-range printer-input it (replacement-of operation))))
+                                                  (make-operation/string/replace-range printer-input it (replacement-of operation))))
                                                (operation/show-context-sensitive-help
                                                 (make-instance 'operation/show-context-sensitive-help
                                                                :commands (iter (for command :in (commands-of operation))

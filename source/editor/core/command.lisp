@@ -21,7 +21,7 @@
 
 (def function make-command (gesture operation &key domain icon description)
   (assert domain)
-  (assert (not (and operation (string= "Does nothing" description))))
+;;  (assert (not (and operation (string= "Does nothing" description))))
   (make-instance 'command
                  :gesture gesture :operation operation
                  :domain domain :icon icon :description description))

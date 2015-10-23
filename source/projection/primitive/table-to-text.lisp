@@ -245,11 +245,11 @@
          (text-selection? (text/reference? selection))
          (cell-selection? (cell-reference? selection)))
     (merge-commands (gesture-case (gesture-of input)
-                      ((gesture/keyboard/key-press :sdl-key-r :control)
+                      ((gesture/keyboard/key-press :key :sdl-key-r :modifiers :control)
                        :domain "Table" :description "Inserts a new row into the table"
                        :operation (make-operation/functional (lambda () (appendf (rows-of printer-input) (list (make-table/row (iter (repeat (length (cells-of (first-elt (rows-of printer-input)))))
                                                                                                                                 (collect (table/cell () (text/text () (text/string "TODO")))))))))))
-                      ((gesture/keyboard/key-press :sdl-key-l :control)
+                      ((gesture/keyboard/key-press :key :sdl-key-l :modifiers :control)
                        :domain "Table" :description "Inserts a new column into the table"
                        :operation (make-operation/functional (lambda () (iter (for row :in (rows-of printer-input))
                                                                          (appendf (cells-of row) (list (table/cell () (text/text () (text/string "TODO"))))))))))

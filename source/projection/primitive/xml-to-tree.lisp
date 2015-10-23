@@ -186,6 +186,11 @@
       (((the tree/node document))
        '((the xml/element document)))
       (((the sequence (children-of (the tree/node document)))
+        (the sequence (subseq (the sequence document) ?start-index ?end-index)))
+       ;; TODO: 1?
+       `((the sequence (children-of (the xml/element document)))
+         (the sequence (subseq (the sequence document) ,(- ?start-index 1) ,(- ?end-index 1)))))
+      (((the sequence (children-of (the tree/node document)))
         (the ?child-type (elt (the sequence document) ?child-index))
         . ?rest)
        (econd ((= 0 ?child-index)
@@ -360,7 +365,7 @@
                                                                           (the string (subseq (the string document) 0 0)))
                                                                         (replacement-of operation)))))))))
     (merge-commands (gesture-case (gesture-of input)
-                      ((gesture/keyboard/key-press #\=)
+                      ((gesture/keyboard/key-press :character #\=)
                        :domain "XML" :description "Moves the selection to the value"
                        :operation (pattern-case (selection-of printer-input)
                                     (((the string (name-of (the xml/attribute document)))
@@ -404,7 +409,7 @@
                                                                           (replacement-of operation))))))))))
     (merge-commands (command/read-selection recursion input printer-iomap 'forward-mapper/xml/element->tree/node 'backward-mapper/xml/element->tree/node)
                     (gesture-case (gesture-of input)
-                      ((gesture/keyboard/key-press :sdl-key-insert)
+                      ((gesture/keyboard/key-press :key :sdl-key-insert :modifiers nil)
                        :domain "XML" :description "Starts an insertion into the children of the XML element"
                        :operation (make-operation/compound (bind ((children-length (length (children-of printer-input))))
                                                              (list (make-operation/sequence/replace-range printer-input `((the sequence (children-of (the xml/element document)))
@@ -414,7 +419,7 @@
                                                                                                                      (the document/insertion (elt (the sequence document) ,children-length))
                                                                                                                      (the string (value-of (the document/insertion document)))
                                                                                                                      (the string (subseq (the string document) 0 0))))))))
-                      ((gesture/keyboard/key-press :sdl-key-space)
+                      ((gesture/keyboard/key-press :key :sdl-key-space :modifiers nil)
                        :domain "XML" :description "Inserts a new XML attribute into the attributes of the XML element"
                        :operation (pattern-case (selection-of printer-input)
                                     ((?or ((the string (xml/start-tag (the xml/element document)))
@@ -431,7 +436,7 @@
                                                                                                                         (the xml/attribute (elt (the sequence document) ,index))
                                                                                                                         (the string (name-of (the xml/attribute document)))
                                                                                                                         (the string (subseq (the string document) 0 0))))))))))
-                      ((gesture/keyboard/key-press #\" :shift)
+                      ((gesture/keyboard/key-press :character #\")
                        :domain "XML" :description "Inserts a new XML text into the children of the XML element"
                        :operation (bind ((index (length (children-of printer-input))))
                                     (make-operation/compound (list (make-operation/sequence/replace-range printer-input `((the sequence (children-of (the xml/element document)))
@@ -441,7 +446,7 @@
                                                                                                                      (the xml/text (elt (the sequence document) ,index))
                                                                                                                      (the string (value-of (the xml/text document)))
                                                                                                                      (the string (subseq (the string document) 0 0))))))))
-                      ((gesture/keyboard/key-press #\< :shift)
+                      ((gesture/keyboard/key-press :character #\<)
                        :domain "XML" :description "Inserts a new XML element into the children of the XML element"
                        :operation (bind ((index (length (children-of printer-input))))
                                     (make-operation/compound (list (make-operation/sequence/replace-range printer-input `((the sequence (children-of (the xml/element document)))

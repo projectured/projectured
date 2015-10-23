@@ -290,7 +290,7 @@
   (bind ((printer-input (input-of printer-iomap)))
     (merge-commands (command/read-selection recursion input printer-iomap 'forward-mapper/sql/select->tree/node 'backward-mapper/sql/select->tree/node)
                     (gesture-case (gesture-of input)
-                      ((gesture/keyboard/key-press #\,)
+                      ((gesture/keyboard/key-press :character #\,)
                        :domain "SQL" :description "Inserts a new column into the columns of the SQL select"
                        :operation (bind ((index (length (columns-of printer-input))))
                                     (make-operation/sequence/replace-range printer-input

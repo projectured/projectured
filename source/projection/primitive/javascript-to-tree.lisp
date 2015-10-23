@@ -682,7 +682,7 @@
                                 (pattern-case selection
                                   (((the string (name-of (the javascript/definition/variable document)))
                                     (the string (subseq (the string document) ?start-index ?end-index)))
-                                   (make-operation/sequence/replace-range printer-input selection (replacement-of operation)))))))))
+                                   (make-operation/string/replace-range printer-input selection (replacement-of operation)))))))))
     (merge-commands (command/read-backward recursion input printer-iomap 'backward-mapper/javascript/definition/variable->tree/node operation-mapper)
                     (make-command/nothing (gesture-of input)))))
 

@@ -105,7 +105,7 @@
                                     :domain (domain-of input)
                                     :description (description-of input)))
                     (gesture-case (gesture-of input)
-                      ((gesture/keyboard/key-press :sdl-key-o :control)
+                      ((gesture/keyboard/key-press :key :sdl-key-o :modifiers :control)
                        :domain "File System" :description "Opens the selected file"
                        :operation (bind ((pathname (pathname-of printer-input))
                                          (document (deserialize-document pathname))

@@ -48,7 +48,7 @@
                       (when (and command (operation-of command))
                         command))
                     (gesture-case (gesture-of input)
-                      ((gesture/keyboard/key-press :sdl-key-c '(:shift :control))
+                      ((gesture/keyboard/key-press :key :sdl-key-c :modifiers '(:shift :control))
                        :domain "Generic" :description "Toggles notation customization at the current selection"
                        :operation (make-operation/functional (lambda ()
                                                                (bind ((identity-projection-map (identity-projection-map-of projection)))

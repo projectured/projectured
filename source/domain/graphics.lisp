@@ -401,10 +401,10 @@
     ((make-instance 'gesture/mouse/button/click :button :button-left :modifiers '(:control))
      :domain "Graphics" :description "Moves the selection to where the mouse is pointing at"
      :operation (make-operation/replace-selection graphics (make-reference graphics (location-of gesture) nil)))
-    ((gesture/keyboard/key-press :sdl-key-i :control)
+    ((gesture/keyboard/key-press :key :sdl-key-i :modifiers :control)
      :domain "Graphics" :description "Describes what the mouse is pointing at"
      :operation (make-operation/describe (make-reference graphics (location-of gesture) nil)))
-    ((gesture/keyboard/key-press :sdl-key-a :control)
+    ((gesture/keyboard/key-press :key :sdl-key-a :modifiers :control)
      :domain "Graphics" :description "TODO"
      :operation (make-instance 'operation/show-annotation :document graphics :selection (make-reference graphics (location-of gesture) nil)))))
 

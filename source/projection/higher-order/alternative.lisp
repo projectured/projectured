@@ -44,7 +44,7 @@
                     (when (and command (operation-of command))
                       command))
                   (gesture-case (gesture-of input)
-                    ((gesture/keyboard/key-press :sdl-key-n '(:shift :control))
+                    ((gesture/keyboard/key-press :key :sdl-key-n :modifiers '(:shift :control))
                      :domain "Generic" :description "Switches to the next alternative notation"
                      :operation (make-operation/select-next-alternative projection)))
                   (make-command/nothing (gesture-of input))))

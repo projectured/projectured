@@ -15,6 +15,302 @@ Things to demonstrate:
  - source of the actual document
  - source of the actual projection
 
+Video annotation:
+ - don't put too much annotations on the video
+ - don't add that is already there!
+ - lines of code
+ - number of document classes
+ - number of projections
+ - document examples
+ - projection examples
+ - performance characteristics
+ - lazyness
+ - incrementality
+ - links to external resources such as source
+
+ the editor is ~20 kLOC in Common Lisp
+  ~3 kLOC for generic editor core
+  ~1 kLOC for SDL backend IO
+  ~3 kLOC for reusable document classes
+  ~13 kLOC for reusable projections
+
+ the example is ~1 kLOC in Common Lisp
+  ~1 kLOC for compound document
+  ~0.1 kLOC for compound projection
+
+ the example uses ~60 different document classes
+
+ document classes per domain
+  6 graphics
+  5 text
+  2 tree
+  3 table
+  3 book
+  8 json
+  3 xml
+  9 javascript
+  12 common lisp
+  etc.
+
+ document class examples
+  graphics/line
+  text/string
+  tree/node
+  table/row
+  book/chapter
+  json/array
+  xml/attribute
+  css/rule
+  javascript/property-access
+  common-lisp/if
+
+"BOOK/CHAPTER" 
+"BOOK/PARAGRAPH" 
+"COMMON-LISP/APPLICATION" 
+"COMMON-LISP/COMMENT" 
+"COMMON-LISP/CONSTANT" 
+"COMMON-LISP/FUNCTION-DEFINITION" 
+"COMMON-LISP/IF" 
+"COMMON-LISP/LET" 
+"COMMON-LISP/LEXICAL-VARIABLE-BINDING" 
+"COMMON-LISP/REQUIRED-FUNCTION-ARGUMENT" 
+"COMMON-LISP/TOP-LEVEL" 
+"COMMON-LISP/VARIABLE-REFERENCE" 
+"CSS/ATTRIBUTE" 
+"CSS/RULE" 
+"DOCUMENT/NUMBER" 
+"DOCUMENT/SEQUENCE" 
+"DOCUMENT/STRING" 
+"IMAGE/FILE" 
+"JAVASCRIPT/DEFINITION/FUNCTION" 
+"JAVASCRIPT/DEFINITION/VARIABLE" 
+"JAVASCRIPT/EXPRESSION/CONSTRUCTOR-INVOCATION" 
+"JAVASCRIPT/EXPRESSION/METHOD-INVOCATION" 
+"JAVASCRIPT/EXPRESSION/PROPERTY-ACCESS" 
+"JAVASCRIPT/EXPRESSION/VARIABLE-REFERENCE" 
+"JAVASCRIPT/LITERAL/STRING" 
+"JAVASCRIPT/STATEMENT/BLOCK" 
+"JAVASCRIPT/STATEMENT/TOP-LEVEL" 
+"JSON/ARRAY" 
+"JSON/BOOLEAN" 
+"JSON/NUMBER" 
+"JSON/OBJECT" 
+"JSON/OBJECT-ENTRY" 
+"JSON/STRING" 
+"LISP-FORM/SYMBOL" 
+"STYLE/COLOR" 
+"STYLE/FONT" 
+"TABLE/CELL" 
+"TABLE/ROW" 
+"TABLE/TABLE" 
+"TEXT/GRAPHICS" 
+"TEXT/STRING" 
+"TEXT/TEXT" 
+"WEB-EXAMPLE/BRIEF" 
+"WEB-EXAMPLE/FOLDED" 
+"WEB-EXAMPLE/NATURAL" 
+"XML/ATTRIBUTE" 
+"XML/ELEMENT" 
+"XML/TEXT" 
+
+ the example uses ~100 different projections
+
+ projections per domain
+  4 text
+  4 tree
+  6 book
+  8 json
+  3 xml
+  9 javascript
+  12 common lisp
+  6 object
+  1 sequence
+  5 generic
+  5 higher order
+  several compound
+  etc.
+
+ domain -> domain projection examples
+  text/text->graphics/canvas
+  tree/node->text/text
+  table/row->graphics/canvas
+  book/chapter->tree/node
+  json/array->tree/node
+  xml/attribute->tree/node
+  javascript/property-access->tree/node
+  common-lisp/if->s-expression/list
+  s-expression/list->tree/node
+  object/sequence->tree/node
+
+ domain preserving projection examples
+  line-numbering, word-wrapping, text-aligning, text-searching
+  sorting, filtering
+
+ generic projection examples
+  preserving, copying, templating, focusing
+
+ higher order projection examples
+  sequential, recursive, nesting, alternative
+  reference-dispatching
+
+"ALTERNATIVE" 
+
+"BOOK/BOOK->TREE/NODE" 
+"BOOK/CHAPTER->BOOK/CHAPTER" 
+"BOOK/CHAPTER->TREE/NODE" 
+"BOOK/LIST->TREE/NODE" 
+"BOOK/PARAGRAPH->TREE/LEAF" 
+"BOOK/PICTURE->TREE/LEAF" 
+
+"COMMON-LISP/APPLICATION->LISP-FORM/LIST" 
+"COMMON-LISP/COMMENT->LISP-FORM/COMMENT" 
+"COMMON-LISP/CONSTANT->LISP-FORM/STRING" 
+"COMMON-LISP/FUNCTION-ARGUMENT->LISP-FORM/SYMBOL" 
+"COMMON-LISP/FUNCTION-DEFINITION->LISP-FORM/LIST" 
+"COMMON-LISP/FUNCTION-REFERENCE->LISP-FORM/SYMBOL" 
+"COMMON-LISP/IF->LISP-FORM/LIST" 
+"COMMON-LISP/INSERTION->LISP-FORM/INSERTION" 
+"COMMON-LISP/LAMBDA-FUNCTION->LISP-FORM/LIST" 
+"COMMON-LISP/LET->LISP-FORM/LIST" 
+"COMMON-LISP/LEXICAL-VARIABLE-BINDING->LISP-FORM/LIST" 
+"COMMON-LISP/PROGN->LISP-FORM/LIST" 
+"COMMON-LISP/SPECIAL-VARIABLE-DEFINITION->LISP-FORM/LIST" 
+"COMMON-LISP/THE->LISP-FORM/LIST" 
+"COMMON-LISP/TOP-LEVEL->LISP-FORM/TOP-LEVEL" 
+"COMMON-LISP/VARIABLE-REFERENCE->LISP-FORM/SYMBOL" 
+
+"COPYING" 
+
+"CSS/ATTRIBUTE->TREE/LEAF" 
+"CSS/RULE->TREE/NODE" 
+
+"DOCUMENT/CLIPBOARD->T" 
+"DOCUMENT/DOCUMENT->T" 
+"DOCUMENT/INSERTION->TREE/LEAF" 
+"DOCUMENT/NOTHING->TREE/LEAF" 
+"DOCUMENT/SEARCH->TEXT/TEXT" 
+
+"FOCUSING" 
+
+"IMAGE/FILE->GRAPHICS/IMAGE" 
+"IMAGE/MEMORY->GRAPHICS/IMAGE" 
+
+"INVARIABLY" 
+
+"JAVASCRIPT/DEFINITION/FUNCTION->TREE/NODE" 
+"JAVASCRIPT/DEFINITION/VARIABLE->TREE/NODE" 
+"JAVASCRIPT/EXPRESSION/CONSTRUCTOR-INVOCATION->TREE/NODE" 
+"JAVASCRIPT/EXPRESSION/METHOD-INVOCATION->TREE/NODE" 
+"JAVASCRIPT/EXPRESSION/PROPERTY-ACCESS->TREE/NODE" 
+"JAVASCRIPT/EXPRESSION/VARIABLE-REFERENCE->TREE/LEAF" 
+"JAVASCRIPT/LITERAL/STRING->TREE/LEAF" 
+"JAVASCRIPT/STATEMENT/BLOCK->TREE/NODE" 
+"JAVASCRIPT/STATEMENT/TOP-LEVEL->TREE/NODE" 
+
+"JSON/ARRAY->TREE/NODE" 
+"JSON/BOOLEAN->TREE/LEAF" 
+"JSON/INSERTION->TREE/LEAF" 
+"JSON/NULL->TREE/LEAF" 
+"JSON/NUMBER->TREE/LEAF" 
+"JSON/OBJECT->TREE/NODE" 
+"JSON/OBJECT-ENTRY->TREE/NODE" 
+"JSON/STRING->TREE/LEAF" 
+
+"LINE-NUMBERING" 
+
+"LISP-FORM/COMMENT->TREE/NODE" 
+"LISP-FORM/INSERTION->TREE/LEAF" 
+"LISP-FORM/LIST->TREE/NODE" 
+"LISP-FORM/NUMBER->TREE/LEAF" 
+"LISP-FORM/OBJECT->TREE/LEAF" 
+"LISP-FORM/QUOTE->TREE/NODE" 
+"LISP-FORM/STRING->TREE/LEAF" 
+"LISP-FORM/SYMBOL->TREE/LEAF" 
+"LISP-FORM/TOP-LEVEL->TREE/NODE" 
+
+"NESTING" 
+"PRESERVING" 
+"PROJECTION" 
+"RECURSIVE" 
+"REFERENCE-DISPATCHING" 
+"SEQUENTIAL" 
+"SORTING" 
+
+"T/NULL->TREE/LEAF" 
+"T/NUMBER->TREE/LEAF" 
+"T/OBJECT->TREE/NODE" 
+"T/PATHNAME->TREE/LEAF" 
+"T/SEQUENCE->TREE/NODE" 
+"T/STRING->TREE/LEAF" 
+"T/SYMBOL->TREE/LEAF" 
+"TABLE/TABLE->GRAPHICS/CANVAS" 
+"TABLE/TABLE->TEXT" 
+
+"TEMPLATING" 
+"TEXT-ALIGNING" 
+
+"TEXT/TEXT->GRAPHICS/CANVAS" 
+"TREE/LEAF->COMMON-LISP/PROGN" 
+"TREE/LEAF->TEXT/TEXT" 
+"TREE/NODE->COMMON-LISP/PROGN" 
+"TREE/NODE->TEXT/TEXT" 
+"TYPE-DISPATCHING" 
+"WEB-EXAMPLE->T" 
+
+"WORD-WRAPPING" 
+
+"WRITE-STREAM-FOLDING" 
+"XML/ATTRIBUTE->TREE/NODE" 
+"XML/ELEMENT->TREE/NODE" 
+"XML/TEXT->TREE/LEAF"
+
+ current REPL performance
+  reader runs < ~10ms
+  evaluator runs < ~10ms
+  printer runs 10ms to ~100ms
+
+ printer
+  transforms input document to output document
+  lazy and incremental
+  initial screen ~10000 computations
+  selection change ~10-50 recomputations
+
+ no restrictions for composition
+  documents can be freely nested into each other
+  projections can be freely combined using higher order projections
+  the editor's projection transforms the editor's document to/from the input/output devices
+
+ FAQ
+ what about invalid syntax?
+ what about intermediate editing states?
+  there's no such thing, a document represents state
+  all of the above is just some kind of state
+
+ what if I hit delete on a syntax element?
+  you get whatever state you want
+
+
+ reader
+  a gesture to a change
+  an output change to an input change
+  recursively 
+  transforms a change + gesture to another change
+  transforms input changes (with gestures) to output changes
+
+ evaluator
+  executes changes
+
+ completeness
+  printers are in a fairly good shape
+  readers are pretty basic
+  code quality could be improved
+
+ future extensions
+  discussion
+  versioning
+  searching
+  styling
+
 Scene 1
 =======
 
@@ -161,7 +457,9 @@ notation and see the changes reflected in the title and the selection.
 * [Control + Shift + N]
 
 Now, I'm going to remove the focus from the first chapter and return
-to the whole document. But before doing so, let me show you that it's
+to the whole document.
+
+But before doing so, let me show you that it's
 possible to focus on a single paragraph. In fact, as you'll see later
 on, focusing is possible on any kind object. For example, you can even
 focus on as small a thing as a single XML attribute within an XML
@@ -230,30 +528,29 @@ the server.
 
 * [Control + Left Click] collapse chapter 4
 
-This table summarizes the URLs that will be processed by the web
-server.
+The next chapter contains a table that summarizes the URLs that will
+be processed by the web server.
 
 * [Left Click] select title of chapter 5
 
-I'll show you the data structure of the table behind the scenes by
-switching to the generic notation.
+Let me show you the underlying data structure of the table, again by
+switching to the generic notation. But this time I'm doing it inline,
+only changing the notation for this chapter.
  
-* [Control .] focus on chapter 5
 * [Control + Shift + C] customize notation for chapter 5
 * [Control + shift + N] switch to generic notation for chapter 5
 
-As you see this chapter contains a paragraph and a table. The table
-contains rows, and the rows contain cells as usual. The table actually
-appears in two places in the document.
+As you can see this chapter contains a paragraph and a table. The
+table contains rows, and the rows contain cells as usual. This table
+actually appears in two places in the document.
 
 * [Scroll Down] show table, first row, and first cells
 * [Control + Shift + C]
 
-At first, it's present in this chapter in graphical form. As you can
-see cells have graphical line borders around them. As you will see
-later, it will also appear in the Common Lisp function as a properly
-formatted text table in a comment section. These occurances are the
-representations of the very same object.
+At first, it's present in this chapter in graphical form where cells
+have graphical line borders around them. And as you will see later, it
+will also appear in the Common Lisp function as a automatically
+properly formatted text table in a comment section.
 
 * [Control ,]
 
@@ -266,8 +563,8 @@ surprisingly, not text.
 
 * [Left Click] select the id attribute of the pie DIV
 
-So, I switch to the generic notation, but this time only for the id
-attribute of the pie chart's DIV element.
+So again, I switch to the generic notation, but this time only for the
+id attribute of the pie chart's DIV element.
 
 * [Control + Shift + C] customize notation for id attribute
 * [Control + shift + N] switch to generic notation for id attribute
@@ -290,16 +587,16 @@ pretty much like in a normal text editor.
 
 Let me scroll down a little so that you can see the whole web page
 that also includes the pie chart's DIV element. Now, if I start
-editing the id attribute of the element, you'll see how the other
-occurance updates accordingly.
+editing the id attribute of the element again, you'll see how the
+other occurance updates accordingly.
 
 * [Type] random characters in the value
 * [Delete] delete the id attribute name
 
-That's because those two are two different projections of the same XML
-attribute that is being edited. Similarly to the chapter title, if I
-delete the name of the XML attribute, the projection's printer turns
-the value into a pale placeholder.
+That's because those two are just created by two different projections
+of the same XML attribute that is being edited. Similarly to the
+attribute value, if I delete the name of the XML attribute, the
+projection's printer turns the value into a pale placeholder.
 
 * [Type] the id attribute name
 * [Delete] random characters
@@ -319,7 +616,7 @@ using the generic notation.
 Actually, the notation change is implemented by a higher order
 projection called, the alternative projection, that is parameterized
 by multiple other projections. This projection simply allows the user
-to select one of the parameter projections that has to be applied.
+to select one of the parameter projections that is to be applied.
 
 * [Control + Shift + C] remove notation customization for id attribute
 
@@ -332,6 +629,28 @@ to select one of the parameter projections that has to be applied.
 
 Scene 7
 =======
+
+The next chapter contains a pretty simple stylesheet. The interesting
+part is the second half of the chapter which shows the very same
+stylesheet transformed into a Common Lisp program. This program writes
+the stylesheet into a string stream when it is run. You might notice
+that the program structure is pretty similar to how the stylehseet's
+syntax elements are organized. That's of course not a conincidence,
+but the result of applying a pretty generic projection to the output
+of the stylesheet unparser. In general, this projection produces a
+Common Lisp program that writes the syntax into a stream when it is
+run. As you will see later, this projection is also useful for other
+domains such as XML or JavaScript or a combination of them.
+
+Of course it's no surprise that the two represents the very same
+object so if I edit the selector of the rule in the Common Lisp
+program then these changes will be automatically reflected in the
+other notation.
+
+Finally, I want to show you another representation of the same program
+at the end of this chapter. This program is produced by another
+projection that merges the stream write operations. It's like a poor
+man's partial evaluator.
 
 * [Left Click] select the h1 CSS rule
 * [Control + Shift + C] 
@@ -348,6 +667,27 @@ Scene 7
 Scene 8
 =======
 
+The next chapter contains the JSON data that will be displayed in the
+pie chart. The format of this data is defined by the Google Javascript
+API. The first part defines the table header, then I show the first
+row and the rest of the rows separately, and finally the whole table
+at once.
+
+What's really intersting here is that the JSON table contains a small
+Common Lisp program embedded into it. This program is supposed to
+compute the number of hours that is left to sleep per day.
+
+Now, let me change the number of hours I work, because well that's
+simply not true. Please notice how the other occurances of the same
+number also change as I edit.
+
+Now, there's another problem in this table, namely that today nobody
+watches TV 2 hours a day. So let's just replace it with browsing the
+internet, or reddit if you will. But before I edit the table, I'd like
+to tell you that the rows in this table is sorted by a sorting
+projection based on the label. So as I'm going to edit the value, it
+will just keep the table sorted automatically.
+
 * [Left Click] select v before Work
 * [Control + Shift + C] 
 * [Control + Shift + N]
@@ -358,8 +698,78 @@ Scene 8
 * [Type] insert foo
 * [F] insert false
 
+Scene 9
+=======
+
+The next chapter contains the JavaScript program that creates the pie
+chart in the browser after the page has been loaded. Of course, the
+program itself is not text, but a complex data structure that is
+projected to the screen as text. Let me switch to the generic notation
+to show you how the data structure looks right now. The current
+javascript domain support is pretty basic, so I'd rather go on to the
+following chapters.
+
+Scene 10
+========
+
+The next chapter contains the error page that will be shown when the
+requested URL is not known by the web server. The interesting part is
+how a small Common Lisp program is embedded into the HTML page. This
+small program is supposed to write the path of the HTTP request into
+the error page. Notice that the code contains a comment that includes
+an image.
+
+In the second part you can see how the error page will be written to
+the network stream. The merged program is really intersting, because
+due to the dynamic part that was included in the HTML page, it becomes
+a little bit more complicated. In fact, this chapter uses the very
+same projections that we have seen in the stylesheet chapter.
+
+Now, let me change a few things here and there to give you a feeling
+how editing works here.
+
 Scene 11
 ========
+
+show you how the server program looks like. The first part just gives
+a quick overview by using a special projection that represents alien
+non Common Lisp parts with a simple string in the if ladder.
+
+The second part shows the very same Common Lisp function with a
+projection that display all content in its natural notation. As you
+can see the server function contains ASCII table, HTML, JSON, CSS,
+JavaScript and so on. In fact, it contains all the pieces that we have
+seen so far. And of course, it means that if I edit any part here I'm
+really going to edit the very same part that was already present in
+one of the preceding chapters, and vice versa.
+
+What's really interesting here is the third part, because that's the
+one that is actually fed to the compiler. And as you can see, it's
+pretty efficient because it just writes big string constants to the
+network stream interleaved with the dynamic parts which are left
+unchanged.
+
+
+
+so let me just compile this function and go to the last chapter.
+
+
+
+Let me show you how navigation and selection works in this mixture of
+various problem domains. For example, tree navigation just works out
+of the box, because from the editor's point of view there's not much
+difference in nesting a JSON object into a JSON array or into a Common
+Lisp function. It just all depends on what kind of compound projection
+is configured, and how those projections compose.
+
+This is how a mixed domain selection is represented.
+
+I would also like to show that delimiters are not part of the
+document. In fact, I can simply turn off displaying delimiters which
+results in a somewhat weird but still editable syntax. I do this first
+for the tree leafs, and then also for the intermediate tree nodes.
+
+
 
 TODO: tell how the compilation projection works
 
@@ -372,29 +782,19 @@ Finally, we've got to the point where I can actually run this example.
 I'm going to run it within the editor process simply by starting an
 embedded web server.
 
-At first, I compile this small function that deals with the web server
-data structures.
-
-* [Left Click] select opening parenthesis of HANDLE-HTTP-REQUEST
-* [Cursor Keys] naviage around using text navigation
-* [Alt + Cursor Keys] navigate around using tree navigation
-* [Control + TAB] collapse/expand tree nodes
-* [Control + E] compile HANDLE-HTTP-REQUEST
-
-Then I define the web server in a global variable by running this
-second program.
+But before doing so, I just do a quick look at the generic notation to
+show you how a Common Lisp program is stored. So let me select this
+global variable definition and switch to the generic notation.
 
 * [Left Click] select the opening parenthesis of the web server variable
-
-But before doing so, I just do a quick look at the generic notation to
-show you how a Common Lisp program is stored.
-
 * [Control + Shift + C] 
 * [Control + Shift + N]
 * [Scroll Around]
 
+Let me edit something in this program. Hmmm...
+
 Now, I'm going to change the name of the web server variable in the
-generic notation.
+generic notation. Let me add the word web here.
 
 * [Left Click] to the server variable name
 * [Type] insert -WEB-
@@ -403,12 +803,29 @@ generic notation.
 As you can see when I switch back to the natural notation, the
 variable name is automatically changed in all occurances. That's
 because the variable name is only stored once. In contrast to text
-editors, a structured editor may use a direct reference to the
-variable.
+editors, a structured editor uses direct references to the variable
+declaration where the name is actually stored. As I revert the changes
+you can see how the variable references get updated automatically.
 
-Ok, now I think I should really run this small program.
+Let me show another interesting feature directly related to Common
+Lisp. In Common Lisp symbols are organized into packeges. A package
+has a unique name that is often used to qualify the symbol to avoid
+ambiguity. Unfortunatly, just by looking at a program it's not always
+clear that which symbol comes from which package. But in a
+projectional editor it's pretty easy to have a switch that turns
+displaying the fully qualified symbols like this. And of course
+editing is still possible.
 
-* [Control + E] evaluate *DEMO-SERVER*
+Ok, now I think I should really run this small example. At first, I
+compile this small function that deals with the web server internals
+and data structures. This function calls the main service function
+that we called process-http-request in the previous chapter. Then I
+define the web server as a global variable by running this second
+program. And finally, I just simply start the web server by running
+this program. Now let's switch to the browser.
+
+Scene 13
+========
 
 At this point, we have the web server defined in the editor process,
 but it is not yet running. We can check this in the browser.
@@ -418,6 +835,9 @@ but it is not yet running. We can check this in the browser.
 At last, I start the web server using this simple function call.
 
 * [Control + E] evaluate STARTUP-SERVER
+
+
+
 
 The web server is supposed to be up and running now. Let me show you
 the individual pieces in the browser, one by one. Here is the trivial
@@ -435,13 +855,12 @@ chart.
 
 * show http://localhost:8080/data
 
+Of course, we shouldn't forget about the error page that we created to
+automatically echo back the request path.
+
 And finally, here is the complete pie chart example.
 
 * show http://localhost:8080/page
-
-Of course, we shouldn't forget about the error page that we created to
-automatically echo back the request path. It's a nice example that
-shows how a templating mechanism works using a projectional editor.
 
 * show http://localhost:8080/foo
 

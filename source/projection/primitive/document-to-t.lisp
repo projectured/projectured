@@ -162,14 +162,14 @@
   (declare (ignore projection))
   (bind ((printer-input (input-of printer-iomap)))
     (merge-commands (gesture-case (gesture-of input)
-                      ((gesture/keyboard/key-press :sdl-key-s :control)
+                      ((gesture/keyboard/key-press :key :sdl-key-s :modifiers :control)
                        :domain "Document" :description "Saves the currently edited document."
                        :operation (make-operation/save-document (content-of printer-input) (filename-of printer-input)))
-                      ((gesture/keyboard/key-press :sdl-key-l :control)
+                      ((gesture/keyboard/key-press :key :sdl-key-l :modifiers :control)
                        :domain "Document" :description "Loads the previously saved document."
                        :operation (make-operation/load-document (content-of printer-input) (filename-of printer-input)))
                       #+nil
-                      ((gesture/keyboard/key-press :sdl-key-e :control)
+                      ((gesture/keyboard/key-press :key :sdl-key-e :modifiers :control)
                        :domain "Document" :description "Exports the currently edited document as text."
                        :operation (make-operation/export-document (content-of printer-input) (filename-of printer-input))))
                     (bind ((content-iomap (elt (child-iomaps-of printer-iomap) 0))
@@ -184,20 +184,20 @@
   (declare (ignore projection))
   (bind ((printer-input (input-of printer-iomap)))
     (merge-commands (gesture-case (gesture-of input)
-                      ((gesture/keyboard/key-press :sdl-key-c :control)
+                      ((gesture/keyboard/key-press :key :sdl-key-c :modifiers :control)
                        :domain "Document" :description "Copies the selected object to the clipboard"
                        :operation (bind ((slice (deep-copy (eval-reference printer-input (reference/flatten (selection-of printer-input))))))
                                     (make-operation/replace-target printer-input `((the ,(form-type slice) (slice-of (the document/clipboard document)))) slice)))
-                      ((gesture/keyboard/key-press :sdl-key-x :control)
+                      ((gesture/keyboard/key-press :key :sdl-key-x :modifiers :control)
                        :domain "Document" :description "Cuts the selected object and moves it to the clipboard"
                        :operation (bind ((slice (eval-reference printer-input (reference/flatten (selection-of printer-input)))))
                                     (make-operation/compound (list (make-operation/replace-target printer-input `((the ,(form-type slice) (slice-of (the document/clipboard document)))) slice)
                                                                    (make-operation/replace-target printer-input (selection-of printer-input) (document/nothing))))))
-                      ((gesture/keyboard/key-press :sdl-key-n :control)
+                      ((gesture/keyboard/key-press :key :sdl-key-n :modifiers :control)
                        :domain "Document" :description "Notes the selected object into the clipboard"
                        :operation (bind ((slice (eval-reference printer-input (reference/flatten (selection-of printer-input)))))
                                     (make-operation/replace-target printer-input `((the ,(form-type slice) (slice-of (the document/clipboard document)))) slice)))
-                      ((gesture/keyboard/key-press :sdl-key-v :control)
+                      ((gesture/keyboard/key-press :key :sdl-key-v :modifiers :control)
                        :domain "Document" :description "Pastes the object from the clipboard to the selection"
                        :operation (if (slice-of printer-input)
                                       (make-operation/replace-target printer-input (selection-of printer-input) (slice-of printer-input))
@@ -205,7 +205,7 @@
                                       (make-operation/sequence/replace-range printer-input (selection-of printer-input)
                                                                                      (with-output-to-string (stream)
                                                                                        (uiop:run-program "/usr/bin/xclip" (list "-o") :output stream)))))
-                      ((gesture/keyboard/key-press :sdl-key-v '(:shift :control))
+                      ((gesture/keyboard/key-press :key :sdl-key-v :modifiers '(:shift :control))
                        :domain "Document" :description "Pastes a new copy of the object from the clipboard to the selection"
                        :operation (when (slice-of printer-input)
                                     (make-operation/replace-target printer-input (selection-of printer-input) (deep-copy (slice-of printer-input))))))
