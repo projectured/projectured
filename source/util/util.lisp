@@ -1,6 +1,6 @@
 ;;; -*- mode: Lisp; Syntax: Common-Lisp; -*-
 ;;;
-;;; Copyright (c) 2009 by the authors.
+;;; Copyright (c) by the authors.
 ;;;
 ;;; See LICENCE for details.
 
@@ -9,42 +9,13 @@
 ;;;;;;
 ;;; Util
 
-(def logger editor ())
-
-(def logger printer ())
-
-(def logger reader ())
-
-(def logger backend ())
-
 (def function resource-pathname (name)
   (flet ((try (path)
            (awhen (probe-file path)
              (return-from resource-pathname it))))
-    (try (asdf:system-relative-pathname :projectured name))
+    (try (asdf:system-relative-pathname :projectured.executable name))
     (awhen (uiop:argv0)
       (try (uiop:merge-pathnames* (directory-namestring it) name)))))
-
-(def function form-type (form)
-  (typecase form
-    (null 'sequence)
-    (cons 'sequence)
-    (number 'number)
-    (string 'string)
-    (vector 'vector)
-    (computed-ll 'sequence)
-    (document/sequence 'sequence)
-    (document/string 'document/string)
-    (sequence 'sequence)
-    (t (type-of form))))
-
-(def function object-class-name (object)
-  (form-type object)
-  #+nil
-  (class-name (class-of object)))
-
-(def function object-class-symbol-name (object)
-  (symbol-name (object-class-name object)))
 
 (def function find-slot-reader (class slot)
   (bind ((direct-slot (some (lambda (super) (find-direct-slot super (slot-definition-name slot) :otherwise nil)) (class-precedence-list class))))
@@ -55,11 +26,6 @@
   (if (eq stream *standard-output*)
       (write-string (format nil "~A" (or object "")) stream)
       (format stream "~A" (or object ""))))
-
-(def function reference/flatten (reference &optional (result 'document))
-  (if (consp reference)
-      (reference/flatten (rest reference) (tree-replace (car reference) 'document result))
-      result))
 
 (def function tree-replace (tree element replacement)
   (cond ((equal tree element)
@@ -74,31 +40,6 @@
 
 (def function search-ignorecase (sequence1 sequence2)
   (search sequence1 sequence2 :test 'char=ignorecase))
-
-(def function search-parts (root test &key (slot-provider (compose 'class-slots 'class-of)))
-  (bind ((seen-set (make-hash-table))
-         (result nil))
-    (labels ((recurse (instance reference)
-               (unless (gethash instance seen-set)
-                 (setf (gethash instance seen-set) #t)
-                 (when (funcall test instance)
-                   (push (typed-reference (form-type instance) reference) result))
-                 (typecase instance
-                   (sequence
-                    (iter (for index :from 0)
-                          (for element :in-sequence instance)
-                          (recurse element `((elt (the sequence document) ,index)
-                                             ,@(typed-reference (form-type instance) reference)))))
-                   (standard-object
-                    (iter (with class = (class-of instance))
-                          (for slot :in (funcall slot-provider instance))
-                          (when (slot-boundp-using-class class instance slot)
-                            (for slot-value = (slot-value-using-class class instance slot))
-                            (for slot-reader = (find-slot-reader class slot))
-                            (recurse slot-value `((,slot-reader (the ,(form-type instance) document))
-                                                  ,@(typed-reference (form-type instance) reference))))))))))
-      (recurse root nil))
-    (nreverse result)))
 
 (def function longest-common-prefix (string-1 string-2)
   (iter (for index :from 0)
@@ -120,6 +61,8 @@
   (labels ((recurse (instance)
              (etypecase instance
                ((or number string symbol pathname function #+sbcl sb-sys:system-area-pointer)
+                instance)
+               (style/base
                 instance)
                (document/sequence
                 (make-document/sequence (iter (for element :in-sequence instance)

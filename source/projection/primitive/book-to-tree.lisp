@@ -115,7 +115,7 @@
        (bind ((element-iomap (elt (element-iomaps-of printer-iomap) ?element-index))
               (element-output (output-of element-iomap)))
          (values `((the sequence (children-of (the tree/node document)))
-                   (the ,(form-type element-output) (elt (the sequence document) ,(+ ?element-index (if (author-of printer-input) 2 1)))))
+                   (the ,(document-type element-output) (elt (the sequence document) ,(+ ?element-index (if (author-of printer-input) 2 1)))))
                  ?rest
                  element-iomap)))
       (((the tree/node (printer-output (the book/book document) ?projection ?recursion)) . ?rest)
@@ -147,7 +147,7 @@
        (bind ((element-iomap (elt (element-iomaps-of printer-iomap) ?element-index))
               (element-output (output-of element-iomap)))
          (values `((the sequence (children-of (the tree/node document)))
-                   (the ,(form-type element-output) (elt (the sequence document) ,(+ ?element-index 1))))
+                   (the ,(document-type element-output) (elt (the sequence document) ,(+ ?element-index 1))))
                  ?rest
                  element-iomap)))
       (((the tree/node (printer-output (the book/chapter document) ?projection ?recursion)) . ?rest)
@@ -186,7 +186,7 @@
          (values `((the sequence (children-of (the tree/node document)))
                    (the tree/node (elt (the sequence document) ,?element-index))
                    (the sequence (children-of (the tree/node document)))
-                   (the ,(form-type element-output) (elt (the sequence document) 0)))
+                   (the ,(document-type element-output) (elt (the sequence document) 0)))
                  ?rest
                  element-iomap)))
       (((the tree/node (printer-output (the book/list document) ?projection ?recursion)) . ?rest)
@@ -256,7 +256,7 @@
                     (element (elt (elements-of printer-input) element-index))
                     (element-iomap (elt (element-iomaps-of printer-iomap) element-index)))
                (values `((the sequence (elements-of (the book/book document)))
-                         (the ,(form-type element) (elt (the sequence document) ,element-index)))
+                         (the ,(document-type element) (elt (the sequence document) ,element-index)))
                        ?rest
                        element-iomap)))))
       (?
@@ -293,7 +293,7 @@
               (element (elt (elements-of printer-input) element-index))
               (element-iomap (elt (element-iomaps-of printer-iomap) element-index)))
          (values `((the sequence (elements-of (the book/chapter document)))
-                   (the ,(form-type element) (elt (the sequence document) ,element-index)))
+                   (the ,(document-type element) (elt (the sequence document) ,element-index)))
                  ?rest
                  element-iomap)))
       (?
@@ -326,7 +326,7 @@
         (the ?child-type (elt (the sequence document) 0))
         . ?rest)
        (bind ((element-iomap (elt (element-iomaps-of printer-iomap) ?child-index))
-              (element-type (form-type (elt (elements-of (input-of printer-iomap)) ?child-index))))
+              (element-type (document-type (elt (elements-of (input-of printer-iomap)) ?child-index))))
          (values `((the sequence (elements-of (the book/list document)))
                    (the ,element-type (elt (the sequence document) ,?child-index)))
                  ?rest
@@ -359,11 +359,11 @@
                                                                  (recurse-printer recursion (value-of element)
                                                                                   `((elt (the sequence document) ,index)
                                                                                     (the sequence (elements-of (the book/book document)))
-                                                                                    ,@(typed-reference (form-type input) input-reference)))))))
-         (output-selection (as (print-selection (make-iomap 'iomap/book/book->tree/node
-                                                            :projection projection :recursion recursion
-                                                            :input input :input-reference input-reference
-                                                            :element-iomaps element-iomaps)
+                                                                                    ,@(typed-reference (document-type input) input-reference)))))))
+         (output-selection (as (print-selection (make-instance 'iomap/book/book->tree/node
+                                                               :projection projection :recursion recursion
+                                                               :input input :input-reference input-reference
+                                                               :element-iomaps element-iomaps)
                                                 (selection-of input)
                                                 'forward-mapper/book/book->tree/node)))
          (output (make-tree/node (as (append-ll (list-ll (ll (append (list (tree/leaf (:selection (as (nthcdr 2 (va output-selection))))
@@ -380,21 +380,21 @@
                                                                                            (tree/node (tree/clone-node element-output :indentation 0 :selection (as (nthcdr 2 (va output-selection)))))
                                                                                            (t element-output))))))))
                                  :selection output-selection)))
-    (make-iomap 'iomap/book/book->tree/node
-                :projection projection :recursion recursion
-                :input input :input-reference input-reference :output output
-                :element-iomaps element-iomaps)))
+    (make-instance 'iomap/book/book->tree/node
+                   :projection projection :recursion recursion
+                   :input input :input-reference input-reference :output output
+                   :element-iomaps element-iomaps)))
 
 (def printer book/chapter->tree/node (projection recursion input input-reference)
   (bind ((element-iomaps (as (map-ll* (ll (elements-of input)) (lambda (element index)
                                                                  (recurse-printer recursion (value-of element)
                                                                                   `((elt (the sequence document) ,index)
                                                                                     (the sequence (elements-of (the book/chapter document)))
-                                                                                    ,@(typed-reference (form-type input) input-reference)))))))
-         (output-selection (as (print-selection (make-iomap 'iomap/book/chapter->tree/node
-                                                            :projection projection :recursion recursion
-                                                            :input input :input-reference input-reference
-                                                            :element-iomaps element-iomaps)
+                                                                                    ,@(typed-reference (document-type input) input-reference)))))))
+         (output-selection (as (print-selection (make-instance 'iomap/book/chapter->tree/node
+                                                               :projection projection :recursion recursion
+                                                               :input input :input-reference input-reference
+                                                               :element-iomaps element-iomaps)
                                                 (selection-of input)
                                                 'forward-mapper/book/chapter->tree/node)))
          (title-output (as (bind ((title (title-of input))
@@ -431,17 +431,17 @@
                                                                                            (t element-output))))))))
                                  :collapsed (as (collapsed-p input))
                                  :selection output-selection)))
-    (make-iomap 'iomap/book/chapter->tree/node
-                :projection projection :recursion recursion
-                :input input :input-reference input-reference :output output
-                :element-iomaps element-iomaps)))
+    (make-instance 'iomap/book/chapter->tree/node
+                   :projection projection :recursion recursion
+                   :input input :input-reference input-reference :output output
+                   :element-iomaps element-iomaps)))
 
 (def printer book/paragraph->tree/leaf (projection recursion input input-reference)
   (bind ((content-iomap (as (recurse-printer recursion input input-reference)))
-         (output-selection (as (print-selection (make-iomap 'iomap/book/paragraph->tree/leaf
-                                                            :projection projection :recursion recursion
-                                                            :input input :input-reference input-reference
-                                                            :content-iomap content-iomap)
+         (output-selection (as (print-selection (make-instance 'iomap/book/paragraph->tree/leaf
+                                                               :projection projection :recursion recursion
+                                                               :input input :input-reference input-reference
+                                                               :content-iomap content-iomap)
                                                 (selection-of input)
                                                 'forward-mapper/book/paragraph->tree/leaf)))
          (output (as (bind ((content-output (output-of (va content-iomap))))
@@ -457,21 +457,21 @@
                                                                                                   (text/string (text/clone-string value :padding (make-inset :top 10)))
                                                                                                   (text/graphics value))))))
                                              :selection (as (nthcdr 1 (va output-selection))))))))))
-    (make-iomap 'iomap/book/paragraph->tree/leaf
-                :projection projection :recursion recursion
-                :input input :input-reference input-reference :output output
-                :content-iomap content-iomap)))
+    (make-instance 'iomap/book/paragraph->tree/leaf
+                   :projection projection :recursion recursion
+                   :input input :input-reference input-reference :output output
+                   :content-iomap content-iomap)))
 
 (def printer book/list->tree/node (projection recursion input input-reference)
   (bind ((element-iomaps (as (map-ll* (ll (elements-of input)) (lambda (element index)
                                                                  (recurse-printer recursion (value-of element)
                                                                                   `((elt (the sequence document) ,index)
                                                                                     (the sequence (elements-of (the book/list document)))
-                                                                                    ,@(typed-reference (form-type input) input-reference)))))))
-         (output-selection (as (print-selection (make-iomap 'iomap/book/list->tree/node
-                                                            :projection projection :recursion recursion
-                                                            :input input :input-reference input-reference
-                                                            :element-iomaps (va element-iomaps))
+                                                                                    ,@(typed-reference (document-type input) input-reference)))))))
+         (output-selection (as (print-selection (make-instance 'iomap/book/list->tree/node
+                                                               :projection projection :recursion recursion
+                                                               :input input :input-reference input-reference
+                                                               :element-iomaps (va element-iomaps))
                                                 (selection-of input)
                                                 'forward-mapper/book/list->tree/node)))
          (output (as (make-tree/node (map-ll* (va element-iomaps) (lambda (element-iomap index)
@@ -484,10 +484,10 @@
                                                                           (output-of (value-of element-iomap))))))
                                      :indentation 2
                                      :selection output-selection))))
-    (make-iomap 'iomap/book/list->tree/node
-                :projection projection :recursion recursion
-                :input input :input-reference input-reference :output output
-                :element-iomaps element-iomaps)))
+    (make-instance 'iomap/book/list->tree/node
+                   :projection projection :recursion recursion
+                   :input input :input-reference input-reference :output output
+                   :element-iomaps element-iomaps)))
 
 (def printer book/picture->tree/leaf (projection recursion input input-reference)
   (bind ((content (content-of input))
@@ -507,9 +507,9 @@
                              (color/lighten *color/solarized/gray* 0.75)
                              *color/solarized/gray*))
          (output-selection (as (unless file-exists?
-                                 (print-selection (make-iomap 'iomap/book/picture->tree/leaf
-                                                              :projection projection :recursion recursion
-                                                              :input input :input-reference input-reference)
+                                 (print-selection (make-instance 'iomap/book/picture->tree/leaf
+                                                                 :projection projection :recursion recursion
+                                                                 :input input :input-reference input-reference)
                                                   (selection-of input)
                                                   'forward-mapper/book/picture->tree/leaf))))
          (output (as (tree/leaf (:selection output-selection)
@@ -517,9 +517,9 @@
                          (if file-exists?
                              (content-of input)
                              (text/string filename-string :font *font/liberation/serif/regular/24* :font-color filename-color)))))))
-    (make-iomap 'iomap/book/picture->tree/leaf
-                :projection projection :recursion recursion
-                :input input :input-reference input-reference :output output)))
+    (make-instance 'iomap/book/picture->tree/leaf
+                   :projection projection :recursion recursion
+                   :input input :input-reference input-reference :output output)))
 
 ;;;;;;
 ;;; Reader
@@ -553,7 +553,7 @@
                                                                                         (the string (subseq (the string document) 0 0)))
                                                                         (replacement-of operation)))))))))
     (merge-commands (gesture-case (gesture-of input)
-                      ((gesture/keyboard/key-press :key :sdl-key-delete)
+                      ((make-key-press-gesture :scancode-delete)
                        :domain "Book" :description "Deletes the selected element from the book"
                        :operation (pattern-case (selection-of printer-input)
                                     (((the sequence (elements-of (the book/book document)))
@@ -564,14 +564,14 @@
                                                                             nil)))))
                     (command/read-selection recursion input printer-iomap 'forward-mapper/book/book->tree/node 'backward-mapper/book/book->tree/node)
                     (gesture-case (gesture-of input)
-                      ((gesture/keyboard/key-press :key :sdl-key-insert)
+                      ((make-key-press-gesture :scancode-insert)
                        :domain "Book" :description "Starts an insertion into the elements of the book"
                        :operation (bind ((elements-length (length (elements-of printer-input))))
                                     (make-operation/sequence/replace-range printer-input `((the sequence (elements-of (the book/book document)))
                                                                                            (the sequence (subseq (the sequence document) ,elements-length ,elements-length)))
-                                                                           (make-document/sequence (vector (as (document/insertion :selection '((the string (value-of (the document/insertion document)))
-                                                                                                                                                (the string (subseq (the string document) 0 0))))))))))
-                      ((gesture/keyboard/key-press :key :sdl-key-a :modifiers :control)
+                                                                           (make-document/sequence (vector (as (document/insertion (:selection '((the string (value-of (the document/insertion document)))
+                                                                                                                                                 (the string (subseq (the string document) 0 0)))))))))))
+                      ((make-key-press-gesture :scancode-a :control)
                        :domain "Book" :description "Inserts a new chapter into the elements of the book"
                        :operation (bind ((elements-length (length (elements-of printer-input))))
                                     (make-operation/sequence/replace-range printer-input `((the sequence (elements-of (the book/book document)))
@@ -580,13 +580,13 @@
                                                                                                                                            (the string (subseq (the string document) 0 0))))))))))))
                     (command/read-backward recursion input printer-iomap 'backward-mapper/book/book->tree/node operation-mapper)
                     (gesture-case (gesture-of input)
-                      ((gesture/keyboard/key-press :key :sdl-key-delete)
+                      ((make-key-press-gesture :scancode-delete)
                        :domain "Book" :description "Deletes the author of the book"
                        :operation (pattern-case (selection-of printer-input)
                                     (((the string (author-of (the book/book document)))
                                       (the string document))
                                      (make-operation/replace-target printer-iomap (selection-of printer-input) nil)))))
-                    (make-command/nothing (gesture-of input)))))
+                    (make-nothing-command (gesture-of input)))))
 
 (def reader book/chapter->tree/node (projection recursion input printer-iomap)
   (declare (ignore projection))
@@ -604,7 +604,7 @@
                                                                                         (the string (subseq (the string document) 0 0)))
                                                                         (replacement-of operation)))))))))
     (merge-commands (gesture-case (gesture-of input)
-                      ((gesture/keyboard/key-press :key :sdl-key-delete)
+                      ((make-key-press-gesture :scancode-delete)
                        :domain "Book" :description "Deletes the selected element from the chapter"
                        :operation (pattern-case (selection-of printer-input)
                                     (((the sequence (elements-of (the book/chapter document)))
@@ -615,25 +615,25 @@
                                                                             nil)))))
                     (command/read-selection recursion input printer-iomap 'forward-mapper/book/chapter->tree/node 'backward-mapper/book/chapter->tree/node)
                     (gesture-case (gesture-of input)
-                      ((gesture/keyboard/key-press :key :sdl-key-insert)
+                      ((make-key-press-gesture :scancode-insert)
                        :domain "Book" :description "Starts an insertion into the elements of the chapter"
                        :operation (bind ((elements-length (length (elements-of printer-input))))
                                     (make-operation/compound (list (make-operation/sequence/replace-range printer-input `((the sequence (elements-of (the book/chapter document)))
                                                                                                                           (the sequence (subseq (the sequence document) ,elements-length ,elements-length)))
-                                                                                                          (make-document/sequence (vector (as (document/insertion :selection '((the string (value-of (the document/insertion document)))
-                                                                                                                                                                               (the string (subseq (the string document) 0 0))))))))
+                                                                                                          (make-document/sequence (vector (as (document/insertion (:selection '((the string (value-of (the document/insertion document)))
+                                                                                                                                                                                (the string (subseq (the string document) 0 0)))))))))
                                                                    (make-operation/replace-selection printer-input `((the sequence (elements-of (the book/chapter document)))
                                                                                                                      (the document/insertion (elt (the sequence document) ,elements-length))
                                                                                                                      (the string (value-of (the document/insertion document)))
                                                                                                                      (the string (subseq (the string document) 0 0))))))))
-                      ((gesture/keyboard/key-press :key :sdl-key-a :modifiers :control)
+                      ((make-key-press-gesture :scancode-a :control)
                        :domain "Book" :description "Inserts a new chapter into the elements of the chapter"
                        :operation (bind ((elements-length (length (elements-of printer-input))))
                                     (make-operation/sequence/replace-range printer-input `((the sequence (elements-of (the book/chapter document)))
                                                                                            (the sequence (subseq (the sequence document) ,elements-length ,elements-length)))
                                                                            (make-document/sequence (vector (as (book/chapter (:selection '((the string (title-of (the book/chapter document)))
                                                                                                                                            (the string (subseq (the string document) 0 0)))))))))))
-                      ((gesture/keyboard/key-press :key :sdl-key-r :modifiers :control)
+                      ((make-key-press-gesture :scancode-r :control)
                        :domain "Book" :description "Inserts a new paragraph into the elements of the chapter"
                        :operation (bind ((elements-length (length (elements-of printer-input))))
                                     (make-operation/sequence/replace-range printer-input `((the sequence (elements-of (the book/chapter document)))
@@ -643,7 +643,7 @@
                                                                                                                  (text/text (:selection '((the text/text (text/subseq (the text/text document) 0 0))))
                                                                                                                    (text/string "" :font *font/liberation/serif/regular/24* :font-color *color/solarized/content/darker*))))))))))
                     (command/read-backward recursion input printer-iomap 'backward-mapper/book/chapter->tree/node operation-mapper)
-                    (make-command/nothing (gesture-of input)))))
+                    (make-nothing-command (gesture-of input)))))
 
 (def reader book/paragraph->tree/leaf (projection recursion input printer-iomap)
   (declare (ignore projection))
@@ -659,21 +659,21 @@
                                                                       (replacement-of operation)))))))))
     (merge-commands (command/read-selection recursion input printer-iomap 'forward-mapper/book/paragraph->tree/leaf 'backward-mapper/book/paragraph->tree/leaf)
                     (command/read-backward recursion input printer-iomap 'backward-mapper/book/paragraph->tree/leaf operation-mapper)
-                    (make-command/nothing (gesture-of input)))))
+                    (make-nothing-command (gesture-of input)))))
 
 (def reader book/list->tree/node (projection recursion input printer-iomap)
   (declare (ignore projection))
   (bind ((printer-input (input-of printer-iomap)))
     (merge-commands (command/read-selection recursion input printer-iomap 'forward-mapper/book/list->tree/node 'backward-mapper/book/list->tree/node)
                     (gesture-case (gesture-of input)
-                      ((gesture/keyboard/key-press :key :sdl-key-insert)
+                      ((make-key-press-gesture :scancode-insert)
                        :domain "Book" :description "Starts an insertion into the elements of the list"
                        :operation (bind ((elements-length (length (elements-of printer-input))))
                                     (make-operation/sequence/replace-range printer-input `((the sequence (elements-of (the book/list document)))
                                                                                            (the sequence (subseq (the sequence document) ,elements-length ,elements-length)))
-                                                                           (make-document/sequence (vector (as (document/insertion :selection '((the string (value-of (the document/insertion document)))
-                                                                                                                                                (the string (subseq (the string document) 0 0))))))))))
-                      ((gesture/keyboard/key-press :key :sdl-key-r :modifiers :control)
+                                                                           (make-document/sequence (vector (as (document/insertion (:selection '((the string (value-of (the document/insertion document)))
+                                                                                                                                                 (the string (subseq (the string document) 0 0)))))))))))
+                      ((make-key-press-gesture :scancode-r :control)
                        :domain "Book" :description "Inserts a new paragraph into the elements of the list"
                        :operation (bind ((elements-length (length (elements-of printer-input))))
                                     (make-operation/sequence/replace-range printer-input `((the sequence (elements-of (the book/list document)))
@@ -683,7 +683,7 @@
                                                                                                                  (text/text (:selection '((the text/text (text/subseq (the text/text document) 0 0))))
                                                                                                                    (text/string "" :font *font/liberation/serif/regular/24* :font-color *color/solarized/content/darker*))))))))))
                     (command/read-backward recursion input printer-iomap 'backward-mapper/book/list->tree/node nil)
-                    (make-command/nothing (gesture-of input)))))
+                    (make-nothing-command (gesture-of input)))))
 
 (def reader book/picture->tree/leaf (projection recursion input printer-iomap)
   (declare (ignore projection))
@@ -703,4 +703,4 @@
                                                                                         (the string (subseq (the string document) 0 0)))
                                                                         (replacement-of operation)))))))))
     (merge-commands (command/read-backward recursion input printer-iomap 'backward-mapper/book/picture->tree/leaf operation-mapper)
-                    (make-command/nothing (gesture-of input)))))
+                    (make-nothing-command (gesture-of input)))))

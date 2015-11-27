@@ -15,14 +15,44 @@
 (def projection t/object->tree/node ()
   ((slot-provider :type function)))
 
+(def projection t/null->tree/leaf ()
+  ())
+
+(def projection t/number->tree/leaf ()
+  ())
+
+(def projection t/string->tree/leaf ()
+  ())
+
+(def projection t/symbol->tree/leaf ()
+  ())
+
+(def projection t/pathname->tree/leaf ()
+  ())
+
 ;;;;;;
 ;;; Construction
 
 (def function make-projection/t/sequence->tree/node ()
   (make-projection 't/sequence->tree/node))
 
-(def function make-projection/t/object->tree/node (&key slot-provider)
+(def function make-projection/t/object->tree/node (slot-provider)
   (make-projection 't/object->tree/node :slot-provider (or slot-provider (compose 'class-slots 'class-of))))
+
+(def function make-projection/t/null->tree/leaf ()
+  (make-projection 't/null->tree/leaf))
+
+(def function make-projection/t/number->tree/leaf ()
+  (make-projection 't/number->tree/leaf))
+
+(def function make-projection/t/string->tree/leaf ()
+  (make-projection 't/string->tree/leaf))
+
+(def function make-projection/t/symbol->tree/leaf ()
+  (make-projection 't/symbol->tree/leaf))
+
+(def function make-projection/t/pathname->tree/leaf ()
+  (make-projection 't/pathname->tree/leaf))
 
 ;;;;;;
 ;;; Construction
@@ -32,6 +62,21 @@
 
 (def macro t/object->tree/node (q&key slot-provider)
   `(make-projection/t/object->tree/node :slot-provider ,slot-provider))
+
+(def macro t/null->tree/leaf ()
+  '(make-projection/t/null->tree/leaf))
+
+(def macro t/number->tree/leaf ()
+  '(make-projection/t/number->tree/leaf))
+
+(def macro t/string->tree/leaf ()
+  '(make-projection/t/string->tree/leaf))
+
+(def macro t/symbol->tree/leaf ()
+  '(make-projection/t/symbol->tree/leaf))
+
+(def macro t/pathname->tree/leaf ()
+  '(make-projection/t/pathname->tree/leaf))
 
 ;;;;;;
 ;;; Forward mapper
@@ -56,7 +101,7 @@
          (values `((the sequence (children-of (the tree/node document)))
                    (the tree/node (elt (the sequence document) ,(1+ ?index)))
                    (the sequence (children-of (the tree/node document)))
-                   (the ,(form-type (output-of element-iomap)) (elt (the sequence document) 1)))
+                   (the ,(document-type (output-of element-iomap)) (elt (the sequence document) 1)))
                  ?rest
                  element-iomap)))
       (((the tree/node (printer-output (the sequence document) ?projection ?recursion)) . ?rest)
@@ -101,11 +146,11 @@
          (values `((the sequence (children-of (the tree/node document)))
                    (the tree/node (elt (the sequence document) ,(1+ index)))
                    (the sequence (children-of (the tree/node document)))
-                   (the ,(form-type (output-of slot-iomap)) (elt (the sequence document) 1)))
+                   (the ,(document-type (output-of slot-iomap)) (elt (the sequence document) 1)))
                  ?rest
                  slot-iomap)))
       (((the tree/node (printer-output (the ?type document) ?projection ?recursion)) . ?rest)
-       (when (and (eq ?type (form-type printer-input)) (eq projection ?projection))
+       (when (and (eq ?type (document-type printer-input)) (eq projection ?projection))
          ?rest)))))
 
 ;;;;;;
@@ -132,7 +177,7 @@
         . ?rest)
        (bind ((index (1- ?index))
               (element-iomap (elt (child-iomaps-of printer-iomap) index)))
-         (values `((the ,(form-type (input-of element-iomap)) (elt (the sequence document) ,index)))
+         (values `((the ,(document-type (input-of element-iomap)) (elt (the sequence document) ,index)))
                  ?rest
                  element-iomap)))
       (?a
@@ -144,7 +189,7 @@
          (printer-input (input-of printer-iomap)))
     (pattern-case reference
       (((the tree/node document))
-       `((the ,(form-type printer-input) document)))
+       `((the ,(document-type printer-input) document)))
       (((the sequence (children-of (the tree/node document)))
         (the tree/node (elt (the sequence document) ?child-index))
         (the sequence (children-of (the tree/node document)))
@@ -159,16 +204,16 @@
              (typecase slot-value
                (string
                 (if (string= slot-value "")
-                    (append `((the tree/node (printer-output (the ,(form-type printer-input)  document) ,projection ,recursion))) reference)
-                    `((the string (,slot-reader (the ,(form-type printer-input) document)))
+                    (append `((the tree/node (printer-output (the ,(document-type printer-input)  document) ,projection ,recursion))) reference)
+                    `((the string (,slot-reader (the ,(document-type printer-input) document)))
                       (the string (subseq (the string document) ,?start-index ,?end-index)))))
                (number
-                `((the number (,slot-reader (the ,(form-type printer-input) document)))
+                `((the number (,slot-reader (the ,(document-type printer-input) document)))
                   (the string (write-to-string (the number document)))
                   (the string (subseq (the string document) ,?start-index ,?end-index))))
                (t
-                (append `((the tree/node (printer-output (the ,(form-type printer-input)  document) ,projection ,recursion))) reference))))
-           (append `((the tree/node (printer-output (the ,(form-type printer-input)  document) ,projection ,recursion))) reference)))
+                (append `((the tree/node (printer-output (the ,(document-type printer-input)  document) ,projection ,recursion))) reference))))
+           (append `((the tree/node (printer-output (the ,(document-type printer-input)  document) ,projection ,recursion))) reference)))
       (((the sequence (children-of (the tree/node document)))
         (the tree/node (elt (the sequence document) ?index))
         (the sequence (children-of (the tree/node document)))
@@ -180,11 +225,11 @@
               (slot-reader (find-slot-reader (class-of printer-input) slot))
               (slot-iomap (elt (child-iomaps-of printer-iomap) index))
               (slot-value (input-of slot-iomap)))
-         (values `((the ,(form-type slot-value) (,slot-reader (the ,(form-type printer-input) document))))
+         (values `((the ,(document-type slot-value) (,slot-reader (the ,(document-type printer-input) document))))
                  ?rest
                  slot-iomap)))
       (?a
-       (append `((the tree/node (printer-output (the ,(form-type printer-input) document) ,projection ,recursion))) reference)))))
+       (append `((the tree/node (printer-output (the ,(document-type printer-input) document) ,projection ,recursion))) reference)))))
 
 ;;;;;;
 ;;; Printer
@@ -192,8 +237,8 @@
 (def printer t/sequence->tree/node (projection recursion input input-reference)
   (bind ((element-iomaps (as (map-ll* (ll input) (lambda (element index)
                                                    (recurse-printer recursion (value-of element)
-                                                                    `((elt (the ,(form-type input) document) ,index)
-                                                                      ,@(typed-reference (form-type input) input-reference)))))))
+                                                                    `((elt (the ,(document-type input) document) ,index)
+                                                                      ,@(typed-reference (document-type input) input-reference)))))))
          (output-selection (as (when (typep input 'document)
                                  (print-selection (make-iomap/compound projection recursion input input-reference nil element-iomaps)
                                                   (selection-of input)
@@ -222,11 +267,11 @@
          (slot-readers (mapcar (curry 'find-slot-reader class) slots))
          (slot-iomaps (as (iter (for slot :in slots)
                                 (for slot-reader :in slot-readers)
-                                (for slot-reference = `((,slot-reader (the ,(form-type input) document))
-                                                        ,@(typed-reference (form-type input) input-reference)))
+                                (for slot-reference = `((,slot-reader (the ,(document-type input) document))
+                                                        ,@(typed-reference (document-type input) input-reference)))
                                 (collect (if (slot-boundp-using-class class input slot)
                                              (recurse-printer recursion (slot-value-using-class class input slot) slot-reference)
-                                             (make-iomap/object recursion recursion nil slot-reference (tree/leaf ()
+                                             (make-iomap recursion recursion nil slot-reference (tree/leaf ()
                                                                                                          (text/make-simple-text "<unbound>" :font *font/ubuntu/monospace/italic/24* :font-color *color/solarized/gray*))))))))
          (output-selection (as (print-selection (make-iomap/compound projection recursion input input-reference nil slot-iomaps)
                                                 (selection-of input)
@@ -247,6 +292,33 @@
                                      :selection output-selection))))
     (make-iomap/compound projection recursion input input-reference output slot-iomaps)))
 
+(def printer t/null->tree/leaf (projection recursion input input-reference)
+  (bind ((output (tree/leaf ()
+                   (text/make-simple-text "NIL" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/magenta*))))
+    (make-iomap projection recursion input input-reference output)))
+
+(def printer t/number->tree/leaf (projection recursion input input-reference)
+  (bind ((output (tree/leaf ()
+                   (text/make-default-text (write-to-string input) "enter number" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/magenta*))))
+    (make-iomap projection recursion input input-reference output)))
+
+(def printer t/string->tree/leaf (projection recursion input input-reference)
+  (bind ((output (tree/leaf (:opening-delimiter (text/make-simple-text "\"" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*)
+                             :closing-delimiter (text/make-simple-text "\"" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
+                   (text/make-default-text input "enter string" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/green*))))
+    (make-iomap/compound projection recursion input input-reference output nil)))
+
+(def printer t/symbol->tree/leaf (projection recursion input input-reference)
+  (bind ((output (tree/leaf ()
+                   (text/make-default-text (write-to-string input) "enter symbol" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/blue*))))
+    (make-iomap projection recursion input input-reference output)))
+
+(def printer t/pathname->tree/leaf (projection recursion input input-reference)
+  (bind ((output (tree/leaf (:opening-delimiter (text/make-simple-text "#P\"" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*)
+                             :closing-delimiter (text/make-simple-text "\"" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
+                   (text/make-default-text (princ-to-string input) "enter path" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/green*))))
+    (make-iomap projection recursion input input-reference output)))
+
 ;;;;;;
 ;;; Reader
 
@@ -263,7 +335,7 @@
                                    (make-operation/sequence/replace-range printer-input selection (replacement-of operation)))))))))
     (merge-commands (command/read-selection recursion input printer-iomap 'forward-mapper/t/sequence->tree/node 'backward-mapper/t/sequence->tree/node)
                     (command/read-backward recursion input printer-iomap 'backward-mapper/t/sequence->tree/node operation-mapper)
-                    (make-command/nothing (gesture-of input)))))
+                    (make-nothing-command (gesture-of input)))))
 
 (def reader t/object->tree/node (projection recursion input printer-iomap)
   (bind ((printer-input (input-of printer-iomap))
@@ -297,4 +369,24 @@
                                                                             (replacement-of operation)))))))))))
     (merge-commands (command/read-selection recursion input printer-iomap 'forward-mapper/t/object->tree/node 'backward-mapper/t/object->tree/node)
                     (command/read-backward recursion input printer-iomap 'backward-mapper/t/object->tree/node operation-mapper)
-                    (make-command/nothing (gesture-of input)))))
+                    (make-nothing-command (gesture-of input)))))
+
+(def reader t/null->tree/leaf (projection recursion input printer-iomap)
+  (declare (ignore projection recursion printer-iomap))
+  (make-nothing-command (gesture-of input)))
+
+(def reader t/number->tree/leaf (projection recursion input printer-iomap)
+  (declare (ignore projection recursion printer-iomap))
+  (make-nothing-command (gesture-of input)))
+
+(def reader t/string->tree/leaf (projection recursion input printer-iomap)
+  (declare (ignore projection recursion printer-iomap))
+  (make-nothing-command (gesture-of input)))
+
+(def reader t/symbol->tree/leaf (projection recursion input printer-iomap)
+  (declare (ignore projection recursion printer-iomap))
+  (make-nothing-command (gesture-of input)))
+
+(def reader t/pathname->tree/leaf (projection recursion input printer-iomap)
+  (declare (ignore projection recursion printer-iomap))
+  (make-nothing-command (gesture-of input)))

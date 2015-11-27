@@ -1,16 +1,10 @@
 ;;; -*- mode: Lisp; Syntax: Common-Lisp; -*-
 ;;;
-;;; Copyright (c) 2009 by the authors.
+;;; Copyright (c) by the authors.
 ;;;
 ;;; See LICENCE for details.
 
 (in-package :projectured)
-
-;;;;;;
-;;; IO map
-
-(def iomap iomap/document/search->tree/node ()
-  ((result :type sequence)))
 
 ;;;;;;
 ;;; Projection
@@ -49,6 +43,12 @@
   `(make-projection/document/search->tree/node ,searcher))
 
 ;;;;;;
+;;; IO map
+
+(def iomap iomap/document/search->tree/node ()
+  ((result :type sequence)))
+
+;;;;;;
 ;;; Forward mapper
 
 ;;;;;;
@@ -70,7 +70,7 @@
         (the sequence (children-of (the tree/node document)))
         (the ?type (elt (the sequence document) 0))
         . ?rest)
-       (values `((the ,(form-type (content-of printer-input)) (content-of (the document/search document))))
+       (values `((the ,(document-type (content-of printer-input)) (content-of (the document/search document))))
                ?rest
                ;; TODO:
                nil))
@@ -89,7 +89,7 @@
          (output (as (tree/leaf (:selection output-selection)
                        (text/text (:selection (as (nthcdr 1 (va output-selection))))
                          (text/string (value-of input) :font *font/liberation/serif/regular/24* :font-color (color/lighten *color/solarized/gray* 0.75)))))))
-    (make-iomap/object projection recursion input input-reference output)))
+    (make-iomap projection recursion input input-reference output)))
 
 (def printer document/insertion->tree/leaf (projection recursion input input-reference)
   (bind ((output-selection (as (pattern-case (selection-of input)
@@ -117,7 +117,7 @@
                            (text/string (value-of input) :font font :font-color value-color)
                            (text/string (if completion (if commitable? (string+ completion "?") completion) "") :font font :font-color (color/lighten value-color 0.75))
                            (text/string (suffix-of input) :font font :font-color (color/lighten *color/solarized/gray* 0.75))))))))
-    (make-iomap/object projection recursion input input-reference output)))
+    (make-iomap projection recursion input input-reference output)))
 
 (def printer document/search->tree/node (projection recursion input input-reference)
   (bind ((content (content-of input))
@@ -151,17 +151,17 @@
          (output (make-tree/node (iter (for index :from 0)
                                        (for reference :in result)
                                        (collect (tree/node (:indentation 0 :selection (nthcdr 2 output-selection))
-                                                  (bind ((content (eval-reference content (reference/flatten reference))))
+                                                  (bind ((content (eval-reference content (flatten-reference reference))))
                                                     (when (typep content 'document)
                                                       ;; KLUDGE:
                                                       (setf (selection-of content) (when (eql index selection-index)
                                                                                      (nthcdr 4 output-selection))))
                                                     content))))
                                  :selection (when selection-index output-selection))))
-    (make-iomap 'iomap/document/search->tree/node
-                :projection projection :recursion recursion
-                :input input :input-reference input-reference :output output
-                :result result)))
+    (make-instance 'iomap/document/search->tree/node
+                   :projection projection :recursion recursion
+                   :input input :input-reference input-reference :output output
+                   :result result)))
 
 ;;;;;;
 ;;; Reader
@@ -170,9 +170,9 @@
   (declare (ignore projection recursion))
   (bind ((printer-input (input-of printer-iomap)))
     (merge-commands (gesture-case (gesture-of input)
-                      ((gesture/keyboard/key-press :key :sdl-key-insert)
+                      ((make-key-press-gesture :scancode-insert)
                        :domain "Document" :description "Starts an insertion into the document"
-                       :operation (make-operation/compound (list (make-operation/replace-target printer-input nil (document/insertion))
+                       :operation (make-operation/compound (list (make-operation/replace-target printer-input nil (document/insertion ()))
                                                                  (make-operation/replace-selection printer-input `((the string (value-of (the document/insertion document)))
                                                                                                                    (the string (subseq (the string document) 0 0))))))))
                     (make-command (gesture-of input)
@@ -203,13 +203,13 @@
                                     (recurse (operation-of input)))
                                   :domain (domain-of input)
                                   :description (description-of input))
-                    (make-command/nothing (gesture-of input)))))
+                    (make-nothing-command (gesture-of input)))))
 
 (def reader document/insertion->tree/leaf (projection recursion input printer-iomap)
   (declare (ignore recursion))
   (bind ((printer-input (input-of printer-iomap)))
     (merge-commands (gesture-case (gesture-of input)
-                      ((gesture/keyboard/key-press :key :sdl-key-tab)
+                      ((make-key-press-gesture :scancode-tab)
                        :domain "Document" :description "Inserts the suggested completion at the selection"
                        :operation (bind (((:values nil completion) (funcall (factory-of projection) (value-of printer-input)))
                                          (end (length (value-of printer-input))))
@@ -217,7 +217,7 @@
                                               (make-operation/string/replace-range printer-input `((the string (value-of (the document/insertion document)))
                                                                                                    (the string (subseq (the string document) ,end ,end))) completion))
                                             #t)))
-                      ((gesture/keyboard/key-press :key :sdl-key-return)
+                      ((make-key-press-gesture :scancode-return)
                        :domain "Document" :description "Inserts a new object of the provided type"
                        :operation (bind (((:values immediate-new-instance completion) (funcall (factory-of projection) (value-of printer-input)))
                                          (new-instance (or immediate-new-instance
@@ -227,9 +227,9 @@
                                                                              #+nil ;; TODO: causes the initial selection to fail
                                                                              (make-operation/replace-selection printer-input nil))))
                                             #t)))
-                      ((gesture/keyboard/key-press :key :sdl-key-escape)
+                      ((make-key-press-gesture :scancode-escape)
                        :domain "Document" :description "Aborts the object insertion"
-                       :operation (make-operation/replace-target printer-input nil (document/nothing))))
+                       :operation (make-operation/replace-target printer-input nil (document/nothing ()))))
                     (make-command (gesture-of input)
                                   (labels ((recurse (operation)
                                              (typecase operation
@@ -284,7 +284,7 @@
                                     (recurse (operation-of input)))
                                   :domain (domain-of input)
                                   :description (description-of input))
-                    (make-command/nothing (gesture-of input)))))
+                    (make-nothing-command (gesture-of input)))))
 
 (def reader document/search->tree/node (projection recursion input printer-iomap)
   (bind ((printer-input (input-of printer-iomap)))
@@ -308,7 +308,7 @@
                                                    (bind ((index ?index)
                                                           (content (content-of printer-input))
                                                           (reference (elt (result-of printer-iomap) index)))
-                                                     (append `((the ,(form-type content) (content-of (the document/search document)))) reference ?rest)))
+                                                     (append `((the ,(document-type content) (content-of (the document/search document)))) reference ?rest)))
                                                   (?a
                                                    (append `((the tree/node (printer-output (the document/search document) ,projection ,recursion))) (selection-of operation))))
                                            (make-operation/replace-selection printer-input it)))
@@ -322,7 +322,7 @@
                                                    (bind ((index ?index)
                                                           (content (content-of printer-input))
                                                           (reference (elt (result-of printer-iomap) index)))
-                                                     (append `((the ,(form-type content) (content-of (the document/search document)))) reference ?rest))))
+                                                     (append `((the ,(document-type content) (content-of (the document/search document)))) reference ?rest))))
                                            (make-operation/sequence/replace-range printer-input it (replacement-of operation))))
                                         (operation/text/replace-range
                                          (awhen (pattern-case (selection-of operation)
@@ -343,7 +343,7 @@
                                                    (bind ((index ?index)
                                                           (content (content-of printer-input))
                                                           (reference (elt (result-of printer-iomap) index)))
-                                                     (append `((the ,(form-type content) (content-of (the document/search document)))) reference ?rest))))
+                                                     (append `((the ,(document-type content) (content-of (the document/search document)))) reference ?rest))))
                                            (make-operation/sequence/replace-range printer-input it (replacement-of operation))))
                                         (operation/number/replace-range
                                          (awhen (pattern-case (selection-of operation)
@@ -355,7 +355,7 @@
                                                    (bind ((index ?index)
                                                           (content (content-of printer-input))
                                                           (reference (elt (result-of printer-iomap) index)))
-                                                     (append `((the ,(form-type content) (content-of (the document/search document)))) reference ?rest))))
+                                                     (append `((the ,(document-type content) (content-of (the document/search document)))) reference ?rest))))
                                            (make-operation/number/replace-range printer-input it (replacement-of operation))))
                                         (operation/compound
                                          (bind ((operations (mapcar #'recurse (elements-of operation))))
@@ -365,4 +365,4 @@
                       (make-command (gesture-of input) it
                                     :domain (domain-of input)
                                     :description (description-of input)))
-                    (make-command/nothing (gesture-of input)))))
+                    (make-nothing-command (gesture-of input)))))

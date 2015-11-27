@@ -9,6 +9,9 @@
 ;;;;;;
 ;;; Projection
 
+(def projection xml/insertion->tree/leaf ()
+  ())
+
 (def projection xml/text->tree/leaf ()
   ())
 
@@ -19,14 +22,10 @@
   ())
 
 ;;;;;;
-;;; IO map
-
-(def iomap iomap/xml/element->tree/node ()
-  ((attribute-iomaps :type sequence)
-   (child-iomaps :type sequence)))
-
-;;;;;;
 ;;; Construction
+
+(def function make-projection/xml/insertion->tree/leaf ()
+  (make-projection 'xml/insertion->tree/leaf))
 
 (def function make-projection/xml/text->tree/leaf ()
   (make-projection 'xml/text->tree/leaf))
@@ -40,6 +39,9 @@
 ;;;;;;
 ;;; Construction
 
+(def macro xml/insertion->tree/leaf ()
+  '(make-projection/xml/insertion->tree/leaf))
+
 (def macro xml/text->tree/leaf ()
   '(make-projection/xml/text->tree/leaf))
 
@@ -50,7 +52,26 @@
   '(make-projection/xml/element->tree/node))
 
 ;;;;;;
+;;; IO map
+
+(def iomap iomap/xml/element->tree/node ()
+  ((attribute-iomaps :type sequence)
+   (child-iomaps :type sequence)))
+
+;;;;;;
 ;;; Forward mapper
+
+(def function forward-mapper/xml/insertion->tree/leaf (printer-iomap reference)
+  (bind ((projection (projection-of printer-iomap))
+         (recursion (recursion-of printer-iomap)))
+    (pattern-case reference
+      (((the string (value-of (the xml/insertion document)))
+        (the string (subseq (the string document) 0 0)))
+       `((the text/text (content-of (the tree/leaf document)))
+         (the text/text (text/subseq (the text/text document) 0 0))))
+      (((the tree/leaf (printer-output (the xml/insertion document) ?projection ?recursion)) . ?rest)
+       (when (eq projection ?projection)
+         ?rest)))))
 
 (def function forward-mapper/xml/text->tree/leaf (printer-iomap reference)
   (bind ((projection (projection-of printer-iomap))
@@ -115,7 +136,7 @@
          (values `((the sequence (children-of (the tree/node document)))
                    (the tree/node (elt (the sequence document) 1))
                    (the sequence (children-of (the tree/node document)))
-                   (the ,(form-type attribute-output) (elt (the sequence document) ,?attribute-index)))
+                   (the ,(document-type attribute-output) (elt (the sequence document) ,?attribute-index)))
                  ?rest
                  attribute-iomap)))
       (((the sequence (children-of (the xml/element document)))
@@ -124,7 +145,7 @@
        (bind ((child-iomap (elt (child-iomaps-of printer-iomap) ?child-index))
               (child-output (output-of child-iomap)))
          (values `((the sequence (children-of (the tree/node document)))
-                   (the ,(form-type child-output) (elt (the sequence document) ,(+ ?child-index (if (emptyp (attributes-of printer-input)) 1 2)))))
+                   (the ,(document-type child-output) (elt (the sequence document) ,(+ ?child-index (if (emptyp (attributes-of printer-input)) 1 2)))))
                  ?rest
                  child-iomap)))
       (((the tree/node (printer-output (the xml/element document) ?projection ?recursion)) . ?rest)
@@ -133,6 +154,17 @@
 
 ;;;;;;
 ;;; Backward mapper
+
+(def function backward-mapper/xml/insertion->tree/leaf (printer-iomap reference)
+  (bind ((projection (projection-of printer-iomap))
+         (recursion (recursion-of printer-iomap)))
+    (pattern-case reference
+      (((the text/text (content-of (the tree/leaf document)))
+        (the text/text (text/subseq (the text/text document) 0 0)))
+       `((the string (value-of (the xml/insertion document)))
+         (the string (subseq (the string document) 0 0))))
+      (?a
+       (append `((the tree/leaf (printer-output (the xml/insertion document) ,projection ,recursion))) reference)))))
 
 (def function backward-mapper/xml/text->tree/leaf (printer-iomap reference)
   (bind ((printer-input (input-of printer-iomap))
@@ -221,7 +253,7 @@
                   (bind ((attribute (elt (attributes-of printer-input) ?attribute-index))
                          (attribute-iomap (elt (attribute-iomaps-of printer-iomap) ?attribute-index)))
                     (values `((the sequence (attributes-of (the xml/element document)))
-                              (the ,(form-type attribute) (elt (the sequence document) ,?attribute-index)))
+                              (the ,(document-type attribute) (elt (the sequence document) ,?attribute-index)))
                             ?rest
                             attribute-iomap)))
                  (?a
@@ -231,7 +263,7 @@
                       (child (elt (children-of printer-input) child-index))
                       (child-iomap (elt (child-iomaps-of printer-iomap) child-index)))
                  (values `((the sequence (children-of (the xml/element document)))
-                           (the ,(form-type child) (elt (the sequence document) ,child-index)))
+                           (the ,(document-type child) (elt (the sequence document) ,child-index)))
                          ?rest
                          child-iomap)))))
       (?a
@@ -240,14 +272,21 @@
 ;;;;;;
 ;;; Printer
 
+(def printer xml/insertion->tree/leaf (projection recursion input input-reference)
+  (bind ((output-selection (as (print-selection (make-iomap projection recursion input input-reference nil) (selection-of input) 'forward-mapper/xml/insertion->tree/leaf)))
+         (output (as (tree/leaf (:selection output-selection)
+                       (text/text (:selection (as (nthcdr 1 (va output-selection))))
+                         (text/string (value-of input) :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/blue*))))))
+    (make-iomap projection recursion input input-reference output)))
+
 (def printer xml/text->tree/leaf (projection recursion input input-reference)
-  (bind ((output-selection (as (print-selection (make-iomap/object projection recursion input input-reference nil) (selection-of input) 'forward-mapper/xml/text->tree/leaf)))
+  (bind ((output-selection (as (print-selection (make-iomap projection recursion input input-reference nil) (selection-of input) 'forward-mapper/xml/text->tree/leaf)))
          (output (as (tree/leaf (:selection output-selection)
                        (text/make-default-text (value-of input) "enter xml text" :selection (as (nthcdr 1 (va output-selection))) :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/green*)))))
-    (make-iomap/object projection recursion input input-reference output)))
+    (make-iomap projection recursion input input-reference output)))
 
 (def printer xml/attribute->tree/node (projection recursion input input-reference)
-  (bind ((output-selection (as (print-selection (make-iomap/object projection recursion input input-reference nil) (selection-of input) 'forward-mapper/xml/attribute->tree/node)))
+  (bind ((output-selection (as (print-selection (make-iomap projection recursion input input-reference nil) (selection-of input) 'forward-mapper/xml/attribute->tree/node)))
          (output (as (tree/node (:separator (text/text () (text/string "=" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
                                   :selection output-selection)
                        (tree/leaf (:selection (as (nthcdr 2 (va output-selection))))
@@ -256,7 +295,7 @@
                                    :closing-delimiter (text/text () (text/string "\"" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
                                    :selection (as (nthcdr 2 (va output-selection))))
                          (text/make-default-text (value-of input) "enter xml attribute value" :selection (as (nthcdr 3 (va output-selection))) :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/green*))))))
-    (make-iomap/object projection recursion input input-reference output)))
+    (make-iomap projection recursion input input-reference output)))
 
 (def printer xml/element->tree/node (projection recursion input input-reference)
   (bind ((deep-element (not (emptyp (children-of input))))
@@ -265,16 +304,16 @@
                                      (collect (recurse-printer recursion attribute
                                                                `((elt (the sequence document) ,attribute-index)
                                                                  (the sequence (attributes-of document))
-                                                                 ,@(typed-reference (form-type input) input-reference)))))))
+                                                                 ,@(typed-reference (document-type input) input-reference)))))))
          (child-iomaps (as (map-ll* (children-of input) (lambda (child index)
                                                           (recurse-printer recursion (value-of child)
                                                                            `((elt (the sequence document) ,index)
                                                                              (the sequence (children-of (the xml/element document)))
-                                                                             ,@(typed-reference (form-type input) input-reference)))))))
-         (output-selection (as (print-selection (make-iomap 'iomap/xml/element->tree/node
-                                                            :projection projection :recursion recursion
-                                                            :input input :input-reference input-reference
-                                                            :attribute-iomaps attribute-iomaps :child-iomaps child-iomaps)
+                                                                             ,@(typed-reference (document-type input) input-reference)))))))
+         (output-selection (as (print-selection (make-instance 'iomap/xml/element->tree/node
+                                                               :projection projection :recursion recursion
+                                                               :input input :input-reference input-reference
+                                                               :attribute-iomaps attribute-iomaps :child-iomaps child-iomaps)
                                                 (selection-of input)
                                                 'forward-mapper/xml/element->tree/node)))
          (output (as (bind ((children (children-of input))
@@ -306,13 +345,35 @@
                                        :separator (text/text () (text/string " " :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
                                        :collapsed (as (collapsed-p input))
                                        :selection output-selection)))))
-    (make-iomap 'iomap/xml/element->tree/node
-                :projection projection :recursion recursion
-                :input input :input-reference input-reference :output output
-                :attribute-iomaps attribute-iomaps :child-iomaps child-iomaps)))
+    (make-instance 'iomap/xml/element->tree/node
+                   :projection projection :recursion recursion
+                   :input input :input-reference input-reference :output output
+                   :attribute-iomaps attribute-iomaps :child-iomaps child-iomaps)))
 
 ;;;;;;
 ;;; Reader
+
+(def reader xml/insertion->tree/leaf (projection recursion input printer-iomap)
+  (declare (ignore projection))
+  (bind ((printer-input (input-of printer-iomap))
+         (operation-mapper (lambda (operation selection child-selection child-iomap)
+                             (declare (ignore child-selection child-iomap))
+                             (typecase operation
+                               (operation/text/replace-range
+                                ;; TODO: do nothing
+                                (make-operation/functional (lambda ())))))))
+    (merge-commands (gesture-case (gesture-of input)
+                      ((make-type-in-gesture #\")
+                       :domain "XML" :description "Inserts a new XML text into the children of the XML element"
+                       :operation (make-operation/replace-target printer-input nil (xml/text (:selection '((the string (value-of (the xml/text document)))
+                                                                                                           (the string (subseq (the string document) 0 0))))
+                                                                                     "")))
+                      ((make-type-in-gesture #\<)
+                       :domain "XML" :description "Inserts a new XML element into the children of the XML element"
+                       :operation (make-operation/replace-target printer-input nil (xml/element ("" nil :selection `((the string (xml/start-tag (the xml/element document)))
+                                                                                                                     (the string (subseq (the string document) 0 0))))))))
+                    (command/read-backward recursion input printer-iomap 'backward-mapper/xml/insertion->tree/leaf operation-mapper)
+                    (make-nothing-command (gesture-of input)))))
 
 (def reader xml/text->tree/leaf (projection recursion input printer-iomap)
   (declare (ignore projection))
@@ -332,7 +393,7 @@
                                                                           (the string (subseq (the string document) 0 0)))
                                                                         (replacement-of operation)))))))))
     (merge-commands (command/read-backward recursion input printer-iomap 'backward-mapper/xml/text->tree/leaf operation-mapper)
-                    (make-command/nothing gesture))))
+                    (make-nothing-command gesture))))
 
 (def reader xml/attribute->tree/node (projection recursion input printer-iomap)
   (declare (ignore projection))
@@ -365,7 +426,7 @@
                                                                           (the string (subseq (the string document) 0 0)))
                                                                         (replacement-of operation)))))))))
     (merge-commands (gesture-case (gesture-of input)
-                      ((gesture/keyboard/key-press :character #\=)
+                      ((make-type-in-gesture #\=)
                        :domain "XML" :description "Moves the selection to the value"
                        :operation (pattern-case (selection-of printer-input)
                                     (((the string (name-of (the xml/attribute document)))
@@ -374,7 +435,7 @@
                                                                        '((the string (value-of (the xml/attribute document)))
                                                                          (the string (subseq (the string document) 0 0))))))))
                     (command/read-backward recursion input printer-iomap 'backward-mapper/xml/attribute->tree/node operation-mapper)
-                    (make-command/nothing (gesture-of input)))))
+                    (make-nothing-command (gesture-of input)))))
 
 (def reader xml/element->tree/node (projection recursion input printer-iomap)
   (declare (ignore projection))
@@ -409,17 +470,17 @@
                                                                           (replacement-of operation))))))))))
     (merge-commands (command/read-selection recursion input printer-iomap 'forward-mapper/xml/element->tree/node 'backward-mapper/xml/element->tree/node)
                     (gesture-case (gesture-of input)
-                      ((gesture/keyboard/key-press :key :sdl-key-insert :modifiers nil)
+                      ((make-key-press-gesture :scancode-insert)
                        :domain "XML" :description "Starts an insertion into the children of the XML element"
                        :operation (make-operation/compound (bind ((children-length (length (children-of printer-input))))
                                                              (list (make-operation/sequence/replace-range printer-input `((the sequence (children-of (the xml/element document)))
                                                                                                                           (the sequence (subseq (the sequence document) ,children-length ,children-length)))
-                                                                                                          (list (document/insertion :font *font/liberation/serif/regular/24*)))
+                                                                                                          (list (document/insertion (:font *font/liberation/serif/regular/24*))))
                                                                    (make-operation/replace-selection printer-input `((the sequence (children-of (the xml/element document)))
                                                                                                                      (the document/insertion (elt (the sequence document) ,children-length))
                                                                                                                      (the string (value-of (the document/insertion document)))
                                                                                                                      (the string (subseq (the string document) 0 0))))))))
-                      ((gesture/keyboard/key-press :key :sdl-key-space :modifiers nil)
+                      ((make-key-press-gesture :scancode-space)
                        :domain "XML" :description "Inserts a new XML attribute into the attributes of the XML element"
                        :operation (pattern-case (selection-of printer-input)
                                     ((?or ((the string (xml/start-tag (the xml/element document)))
@@ -436,7 +497,7 @@
                                                                                                                         (the xml/attribute (elt (the sequence document) ,index))
                                                                                                                         (the string (name-of (the xml/attribute document)))
                                                                                                                         (the string (subseq (the string document) 0 0))))))))))
-                      ((gesture/keyboard/key-press :character #\")
+                      ((make-type-in-gesture #\")
                        :domain "XML" :description "Inserts a new XML text into the children of the XML element"
                        :operation (bind ((index (length (children-of printer-input))))
                                     (make-operation/compound (list (make-operation/sequence/replace-range printer-input `((the sequence (children-of (the xml/element document)))
@@ -446,7 +507,7 @@
                                                                                                                      (the xml/text (elt (the sequence document) ,index))
                                                                                                                      (the string (value-of (the xml/text document)))
                                                                                                                      (the string (subseq (the string document) 0 0))))))))
-                      ((gesture/keyboard/key-press :character #\<)
+                      ((make-type-in-gesture #\<)
                        :domain "XML" :description "Inserts a new XML element into the children of the XML element"
                        :operation (bind ((index (length (children-of printer-input))))
                                     (make-operation/compound (list (make-operation/sequence/replace-range printer-input `((the sequence (children-of (the xml/element document)))
@@ -457,4 +518,4 @@
                                                                                                                      (the string (xml/start-tag (the xml/element document)))
                                                                                                                      (the string (subseq (the string document) 0 0)))))))))
                     (command/read-backward recursion input printer-iomap 'backward-mapper/xml/element->tree/node operation-mapper)
-                    (make-command/nothing (gesture-of input)))))
+                    (make-nothing-command (gesture-of input)))))

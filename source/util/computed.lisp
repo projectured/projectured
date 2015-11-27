@@ -1,6 +1,6 @@
 ;;; -*- mode: Lisp; Syntax: Common-Lisp; -*-
 ;;;
-;;; Copyright (c) 2009 by the authors.
+;;; Copyright (c) by the authors.
 ;;;
 ;;; See LICENCE for details.
 
@@ -122,6 +122,24 @@
   (declare #.(optimize-declaration))
   (setf-standard-instance-access-form (unbound-slot-marker) object slot)
   object)
+
+;;;;;;
+;;; Profiling
+
+(def special-variable *profile-context* nil)
+
+(def class* profile-context ()
+  ((validation-count 0 :type integer)
+   (recomputation-count 0 :type integer)))
+
+(def macro with-profiling-computation (&body forms)
+  (with-unique-names (validation-count recomputation-count)
+    `(bind ((*profile-context* (make-instance 'profile-context))
+            (,validation-count (validation-count-of *profile-context*))
+            (,recomputation-count (recomputation-count-of *profile-context*)))
+       (values (progn ,@forms)
+               (- (validation-count-of *profile-context*) ,validation-count)
+               (- (recomputation-count-of *profile-context*) ,recomputation-count)))))
 
 ;;;;;;
 ;;; Computed state
@@ -327,24 +345,6 @@
 
 (def macro va (computed-state)
   `(computed-state-value ,computed-state))
-
-;;;;;;
-;;; Profiling
-
-(def special-variable *profile-context* nil)
-
-(def class* profile-context ()
-  ((validation-count 0 :type integer)
-   (recomputation-count 0 :type integer)))
-
-(def macro with-profiling-computation (&body forms)
-  (with-unique-names (validation-count recomputation-count)
-    `(bind ((*profile-context* (make-instance 'profile-context))
-            (,validation-count (validation-count-of *profile-context*))
-            (,recomputation-count (recomputation-count-of *profile-context*)))
-       (values (progn ,@forms)
-               (- (validation-count-of *profile-context*) ,validation-count)
-               (- (recomputation-count-of *profile-context*) ,recomputation-count)))))
 
 ;;;;;;
 ;;; Computed sequence

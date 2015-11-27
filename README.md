@@ -45,8 +45,8 @@ When SBCL started up properly, copy these into its REPL (one by one):
 Start SBCL with ```rlwrap sbcl```, and copy these into its REPL:
 
 ```
-(ql:quickload :projectured.sdl.test)
-(projectured.test::test/editor/json/sorting)
+(ql:quickload :projectured)
+(projectured::executable-toplevel)
 ```
 
 If everything went fine, then you should see a window presenting a json test document.

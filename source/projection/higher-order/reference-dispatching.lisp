@@ -1,6 +1,6 @@
 ;;; -*- mode: Lisp; Syntax: Common-Lisp; -*-
 ;;;
-;;; Copyright (c) 2009 by the authors.
+;;; Copyright (c) by the authors.
 ;;;
 ;;; See LICENCE for details.
 
@@ -45,7 +45,7 @@
 
 (def printer reference-dispatching (projection recursion input input-reference)
   (declare (ignore recursion))
-  (iter (with typed-input-reference = (reverse (typed-reference (form-type input) input-reference)))
+  (iter (with typed-input-reference = (reverse (typed-reference (document-type input) input-reference)))
         (with default-projection = (default-projection-of projection))
         (with reference-projection-pairs = (reference-projection-pairs-of projection))
         (for (reference reference-projection) :in-sequence reference-projection-pairs)
@@ -68,7 +68,7 @@
                     (when (and command (operation-of command))
                       command))
                   (gesture-case (gesture-of input)
-                    ((gesture/keyboard/key-press :key :sdl-key-c :modifiers '(:shift :control))
+                    ((make-key-press-gesture :scancode-c '(:shift :control))
                      :domain "Generic" :description "Toggles notation customization at the current selection"
                      :operation (make-operation/functional (lambda ()
                                                              (bind ((input-reference (reverse (input-reference-of printer-iomap)))
@@ -77,4 +77,4 @@
                                                                      (if (find input-reference reference-projection-pairs :key 'first :test 'xxx-equal)
                                                                          (remove input-reference reference-projection-pairs :key 'first :test 'xxx-equal)
                                                                          (list* (list input-reference (deep-copy (default-projection-of projection))) reference-projection-pairs))))))))
-                  (make-command/nothing (gesture-of input))))
+                  (make-nothing-command (gesture-of input))))

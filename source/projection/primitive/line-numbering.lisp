@@ -101,10 +101,10 @@
 
 (def printer line-numbering (projection recursion input input-reference)
   (bind ((line-number-length (as (1+ (floor (log (1+ (text/count input #\NewLine))) (log 10)))))
-         (output-selection (as (print-selection (make-iomap 'iomap/line-numbering
-                                                            :projection projection :recursion recursion
-                                                            :input input :input-reference input-reference
-                                                            :line-number-length line-number-length)
+         (output-selection (as (print-selection (make-instance 'iomap/line-numbering
+                                                               :projection projection :recursion recursion
+                                                               :input input :input-reference input-reference
+                                                               :line-number-length line-number-length)
                                                 (selection-of input)
                                                 'forward-mapper/line-numbering)))
          (output (as (text/make-text (as (bind ((elements nil)
@@ -126,10 +126,10 @@
                                                                (incf line-index))))
                                            (nreverse (rest elements))))
                                      :selection output-selection))))
-    (make-iomap 'iomap/line-numbering
-                :projection projection :recursion recursion
-                :input input :output output :input-reference input-reference
-                :line-number-length line-number-length)))
+    (make-instance 'iomap/line-numbering
+                   :projection projection :recursion recursion
+                   :input input :output output :input-reference input-reference
+                   :line-number-length line-number-length)))
 
 ;;;;;;
 ;;; Reader
@@ -138,4 +138,4 @@
   (declare (ignore projection))
   (merge-commands (text/read-operation (input-of printer-iomap) (gesture-of input))
                   (command/read-backward recursion input printer-iomap 'backward-mapper/line-numbering nil)
-                  (make-command/nothing (gesture-of input))))
+                  (make-nothing-command (gesture-of input))))

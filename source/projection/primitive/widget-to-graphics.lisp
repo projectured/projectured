@@ -1,6 +1,6 @@
 ;;; -*- mode: Lisp; Syntax: Common-Lisp; -*-
 ;;;
-;;; Copyright (c) 2009 by the authors.
+;;; Copyright (c) by the authors.
 ;;;
 ;;; See LICENCE for details.
 
@@ -159,7 +159,7 @@
        (bind ((element-iomap (elt (child-iomaps-of printer-iomap) ?index))
               (element (output-of element-iomap)))
          (values `((the sequence (elements-of (the graphics/canvas document)))
-                   (the ,(form-type element) (elt (the sequence document) ,?index)))
+                   (the ,(document-type element) (elt (the sequence document) ,?index)))
                  ?rest
                  element-iomap)))
       (((the graphics/canvas (printer-output (the widget/composite document) ?projection ?recursion)) . ?rest)
@@ -202,7 +202,7 @@
         (the sequence (elements-of (the graphics/canvas document)))
         (the graphics/canvas (elt (the sequence document) 0))
         . ?rest)
-       (values `((the ,(form-type (content-of (input-of printer-iomap))) (content-of (the widget/text document))))
+       (values `((the ,(document-type (content-of (input-of printer-iomap))) (content-of (the widget/text document))))
                ?rest
                (elt (child-iomaps-of printer-iomap) 0)))
       (?
@@ -230,7 +230,7 @@
        (bind ((element-iomap (elt (child-iomaps-of printer-iomap) ?index))
               (element (input-of element-iomap)))
          (values `((the sequence (elements-of (the widget/composite document)))
-                   (the ,(form-type element) (elt (the sequence document) ,?index)))
+                   (the ,(document-type element) (elt (the sequence document) ,?index)))
                  ?rest
                  element-iomap)))
       (?
@@ -314,44 +314,46 @@
   (bind ((content (content-of input))
          (content-iomap (recurse-printer recursion content
                                          `((content-of (the widget/label document))
-                                           ,@(typed-reference (form-type input) input-reference))))
+                                           ,@(typed-reference (document-type input) input-reference))))
          (content-output (output-of content-iomap))
          (content-rectangle (bounds-of content-output))
          (margin (margin-of input))
-         (output (make-graphics/canvas (list (make-graphics/rectangle (- (location-of content-rectangle) (make-2d (left-of margin) (top-of margin)))
+         (output (make-graphics/canvas (list (make-graphics/rectangle (- (position-of content-rectangle) (make-2d (left-of margin) (top-of margin)))
                                                                       (+ (size-of content-rectangle) (make-2d (+ (left-of margin) (right-of margin))
                                                                                                               (+ (top-of margin) (bottom-of margin))))
                                                                       :stroke-color *color/black*)
                                              content-output)
-                                       (location-of input))))
+                                       (position-of input))))
     (make-iomap/compound projection recursion input input-reference output (list content-iomap))))
 
 (def printer widget/text->graphics/canvas (projection recursion input input-reference)
   (bind ((content-iomap (as (recurse-printer recursion (content-of input)
                                              `((content-of (the widget/label document))
-                                               ,@(typed-reference (form-type input) input-reference)))))
+                                               ,@(typed-reference (document-type input) input-reference)))))
          (output (as (bind ((content-output (output-of (va content-iomap)))
                             (content-bounding-rectangle (bounds-of (output-of (va content-iomap)))))
                        (make-graphics/canvas (list (make-graphics/canvas (widget/make-surrounding-graphics input (size-of content-bounding-rectangle) (content-fill-color-of input) :margin-corners '(nil)) 0)
                                                    (make-graphics/canvas (list content-output) (widget/content-top-left input)))
-                                             (location-of input))))))
+                                             (position-of input))))))
     (make-iomap/compound projection recursion input input-reference output (as (list (va content-iomap))))))
 
 (def printer widget/tooltip->graphics/canvas (projection recursion input input-reference)
   (bind ((content-iomap (as (recurse-printer recursion (content-of input)
                                              `((content-of (the widget/tooltip document))
-                                               ,@(typed-reference (form-type input) input-reference)))))
+                                               ,@(typed-reference (document-type input) input-reference)))))
          (output (as (if (visible-p input)
                          (bind ((content-output (output-of (va content-iomap)))
                                 (content-rectangle (bounds-of content-output))
                                 (margin (margin-of input)))
-                           (make-graphics/canvas (list (make-graphics/rounded-rectangle (- (location-of content-rectangle) (make-2d (left-of margin) (top-of margin)))
-                                                                                        (+ (size-of content-rectangle) (make-2d (+ (left-of margin) (right-of margin))
-                                                                                                                                (+ (top-of margin) (bottom-of margin))))
-                                                                                        9
-                                                                                        :fill-color (color/lighten *color/solarized/yellow* 0.75))
-                                                       content-output)
-                                                 (location-of input)))
+                           (make-graphics/window (position-of input)
+                                                 (size-of input)
+                                                 (make-graphics/canvas (list (make-graphics/rounded-rectangle (- (position-of content-rectangle) (make-2d (left-of margin) (top-of margin)))
+                                                                                                              (+ (size-of content-rectangle) (make-2d (+ (left-of margin) (right-of margin))
+                                                                                                                                                      (+ (top-of margin) (bottom-of margin))))
+                                                                                                              9
+                                                                                                              :fill-color (color/lighten *color/solarized/yellow* 0.75))
+                                                                             content-output)
+                                                                       0)))
                          (make-graphics/canvas nil 0)))))
     (make-iomap/compound projection recursion input input-reference output (as (list (va content-iomap))))))
 
@@ -361,7 +363,7 @@
                                (collect (recurse-printer recursion element
                                                          `((elt (the sequence document) ,index)
                                                            (the sequence (elements-of (the widget/menu document)))
-                                                           ,@(typed-reference (form-type input) input-reference))))))
+                                                           ,@(typed-reference (document-type input) input-reference))))))
          (output (make-graphics/canvas (iter (with y = 0)
                                              (for index :from 0)
                                              (for element-iomap :in-sequence element-iomaps)
@@ -375,24 +377,24 @@
                                                                      result))))
                                        0)))
     (make-iomap/compound projection recursion input input-reference output
-                         (list (make-iomap/object projection recursion input input-reference output)))))
+                         (list (make-iomap projection recursion input input-reference output)))))
 
 (def printer widget/menu-item->graphics/canvas (projection recursion input input-reference)
   (if (visible-p input)
       (bind ((content (content-of input))
              (content-iomap (recurse-printer recursion content
                                              `((content-of (the widget/menu-item document))
-                                               ,@(typed-reference (form-type input) input-reference))))
+                                               ,@(typed-reference (document-type input) input-reference))))
              (content-output (output-of content-iomap))
              (content-rectangle (bounds-of content-output))
              (margin (margin-of input))
-             (output (make-graphics/canvas (list (make-graphics/rectangle (- (location-of content-rectangle) (make-2d (left-of margin) (top-of margin)))
+             (output (make-graphics/canvas (list (make-graphics/rectangle (- (position-of content-rectangle) (make-2d (left-of margin) (top-of margin)))
                                                                           (+ (size-of content-rectangle) (make-2d (+ (left-of margin) (right-of margin))
                                                                                                                   (+ (top-of margin) (bottom-of margin)))))
                                                  content-output)
                                            (make-2d (left-of margin) (top-of margin)))))
         (make-iomap/compound projection recursion input input-reference output
-                             (list (make-iomap/object projection recursion input input-reference output)
+                             (list (make-iomap projection recursion input input-reference output)
                                    content-iomap)))))
 
 (def printer widget/composite->graphics/canvas (projection recursion input input-reference)
@@ -401,23 +403,28 @@
                                (collect (recurse-printer recursion element
                                                          `((elt (the sequence document) ,index)
                                                            (the sequence (elements-of (the widget/composite document)))
-                                                           ,@(typed-reference (form-type input) input-reference))))))
+                                                           ,@(typed-reference (document-type input) input-reference))))))
          (output (make-graphics/canvas (mapcar 'output-of element-iomaps)
-                                       (location-of input))))
+                                       (position-of input))))
     (make-iomap/compound projection recursion input input-reference output element-iomaps)))
 
 (def printer widget/shell->graphics/canvas (projection recursion input input-reference)
   (bind ((content-iomap (as (recurse-printer recursion (content-of input)
                                              `((content-of (the widget/shell document))
-                                               ,@(typed-reference (form-type input) input-reference)))))
-         (tooltip-iomap (as (recurse-printer recursion (tooltip-of input)
-                                             `((tooltip-of (the widget/shell document))
-                                               ,@(typed-reference (form-type input) input-reference)))))
+                                               ,@(typed-reference (document-type input) input-reference)))))
+         (tooltip-iomap (as (when (tooltip-of input)
+                              (recurse-printer recursion (tooltip-of input)
+                                               `((tooltip-of (the widget/shell document))
+                                                 ,@(typed-reference (document-type input) input-reference))))))
          (content-bounding-rectangle (bounds-of (output-of (va content-iomap))))
-         (output (as (make-graphics/canvas (as (append (widget/make-surrounding-graphics input (size-of content-bounding-rectangle) (content-fill-color-of input))
-                                                       (list (make-graphics/canvas (list (output-of (va content-iomap))) (widget/content-top-left input))
-                                                             (output-of (va tooltip-iomap)))))
-                                           0))))
+         (output (as (make-graphics/window (make-2d 200 200) ; TODO: initial position
+                                           (size-of input)
+                                           (make-graphics/canvas (as (append (widget/make-surrounding-graphics input (size-of content-bounding-rectangle) (content-fill-color-of input))
+                                                                             (optional-list (make-graphics/canvas (list (output-of (va content-iomap))) (widget/content-top-left input))
+                                                                                            (when (va tooltip-iomap)
+                                                                                              (output-of (va tooltip-iomap))))))
+                                                                 0)
+                                           :title "ProjecturEd"))))
     (make-iomap/compound projection recursion input input-reference output (as (list (va content-iomap))))))
 
 (def printer widget/title-pane->graphics/canvas (projection recursion input input-reference)
@@ -434,7 +441,7 @@
          (title-bounding-rectangle (bounds-of title-graphics))
          (content-iomap (recurse-printer recursion (content-of input)
                                          `((content-of (the widget/scroll-pane document))
-                                           ,@(typed-reference (form-type input) input-reference))))
+                                           ,@(typed-reference (document-type input) input-reference))))
          (content-bounding-rectangle (bounds-of (output-of content-iomap)))
          (border-extra-size (make-2d 0 (2d-y (size-of title-bounding-rectangle))))
          (output (make-graphics/canvas (append (widget/make-surrounding-graphics input (size-of content-bounding-rectangle) (content-fill-color-of input)
@@ -451,7 +458,7 @@
                                (collect (recurse-printer recursion element
                                                          `((elt (the sequence document) ,index)
                                                            (the sequence (elements-of (the widget/split-pane document)))
-                                                           ,@(typed-reference (form-type input) input-reference))))))
+                                                           ,@(typed-reference (document-type input) input-reference))))))
          (sizes (iter (for element-iomap :in element-iomaps)
                       (collect (size-of (bounds-of (output-of element-iomap))))))
          (width (apply 'max (mapcar '2d-x sizes)))
@@ -486,20 +493,20 @@
                                                           `((elt (the sequence document) 0)
                                                             (the sequence (elt (the sequence document) ,index))
                                                             (the sequence (selector-element-pairs-of (the widget/tabbed-pane document)))
-                                                            ,@(typed-reference (form-type input) input-reference))))))
+                                                            ,@(typed-reference (document-type input) input-reference))))))
          (content-iomap (when selector-iomaps
                           (recurse-printer recursion (second (elt (selector-element-pairs-of input) (selected-index-of input)))
                                            `((elt (the sequence document) 1)
                                              (the sequence (elt (the sequence document) ,(selected-index-of input)))
                                              (the sequence (selector-element-pairs-of (the widget/tabbed-pane document)))
-                                             ,@(typed-reference (form-type input) input-reference)))))
+                                             ,@(typed-reference (document-type input) input-reference)))))
          (output (make-graphics/canvas (when selector-iomaps
                                          (iter (with x = 0)
                                                (for index :from 0)
                                                (for selector-iomap :in-sequence selector-iomaps)
                                                (for bounding-rectangle = (bounds-of (output-of selector-iomap)))
                                                (maximizing (2d-y (size-of bounding-rectangle)) :into height)
-                                               (collect (make-graphics/rounded-rectangle (+ x (location-of bounding-rectangle))
+                                               (collect (make-graphics/rounded-rectangle (+ x (position-of bounding-rectangle))
                                                                                          (+ (size-of bounding-rectangle) (make-2d 40 10))
                                                                                          9
                                                                                          :corners '(:bottom-left :bottom-right)
@@ -507,7 +514,7 @@
                                                                                                          *color/solarized/content/lighter*
                                                                                                          *color/solarized/content/darker*))
                                                  :into selector-graphics)
-                                               (collect (make-graphics/image (+ x (location-of bounding-rectangle) (size-of bounding-rectangle) (make-2d 16 -12))
+                                               (collect (make-graphics/image (+ x (position-of bounding-rectangle) (size-of bounding-rectangle) (make-2d 16 -12))
                                                                              (image/file () (resource-pathname "image/close.png")))
                                                  :into selector-graphics)
                                                (collect (make-graphics/canvas (list (output-of selector-iomap)) (+ x (make-2d 8 5))) :into selector-graphics)
@@ -525,13 +532,13 @@
 (def printer widget/scroll-pane->graphics/canvas (projection recursion input input-reference)
   (bind ((content-iomap (recurse-printer recursion (content-of input)
                                          `((content-of (the widget/scroll-pane document))
-                                           ,@(typed-reference (form-type input) input-reference))))
-         (location (or (location-of input) 0))
+                                           ,@(typed-reference (document-type input) input-reference))))
+         (position (or (position-of input) 0))
          (size (size-of input))
          (content (make-graphics/canvas (list (output-of content-iomap)) (as (scroll-position-of input))))
          (output (make-graphics/canvas (append (widget/make-surrounding-graphics input size (content-fill-color-of input)
                                                                                  :padding-corners nil)
-                                               (list (make-graphics/canvas (list (make-graphics/viewport content location size)) (widget/content-top-left input))))
+                                               (list (make-graphics/canvas (list (make-graphics/viewport content position size)) (widget/content-top-left input))))
                                        0)))
     (make-iomap/compound projection recursion input input-reference output (list content-iomap))))
 
@@ -543,8 +550,8 @@
   (bind ((printer-input (input-of printer-iomap)))
     (merge-commands (command/extend (recurse-reader recursion input (elt (child-iomaps-of printer-iomap) 0))
                                     printer-input
-                                    `((the ,(form-type (content-of printer-input)) (content-of (the widget/label document)))))
-                    (make-command/nothing (gesture-of input)))))
+                                    `((the ,(document-type (content-of printer-input)) (content-of (the widget/label document)))))
+                    (make-nothing-command (gesture-of input)))))
 
 (def reader widget/text->graphics/canvas (projection recursion input printer-iomap)
   (declare (ignore projection))
@@ -552,7 +559,7 @@
                   (command/read-backward recursion input printer-iomap 'backward-mapper/widget/text->graphics/canvas nil)
                   (awhen (graphics/read-operation (output-of printer-iomap) (gesture-of input))
                     (command/read-backward recursion it printer-iomap 'backward-mapper/widget/text->graphics/canvas nil))
-                  (make-command/nothing (gesture-of input))))
+                  (make-nothing-command (gesture-of input))))
 
 (def reader widget/tooltip->graphics/canvas (projection recursion input printer-iomap)
   (declare (ignore projection recursion))
@@ -578,7 +585,7 @@
                     (command/read-backward recursion input printer-iomap 'backward-mapper/widget/composite->graphics/canvas nil)
                     (awhen (graphics/read-operation (output-of printer-iomap) (gesture-of input))
                       (command/read-backward recursion it printer-iomap 'backward-mapper/widget/composite->graphics/canvas nil))
-                    (make-command/nothing (gesture-of input)))))
+                    (make-nothing-command (gesture-of input)))))
 
 (def reader widget/shell->graphics/canvas (projection recursion input printer-iomap)
   (declare (ignore projection))
@@ -596,48 +603,59 @@
                                                (operation/load-document operation)
                                                (operation/widget/tabbed-pane/select-page operation)
                                                (operation/replace-selection
-                                                (make-operation/replace-selection printer-input (append `((the ,(form-type (content-of printer-input)) (content-of (the widget/shell document)))) (selection-of operation))))
+                                                (make-operation/replace-selection printer-input (append `((the ,(document-type (content-of printer-input)) (content-of (the widget/shell document)))) (selection-of operation))))
                                                (operation/sequence/replace-range
-                                                (make-operation/sequence/replace-range printer-input (append `((the ,(form-type (content-of printer-input)) (content-of (the widget/shell document)))) (selection-of operation)) (replacement-of operation)))
+                                                (make-operation/sequence/replace-range printer-input (append `((the ,(document-type (content-of printer-input)) (content-of (the widget/shell document)))) (selection-of operation)) (replacement-of operation)))
                                                (operation/string/replace-range
-                                                (make-operation/string/replace-range printer-input (append `((the ,(form-type (content-of printer-input)) (content-of (the widget/shell document)))) (selection-of operation)) (replacement-of operation)))
+                                                (make-operation/string/replace-range printer-input (append `((the ,(document-type (content-of printer-input)) (content-of (the widget/shell document)))) (selection-of operation)) (replacement-of operation)))
                                                (operation/text/replace-range
-                                                (make-operation/text/replace-range printer-input (append `((the ,(form-type (content-of printer-input)) (content-of (the widget/shell document)))) (selection-of operation)) (replacement-of operation)))
+                                                (make-operation/text/replace-range printer-input (append `((the ,(document-type (content-of printer-input)) (content-of (the widget/shell document)))) (selection-of operation)) (replacement-of operation)))
                                                (operation/number/replace-range
-                                                (make-operation/number/replace-range printer-input (append `((the ,(form-type (content-of printer-input)) (content-of (the widget/shell document)))) (selection-of operation)) (replacement-of operation)))
+                                                (make-operation/number/replace-range printer-input (append `((the ,(document-type (content-of printer-input)) (content-of (the widget/shell document)))) (selection-of operation)) (replacement-of operation)))
                                                (operation/replace-target
-                                                (make-operation/replace-target printer-input (append `((the ,(form-type (content-of printer-input)) (content-of (the widget/shell document)))) (selection-of operation)) (replacement-of operation)))
+                                                (make-operation/replace-target printer-input (append `((the ,(document-type (content-of printer-input)) (content-of (the widget/shell document)))) (selection-of operation)) (replacement-of operation)))
                                                (operation/focusing/replace-part
                                                 operation)
                                                (operation/show-context-sensitive-help
-                                                (make-operation/compound (list (make-instance 'operation/widget/tooltip/move :tooltip tooltip :location (mouse-position))
-                                                                               (make-instance 'operation/widget/tooltip/replace-content :tooltip tooltip
-                                                                                              :content (text/make-text (iter (for command :in (commands-of operation))
-                                                                                                                             (unless (first-iteration-p)
-                                                                                                                               (collect (text/newline)))
-                                                                                                                             (appending (make-command-help-text command)))))
-                                                                               (make-instance 'operation/widget/show :widget tooltip))))
+                                                (bind ((content (text/make-text (iter (for command :in (commands-of operation))
+                                                                                      (unless (first-iteration-p)
+                                                                                        (collect (text/newline)))
+                                                                                      (appending (make-command-help-text command)))))
+                                                       (size (size-of (make-bounding-rectangle (printer-output content recursion)))))
+                                                  (make-operation/replace-target printer-input
+                                                                                 '((the widget/tooltip (tooltip-of (the widget/shell document))))
+                                                                                 (widget/tooltip (:position (mouse-position-of gesture) :size size)
+                                                                                   content))))
                                                (operation/describe
-                                                (make-operation/compound (list (make-instance 'operation/widget/tooltip/move :tooltip tooltip :location (mouse-position))
-                                                                               (make-instance 'operation/widget/tooltip/replace-content :tooltip tooltip :content (selection-of operation))
-                                                                               (make-instance 'operation/widget/show :widget tooltip))))
+                                                (bind ((content (document/reference ()
+                                                                  (selection-of operation)))
+                                                       (size (size-of (make-bounding-rectangle (printer-output content recursion)))))
+                                                  (make-operation/replace-target printer-input
+                                                                                 '((the widget/tooltip (tooltip-of (the widget/shell document))))
+                                                                                 (widget/tooltip (:position (mouse-position-of gesture) :size size)
+                                                                                   content))))
                                                (operation/show-annotation
-                                                (make-operation/compound (list (make-instance 'operation/widget/tooltip/move :tooltip tooltip :location (mouse-position))
-                                                                               (make-instance 'operation/widget/tooltip/replace-content :tooltip tooltip :content (annotation-of (eval-reference (document-of operation) (reference/flatten (selection-of operation)))))
-                                                                               (make-instance 'operation/widget/show :widget tooltip))))
+                                                (bind ((content (annotation-of (eval-reference (document-of operation) (flatten-reference (selection-of operation)))))
+                                                       (size (size-of (make-bounding-rectangle (printer-output content recursion)))))
+                                                  (make-operation/replace-target printer-input
+                                                                                 '((the widget/tooltip (tooltip-of (the widget/shell document))))
+                                                                                 (widget/tooltip (:position (mouse-position-of gesture) :size size)
+                                                                                   content))))
                                                (operation/compound
                                                 (bind ((child-operations (mapcar #'recurse (elements-of operation))))
                                                   (unless (some 'null child-operations)
                                                     (make-operation/compound child-operations))))
                                                (t
-                                                (if (and (or operation (typep (gesture-of input) 'gesture/mouse/move)) (visible-p tooltip))
+                                                (if (and (or operation (typep (gesture-of input) 'gesture/mouse/move))
+                                                         (tooltip-of printer-input)
+                                                         (visible-p (tooltip-of printer-input)))
                                                     (make-operation/compound (optional-list operation (make-instance 'operation/widget/hide :widget tooltip)))
                                                     operation)))))
                                     (recurse (operation-of content-command)))
                                   :domain (domain-of content-command)
                                   :description (description-of content-command))
                     (document/read-operation gesture)
-                    (make-command/nothing gesture))))
+                    (make-nothing-command gesture))))
 
 (def reader widget/title-pane->graphics/canvas (projection recursion input printer-iomap)
   (declare (ignore projection))
@@ -646,20 +664,20 @@
     (merge-commands (bind ((content-gesture gesture)
                            (content-input (make-command content-gesture (operation-of input) :domain (domain-of input) :description (description-of input)))
                            (content-command (recurse-reader recursion content-input (elt (child-iomaps-of printer-iomap) 0)))
-                           (content-path `((the ,(form-type (content-of printer-input)) (content-of (the widget/scroll-pane document))))))
+                           (content-path `((the ,(document-type (content-of printer-input)) (content-of (the widget/scroll-pane document))))))
                       (make-command gesture
                                     (operation/extend printer-input content-path (operation-of content-command))
                                     :domain (domain-of content-command)
                                     :description (description-of content-command)))
                     (document/read-operation gesture)
-                    (make-command/nothing gesture))))
+                    (make-nothing-command gesture))))
 
 (def reader widget/split-pane->graphics/canvas (projection recursion input printer-iomap)
   (declare (ignore projection))
   (bind ((printer-input (input-of printer-iomap))
          (gesture (gesture-of input)))
     (merge-commands (if (typep (gesture-of input) 'gesture/mouse)
-                        (pattern-case (make-reference (output-of printer-iomap) (mouse-position) nil)
+                        (pattern-case (make-reference (output-of printer-iomap) (mouse-position-of gesture) nil)
                           (((the sequence (elements-of (the graphics/canvas document)))
                             (the graphics/canvas (elt (the sequence document) ?index))
                             . ?rest)
@@ -669,13 +687,13 @@
                                   (gesture (gesture-of input))
                                   (child-gesture (progn
                                                    ;; KLUDGE: copy gesture
-                                                   (setf (location-of gesture) (- (location-of gesture) (widget/content-top-left element) (location-of (elt (elements-of (output-of printer-iomap)) ?index))))
+                                                   (setf (mouse-position-of gesture) (- (mouse-position-of gesture) (widget/content-top-left element) (position-of (elt (elements-of (output-of printer-iomap)) ?index))))
                                                    gesture))
                                   (child-input (make-command child-gesture
                                                              (operation-of input)
                                                              :domain (domain-of input)
                                                              :description (description-of input)))
-                                  (element-path `((the ,(form-type element) (elt (the sequence document) ,index)) (the sequence (elements-of (the widget/split-pane document)))))
+                                  (element-path `((the ,(document-type element) (elt (the sequence document) ,index)) (the sequence (elements-of (the widget/split-pane document)))))
                                   (content-command (recurse-reader recursion child-input child-iomap)))
                              (make-command (gesture-of input)
                                            (operation/extend printer-input element-path (operation-of content-command))
@@ -687,22 +705,22 @@
                             . ?rest)
                            (bind ((child-iomap (elt (child-iomaps-of printer-iomap) ?index))
                                   (gesture (gesture-of input))
-                                  (child-gesture (if (typep gesture 'gesture/mouse/button/click)
+                                  (child-gesture (if (typep gesture 'gesture/mouse/click)
                                                      ;; TODO: width
-                                                     (make-instance 'gesture/mouse/button/click :modifiers (modifiers-of gesture) :button (button-of gesture) :location (- (location-of (gesture-of input)) (make-2d 250 0)))
+                                                     (make-instance 'gesture/mouse/click :modifiers (modifiers-of gesture) :button (button-of gesture) :position (- (position-of (gesture-of input)) (make-2d 250 0)))
                                                      (gesture-of input)))
                                   (child-input (make-command child-gesture
                                                              (operation-of input)
                                                              :domain (domain-of input)
                                                              :description (description-of input)))
-                                  (element-path `((the ,(form-type (elt (elements-of printer-input) ?index)) (elt (the sequence document) ,?index)) (the sequence (elements-of (the widget/split-pane document)))))
+                                  (element-path `((the ,(document-type (elt (elements-of printer-input) ?index)) (elt (the sequence document) ,?index)) (the sequence (elements-of (the widget/split-pane document)))))
                                   (content-command (recurse-reader recursion child-input child-iomap)))
                              (make-command (gesture-of input)
                                            (operation/extend printer-input element-path (operation-of content-command))
                                            :domain (domain-of content-command)
                                            :description (description-of content-command))))))
                     (document/read-operation gesture)
-                    (make-command/nothing gesture)))
+                    (make-nothing-command gesture)))
   #+nil
   (iter (for index :from 0)
         (for element :in-sequence (elements-of (input-of printer-iomap)))
@@ -713,9 +731,9 @@
   (bind ((printer-input (input-of printer-iomap))
          (gesture (gesture-of input)))
     (merge-commands (gesture-case (gesture-of input)
-                      ((make-instance 'gesture/mouse/button/click :button :button-left :modifiers nil)
+                      ((make-instance 'gesture/mouse/click :button :button-left :modifiers nil)
                        :domain "Widget" :description "Selects the page in the tabbed pane where the mouse is pointing at"
-                       :operation (pattern-case (make-reference (output-of printer-iomap) (location-of (gesture-of input)) nil)
+                       :operation (pattern-case (make-reference (output-of printer-iomap) (position-of (gesture-of input)) nil)
                                     (((the sequence (elements-of (the graphics/canvas document)))
                                       (the ?type (elt (the sequence document) ?index))
                                       . ?rest)
@@ -724,9 +742,9 @@
                                        (make-instance 'operation/widget/tabbed-pane/select-page
                                                       :tabbed-pane printer-input
                                                       :selected-index (floor ?index 3))))))
-                      ((make-instance 'gesture/mouse/button/click :button :button-left :modifiers nil)
+                      ((make-instance 'gesture/mouse/click :button :button-left :modifiers nil)
                        :domain "Widget" :description "Closes the page in the tabbed pane where the mouse is pointing at"
-                       :operation (pattern-case (make-reference (output-of printer-iomap) (location-of (gesture-of input)) nil)
+                       :operation (pattern-case (make-reference (output-of printer-iomap) (position-of (gesture-of input)) nil)
                                     (((the sequence (elements-of (the graphics/canvas document)))
                                       (the ?type (elt (the sequence document) ?index))
                                       . ?rest)
@@ -738,25 +756,25 @@
                                                                       (setf (selector-element-pairs-of printer-input)
                                                                             (append (subseq selector-element-pairs 0 index)
                                                                                     (subseq selector-element-pairs (1+ index) (length selector-element-pairs)))))))))))
-                      ((gesture/keyboard/key-press :key :sdl-key-tab :modifiers :control)
+                      ((make-key-press-gesture :scancode-tab :control)
                        :domain "Widget" :description "Selects the next page in the tabbed pane"
                        :operation (make-instance 'operation/widget/tabbed-pane/select-page
                                                  :tabbed-pane printer-input
                                                  :selected-index (mod (1+ (selected-index-of printer-input)) (length (selector-element-pairs-of printer-input)))))
-                      ((gesture/keyboard/key-press :key :sdl-key-tab :modifiers '(:shift :control))
+                      ((make-key-press-gesture :scancode-tab '(:shift :control))
                        :domain "Widget" :description "Selects the previous page in the tabbed pane"
                        :operation (make-instance 'operation/widget/tabbed-pane/select-page
                                                  :tabbed-pane printer-input
                                                  :selected-index (mod (1- (selected-index-of printer-input)) (length (selector-element-pairs-of printer-input))))))
                     (when (selector-element-pairs-of printer-input)
                       (bind ((element (second (elt (selector-element-pairs-of printer-input) (selected-index-of printer-input))))
-                             (element-type (form-type element))
+                             (element-type (document-type element))
                              (element-reference `((the sequence (selector-element-pairs-of (the widget/tabbed-pane document)))
                                                   (the sequence (elt (the sequence document) ,(selected-index-of printer-input)))
                                                   (the ,element-type (elt (the sequence document) 1))))
-                             (child-input (if (typep gesture 'gesture/mouse/button/click)
+                             (child-input (if (typep gesture 'gesture/mouse/click)
                                               ;; TODO: width
-                                              (make-command (make-instance 'gesture/mouse/button/click :modifiers (modifiers-of gesture) :button (button-of gesture) :location (- (location-of (gesture-of input)) (make-2d 0 40)))
+                                              (make-command (make-instance 'gesture/mouse/click :modifiers (modifiers-of gesture) :button (button-of gesture) :position (- (position-of (gesture-of input)) (make-2d 0 40)))
                                                             (operation-of input)
                                                             :domain (domain-of input)
                                                             :description (description-of input))
@@ -767,43 +785,33 @@
                                       :domain (domain-of child-output)
                                       :description (description-of child-output))))
                     (document/read-operation gesture)
-                    (make-command/nothing gesture))))
+                    (make-nothing-command gesture))))
 
 (def reader widget/scroll-pane->graphics/canvas (projection recursion input printer-iomap)
   (declare (ignore projection))
   (bind ((printer-input (input-of printer-iomap))
          (gesture (gesture-of input)))
     (merge-commands (gesture-case gesture
-                      ((make-instance 'gesture/mouse/button/click :button :wheel-up :modifiers nil)
-                       :domain "Widget" :description "Scrolls the content of the pane down"
+                      ((make-instance 'gesture/mouse/scroll :scroll 0 :modifiers nil)
+                       :domain "Widget" :description "Scrolls the pane vertically"
                        :operation (make-instance 'operation/widget/scroll-pane/scroll
                                                  :scroll-pane (input-of printer-iomap)
-                                                 :scroll-delta (make-2d 0 100)))
-                      ((make-instance 'gesture/mouse/button/click :button :wheel-down :modifiers nil)
-                       :domain "Widget" :description "Scrolls the content of the pane up"
+                                                 :scroll-delta (* 100 (scroll-of gesture))))
+                      ((make-instance 'gesture/mouse/scroll :scroll 0 :modifiers '(:shift))
+                       :domain "Widget" :description "Scrolls the pane horizontally"
                        :operation (make-instance 'operation/widget/scroll-pane/scroll
                                                  :scroll-pane (input-of printer-iomap)
-                                                 :scroll-delta (make-2d 0 -100)))
-                      ((make-instance 'gesture/mouse/button/click :button :wheel-up :modifiers '(:shift))
-                       :domain "Widget" :description "Scrolls the content of the pane right"
-                       :operation (make-instance 'operation/widget/scroll-pane/scroll
-                                                 :scroll-pane (input-of printer-iomap)
-                                                 :scroll-delta (make-2d 100 0)))
-                      ((make-instance 'gesture/mouse/button/click :button :wheel-down :modifiers '(:shift))
-                       :domain "Widget" :description "Scrolls the content of the pane left"
-                       :operation (make-instance 'operation/widget/scroll-pane/scroll
-                                                 :scroll-pane (input-of printer-iomap)
-                                                 :scroll-delta (make-2d -100 0))))
+                                                 :scroll-delta (* 100 (make-2d (2d-y (scroll-of gesture)) (2d-x (scroll-of gesture)))))))
                     (bind ((content-gesture (progn
                                               ;; KLUDGE: copy gesture
-                                              (setf (location-of gesture) (- (location-of gesture) (scroll-position-of (input-of printer-iomap))))
+                                              (setf (mouse-position-of gesture) (- (mouse-position-of gesture) (scroll-position-of (input-of printer-iomap))))
                                               gesture))
                            (content-input (make-command content-gesture (operation-of input) :domain (domain-of input) :description (description-of input)))
                            (content-command (recurse-reader recursion content-input (elt (child-iomaps-of printer-iomap) 0)))
-                           (content-path `((the ,(form-type (content-of printer-input)) (content-of (the widget/scroll-pane document))))))
+                           (content-path `((the ,(document-type (content-of printer-input)) (content-of (the widget/scroll-pane document))))))
                       (make-command gesture
                                     (operation/extend printer-input content-path (operation-of content-command))
                                     :domain (domain-of content-command)
                                     :description (description-of content-command)))
                     (document/read-operation gesture)
-                    (make-command/nothing gesture))))
+                    (make-nothing-command gesture))))

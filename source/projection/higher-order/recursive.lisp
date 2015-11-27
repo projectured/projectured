@@ -1,10 +1,28 @@
 ;;; -*- mode: Lisp; Syntax: Common-Lisp; -*-
 ;;;
-;;; Copyright (c) 2009 by the authors.
+;;; Copyright (c) by the authors.
 ;;;
 ;;; See LICENCE for details.
 
 (in-package :projectured)
+
+;;;;;;
+;;; Projection
+
+(def projection recursive ()
+  ((child :type projection)))
+
+;;;;;;
+;;; Construction
+
+(def function make-projection/recursive (projection)
+  (make-projection 'recursive :child projection))
+
+;;;;;;
+;;; Construction
+
+(def macro recursive (&body forms)
+  `(make-projection/recursive ,@forms))
 
 ;;;;;;
 ;;; IO map
@@ -24,38 +42,20 @@
 ;;; Constuction
 
 (def function make-iomap/recursive (projection recursion input input-reference output output-reference)
-  (make-iomap 'iomap/recursive
-              :projection projection :recursion recursion
-              :input input :input-reference (typed-reference (form-type input) input-reference)
-              :output output :output-reference (typed-reference (form-type output) output-reference)))
+  (make-instance 'iomap/recursive
+                 :projection projection :recursion recursion
+                 :input input :input-reference (typed-reference (document-type input) input-reference)
+                 :output output :output-reference (typed-reference (document-type output) output-reference)))
 
 (def function make-iomap/compound (projection recursion input input-reference output child-iomaps)
-  (make-iomap 'iomap/compound :projection projection :recursion recursion
-              :input input :input-reference (typed-reference (form-type input) input-reference)
-              :output output :child-iomaps child-iomaps))
+  (make-instance 'iomap/compound :projection projection :recursion recursion
+                 :input input :input-reference (typed-reference (document-type input) input-reference)
+                 :output output :child-iomaps child-iomaps))
 
 (def function make-iomap/content (projection recursion input input-reference output content-iomap)
-  (make-iomap 'iomap/content :projection projection :recursion recursion
-              :input input :input-reference (typed-reference (form-type input) input-reference)
-              :output output :content-iomap content-iomap))
-
-;;;;;;
-;;; Projection
-
-(def projection recursive ()
-  ((child :type projection)))
-
-;;;;;;
-;;; Construction
-
-(def function make-projection/recursive (projection)
-  (make-projection 'recursive :child projection))
-
-;;;;;;
-;;; Construction
-
-(def macro recursive (&body forms)
-  `(make-projection/recursive ,@forms))
+  (make-instance 'iomap/content :projection projection :recursion recursion
+                 :input input :input-reference (typed-reference (document-type input) input-reference)
+                 :output output :content-iomap content-iomap))
 
 ;;;;;;
 ;;; Printer

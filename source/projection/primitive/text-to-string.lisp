@@ -1,6 +1,6 @@
 ;;; -*- mode: Lisp; Syntax: Common-Lisp; -*-
 ;;;
-;;; Copyright (c) 2009 by the authors.
+;;; Copyright (c) by the authors.
 ;;;
 ;;; See LICENCE for details.
 
@@ -30,7 +30,7 @@
 (def printer text->string (projection recursion input input-reference)
   (bind ((output (text/as-string input)))
     (make-iomap/compound projection recursion input input-reference output
-                          (list (make-iomap/object projection recursion input input-reference output)))))
+                          (list (make-iomap projection recursion input input-reference output)))))
 
 ;;;;;;
 ;;; Reader

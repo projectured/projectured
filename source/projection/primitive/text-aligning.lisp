@@ -48,7 +48,7 @@
          (recursion (recursion-of printer-iomap)))
     (pattern-case reference
       ((?or nil ((the text/text (text/subseq (the text/text document) ?start-index ?end-index))))
-       (values `((the ,(form-type (content-of (input-of printer-iomap))) (content-of (the book/paragraph document))))
+       (values `((the ,(document-type (content-of (input-of printer-iomap))) (content-of (the book/paragraph document))))
                reference
                (elt (child-iomaps-of printer-iomap) 0)))
       (?a
@@ -59,7 +59,7 @@
 
 (def printer text-aligning (projection recursion input input-reference)
   (bind ((content-iomap (as (recurse-printer recursion (content-of input) `((content-of (the book/paragraph document))
-                                                                            ,@(typed-reference (form-type input) input-reference)))))
+                                                                            ,@(typed-reference (document-type input) input-reference)))))
          (lines (as (bind ((text (output-of (va content-iomap))))
                       (labels ((align-line (line-start-position line-end-position line-alignment line-expansion)
                                  (bind ((parts (iter (for start-position :initially line-start-position :then (text/find text end-position (complement #'whitespace?) :end-position line-end-position))
@@ -142,4 +142,4 @@
   (declare (ignore projection))
   (merge-commands (command/read-selection recursion input printer-iomap 'forward-mapper/text-aligning 'backward-mapper/text-aligning)
                   (command/read-backward recursion input printer-iomap 'backward-mapper/text-aligning nil)
-                  (make-command/nothing (gesture-of input))))
+                  (make-nothing-command (gesture-of input))))

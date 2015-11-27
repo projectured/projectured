@@ -1,6 +1,6 @@
 ;;; -*- mode: Lisp; Syntax: Common-Lisp; -*-
 ;;;
-;;; Copyright (c) 2009 by the authors.
+;;; Copyright (c) by the authors.
 ;;;
 ;;; See LICENCE for details.
 
@@ -62,7 +62,7 @@
   (bind ((element-iomaps (as (iter (for index :from 0)
                                    (for element :in-sequence input)
                                    (collect (recurse-printer recursion element `((elt (the sequence document) ,index)
-                                                                                 ,@(typed-reference (form-type input) input-reference)))))))
+                                                                                 ,@(typed-reference (document-type input) input-reference)))))))
          (key (or (key-of input) (key-of projection)))
          (predicate (or (predicate-of input) (predicate-of projection)))
          (indices (iter (for index :from 0 :below (length input))
@@ -72,22 +72,22 @@
                             indices))
          (output-elements (as (iter (for input-index :in input-indices)
                                     (collect (output-of (elt (va element-iomaps) input-index))))))
-         (output-selection (as (print-selection (make-iomap 'iomap/sorting
-                                                            :projection projection :recursion recursion
-                                                            :input input :output nil
-                                                            :element-iomaps element-iomaps
-                                                            :input-indices input-indices)
+         (output-selection (as (print-selection (make-instance 'iomap/sorting
+                                                               :projection projection :recursion recursion
+                                                               :input input :output nil
+                                                               :element-iomaps element-iomaps
+                                                               :input-indices input-indices)
                                                 (selection-of input)
                                                 'forward-mapper/sorting)))
          (output (as (etypecase input
                        (t ;; KLUDGE: typechecking fails in SBCL document/sequence
                         (make-document/sequence (va output-elements) :selection output-selection))
                        (sequence (va output-elements))))))
-    (make-iomap 'iomap/sorting
-                :projection projection :recursion recursion
-                :input input :output output
-                :element-iomaps element-iomaps
-                :input-indices input-indices)))
+    (make-instance 'iomap/sorting
+                   :projection projection :recursion recursion
+                   :input input :output output
+                   :element-iomaps element-iomaps
+                   :input-indices input-indices)))
 
 ;;;;;;
 ;;; Reader
@@ -95,4 +95,4 @@
 (def reader sorting (projection recursion input printer-iomap)
   (declare (ignore projection))
   (merge-commands (command/read-backward recursion input printer-iomap 'backward-mapper/sorting nil)
-                  (make-command/nothing (gesture-of input))))
+                  (make-nothing-command (gesture-of input))))

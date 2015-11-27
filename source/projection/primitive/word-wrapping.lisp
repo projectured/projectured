@@ -148,17 +148,19 @@
                                                          (as (awhen (text/next-position input line-end-position)
                                                                (make-element it (+ output-start-index line-length (length (input-newline-insertion-indices-of line-iomap))) nil)))))))
                             (make-element (text/origin-position input) 0 nil))))
-         (output-selection (as (print-selection (make-iomap 'iomap/word-wrapping
-                                                            :projection projection :recursion recursion
-                                                            :input input :input-reference input-reference
-                                                            :line-iomaps line-iomaps)
+         (output-selection (as (print-selection (make-instance 'iomap/word-wrapping
+                                                               :projection projection :recursion recursion
+                                                               :input input :input-reference input-reference
+                                                               :line-iomaps line-iomaps)
                                                 (selection-of input)
                                                 'forward-mapper/word-wrapping)))
-         (output (text/make-text (as (append-ll (map-ll (va line-iomaps) 'output-of))) :selection output-selection)))
-    (make-iomap 'iomap/word-wrapping
-                :projection projection :recursion recursion
-                :input input :input-reference input-reference :output output
-                :line-iomaps line-iomaps)))
+         (output (text/make-text (as (or (append-ll (map-ll (va line-iomaps) 'output-of))
+                                         (list (text/string ""))))
+                                 :selection output-selection)))
+    (make-instance 'iomap/word-wrapping
+                   :projection projection :recursion recursion
+                   :input input :input-reference input-reference :output output
+                   :line-iomaps line-iomaps)))
 
 ;;;;;;
 ;;; Reader
@@ -166,4 +168,4 @@
 (def reader word-wrapping (projection recursion input printer-iomap)
   (declare (ignore projection))
   (merge-commands (command/read-backward recursion input printer-iomap 'backward-mapper/word-wrapping nil)
-                  (make-command/nothing (gesture-of input))))
+                  (make-nothing-command (gesture-of input))))

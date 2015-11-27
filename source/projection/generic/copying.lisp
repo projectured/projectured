@@ -1,6 +1,6 @@
 ;;; -*- mode: Lisp; Syntax: Common-Lisp; -*-
 ;;;
-;;; Copyright (c) 2009 by the authors.
+;;; Copyright (c) by the authors.
 ;;;
 ;;; See LICENCE for details.
 
@@ -42,7 +42,7 @@
        (pattern-case reference
          (((the ?type (elt (the sequence document) ?index)) . ?rest)
           (bind ((output-element (output-of (elt (child-iomaps-of printer-iomap) ?index))))
-            (values `((the ,(form-type output-element) (elt (the sequence document) ,?index)))
+            (values `((the ,(document-type output-element) (elt (the sequence document) ,?index)))
                     ?rest
                     (elt (child-iomaps-of printer-iomap) ?index))))
          (?a reference)))
@@ -71,7 +71,7 @@
        (pattern-case reference
          (((the ?type (elt (the sequence document) ?index)) . ?rest)
           (bind ((input-element (input-of (elt (child-iomaps-of printer-iomap) ?index))))
-            (values `((the ,(form-type input-element) (elt (the sequence document) ,?index)))
+            (values `((the ,(document-type input-element) (elt (the sequence document) ,?index)))
                     ?rest
                     (elt (child-iomaps-of printer-iomap) ?index))))
          (?a reference)))
@@ -90,16 +90,16 @@
 
 (def printer copying (projection recursion input input-reference)
   (etypecase input
-    ((and symbol (not null)) (make-iomap/object projection recursion input input-reference input))
-    ((or number document/number) (make-iomap/object projection recursion input input-reference input))
-    ((or string document/string) (make-iomap/object projection recursion input input-reference input))
-    (pathname (make-iomap/object projection recursion input input-reference input))
-    (style/color (make-iomap/object projection recursion input input-reference input))
-    (style/font (make-iomap/object projection recursion input input-reference input))
+    ((and symbol (not null)) (make-iomap projection recursion input input-reference input))
+    ((or number document/number) (make-iomap projection recursion input input-reference input))
+    ((or string document/string) (make-iomap projection recursion input input-reference input))
+    (pathname (make-iomap projection recursion input input-reference input))
+    (style/color (make-iomap projection recursion input input-reference input))
+    (style/font (make-iomap projection recursion input input-reference input))
     (sequence
      (bind ((element-iomaps (as (map-ll* (ll input) (lambda (element index)
                                                       (recurse-printer recursion (value-of element) `((elt (the sequence document) ,index)
-                                                                                                      ,@(typed-reference (form-type input) input-reference)))))))
+                                                                                                      ,@(typed-reference (document-type input) input-reference)))))))
             (output-selection (as (print-selection (make-iomap/compound projection recursion input input-reference nil element-iomaps)
                                                    (selection-of input)
                                                    'forward-mapper/copying)))
@@ -118,14 +118,14 @@
                                                                  (slot-value (slot-value-using-class class input slot)))
                                                             (recurse-printer recursion slot-value
                                                                              (if slot-reader
-                                                                                 `((,slot-reader (the ,(form-type input) document))
-                                                                                   ,@(typed-reference (form-type input) input-reference))
-                                                                                 `((slot-value (the ,(form-type input) document) ',(slot-definition-name slot))
-                                                                                   ,@(typed-reference (form-type input) input-reference))))))))))))
-            (output-selection (as (print-selection (make-iomap 'iomap/copying
-                                                               :projection projection :recursion recursion
-                                                               :input input :output nil
-                                                               :slot-value-iomaps slot-value-iomaps)
+                                                                                 `((,slot-reader (the ,(document-type input) document))
+                                                                                   ,@(typed-reference (document-type input) input-reference))
+                                                                                 `((slot-value (the ,(document-type input) document) ',(slot-definition-name slot))
+                                                                                   ,@(typed-reference (document-type input) input-reference))))))))))))
+            (output-selection (as (print-selection (make-instance 'iomap/copying
+                                                                  :projection projection :recursion recursion
+                                                                  :input input :output nil
+                                                                  :slot-value-iomaps slot-value-iomaps)
                                                    (selection-of input)
                                                    'forward-mapper/copying)))
             (output (as (prog1-bind clone (allocate-instance class)
@@ -138,10 +138,10 @@
                                         (if (typep slot 'computed-effective-slot-definition)
                                             (as (output-of (va slot-value-iomap)))
                                             (output-of (va slot-value-iomap))))))))))
-       (make-iomap 'iomap/copying
-                   :projection projection :recursion recursion
-                   :input input :output output
-                   :slot-value-iomaps slot-value-iomaps)))))
+       (make-instance 'iomap/copying
+                      :projection projection :recursion recursion
+                      :input input :output output
+                      :slot-value-iomaps slot-value-iomaps)))))
 
 ;;;;;;
 ;;; Reader
@@ -150,4 +150,4 @@
   (declare (ignore projection))
   (merge-commands (command/read-selection recursion input printer-iomap 'forward-mapper/copying 'backward-mapper/copying)
                   (command/read-backward recursion input printer-iomap 'backward-mapper/copying nil)
-                  (make-command/nothing (gesture-of input))))
+                  (make-nothing-command (gesture-of input))))

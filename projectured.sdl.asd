@@ -1,6 +1,6 @@
 ;;; -*- mode: Lisp; Syntax: Common-Lisp; -*-
 ;;;
-;;; Copyright (c) 2009 by the authors.
+;;; Copyright (c) by the authors.
 ;;;
 ;;; See LICENCE for details.
 
@@ -10,15 +10,18 @@
   :package-name :projectured
   :licence "BSD"
   :author "Levente Mészáros"
-  :description "The SDL backend for the generic purpose projectional editor."
-  :depends-on (:lispbuilder-sdl-gfx
-               :lispbuilder-sdl-image
-               :lispbuilder-sdl-ttf
-               :projectured)
+  :description "SDL (Simple DirectMedial Layer) backend."
+  :depends-on (:projectured.document
+               :projectured.editor
+               :projectured.projection
+               :sdl2
+               :sdl2-gfx
+               :sdl2-image
+               :sdl2-ttf)
   :components ((:module "source"
                 :components ((:module "backend"
                               :components ((:module "sdl"
-                                            :components ((:file "device")
-                                                         (:file "editor" :depends-on ("device"))
+                                            :components ((:file "backend")
                                                          (:file "graphics")
-                                                         (:file "printer" :depends-on ("device"))))))))))
+                                                         (:file "input")
+                                                         (:file "output")))))))))

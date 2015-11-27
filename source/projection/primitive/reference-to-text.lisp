@@ -9,27 +9,27 @@
 ;;;;;;
 ;;; Projection
 
-(def projection reference->text ()
+(def projection document/reference->text/text ()
   ())
 
 ;;;;;;
 ;;; Construction
 
-(def function make-projection/reference->text ()
-  (make-projection 'reference->text))
+(def function make-projection/document/reference->text/text ()
+  (make-projection 'document/reference->text/text))
 
 ;;;;;;
 ;;; Construction
 
-(def macro reference->text ()
-  '(make-projection/reference->text))
+(def macro document/reference->text/text ()
+  '(make-projection/document/reference->text/text))
 
 ;;;;;;
 ;;; Printer
 
-(def printer reference->text (projection recursion input input-reference)
-  (labels ((recurse (input)
-             (pattern-case input
+(def printer document/reference->text/text (projection recursion input input-reference)
+  (labels ((recurse (path)
+             (pattern-case path
                (()
                 nil)
                (((the ?a document) . ?rest)
@@ -101,16 +101,16 @@
                        (text/string "." :font *font/default* :font-color *color/black*)
                        (text/newline) (recurse ?rest)))
                (?a
-                (warn "Unknown reference part ~A" input)
+                (warn "Unknown reference part ~A" path)
                 (list (text/string "Unknown reference part: " :font *font/default* :font-color *color/black*)
-                      (text/string (write-to-string input) :font *font/default* :font-color *color/solarized/blue*)
+                      (text/string (write-to-string path) :font *font/default* :font-color *color/solarized/blue*)
                       (text/newline))))))
-    (bind ((output (text/make-text (butlast (recurse (reverse input))))))
-      (make-iomap/object projection recursion input input-reference output))))
+    (bind ((output (text/make-text (butlast (recurse (reverse (path-of input)))))))
+      (make-iomap projection recursion input input-reference output))))
 
 ;;;;;;
 ;;; Reader
 
-(def reader reference->text (projection recursion input printer-iomap)
+(def reader document/reference->text/text (projection recursion input printer-iomap)
   (declare (ignore projection recursion printer-iomap))
   input)

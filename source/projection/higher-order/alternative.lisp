@@ -1,6 +1,6 @@
 ;;; -*- mode: Lisp; Syntax: Common-Lisp; -*-
 ;;;
-;;; Copyright (c) 2009 by the authors.
+;;; Copyright (c) by the authors.
 ;;;
 ;;; See LICENCE for details.
 
@@ -44,7 +44,27 @@
                     (when (and command (operation-of command))
                       command))
                   (gesture-case (gesture-of input)
-                    ((gesture/keyboard/key-press :key :sdl-key-n :modifiers '(:shift :control))
+                    ((make-key-press-gesture :scancode-n '(:shift :control))
                      :domain "Generic" :description "Switches to the next alternative notation"
                      :operation (make-operation/select-next-alternative projection)))
-                  (make-command/nothing (gesture-of input))))
+                  (make-nothing-command (gesture-of input))))
+
+;;;;;;
+;;; Operation
+
+(def operation operation/select-next-alternative ()
+  ((projection :type alternatives)))
+
+;;;;;;
+;;; Construction
+
+(def function make-operation/select-next-alternative (projection)
+  (make-instance 'operation/select-next-alternative :projection projection))
+
+;;;;;;
+;;; Evaluator
+
+(def evaluator operation/select-next-alternative (operation)
+  (bind ((projection (projection-of operation)))
+    (setf (selection-of projection) (mod (1+ (selection-of projection))
+                                         (length (alternatives-of projection))))))

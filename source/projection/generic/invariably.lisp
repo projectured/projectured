@@ -1,6 +1,6 @@
 ;;; -*- mode: Lisp; Syntax: Common-Lisp; -*-
 ;;;
-;;; Copyright (c) 2009 by the authors.
+;;; Copyright (c) by the authors.
 ;;;
 ;;; See LICENCE for details.
 
@@ -33,7 +33,7 @@
                               (when (eq projection ?projection)
                                 ?rest))))
          (output (output-of projection)))
-    (make-iomap/object projection recursion input input-reference output)))
+    (make-iomap projection recursion input input-reference output)))
 
 ;;;;;;
 ;;; Reader
@@ -49,7 +49,7 @@
                                         (operation/replace-selection
                                          (make-operation/replace-selection printer-input
                                                                            (append (selection-of operation)
-                                                                                   `((the ,(form-type printer-output) (printer-output (the ,(form-type printer-input) document) ,projection ,recursion))))))
+                                                                                   `((the ,(document-type printer-output) (printer-output (the ,(document-type printer-input) document) ,projection ,recursion))))))
                                         (operation/show-context-sensitive-help
                                          (make-instance 'operation/show-context-sensitive-help
                                                         :commands (iter (for command :in (commands-of operation))
@@ -67,4 +67,4 @@
                       (make-command gesture it
                                     :domain (domain-of input)
                                     :description (description-of input)))
-                    (make-command/nothing (gesture-of input)))))
+                    (make-nothing-command (gesture-of input)))))

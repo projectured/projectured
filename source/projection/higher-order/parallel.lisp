@@ -1,22 +1,10 @@
 ;;; -*- mode: Lisp; Syntax: Common-Lisp; -*-
 ;;;
-;;; Copyright (c) 2009 by the authors.
+;;; Copyright (c) by the authors.
 ;;;
 ;;; See LICENCE for details.
 
 (in-package :projectured)
-
-;;;;;;
-;;; IO map
-
-(def iomap iomap/parallel ()
-  ((element-iomaps :type list)))
-
-;;;;;;
-;;; Construction
-
-(def function make-iomap/parallel (input output element-iomaps)
-  (make-iomap 'iomap/parallel :input input :output output :element-iomaps element-iomaps))
 
 ;;;;;;
 ;;; Projection
@@ -35,6 +23,18 @@
 
 (def macro parallel (&body forms)
   `(make-projection/parallel (list ,@forms)))
+
+;;;;;;
+;;; IO map
+
+(def iomap iomap/parallel ()
+  ((element-iomaps :type list)))
+
+;;;;;;
+;;; Construction
+
+(def function make-iomap/parallel (input output element-iomaps)
+  (make-instance 'iomap/parallel :input input :output output :element-iomaps element-iomaps))
 
 ;;;;;;
 ;;; Printer

@@ -1,6 +1,6 @@
 ;;; -*- mode: Lisp; Syntax: Common-Lisp; -*-
 ;;;
-;;; Copyright (c) 2009 by the authors.
+;;; Copyright (c) by the authors.
 ;;;
 ;;; See LICENCE for details.
 
@@ -48,7 +48,7 @@
                       (when (and command (operation-of command))
                         command))
                     (gesture-case (gesture-of input)
-                      ((gesture/keyboard/key-press :key :sdl-key-c :modifiers '(:shift :control))
+                      ((make-key-press-gesture :scancode-c '(:shift :control))
                        :domain "Generic" :description "Toggles notation customization at the current selection"
                        :operation (make-operation/functional (lambda ()
                                                                (bind ((identity-projection-map (identity-projection-map-of projection)))
@@ -56,4 +56,4 @@
                                                                      (remhash printer-input identity-projection-map)
                                                                      (setf (gethash printer-input identity-projection-map) (deep-copy (default-projection-of projection))))
                                                                  (invalidate-computed-slot projection 'identity-projection-map))))))
-                    (make-command/nothing (gesture-of input)))))
+                    (make-nothing-command (gesture-of input)))))

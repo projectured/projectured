@@ -1,26 +1,10 @@
 ;;; -*- mode: Lisp; Syntax: Common-Lisp; -*-
 ;;;
-;;; Copyright (c) 2009 by the authors.
+;;; Copyright (c) by the authors.
 ;;;
 ;;; See LICENCE for details.
 
 (in-package :projectured)
-
-;;;;;;
-;;; IO map
-
-(def iomap iomap/sequential ()
-  ((element-iomaps :type list)))
-
-;;;;;;
-;;; Construction
-
-(def function make-iomap/sequential (projection recursion input input-reference output element-iomaps)
-  (make-iomap 'iomap/sequential
-              :projection projection :recursion recursion
-              :input input :output output
-              :input-reference (typed-reference (form-type input) input-reference)
-              :element-iomaps element-iomaps))
 
 ;;;;;;
 ;;; Projection
@@ -41,13 +25,29 @@
   `(make-projection/sequential (list ,@forms)))
 
 ;;;;;;
+;;; IO map
+
+(def iomap iomap/sequential ()
+  ((element-iomaps :type list)))
+
+;;;;;;
+;;; Construction
+
+(def function make-iomap/sequential (projection recursion input input-reference output element-iomaps)
+  (make-instance 'iomap/sequential
+                 :projection projection :recursion recursion
+                 :input input :output output
+                 :input-reference (typed-reference (document-type input) input-reference)
+                 :element-iomaps element-iomaps))
+
+;;;;;;
 ;;; Printer
 
 (def printer sequential (projection recursion input input-reference)
   (bind ((element-iomaps (as (iter (for output :initially input :then (output-of element-iomap))
                                    (for element :in (elements-of projection))
                                    (for element-input-reference :initially input-reference :then element-output-reference)
-                                   (for element-output-reference = `((printer-output (the ,(form-type output) document) ,element ,recursion) ,@(typed-reference (form-type output) element-input-reference)))
+                                   (for element-output-reference = `((printer-output (the ,(document-type output) document) ,element ,recursion) ,@(typed-reference (document-type output) element-input-reference)))
                                    (for element-iomap = (call-printer element recursion output element-input-reference))
                                    (collect element-iomap :into element-iomaps)
                                    (finally (return element-iomaps))))))

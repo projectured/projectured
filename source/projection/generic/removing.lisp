@@ -1,6 +1,6 @@
 ;;; -*- mode: Lisp; Syntax: Common-Lisp; -*-
 ;;;
-;;; Copyright (c) 2009 by the authors.
+;;; Copyright (c) by the authors.
 ;;;
 ;;; See LICENCE for details.
 
@@ -44,7 +44,7 @@
          (element-iomaps (iter (for index :from 0)
                                (for element :in-sequence input)
                                (collect (recurse-printer recursion element `((elt (the sequence document) ,index)
-                                                                             ,@(typed-reference (form-type input) input-reference))))))
+                                                                             ,@(typed-reference (document-type input) input-reference))))))
          (key (key-of projection))
          (predicate (predicate-of projection))
          (output-elements (iter (for input-index :from 0)
@@ -62,11 +62,11 @@
                                                    (append `((the ,?element-type (elt (the sequence document) ,(position ?element-index input-indices)))) ?rest)))))
                          (make-document/sequence output-elements :selection output-selection)))
                    (sequence output-elements))))
-    (make-iomap 'iomap/removing
-                :projection projection :recursion recursion
-                :input input :output output
-                :element-iomaps element-iomaps
-                :input-indices input-indices)))
+    (make-instance 'iomap/removing
+                   :projection projection :recursion recursion
+                   :input input :output output
+                   :element-iomaps element-iomaps
+                   :input-indices input-indices)))
 
 ;;;;;;
 ;;; Reader

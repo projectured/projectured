@@ -1,6 +1,6 @@
 ;;; -*- mode: Lisp; Syntax: Common-Lisp; -*-
 ;;;
-;;; Copyright (c) 2009 by the authors.
+;;; Copyright (c) by the authors.
 ;;;
 ;;; See LICENCE for details.
 
@@ -28,7 +28,7 @@
 ;;; Printer
 
 (def printer preserving (projection recursion input input-reference)
-  (make-iomap/object projection recursion input input-reference input))
+  (make-iomap projection recursion input input-reference input))
 
 ;;;;;;
 ;;; Reader

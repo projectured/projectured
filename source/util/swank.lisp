@@ -1,13 +1,13 @@
 ;;; -*- mode: Lisp; Syntax: Common-Lisp; -*-
 ;;;
-;;; Copyright (c) 2009 by the authors.
+;;; Copyright (c) by the authors.
 ;;;
 ;;; See LICENCE for details.
 
 (in-package :projectured)
 
 ;; when inspecting a computed slot with a computed state inside it, then display the computed-state details
-(defmethod swank::slot-value-for-inspector ((class computed-class) (object computed-object) (slot computed-effective-slot-definition))
+(def method swank::slot-value-for-inspector ((class computed-class) (object computed-object) (slot computed-effective-slot-definition))
   ;; we skip svuc to avoid recalculation of invalid slots
   (bind ((slot-value (standard-instance-access-form object slot)))
     (cond ((unbound-slot-marker? slot-value)

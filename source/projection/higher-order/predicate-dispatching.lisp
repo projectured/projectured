@@ -1,6 +1,6 @@
 ;;; -*- mode: Lisp; Syntax: Common-Lisp; -*-
 ;;;
-;;; Copyright (c) 2009 by the authors.
+;;; Copyright (c) by the authors.
 ;;;
 ;;; See LICENCE for details.
 
@@ -40,4 +40,4 @@
 
 (def reader predicate-dispatching (projection recursion input printer-iomap)
   (declare (ignore projection recursion input printer-iomap))
-  nil)
+  input)

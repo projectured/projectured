@@ -1,6 +1,6 @@
 ;;; -*- mode: Lisp; Syntax: Common-Lisp; -*-
 ;;;
-;;; Copyright (c) 2009 by the authors.
+;;; Copyright (c) by the authors.
 ;;;
 ;;; See LICENCE for details.
 
@@ -21,7 +21,7 @@
   (make-projection 'focusing
                    :part-type part-type
                    :part part
-                   :part-evaluator (compile nil `(lambda (document) ,(reference/flatten part)))))
+                   :part-evaluator (compile nil `(lambda (document) ,(flatten-reference part)))))
 
 ;;;;;;
 ;;; Construction
@@ -30,31 +30,18 @@
   `(make-projection/focusing ,part-type ,part))
 
 ;;;;;;
-;;; Operation
-
-(def operation operation/focusing/replace-part ()
-  ((projection :type focusing)
-   (part :type reference)))
-
-(def method run-operation ((operation operation/focusing/replace-part))
-  (bind ((projection (projection-of operation))
-         (part (part-of operation)))
-    (setf (part-of projection) part)
-    (setf (part-evaluator-of projection) (compile nil `(lambda (document) ,(reference/flatten part))))))
-
-;;;;;;
 ;;; Printer
 
 (def printer focusing (projection recursion input input-reference)
   (bind ((output (as (funcall (part-evaluator-of projection) input))))
-    (make-iomap/object projection recursion input input-reference output)))
+    (make-iomap projection recursion input input-reference output)))
 
 ;;;;;;
 ;;; Reader
 
 (def function focusing/read-command (projection input printer-iomap)
   (gesture-case (gesture-of input)
-    ((gesture/keyboard/key-press :key :sdl-key-comma :modifiers :control)
+    ((make-key-press-gesture :scancode-comma :control)
      :domain "Focusing" :description "Moves the focus one level up"
      :operation (when (part-of projection)
                   (make-instance 'operation/focusing/replace-part
@@ -62,7 +49,7 @@
                                  :part (iter (for selection :on (reverse (butlast (part-of projection))))
                                              (when (subtypep (second (first selection)) (part-type-of projection))
                                                (return (reverse selection)))))))
-    ((gesture/keyboard/key-press :key :sdl-key-period :modifiers :control)
+    ((make-key-press-gesture :scancode-period :control)
      :domain "Focusing" :description "Moves the focus to the selection"
      :operation (make-instance 'operation/focusing/replace-part
                                :projection projection
@@ -73,5 +60,21 @@
   (declare (ignore recursion))
   (merge-commands (focusing/read-command projection input printer-iomap)
                   (awhen (operation/extend (input-of printer-iomap) (part-of projection) (operation-of input))
-                    (make-command/clone input it))
-                  (make-command/nothing (gesture-of input))))
+                    (clone-command input it))
+                  (make-nothing-command (gesture-of input))))
+
+;;;;;;
+;;; Operation
+
+(def operation operation/focusing/replace-part ()
+  ((projection :type focusing)
+   (part :type reference)))
+
+;;;;;;
+;;; Evaluator
+
+(def evaluator operation/focusing/replace-part (operation)
+  (bind ((projection (projection-of operation))
+         (part (part-of operation)))
+    (setf (part-of projection) part)
+    (setf (part-evaluator-of projection) (compile nil `(lambda (document) ,(flatten-reference part))))))
