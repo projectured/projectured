@@ -5,11 +5,12 @@
 ;;; See LICENCE for details.
 
 (defsystem :projectured.sdl.test
+  :description "Test suite with SDL backend."
+  :author "Levente Mészáros"
+  :licence "BSD"
+
   :defsystem-depends-on (:hu.dwim.asdf)
   :class "hu.dwim.asdf:hu.dwim.test-system"
   :package-name :projectured.test
-  :licence "BSD"
-  :author "Levente Mészáros"
-  :description "Test suite with SDL backend."
   :depends-on (:projectured.sdl
                :projectured.test))

@@ -5,12 +5,13 @@
 ;;; See LICENCE for details.
 
 (defsystem :projectured.document
+  :description "Collection of various documents."
+  :author "Levente Mészáros"
+  :licence "BSD"
+
   :defsystem-depends-on (:hu.dwim.asdf)
   :class "hu.dwim.asdf:hu.dwim.system"
   :package-name :projectured
-  :licence "BSD"
-  :author "Levente Mészáros"
-  :description "Collection of various documents."
   :depends-on (:cl-json
                :parse-number
                :projectured.editor

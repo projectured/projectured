@@ -5,12 +5,13 @@
 ;;; See LICENCE for details.
 
 (defsystem :projectured.swank
+  :description "SLIME support."
+  :author "Levente Mészáros"
+  :licence "BSD"
+
   :defsystem-depends-on (:hu.dwim.asdf)
   :class "hu.dwim.asdf:hu.dwim.system"
   :package-name :projectured
-  :licence "BSD"
-  :author "Levente Mészáros"
-  :description "SLIME support."
   :depends-on (:projectured.editor
                :swank)
   :components ((:module "source"

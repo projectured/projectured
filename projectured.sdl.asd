@@ -5,12 +5,13 @@
 ;;; See LICENCE for details.
 
 (defsystem :projectured.sdl
+  :description "SDL (Simple DirectMedial Layer) backend."
+  :author "Levente Mészáros"
+  :licence "BSD"
+
   :defsystem-depends-on (:hu.dwim.asdf)
   :class "hu.dwim.asdf:hu.dwim.system"
   :package-name :projectured
-  :licence "BSD"
-  :author "Levente Mészáros"
-  :description "SDL (Simple DirectMedial Layer) backend."
   :depends-on (:projectured.document
                :projectured.editor
                :projectured.projection

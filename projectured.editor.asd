@@ -5,12 +5,13 @@
 ;;; See LICENCE for details.
 
 (defsystem :projectured.editor
+  :description "Editor core components."
+  :author "Levente Mészáros"
+  :licence "BSD"
+
   :defsystem-depends-on (:hu.dwim.asdf)
   :class "hu.dwim.asdf:hu.dwim.system"
   :package-name :projectured
-  :licence "BSD"
-  :author "Levente Mészáros"
-  :description "Editor core components."
   :depends-on (:hu.dwim.common
                :hu.dwim.defclass-star
                :hu.dwim.def

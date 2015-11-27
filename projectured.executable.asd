@@ -5,14 +5,15 @@
 ;;; See LICENCE for details.
 
 (defsystem :projectured.executable
+  :description "Generic purpose projectional editor."
+  :author "Levente Mészáros"
+  :licence "BSD"
+
   :defsystem-depends-on (:hu.dwim.asdf)
   :class "hu.dwim.asdf:hu.dwim.system"
-  :description "Generic purpose projectional editor."
-  :licence "BSD"
-  :author "Levente Mészáros"
-  :package-name :projectured
   :entry-point "projectured::executable-toplevel"
   :build-pathname "projectured" ;; the base name of the executable (unless it's overridden, e.g. in bin/build.sh)
+  :package-name :projectured
   :depends-on (:command-line-arguments
                :projectured.sdl)
   :components ((:module "source"

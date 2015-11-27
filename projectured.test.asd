@@ -5,12 +5,13 @@
 ;;; See LICENCE for details.
 
 (defsystem :projectured.test
+  :description "Test suite."
+  :author "Levente Mészáros"
+  :licence "BSD"
+
   :defsystem-depends-on (:hu.dwim.asdf)
   :class "hu.dwim.asdf:hu.dwim.test-system"
   :package-name :projectured
-  :licence "BSD"
-  :author "Levente Mészáros"
-  :description "Test suite."
   :depends-on (:projectured.document
                :projectured.editor
                :projectured.projection
