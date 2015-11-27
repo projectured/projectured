@@ -67,6 +67,12 @@ kill -INT $$
 #-quicklisp
 (warn "Quicklisp is not available to download dependencies.")
 
+;; KLUDGE for a quicklisp bug: it doesn't download :defsystem-depends-on dependencies,
+;; so we need to explicitly quickload it early on, before the project .asd's get loaded.
+;; for more details, see: https://github.com/quicklisp/quicklisp-client/pull/122
+#+quicklisp
+(ql:quickload :hu.dwim.asdf)
+
 (defconstant +project-system-name+ :projectured.executable)
 
 (defmethod asdf:output-files ((o asdf:program-op) (s (eql (asdf:find-system +project-system-name+))))
