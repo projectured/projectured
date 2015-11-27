@@ -244,6 +244,7 @@
                                                 (round (2d-y end)))))
     (graphics/window
      (bind ((window (ensure-window backend instance))
+            (size (size-of instance))
             (renderer (or (bind ((renderer (sdl2-ffi.functions:sdl-get-renderer window)))
                             (if (cffi:null-pointer-p (autowrap:ptr renderer))
                                 nil
@@ -251,7 +252,13 @@
                           (sdl2-ffi.functions:sdl-create-renderer window -1 (autowrap:mask-apply 'sdl2::sdl-renderer-flags nil)))))
        (set-render-draw-color renderer *color/white*)
        (sdl2-ffi.functions:sdl-render-clear renderer)
-       (output-to-renderer backend renderer (content-of instance) 0)
+       (plus-c:c-with ((new-clipping sdl2-ffi:sdl-rect))
+         (setf (new-clipping :x) 0
+               (new-clipping :y) 0
+               (new-clipping :w) (round (2d-x size))
+               (new-clipping :h) (round (2d-y size)))
+         (sdl2-ffi.functions:sdl-render-set-clip-rect renderer new-clipping)
+         (output-to-renderer backend renderer (content-of instance) 0))
        (sdl2-ffi.functions:sdl-render-present renderer)))
 
     #+nil
