@@ -7,10 +7,12 @@
 (defsystem :projectured.executable
   :defsystem-depends-on (:hu.dwim.asdf)
   :class "hu.dwim.asdf:hu.dwim.system"
-  :package-name :projectured
+  :description "Generic purpose projectional editor."
   :licence "BSD"
   :author "Levente Mészáros"
-  :description "Generic purpose projectional editor."
+  :package-name :projectured
+  :entry-point "projectured::executable-toplevel"
+  :build-pathname "projectured" ;; the base name of the executable (unless it's overridden, e.g. in bin/build.sh)
   :depends-on (:command-line-arguments
                :projectured.sdl)
   :components ((:module "source"
