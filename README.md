@@ -17,35 +17,52 @@ The easiest way to run the ProjecturEd demos is to install it using [Quicklisp](
 On Debian Jessie:
 
 ```
-sudo apt-get install sbcl rlwrap libsdl2-2.0-0
+sudo apt-get install sbcl rlwrap libsdl2-2.0-0 git
 ```
 
-Otherwise visit the [SBCL website](http://sbcl.org/platform-table.html) for instructions, and make sure you have libSDL installed for the SDL backend.
+Otherwise visit the [SBCL website](http://sbcl.org/platform-table.html) for instructions, and make sure you have the right version of libSDL installed for the SDL backend.
 
 ### 2. Install Quicklisp ###
 
-Once you have an SBCL and a fairly fresh ASDF, let's [install Quicklisp](http://www.quicklisp.org/beta/#installation):
+Once you have an SBCL let's [install Quicklisp](http://www.quicklisp.org/beta/#installation):
 
 ```
 cd ~
 wget http://beta.quicklisp.org/quicklisp.lisp
 
-rlwrap sbcl --load quicklisp.lisp
+sbcl --load quicklisp.lisp --eval "(quicklisp-quickstart:install)" --eval "(ql:add-to-init-file)" --eval "(exit)"
 ```
 
-When SBCL started up properly, copy these into its REPL (one by one):
+To finish the installation of Quicklisp approve the prompted question.
+
+### 3. Check out some git repos ###
+
+At the time of writing the ASDF shipped with Quicklisp is too old, so let's clone the latest release:
+```
+cd ~/quicklisp/local-projects/
+git clone https://gitlab.common-lisp.net/asdf/asdf.git --branch release
+```
+
+If you want to play with the latest (and potentially less stable) version of ProjecturEd:
+```
+cd ~/quicklisp/local-projects/
+git clone https://github.com/projectured/projectured.git
+```
+
+### 4. Build a standalone executable of ProjecturEd ###
 
 ```
-(quicklisp-quickstart:install)
-(ql:add-to-init-file)
+~/quicklisp/local-projects/projectured/bin/build.sh
 ```
 
-### 3. Run some of the tests ###
+The output and the build log will be saved next to the build.sh script.
+
+### 5. Run some of the tests ###
 
 Start SBCL with ```rlwrap sbcl```, and copy these into its REPL:
 
 ```
-(ql:quickload :projectured)
+(ql:quickload :projectured.executable)
 (projectured::executable-toplevel)
 ```
 
@@ -67,7 +84,7 @@ It's an unfunded opensource project, under much slower development than we would
 
 ### Donation ###
 
-You may want to donate to help this project by sending bitcoins (BTC) to 15XjRQUnSy8U7j2EFZyGFAi2KFnDnTEwqZ
+The less I need to work to pay my bills, the more I can work on ProjecturEd. Bitcoin donations are welcome to the following address: 15XjRQUnSy8U7j2EFZyGFAi2KFnDnTEwqZ
 
 ### Wiki ###
 
