@@ -13,7 +13,7 @@ SCRIPT_DIR=`readlink -f ${SCRIPT_DIR}`
 PROJECT_NAME=ProjecturEd
 
 MAXIMUM_HEAP_SIZE=${MAXIMUM_HEAP_SIZE:-1500}
-export EXECUTABLE_CORE_FILE=`readlink -f projectured`
+export EXECUTABLE_CORE_FILE=`readlink -f ${SCRIPT_DIR}/projectured`
 BUILD_LOG_FILE="${EXECUTABLE_CORE_FILE}.build-log"
 LISP=${LISP:-sbcl}
 
