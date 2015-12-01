@@ -7,8 +7,6 @@
 SCRIPT_DIR=`dirname "$0"`
 SCRIPT_DIR=`readlink -f ${SCRIPT_DIR}`
 
-cd "${SCRIPT_DIR}"
-
 ###
 ### beginning of settings
 ###
