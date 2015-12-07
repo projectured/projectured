@@ -16,7 +16,6 @@
                :projectured.editor
                :projectured.projection
                :sdl2
-               :sdl2-gfx
                :sdl2-image
                :sdl2-ttf)
   :components ((:module "source"
