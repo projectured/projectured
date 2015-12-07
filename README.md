@@ -17,7 +17,7 @@ The easiest way to run the ProjecturEd demos is to install it using [Quicklisp](
 On Debian Jessie:
 
 ```
-sudo apt-get install sbcl rlwrap libsdl2-2.0-0 git
+sudo apt-get install sbcl rlwrap git libsdl2-2.0-0 libsdl2-image-2.0-0 libsdl2-ttf-2.0-0
 ```
 
 Otherwise visit the [SBCL website](http://sbcl.org/platform-table.html) for instructions, and make sure you have the right version of libSDL installed for the SDL backend.
