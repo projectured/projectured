@@ -35,91 +35,137 @@
 
 <p>ProjecturEd is a general purpose projectional editor written in Common Lisp.</p>
 
-<p>It supports the integrated presentation and editing of arbitrary domains. The edited data is represented in their natural, domain specific data structures (as opposed to a flat string of characters), which accommodates for the implementation of many interesting, but yet to be explored features of structured editing.</p>
+<p>It supports the integrated presentation and editing of arbitrary problem domains. These domains potentially include but not limited to: word processing, spreadsheets, markup languages, programming langueges, modelling, graphs, graphics, etc. and any combination of them. The edited data is represented in their natural, domain specific data structures (as opposed to a flat string of characters), which accommodates for the implementation of many interesting, but yet to be explored features of structured editing.</p>
 
-<p>It also supports multiple projections of the same object, and thus it can simultaneously provide different notations, potentially all of them editable. These views can be textual or fully graphical, are easy to add to the framework, and due to the architecture they combine well.</p>
+<p>It also supports multiple projections of the same data, and thus it can simultaneously provide different notations, potentially all of them editable. These views can be textual, fully graphical, or in between, and due to the internal architecture of the editor projections combine well. It is expected that users would not only add new documents, but also new projections as needed.</p>
 
 <h1>
-<a id="running-the-demos" class="anchor" href="#running-the-demos" aria-hidden="true"><span class="octicon octicon-link"></span></a>Running the demos</h1>
+<a id="running-the-editor" class="anchor" href="#running-the-editor" aria-hidden="true"><span class="octicon octicon-link"></span></a>Running the Editor</h1>
 
-<p>The easiest way to run the ProjecturEd demos is to install it using <a href="http://quicklisp.org">Quicklisp</a>.</p>
+<p>The easiest way to run the editor is to install it using <a href="http://quicklisp.org">Quicklisp</a>.</p>
 
 <h3>
-<a id="1-get-an-sbcl-with-a-fairly-new-asdf" class="anchor" href="#1-get-an-sbcl-with-a-fairly-new-asdf" aria-hidden="true"><span class="octicon octicon-link"></span></a>1. Get an SBCL with a fairly new ASDF</h3>
+<a id="1-get-a-reasonably-fresh-sbcl" class="anchor" href="#1-get-a-reasonably-fresh-sbcl" aria-hidden="true"><span class="octicon octicon-link"></span></a>1. Get a reasonably fresh SBCL</h3>
 
-<p>At the time of writing (2014-02-17) the <a href="http://common-lisp.net/project/asdf/">ASDF</a> version in most packaged lisp implementations is not recent enough for PrEd. If you don't want to compile SBCL yourself, then you can follow these instructions to have an SBCL with a fairly new ASDF:</p>
+<p>For example, on Debian Jessie:</p>
 
-<pre><code>sudo apt-get install sbcl rlwrap
-mkdir -p ~/quicklisp/local-projects/
-cd ~/quicklisp/local-projects/
-git clone git://common-lisp.net/projects/asdf/asdf.git
-cd asdf
-git checkout 3.1.0.65
-make
+<pre><code>sudo apt-get install sbcl rlwrap git libsdl2-2.0-0 libsdl2-image-2.0-0 libsdl2-ttf-2.0-0
 </code></pre>
 
-<p>Then fire up your favorite editor and make sure the following is part of your <code>~/.sbclrc</code> file:</p>
-
-<pre><code>;;; -*- mode: common-lisp -*-
-
-(require :asdf)
-
-(funcall (read-from-string "asdf:initialize-source-registry")
-        `(:source-registry
-          (:directory ,(merge-pathnames "quicklisp/local-projects/asdf/" (user-homedir-pathname)))
-          :inherit-configuration))
-
-;; initiate asdf upgrade
-(asdf:load-system :asdf)
-</code></pre>
+<p>Otherwise visit the <a href="http://sbcl.org/platform-table.html">SBCL website</a> for instructions, and make sure you have the right version of libSDL2 libraries installed for the SDL backend.</p>
 
 <h3>
 <a id="2-install-quicklisp" class="anchor" href="#2-install-quicklisp" aria-hidden="true"><span class="octicon octicon-link"></span></a>2. Install Quicklisp</h3>
 
-<p>Once you have an SBCL and a fairly fresh ASDF, let's <a href="http://www.quicklisp.org/beta/#installation">install Quicklisp</a>:</p>
+<p>Once you have SBCL installed, you can continue with <a href="http://www.quicklisp.org/beta/#installation">installing Quicklisp</a>:</p>
 
 <pre><code>cd ~
 wget http://beta.quicklisp.org/quicklisp.lisp
 
-rlwrap sbcl --load quicklisp.lisp
+sbcl --load quicklisp.lisp --eval "(quicklisp-quickstart:install)" --eval "(ql:add-to-init-file)" --eval "(exit)"
 </code></pre>
 
-<p>When SBCL started up properly, copy these into its REPL (one by one):</p>
+<p>To finish the installation of Quicklisp approve the prompted question.</p>
 
-<pre><code>(quicklisp-quickstart:install)
-(ql:add-to-init-file)
+<h3>
+<a id="3-check-out-some-git-repos" class="anchor" href="#3-check-out-some-git-repos" aria-hidden="true"><span class="octicon octicon-link"></span></a>3. Check out some git repos</h3>
+
+<p>At the time of writing the ASDF shipped with Quicklisp is too old, so you might need to clone the latest release:</p>
+
+<pre><code>cd ~/quicklisp/local-projects/
+git clone https://gitlab.common-lisp.net/asdf/asdf.git --branch release
+</code></pre>
+
+<p>If you want to play with the latest (and potentially less stable) version of ProjecturEd:</p>
+
+<pre><code>cd ~/quicklisp/local-projects/
+git clone https://github.com/projectured/projectured.git
 </code></pre>
 
 <h3>
-<a id="3-run-some-of-the-tests" class="anchor" href="#3-run-some-of-the-tests" aria-hidden="true"><span class="octicon octicon-link"></span></a>3. Run some of the tests</h3>
+<a id="4-build-a-standalone-executable-of-projectured" class="anchor" href="#4-build-a-standalone-executable-of-projectured" aria-hidden="true"><span class="octicon octicon-link"></span></a>4. Build a standalone executable of ProjecturEd</h3>
+
+<p>Run the following shell script:</p>
+
+<pre><code>~/quicklisp/local-projects/projectured/bin/build.sh
+</code></pre>
+
+<p>The output and the build log will be saved next to the build.sh script.</p>
+
+<h3>
+<a id="5-run-the-editor" class="anchor" href="#5-run-the-editor" aria-hidden="true"><span class="octicon octicon-link"></span></a>5. Run the editor</h3>
+
+<p>After the build has been completed you can run the editor from the command line with:</p>
+
+<pre><code>cd ~/quicklisp/local-projects/projectured/
+bin/projectured -h
+</code></pre>
+
+<p>There are a few small example documents that you can promptly start editing:</p>
+
+<pre><code>cd ~/quicklisp/local-projects/projectured/
+bin/projectured example/contact-list.json
+</code></pre>
+
+<p>Alternatively, you can run the editor by loading the project in your lisp. This allows experimentation with the code, changing this and that. Start SBCL with <code>rlwrap sbcl</code>, and copy these into its REPL:</p>
+
+<pre><code>(ql:quickload :projectured.executable)
+(projectured::executable-toplevel)
+</code></pre>
+
+<p>If everything went fine, then you should see a window presenting an empty generic document.</p>
+
+<pre><code>(ql:quickload :projectured.executable)
+(projectured::executable-toplevel "~/quicklisp/local-projects/projectured/example/contact-list.json")
+</code></pre>
+
+<p>This last example will show a window presenting an example JSON document. You can always press Control + H to get context sensitive help in the editor.</p>
+
+<h3>
+<a id="5-run-some-of-the-tests" class="anchor" href="#5-run-some-of-the-tests" aria-hidden="true"><span class="octicon octicon-link"></span></a>5. Run some of the tests</h3>
 
 <p>Start SBCL with <code>rlwrap sbcl</code>, and copy these into its REPL:</p>
 
 <pre><code>(ql:quickload :projectured.sdl.test)
-(projectured.test::test/editor/json/sorting)
+(projectured.test::test)
 </code></pre>
 
-<p>If everything went fine, then you should see a window presenting a json test document.</p>
+<p>This will run the automated test suite and print the result in the REPL.</p>
+
+<h3>
+<a id="4-if-something-goes-wrong-with-loading" class="anchor" href="#4-if-something-goes-wrong-with-loading" aria-hidden="true"><span class="octicon octicon-link"></span></a>4. If something goes wrong with loading</h3>
+
+<p>If you have some Common Lisp libraries installed somewhere, then try to make sure that nothing besides the quicklisp installed libs get loaded. You can achieve that by adding this to the beginning of your .sbclrc:</p>
+
+<pre><code>(require :asdf)
+(funcall (read-from-string "asdf:initialize-source-registry")
+         '(:source-registry :ignore-inherited-configuration))
+</code></pre>
 
 <h1>
 <a id="collaboration" class="anchor" href="#collaboration" aria-hidden="true"><span class="octicon octicon-link"></span></a>Collaboration</h1>
 
-<p>It's an unfunded opensource project, under much slower development than we would like it to be. If you want to help us, either financially or with your patches, then feel free to get in touch at <a href="mailto:projectured@gmail.com">projectured@gmail.com</a>.</p>
+<p>It's an unfunded opensource project, under much slower development than we would like it to be. If you want to help us, either financially or with your patches, then feel free to get in touch at <a href="mailto:projectured@gmail.com">projectured@gmail.com</a> or the <a href="http://groups.google.com/d/forum/projectured">google group</a>.</p>
+
+<h3>
+<a id="donation" class="anchor" href="#donation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Donation</h3>
+
+<p>The less we need to work to pay our bills, the more we can work on ProjecturEd. Bitcoin donations are welcome to the following address: 15XjRQUnSy8U7j2EFZyGFAi2KFnDnTEwqZ</p>
 
 <h3>
 <a id="wiki" class="anchor" href="#wiki" aria-hidden="true"><span class="octicon octicon-link"></span></a>Wiki</h3>
 
-<p>There's a separate <a href="https://github.com/projectured/projectured/wiki"><strong>wiki</strong></a> with an increasing number of pages. It gives an overview of the whole idea, and it also describes how to install, run and test the projectional editor.</p>
+<p>There's a separate <a href="https://github.com/projectured/projectured/wiki"><strong>wiki</strong></a> with an increasing number of pages. It gives an overview of the whole idea, and it also allows contributing documentation to the project.</p>
 
 <h3>
-<a id="internals" class="anchor" href="#internals" aria-hidden="true"><span class="octicon octicon-link"></span></a>Internals</h3>
+<a id="documentation" class="anchor" href="#documentation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Documentation</h3>
 
-<p>Currently the best thing to do is to look at the source code. Luckily the codebase is relatively small (around 10-15k LoC). You may also read the source files in the documentation folder, although it's far from being well structured.</p>
+<p>Currently the best thing to do is to look at the source code. Luckily the codebase is relatively small (around 20k LoC).</p>
 
 <h3>
 <a id="check-out-the-latest-version" class="anchor" href="#check-out-the-latest-version" aria-hidden="true"><span class="octicon octicon-link"></span></a>Check out the latest version</h3>
 
-<p>If you want to use with the latest version, then you should git clone the repository into <code>~/quicklisp/local-projects/</code> and Quicklisp will automatically use that version instead of the snapshot from its archives.</p>
+<p>If you want to try the latest version, then you should git clone the repository into <code>~/quicklisp/local-projects/</code> and Quicklisp will automatically use that version instead of the snapshot from its archives.</p>
 
 <h1>
 <a id="status" class="anchor" href="#status" aria-hidden="true"><span class="octicon octicon-link"></span></a>Status</h1>
@@ -129,17 +175,17 @@ rlwrap sbcl --load quicklisp.lisp
 <h3>
 <a id="screenshots" class="anchor" href="#screenshots" aria-hidden="true"><span class="octicon octicon-link"></span></a>Screenshots</h3>
 
-<p>If you would like to take a look at the editor in action, then look at this <a href="https://github.com/projectured/projectured/wiki/Screenshots"><strong>page</strong></a>. It contains a couple of screenshots showing various problem domains using different projections.</p>
+<p>If you would like to take a look at the editor in action, then look at this <a href="https://github.com/projectured/projectured/wiki/Screenshots"><strong>page</strong></a>. It contains a couple of screenshots showing various problem domains using different projections. Please note that these screenshots are somewhat outdated.</p>
 
 <h3>
 <a id="videos" class="anchor" href="#videos" aria-hidden="true"><span class="octicon octicon-link"></span></a>Videos</h3>
 
-<p>There are some <a href="http://www.youtube.com/user/projectured">screencasts on youtube</a>.</p>
+<p>There are some <a href="http://www.youtube.com/user/projectured">screencasts on youtube</a> that shows the editor in action and demonstrate certain features.</p>
 
 <h3>
 <a id="performance" class="anchor" href="#performance" aria-hidden="true"><span class="octicon octicon-link"></span></a>Performance</h3>
 
-<p>It would be too early to extensively optimize the codebase at this point, but the design accommodates for future improvements. The printer and the reader are purely functional algorithms, so it wouldn't be that hard to utilize multiple cores for them. And both of them are written using a constraint based change propagation <a href="http://dwim.hu/darcsweb/darcsweb.cgi?r=HEAD%20hu.dwim.computed-class;a=summary">library</a> that allows lazy and incremental computation of results. So, the infrastructure is in place to be fast enough to be useful one day...</p>
+<p>The printer and the reader are written using a "purely functional" constraint based change propagation algorithm that allows lazy and incremental computation of results. So, the infrastructure is in place to be fast enough to be useful one day...</p>
 
 <h1>
 <a id="license" class="anchor" href="#license" aria-hidden="true"><span class="octicon octicon-link"></span></a>License</h1>
