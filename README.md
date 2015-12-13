@@ -4,27 +4,27 @@
 
 ProjecturEd is a general purpose projectional editor written in Common Lisp.
 
-It supports the integrated presentation and editing of arbitrary domains. The edited data is represented in their natural, domain specific data structures (as opposed to a flat string of characters), which accommodates for the implementation of many interesting, but yet to be explored features of structured editing.
+It supports the integrated presentation and editing of arbitrary problem domains. These domains potentially include but not limited to: word processing, spreadsheets, markup languages, programming langueges, modelling, graphs, graphics, etc. and any combination of them. The edited data is represented in their natural, domain specific data structures (as opposed to a flat string of characters), which accommodates for the implementation of many interesting, but yet to be explored features of structured editing.
 
-It also supports multiple projections of the same object, and thus it can simultaneously provide different notations, potentially all of them editable. These views can be textual or fully graphical, are easy to add to the framework, and due to the architecture they combine well.
+It also supports multiple projections of the same data, and thus it can simultaneously provide different notations, potentially all of them editable. These views can be textual, fully graphical, or in between, and due to the internal architecture of the editor projections combine well. It is expected that users would not only add new documents, but also new projections as needed.
 
-# Running the demos #
+# Running the Editor #
 
-The easiest way to run the ProjecturEd demos is to install it using [Quicklisp](http://quicklisp.org).
+The easiest way to run the editor is to install it using [Quicklisp](http://quicklisp.org).
 
 ### 1. Get a reasonably fresh SBCL ###
 
-On Debian Jessie:
+For example, on Debian Jessie:
 
 ```
 sudo apt-get install sbcl rlwrap git libsdl2-2.0-0 libsdl2-image-2.0-0 libsdl2-ttf-2.0-0
 ```
 
-Otherwise visit the [SBCL website](http://sbcl.org/platform-table.html) for instructions, and make sure you have the right version of libSDL installed for the SDL backend.
+Otherwise visit the [SBCL website](http://sbcl.org/platform-table.html) for instructions, and make sure you have the right version of libSDL2 libraries installed for the SDL backend.
 
 ### 2. Install Quicklisp ###
 
-Once you have an SBCL let's [install Quicklisp](http://www.quicklisp.org/beta/#installation):
+Once you have SBCL installed, you can continue with [installing Quicklisp](http://www.quicklisp.org/beta/#installation):
 
 ```
 cd ~
@@ -37,7 +37,7 @@ To finish the installation of Quicklisp approve the prompted question.
 
 ### 3. Check out some git repos ###
 
-At the time of writing the ASDF shipped with Quicklisp is too old, so let's clone the latest release:
+At the time of writing the ASDF shipped with Quicklisp is too old, so you might need to clone the latest release:
 ```
 cd ~/quicklisp/local-projects/
 git clone https://gitlab.common-lisp.net/asdf/asdf.git --branch release
@@ -51,22 +51,56 @@ git clone https://github.com/projectured/projectured.git
 
 ### 4. Build a standalone executable of ProjecturEd ###
 
+Run the following shell script:
+
 ```
 ~/quicklisp/local-projects/projectured/bin/build.sh
 ```
 
 The output and the build log will be saved next to the build.sh script.
 
-### 5. Run some of the tests ###
+### 5. Run the editor ###
 
-Start SBCL with ```rlwrap sbcl```, and copy these into its REPL:
+After the build has been completed you can run the editor from the command line with:
+
+```
+cd ~/quicklisp/local-projects/projectured/
+bin/projectured -h
+```
+
+There are a few small example documents that you can promptly start editing:
+
+```
+cd ~/quicklisp/local-projects/projectured/
+bin/projectured example/contact-list.json
+```
+
+Alternatively, you can run the editor by loading the project in your lisp. This allows experimentation with the code, changing this and that. Start SBCL with ```rlwrap sbcl```, and copy these into its REPL:
 
 ```
 (ql:quickload :projectured.executable)
 (projectured::executable-toplevel)
 ```
 
-If everything went fine, then you should see a window presenting a json test document.
+If everything went fine, then you should see a window presenting an empty generic document.
+
+```
+(ql:quickload :projectured.executable)
+(projectured::executable-toplevel "~/quicklisp/local-projects/projectured/example/contact-list.json")
+```
+
+This last example will show a window presenting an example JSON document. You can always press Control + H to get context sensitive help in the editor.
+
+### 5. Run some of the tests ###
+
+Start SBCL with ```rlwrap sbcl```, and copy these into its REPL:
+
+```
+(ql:quickload :projectured.sdl.test)
+(projectured.test::test)
+```
+
+This will run the automated test suite and print the result in the REPL.
 
 ### 4. If something goes wrong with loading ###
 
@@ -84,19 +118,19 @@ It's an unfunded opensource project, under much slower development than we would
 
 ### Donation ###
 
-The less I need to work to pay my bills, the more I can work on ProjecturEd. Bitcoin donations are welcome to the following address: 15XjRQUnSy8U7j2EFZyGFAi2KFnDnTEwqZ
+The less we need to work to pay our bills, the more we can work on ProjecturEd. Bitcoin donations are welcome to the following address: 15XjRQUnSy8U7j2EFZyGFAi2KFnDnTEwqZ
 
 ### Wiki ###
 
-There's a separate [**wiki**](https://github.com/projectured/projectured/wiki) with an increasing number of pages. It gives an overview of the whole idea, and it also describes how to install, run and test the projectional editor.
+There's a separate [**wiki**](https://github.com/projectured/projectured/wiki) with an increasing number of pages. It gives an overview of the whole idea, and it also allows contributing documentation to the project.
 
-### Internals ###
+### Documentation ###
 
-Currently the best thing to do is to look at the source code. Luckily the codebase is relatively small (around 10-15k LoC). You may also read the source files in the documentation folder, although it's far from being well structured.
+Currently the best thing to do is to look at the source code. Luckily the codebase is relatively small (around 20k LoC).
 
 ### Check out the latest version ###
 
-If you want to use with the latest version, then you should git clone the repository into ```~/quicklisp/local-projects/``` and Quicklisp will automatically use that version instead of the snapshot from its archives.
+If you want to try the latest version, then you should git clone the repository into ```~/quicklisp/local-projects/``` and Quicklisp will automatically use that version instead of the snapshot from its archives.
 
 # Status #
 
@@ -104,15 +138,15 @@ ProjecturEd is work in progress, and at this stage it's interesting primarily fo
 
 ### Screenshots ###
 
-If you would like to take a look at the editor in action, then look at this [**page**](https://github.com/projectured/projectured/wiki/Screenshots). It contains a couple of screenshots showing various problem domains using different projections.
+If you would like to take a look at the editor in action, then look at this [**page**](https://github.com/projectured/projectured/wiki/Screenshots). It contains a couple of screenshots showing various problem domains using different projections. Please note that these screenshots are somewhat outdated.
 
 ### Videos ###
 
-There are some [screencasts on youtube](http://www.youtube.com/user/projectured).
+There are some [screencasts on youtube](http://www.youtube.com/user/projectured) that shows the editor in action and demonstrate certain features.
 
 ### Performance ###
 
-It would be too early to extensively optimize the codebase at this point, but the design accommodates for future improvements. The printer and the reader are purely functional algorithms, so it wouldn't be that hard to utilize multiple cores for them. And both of them are written using a constraint based change propagation [library](http://dwim.hu/darcsweb/darcsweb.cgi?r=HEAD%20hu.dwim.computed-class;a=summary) that allows lazy and incremental computation of results. So, the infrastructure is in place to be fast enough to be useful one day...
+The printer and the reader are written using a "purely functional" constraint based change propagation algorithm that allows lazy and incremental computation of results. So, the infrastructure is in place to be fast enough to be useful one day...
 
 # License #
 
