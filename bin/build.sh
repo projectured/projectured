@@ -27,8 +27,10 @@ LISP=${LISP:-sbcl}
 
 echo "*** "`date`" Building '${PROJECT_NAME}' using lisp '${LISP}'"
 
-# we rely on the user's config, but we could do this, too
+# we rely on the user's config, but we could set the paths explicitly:
 #export CL_SOURCE_REGISTRY="(:source-registry (:also-exclude \"sbcl\" \"disabled-systems\") (:tree \"${WORKSPACE}\") :ignore-inherited-configuration)"
+# or we could rely only on whatever is available in quicklisp:
+#export CL_SOURCE_REGISTRY="(:source-registry (:also-exclude \"sbcl\" \"disabled-systems\") :ignore-inherited-configuration)"
 #export ASDF_OUTPUT_TRANSLATIONS="(:output-translations (\"${WORKSPACE}\" (\"${INSTALL_PATH}/.cache/common-lisp/\" :implementation)) :ignore-inherited-configuration)"
 
 # we need to delete the exe here, because i don't know how to convince ASDF:PROGRAM-OP to overwrite the output.
