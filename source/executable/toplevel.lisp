@@ -110,7 +110,7 @@
       (editor.debug "Parsed command line arguments are: ~S" arguments)
       (bind ((document (make-initial-document (or filename (first filenames))))
              (projection (make-initial-projection))
-             (backend (make-sdl-backend))
+             (backend (projectured/sdl:make-sdl-backend))
              (devices (make-default-devices))
              (editor (make-editor document projection backend devices))
              (measure-reader (process-measure-command-line-argument arguments :measure-reader))

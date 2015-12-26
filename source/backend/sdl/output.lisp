@@ -4,7 +4,7 @@
 ;;;
 ;;; See LICENCE for details.
 
-(in-package :projectured)
+(in-package :projectured/sdl)
 
 ;;;;;;
 ;;; API
@@ -29,7 +29,7 @@
 (def function output-to-file (backend instance device)
   (bind ((rectangle (bounds-of instance))
          (surface-size (- (size-of rectangle) (position-of rectangle)))
-         (surface (sdl2-ffi.functions:sdl-create-rgb-surface 0 (2d-x surface-size) (2d-y surface-size) 24 0 0 0 0))
+         (surface (#,SDL_CreateRGBSurface 0 (2d-x surface-size) (2d-y surface-size) 24 0 0 0 0))
          (translation (- (position-of rectangle))))
     (setf (raw-of device) surface)
     #+nil ; old code
@@ -62,16 +62,18 @@
          (unless (or (every 'whitespace? text)
                      #+nil (< (2d-y position) (- (sdl:get-font-size text :size :h :font (raw-of font))))
                      #+nil (> (2d-y position) (sdl:height sdl:*default-surface*)))
-           (bind ((surface (sdl2-ttf::%sdl-render-utf8-blended (autowrap:ptr (raw-of font)) text (raw-of font-color)))
-                  (texture (sdl2-ffi.functions::sdl-create-texture-from-surface renderer surface)))
-             (plus-c:c-with ((rectangle sdl2-ffi:sdl-rect))
-               (setf (rectangle :x) (round (2d-x position))
-                     (rectangle :y) (round (2d-y position))
-                     (rectangle :w) (plus-c:c-ref surface sdl2-ffi:sdl-surface :w)
-                     (rectangle :h) (plus-c:c-ref surface sdl2-ffi:sdl-surface :h))
-               (sdl2-ffi.functions:sdl-render-copy renderer texture nil rectangle)
-               (sdl2-ffi.functions:sdl-destroy-texture texture)
-               (sdl2-ffi.functions:sdl-free-surface surface)))))))
+           (bind ((surface (#,TTF_RenderUTF8_Blended (raw-of font) text (raw-of font-color)))
+                  (texture (#,SDL_CreateTextureFromSurface renderer surface)))
+             (cffi:with-foreign-object (rectangle '#,SDL_Rect)
+               (macrolet ((set-rect (slot value)
+                            `(setf (cffi:foreign-slot-value rectangle '#,SDL_Rect ,slot) ,value)))
+                 (set-rect '#,x (round (2d-x position)))
+                 (set-rect '#,y (round (2d-y position)))
+                 (set-rect '#,w (cffi:foreign-slot-value surface '#,SDL_Surface '#,w))
+                 (set-rect '#,h (cffi:foreign-slot-value surface '#,SDL_Surface '#,h)))
+               (c-fun/rc #,SDL_RenderCopy renderer texture (cffi:null-pointer) rectangle)
+               (#,SDL_DestroyTexture texture)
+               (#,SDL_FreeSurface surface)))))))
 
     #+nil
     (graphics/image
@@ -84,10 +86,10 @@
      (bind ((translation (+ translation (position-of instance)))
             (elements (elements-of instance)))
        (if (typep elements 'computed-ll)
-           (plus-c:c-with ((rectangle sdl2-ffi:sdl-rect))
-             (sdl2-ffi.functions:sdl-render-get-clip-rect renderer rectangle)
-             (bind ((y (plus-c:c-ref rectangle sdl2-ffi:sdl-rect :y))
-                    (h (plus-c:c-ref rectangle sdl2-ffi:sdl-rect :h)))
+           (cffi:with-foreign-object (rectangle '#,SDL_Rect)
+             (#,SDL_RenderGetClipRect renderer rectangle)
+             (bind ((y (cffi:foreign-slot-value rectangle '#,SDL_Rect '#,y))
+                    (h (cffi:foreign-slot-value rectangle '#,SDL_Rect '#,h)))
                (output-to-renderer backend renderer (value-of elements) translation)
                (rebind (translation)
                  (iter (for element :initially (previous-element-of elements) :then (previous-element-of element))
@@ -221,45 +223,49 @@
     (graphics/viewport
      (bind ((position (+ translation (position-of instance)))
             (size (size-of instance)))
-       (plus-c:c-with ((old-clipping sdl2-ffi:sdl-rect))
-         (sdl2-ffi.functions:sdl-render-get-clip-rect renderer old-clipping)
-         (plus-c:c-with ((new-clipping sdl2-ffi:sdl-rect))
-           (setf (new-clipping :x) (round (2d-x position))
-                 (new-clipping :y) (round (2d-y position))
-                 (new-clipping :w) (round (2d-x size))
-                 (new-clipping :h) (round (2d-y size)))
-           (sdl2-ffi.functions:sdl-render-set-clip-rect renderer new-clipping)
-           (output-to-renderer backend renderer (content-of instance) translation))
-         (sdl2-ffi.functions:sdl-render-set-clip-rect renderer old-clipping))))
+       (cffi:with-foreign-objects ((old-clipping '#,SDL_Rect)
+                                   (new-clipping '#,SDL_Rect))
+         (#,SDL_RenderGetClipRect renderer old-clipping)
+         (macrolet ((set-rect (slot value)
+                      `(setf (cffi:foreign-slot-value new-clipping '#,SDL_Rect ,slot) ,value)))
+           (set-rect '#,x (round (2d-x position)))
+           (set-rect '#,y (round (2d-y position)))
+           (set-rect '#,w (round (2d-x size)))
+           (set-rect '#,h (round (2d-y size))))
+         (#,SDL_RenderSetClipRect renderer new-clipping)
+         (output-to-renderer backend renderer (content-of instance) translation)
+         (#,SDL_RenderSetClipRect renderer old-clipping))))
 
     (graphics/line
      (bind ((begin (+ translation (begin-of instance)))
             (end (+ translation (end-of instance)))
             (stroke-color (stroke-color-of instance)))
        (set-render-draw-color renderer stroke-color)
-       (sdl2-ffi.functions:sdl-render-draw-line renderer
-                                                (round (2d-x begin))
-                                                (round (2d-y begin))
-                                                (round (2d-x end))
-                                                (round (2d-y end)))))
+       (#,SDL_RenderDrawLine renderer
+                             (round (2d-x begin))
+                             (round (2d-y begin))
+                             (round (2d-x end))
+                             (round (2d-y end)))))
     (graphics/window
      (bind ((window (ensure-window backend instance))
             (size (size-of instance))
-            (renderer (or (bind ((renderer (sdl2-ffi.functions:sdl-get-renderer window)))
-                            (if (cffi:null-pointer-p (autowrap:ptr renderer))
+            (renderer (or (bind ((renderer (#,SDL_GetRenderer window)))
+                            (if (cffi:null-pointer-p renderer)
                                 nil
                                 renderer))
-                          (sdl2-ffi.functions:sdl-create-renderer window -1 (autowrap:mask-apply 'sdl2::sdl-renderer-flags nil)))))
+                          (#,SDL_CreateRenderer window -1 0))))
        (set-render-draw-color renderer *color/white*)
-       (sdl2-ffi.functions:sdl-render-clear renderer)
-       (plus-c:c-with ((new-clipping sdl2-ffi:sdl-rect))
-         (setf (new-clipping :x) 0
-               (new-clipping :y) 0
-               (new-clipping :w) (round (2d-x size))
-               (new-clipping :h) (round (2d-y size)))
-         (sdl2-ffi.functions:sdl-render-set-clip-rect renderer new-clipping)
+       (c-fun/rc #,SDL_RenderClear renderer)
+       (cffi:with-foreign-object (new-clipping '#,SDL_Rect)
+         (macrolet ((set-rect (slot value)
+                      `(setf (cffi:foreign-slot-value new-clipping '#,SDL_Rect ,slot) ,value)))
+           (set-rect '#,x 0)
+           (set-rect '#,y 0)
+           (set-rect '#,w (round (2d-x size)))
+           (set-rect '#,h (round (2d-y size))))
+         (c-fun/rc #,SDL_RenderSetClipRect renderer new-clipping)
          (output-to-renderer backend renderer (content-of instance) 0))
-       (sdl2-ffi.functions:sdl-render-present renderer)))
+       (#,SDL_RenderPresent renderer)))
 
     #+nil
     (graphics/polygon
@@ -306,6 +312,6 @@
     (graphics/point
      (bind ((position (+ translation (position-of instance)))
             (stroke-color (raw-of (stroke-color-of instance))))
-       (sdl2-ffi.functions:sdl-render-draw-point renderer
-                                                 (round (2d-x position))
-                                                 (round (2d-y position)))))))
+       (#,SDL_RenderDrawPoint renderer
+                              (round (2d-x position))
+                              (round (2d-y position)))))))

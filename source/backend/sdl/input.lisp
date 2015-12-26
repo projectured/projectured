@@ -4,7 +4,7 @@
 ;;;
 ;;; See LICENCE for details.
 
-(in-package :projectured)
+(in-package :projectured/sdl)
 
 ;;;;;;
 ;;; API
@@ -23,81 +23,84 @@
         (make-operation/quit))))
 
 (def function read-event ()
-  (plus-c:c-with ((event sdl2-ffi:sdl-event))
-    (setf (event :type) (autowrap:enum-value 'sdl2-ffi:sdl-event-type :firstevent))
-    (sdl2-ffi.functions:sdl-wait-event event)
-    (case (autowrap:enum-key 'sdl2-ffi:sdl-event-type (event :type))
-      (:idle
-       (values))
-      (:keydown
-       (bind ((keysym (plus-c:c-ref event sdl2-ffi:sdl-keyboard-event :keysym))
-              (scancode (autowrap:enum-key 'sdl2-ffi:sdl-scancode (plus-c:c-ref keysym sdl2-ffi:sdl-keysym :scancode))))
-         (make-instance 'event/keyboard/key-down
-                        :timestamp (get-internal-real-time)
-                        :modifiers (modifier-keys (autowrap:mask-keywords 'sdl2::keymod (plus-c:c-ref keysym sdl2-ffi:sdl-keysym :mod)))
-                        :mouse-position (mouse-position)
-                        :key scancode)))
-      (:keyup
-       (bind ((keysym (plus-c:c-ref event sdl2-ffi:sdl-keyboard-event :keysym))
-              (scancode (autowrap:enum-key 'sdl2-ffi:sdl-scancode (plus-c:c-ref keysym sdl2-ffi:sdl-keysym :scancode))))
-         (make-instance 'event/keyboard/key-up
-                        :timestamp (get-internal-real-time)
-                        :modifiers (modifier-keys (autowrap:mask-keywords 'sdl2::keymod (plus-c:c-ref keysym sdl2-ffi:sdl-keysym :mod)))
-                        :mouse-position (mouse-position)
-                        :key scancode)))
-      (:textinput
-       (make-instance 'event/keyboard/type-in
-                      :timestamp (get-internal-real-time)
-                      :modifiers nil
-                      :mouse-position (mouse-position)
-                      :character (first-elt (cffi:foreign-string-to-lisp (cffi-sys:inc-pointer (autowrap:ptr event) 12)))))
-      (:mousemotion
-       (make-instance 'event/mouse/move
-                      :timestamp (get-internal-real-time)
-                      :modifiers nil
-                      :mouse-position (mouse-position)))
-      (:mousebuttondown
-       (bind ((button (plus-c:c-ref event sdl2-ffi:sdl-mouse-button-event :button)))
-         (make-instance 'event/mouse/button-press
+  (cffi:with-foreign-object (event '#,SDL_Event)
+    (setf (cffi:foreign-slot-value event '#,SDL_Event '#,type) #,SDL_FIRSTEVENT)
+    (when (zerop (#,SDL_WaitEvent event))
+      (error "Error in SDL_WaitEvent: ~S" (#,SDL_GetError)))
+    (bind ((event-type (cffi:foreign-slot-value event '#,SDL_Event '#,type)))
+      (case event-type
+        ((#.#,SDL_KEYDOWN #.#,SDL_KEYUP)
+         (bind ((keysym (cffi:foreign-slot-value event '#,SDL_KeyboardEvent '#,keysym))
+                (scancode (translate-scancode (cffi:foreign-slot-value keysym '#,SDL_Keysym '#,scancode))))
+           (make-instance (if (eql event-type #,SDL_KEYDOWN)
+                              'event/keyboard/key-down
+                              'event/keyboard/key-up)
+                          :timestamp (get-internal-real-time)
+                          :modifiers (translate-modifier-keys
+                                      (cffi:foreign-slot-value keysym '(:struct #,SDL_Keysym) '#,mod))
+                          :mouse-position (current-mouse-position)
+                          :key scancode)))
+        (#.#,SDL_TEXTINPUT
+         (bind ((input (cffi:foreign-string-to-lisp
+                        (cffi:foreign-slot-pointer event '#,SDL_TextInputEvent '#,text)
+                        :max-chars (cffi:foreign-type-size (cffi:foreign-slot-type '#,SDL_TextInputEvent '#,text)))))
+           (check-type input string)
+           (make-instance 'event/keyboard/type-in
+                          :timestamp (get-internal-real-time)
+                          :modifiers nil
+                          :mouse-position (current-mouse-position)
+                          ;; TODO FIXME this assumption is wrong. see: https://wiki.libsdl.org/Tutorials/TextInput
+                          :character (first-elt input))))
+        (#.#,SDL_MOUSEMOTION
+         (make-instance 'event/mouse/move
                         :timestamp (get-internal-real-time)
                         :modifiers nil
-                        :button (mouse-button button)
-                        :mouse-position (mouse-position))))
-      (:mousebuttonup
-       (bind ((button (plus-c:c-ref event sdl2-ffi:sdl-mouse-button-event :button)))
-         (make-instance 'event/mouse/button-release
+                        :mouse-position (current-mouse-position)))
+        ((#.#,SDL_MOUSEBUTTONDOWN #.#,SDL_MOUSEBUTTONUP)
+         (bind ((button (cffi:foreign-slot-value event '#,SDL_MouseButtonEvent '#,button)))
+           (make-instance (if (= event-type #,SDL_MOUSEBUTTONDOWN)
+                              'event/mouse/button-press
+                              'event/mouse/button-release)
+                          :timestamp (get-internal-real-time)
+                          :modifiers nil
+                          :button (translate-mouse-button button)
+                          :mouse-position (make-2d (cffi:foreign-slot-value event '#,SDL_MouseButtonEvent '#,x)
+                                                   (cffi:foreign-slot-value event '#,SDL_MouseButtonEvent '#,y)))))
+        (#.#,SDL_MOUSEWHEEL
+         (make-instance 'event/mouse/scroll-wheel
                         :timestamp (get-internal-real-time)
                         :modifiers nil
-                        :button (mouse-button button)
-                        :mouse-position (mouse-position))))
-      (:mousewheel
-       (make-instance 'event/mouse/scroll-wheel
-                      :timestamp (get-internal-real-time)
-                      :modifiers nil
-                      :scroll (make-2d (plus-c:c-ref event sdl2-ffi:sdl-mouse-wheel-event :x)
-                                       (plus-c:c-ref event sdl2-ffi:sdl-mouse-wheel-event :y))
-                      :mouse-position (mouse-position)))
-      (:quit
-       (make-instance 'event/window/quit
-                      :mouse-position (mouse-position))))))
+                        :scroll (make-2d (cffi:foreign-slot-value event '#,SDL_MouseWheelEvent '#,x)
+                                         (cffi:foreign-slot-value event '#,SDL_MouseWheelEvent '#,y))
+                        :mouse-position (current-mouse-position)))
+        (#.#,SDL_QUIT
+         (make-instance 'event/window/quit
+                        :mouse-position (current-mouse-position)))))))
 
-(def function modifier-keys (keys)
-  (remove nil (mapcar 'modifier-key keys)))
+(def function translate-modifier-keys (keys)
+  (labels
+      ((modifier-key (key)
+         (ecase key
+           ((#,KMOD_LCTRL #,KMOD_RCTRL) :control)
+           ((#,KMOD_LSHIFT #,KMOD_RSHIFT) :shift)
+           ((#,KMOD_LALT #,KMOD_RALT) :alt)
+           ((#,KMOD_LGUI #,KMOD_NUM #,KMOD_MODE) nil))))
+    (remove nil (mapcar #'modifier-key (cffi:foreign-bitfield-symbols '#,SDL_Keymod keys)))))
 
-(def function modifier-key (key)
-  (ecase key
-    ((:lctrl :rctrl) :control)
-    ((:lshift :rshift) :shift)
-    ((:lalt :ralt) :alt)
-    ((:lgui :num :mode) nil)))
+;; turn an SDL_SCANCODE_A into a :SCANCODE_A.
+(def function translate-scancode (scancode)
+  (check-type scancode (and symbol (not null)))
+  (bind ((symbol-name (symbol-name scancode)))
+    (assert (starts-with-subseq "SDL_" symbol-name))
+    (make-keyword (substitute #\- #\_ (subseq symbol-name 4)))))
 
-(def function mouse-position ()
-  (plus-c:c-with ((x :int) (y :int))
-    (sdl2-ffi.functions:sdl-get-mouse-state (x plus-c:&) (y plus-c:&))
-    (make-2d x y)))
-
-(def function mouse-button (button)
+(def function translate-mouse-button (button)
   (iter (for mask :initially 1 :then (ash mask 1))
         (for name :in '(:button-left :button-middle :button-right :wheel-down :wheel-up))
         (unless (zerop (logand mask button))
           (return name))))
+
+(def function current-mouse-position ()
+  (cffi:with-foreign-objects ((x :int) (y :int))
+    (#,SDL_GetMouseState x y)
+    (make-2d (cffi:mem-ref x :int) (cffi:mem-ref y :int))))
