@@ -71,7 +71,7 @@
                  (set-rect '#,y (round (2d-y position)))
                  (set-rect '#,w (cffi:foreign-slot-value surface '#,SDL_Surface '#,w))
                  (set-rect '#,h (cffi:foreign-slot-value surface '#,SDL_Surface '#,h)))
-               (c-fun/rc #,SDL_RenderCopy renderer texture (cffi:null-pointer) rectangle)
+               (#,SDL_RenderCopy renderer texture (cffi:null-pointer) rectangle)
                (#,SDL_DestroyTexture texture)
                (#,SDL_FreeSurface surface)))))))
 
@@ -255,7 +255,7 @@
                                 renderer))
                           (#,SDL_CreateRenderer window -1 0))))
        (set-render-draw-color renderer *color/white*)
-       (c-fun/rc #,SDL_RenderClear renderer)
+       (#,SDL_RenderClear renderer)
        (cffi:with-foreign-object (new-clipping '#,SDL_Rect)
          (macrolet ((set-rect (slot value)
                       `(setf (cffi:foreign-slot-value new-clipping '#,SDL_Rect ,slot) ,value)))
@@ -263,7 +263,7 @@
            (set-rect '#,y 0)
            (set-rect '#,w (round (2d-x size)))
            (set-rect '#,h (round (2d-y size))))
-         (c-fun/rc #,SDL_RenderSetClipRect renderer new-clipping)
+         (#,SDL_RenderSetClipRect renderer new-clipping)
          (output-to-renderer backend renderer (content-of instance) 0))
        (#,SDL_RenderPresent renderer)))
 

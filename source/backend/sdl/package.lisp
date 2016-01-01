@@ -15,7 +15,6 @@
         :hu.dwim.util
         :projectured)
   (:import-from :hu.dwim.sdl
-                #:c-fun/rc
                 #:c-fun/not-null
                 )
   (:readtable-setup

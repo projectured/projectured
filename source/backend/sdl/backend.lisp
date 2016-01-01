@@ -41,9 +41,9 @@
 (def function sdl/read-evaluate-print-loop (editor &rest args &key &allow-other-keys)
   (unwind-protect
        (progn
-         (c-fun/rc #,SDL_Init #,SDL_INIT_EVERYTHING)
-         (c-fun/rc #,TTF_Init)
-         (c-fun/rc #,IMG_Init 0)
+         (#,SDL_Init #,SDL_INIT_EVERYTHING)
+         (#,TTF_Init)
+         (#,IMG_Init 0)
          (apply 'read-evaluate-print-loop editor args))
     (iter (for (key value) :in-hashtable (windows-of (backend-of editor)))
           (#,SDL_DestroyWindow value))

@@ -39,11 +39,11 @@
     (make-2d (sdl:width rectangle) (sdl:height rectangle))))
 
 (def function set-render-draw-color (renderer color)
-  (c-fun/rc #,SDL_SetRenderDrawColor renderer
-            (round (* 255 (red-of color)))
-            (round (* 255 (green-of color)))
-            (round (* 255 (blue-of color)))
-            (round (* 255 (alpha-of color)))))
+  (#,SDL_SetRenderDrawColor renderer
+                            (round (* 255 (red-of color)))
+                            (round (* 255 (green-of color)))
+                            (round (* 255 (blue-of color)))
+                            (round (* 255 (alpha-of color)))))
 
 (def function render-draw-rect (renderer x y width height)
   (cffi:with-foreign-objects ((rectangle '#,SDL_Rect))
@@ -53,7 +53,7 @@
       (copy #,y y)
       (copy #,w width)
       (copy #,h height))
-    (c-fun/rc #,SDL_RenderDrawRect renderer rectangle)))
+    (#,SDL_RenderDrawRect renderer rectangle)))
 
 (def function render-fill-rect (renderer x y width height)
   (cffi:with-foreign-objects ((rectangle '#,SDL_Rect))
@@ -63,4 +63,4 @@
       (copy #,y y)
       (copy #,w width)
       (copy #,h height))
-    (c-fun/rc #,SDL_RenderFillRect renderer rectangle)))
+    (#,SDL_RenderFillRect renderer rectangle)))
