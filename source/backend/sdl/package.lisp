@@ -14,9 +14,6 @@
         :hu.dwim.logger
         :hu.dwim.util
         :projectured)
-  (:import-from :hu.dwim.sdl
-                #:c-fun/not-null
-                )
   (:readtable-setup
    (hu.dwim.util:enable-standard-hu.dwim-syntaxes)
    (hu.dwim.syntax-sugar:enable-case-preserving-syntax :packages '(:hu.dwim.sdl.ffi))))

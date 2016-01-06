@@ -23,7 +23,8 @@
 
 ;; TODO move some of these into hu.dwim.sdl, but on which name?
 (defun sdl/load-image (filename)
-  (bind ((img (c-fun/not-null #,IMG_Load filename)))
+  (bind ((img (the (not null)
+                (#,IMG_Load filename))))
     (trivial-garbage:finalize img (lambda ()
                                     (#,SDL_FreeSurface img)))
     img))
