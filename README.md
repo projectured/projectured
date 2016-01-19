@@ -43,6 +43,13 @@ cd ~/quicklisp/local-projects/
 git clone https://gitlab.common-lisp.net/asdf/asdf.git --branch release
 ```
 
+At the time of writing the following two systems are not in Quicklisp:
+```
+cd ~/quicklisp/local-projects/
+git clone https://github.com/lispgames/cl-sdl2-image.git
+git clone https://github.com/bogosortist/cl-sdl2-ttf.git
+```
+
 If you want to play with the latest (and potentially less stable) version of ProjecturEd:
 ```
 cd ~/quicklisp/local-projects/
