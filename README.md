@@ -2,6 +2,8 @@
 
 # Description #
 
+[![Join the chat at https://gitter.im/projectured/projectured](https://badges.gitter.im/projectured/projectured.svg)](https://gitter.im/projectured/projectured?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 ProjecturEd is a general purpose projectional editor written in Common Lisp.
 
 It supports the integrated presentation and editing of arbitrary problem domains. These domains potentially include but not limited to: word processing, spreadsheets, markup languages, programming langueges, modelling, graphs, graphics, etc. and any combination of them. The edited data is represented in their natural, domain specific data structures (as opposed to a flat string of characters), which accommodates for the implementation of many interesting, but yet to be explored features of structured editing.
