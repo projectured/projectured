@@ -12,7 +12,7 @@
 (def namespace reader)
 
 (def definer reader (name arguments &body forms)
-  (bind ((function-name (format-symbol (symbol-package name) "READER/~A" name)))
+  (bind ((function-name (format-symbol :projectured "READER/~A" name)))
     `(progn
        (def function ,function-name ,arguments ,@forms)
        (setf (find-reader ',name) ',function-name))))

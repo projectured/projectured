@@ -264,7 +264,8 @@
                                                                                                                                                   2))
                                                                                                                                           (if (and (not (zerop line-indentation))
                                                                                                                                                    (text/newline? child-element)
-                                                                                                                                                   (previous-element-of child-element-element))
+                                                                                                                                                   ;; TODO: delme or not? this produces extra indentation
+                                                                                                                                                   #+nil(previous-element-of child-element-element))
                                                                                                                                               (ll (list child-element (text/string (make-string-of-spaces line-indentation) :font *font/ubuntu/monospace/regular/24*)))
                                                                                                                                               (ll (list child-element)))))))))))
                                                                           (indented-child-origin-preceding-length (as (text/length (va indented-child) (text/first-position (va indented-child)) (text/origin-position (va indented-child)))))
@@ -644,7 +645,18 @@
                                       . ?rest)
                                      (make-operation/sequence/replace-range printer-input `((the sequence (children-of (the tree/node document)))
                                                                                             (the sequence (subseq (the sequence document) ,?index ,(1+ ?index))))
-                                                                            nil)))))
+                                                                            nil))))
+                      ((make-key-press-gesture :scancode-t :control)
+                       :domain "Tree" :description "Transposes the selected child and the following sibling"
+                       :operation (pattern-case selection
+                                    (((the sequence (children-of (the tree/node document)))
+                                      (the ?type (elt (the sequence document) ?index))
+                                      . ?rest)
+                                     (make-operation/sequence/swap-ranges printer-input
+                                                                          `((the sequence (children-of (the tree/node document)))
+                                                                            (the sequence (subseq (the sequence document) ,(+ ?index 1) ,(+ ?index 2))))
+                                                                          `((the sequence (children-of (the tree/node document)))
+                                                                            (the sequence (subseq (the sequence document) ,?index ,(+ ?index 1)))))))))
                     (bind ((command (command/read-backward recursion input printer-iomap 'backward-mapper/tree/node->text/text nil))
                            (operation (when command (operation-of command))))
                       (if (and (typep gesture 'gesture/mouse/click)

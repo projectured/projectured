@@ -39,6 +39,10 @@
 (def document document/reference (document/base)
   ((path :type reference)))
 
+(def document document/reflection ()
+  ((content :type t)
+   (last-commands :type sequence)))
+
 ;;;;;;
 ;;; Construction
 
@@ -63,6 +67,9 @@
 (def function make-document/reference (path &key selection)
   (make-instance 'document/reference :path path :selection selection))
 
+(def function make-document/reflection (content &key selection)
+  (make-instance 'document/reflection :content content :last-commands nil :selection selection))
+
 ;;;;;;
 ;;; Construction
 
@@ -86,6 +93,9 @@
 
 (def macro document/reference ((&key selection) &body path)
   `(make-document/reference ,(first path) :selection ,selection))
+
+(def macro document/reflection ((&key selection) &body content)
+  `(make-instance 'document/reflection :content ,(first content) :last-commands nil :selection ,selection))
 
 ;;;;;;
 ;;; Operation

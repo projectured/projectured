@@ -18,6 +18,10 @@
 (def projection document/search->tree/node ()
   ((searcher :type function)))
 
+(def projection document/reflection->graphics/canvas ()
+  ((display-selection :type boolean)
+   (display-last-commands :type boolean)))
+
 ;;;;;;
 ;;; Construction
 
@@ -30,6 +34,9 @@
 (def function make-projection/document/search->tree/node (searcher)
   (make-projection 'document/search->tree/node :searcher searcher))
 
+(def function make-projection/document/reflection->graphics/canvas ()
+  (make-projection 'document/reflection->graphics/canvas :display-selection #f :display-last-commands #f))
+
 ;;;;;;
 ;;; Construction
 
@@ -41,6 +48,9 @@
 
 (def macro document/search->tree/node (searcher)
   `(make-projection/document/search->tree/node ,searcher))
+
+(def macro document/reflection->graphics/canvas ()
+  `(make-projection/document/reflection->graphics/canvas))
 
 ;;;;;;
 ;;; IO map
@@ -163,6 +173,35 @@
                    :input input :input-reference input-reference :output output
                    :result result)))
 
+(def printer document/reflection->graphics/canvas (projection recursion input input-reference)
+  (bind ((content-iomap (as (recurse-printer recursion (content-of input)
+                                             `((content-of (the document/reflection document))
+                                               ,@(typed-reference (document-type input) input-reference)))))
+         (selection-iomap (as (recurse-printer recursion (document/reference () (selection-of (content-of input)))
+                                               `((selection-of (the document/reflection document))
+                                                 ,@(typed-reference (document-type input) input-reference)))))
+         (last-commands-iomap (as (awhen (last-commands-of input)
+                                    (recurse-printer recursion (make-help/context-sensitive (last-commands-of input))
+                                                     `((last-commands-of (the document/reflection document))
+                                                       ,@(typed-reference (document-type input) input-reference))))))
+         (output (as (make-graphics/canvas (append (list (output-of (va content-iomap)))
+                                                   (when (display-selection-p projection)
+                                                     (list (make-graphics/canvas (as (when (selection-of (content-of input))
+                                                                                       (bind ((height (2d-y (size-of (bounds-of (output-of (va selection-iomap)))))))
+                                                                                         (list (make-graphics/rounded-rectangle (make-2d 0 (- 710 height)) (make-2d 1280 (+ 10 height))
+                                                                                                                                9
+                                                                                                                                :fill-color (color/lighten *color/solarized/yellow* 0.75))
+                                                                                               (make-graphics/canvas (list (output-of (va selection-iomap))) (make-2d 5 (- 715 height)))))))
+                                                                                 0)))
+                                                   (when (display-last-commands-p projection)
+                                                     (list (make-graphics/canvas (as (when (va last-commands-iomap)
+                                                                                       (list (make-graphics/rounded-rectangle (make-2d 0 631) (make-2d 1280 88)
+                                                                                                                              9
+                                                                                                                              :fill-color (color/lighten *color/solarized/yellow* 0.75))
+                                                                                             (make-graphics/canvas (list (output-of (va last-commands-iomap))) (make-2d 5 640)))))
+                                                                                 0)))) 0))))
+    (make-iomap/compound projection recursion input input-reference output (as (list (va content-iomap))))))
+
 ;;;;;;
 ;;; Reader
 
@@ -171,7 +210,7 @@
   (bind ((printer-input (input-of printer-iomap)))
     (merge-commands (gesture-case (gesture-of input)
                       ((make-key-press-gesture :scancode-insert)
-                       :domain "Document" :description "Starts an insertion into the document"
+                       :domain "Document" :description "Starts a generic insertion into the document"
                        :operation (make-operation/compound (list (make-operation/replace-target printer-input nil (document/insertion ()))
                                                                  (make-operation/replace-selection printer-input `((the string (value-of (the document/insertion document)))
                                                                                                                    (the string (subseq (the string document) 0 0))))))))
@@ -365,4 +404,31 @@
                       (make-command (gesture-of input) it
                                     :domain (domain-of input)
                                     :description (description-of input)))
+                    (make-nothing-command (gesture-of input)))))
+
+(def reader document/reflection->graphics/canvas (projection recursion input printer-iomap)
+  (bind ((printer-input (input-of printer-iomap))
+         (last-command (command/extend (recurse-reader recursion input (elt (child-iomaps-of printer-iomap) 0))
+                                       printer-input
+                                       `((the ,(document-type (content-of printer-input)) (content-of (the document/reflection document))))))
+         (last-commands (last-commands-of printer-input))
+         (new-last-commands (subseq (list* last-command last-commands) 0 (min 3 (1+ (length last-commands))))))
+    (merge-commands (if (or (not last-command)
+                            (not (operation-of last-command))
+                            (typep (operation-of last-command) 'operation/show-context-sensitive-help))
+                        last-command
+                        (make-command (gesture-of input)
+                                      (make-operation/compound (optional-list (operation-of last-command)
+                                                                              (make-operation/replace-target (input-of printer-iomap)
+                                                                                                             '((the sequence (last-commands-of (the document/reflection document))))
+                                                                                                             new-last-commands)))
+                                      :domain (domain-of last-command)
+                                      :description (description-of last-command)))
+                    (gesture-case (gesture-of input)
+                      ((make-key-press-gesture :scancode-f1)
+                       :domain "Document" :description "Toggles displaying current selection"
+                       :operation (make-operation/functional (lambda () (notf (display-selection-p projection)))))
+                      ((make-key-press-gesture :scancode-f2)
+                       :domain "Document" :description "Toggles displaying last commands"
+                       :operation (make-operation/functional (lambda () (notf (display-last-commands-p projection))))))
                     (make-nothing-command (gesture-of input)))))

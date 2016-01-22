@@ -12,7 +12,7 @@
 (def namespace loader)
 
 (def definer loader (name arguments &body forms)
-  (bind ((function-name (format-symbol (symbol-package name) "LOADER/~A" name)))
+  (bind ((function-name (format-symbol :projectured "LOADER/~A" name)))
     `(progn
        (def function ,function-name ,arguments ,@forms)
        (setf (find-loader ',name) ',function-name))))

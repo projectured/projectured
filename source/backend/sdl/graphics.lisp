@@ -4,7 +4,7 @@
 ;;;
 ;;; See LICENCE for details.
 
-(in-package :projectured/sdl)
+(in-package :projectured.sdl)
 
 ;;;;;;
 ;;; API
@@ -25,7 +25,7 @@
 (def method raw-of :around ((image image/file))
   (or (call-next-method)
       (va (setf (raw-of image)
-                (as (sdl/load-image (namestring (resource-pathname (filename-of image)))))))))
+                (as (#,IMG_Load (namestring (resource-pathname (filename-of image)))))))))
 
 (def function measure-text (text font)
   (cffi:with-foreign-objects ((w :int) (h :int))
@@ -64,3 +64,14 @@
       (copy #,w width)
       (copy #,h height))
     (#,SDL_RenderFillRect renderer rectangle)))
+
+;; TODO move some of these into hu.dwim.sdl, but on which name?
+(def function load-image (filename)
+  (bind ((img (the (not null)
+                (#,IMG_Load filename))))
+    (trivial-garbage:finalize img (lambda () (#,SDL_FreeSurface img)))
+    img))
+
+(def function make-sdl-color (red green blue alpha)
+  ;; TODO maybe get rid of the struct-by-value translation?
+  `(#,r ,red #,g ,green #,b ,blue #,a ,alpha))

@@ -131,7 +131,6 @@
 (def function make-widget/tooltip (position size content &rest args &key margin margin-color border border-color padding padding-color)
   (declare (ignore margin margin-color border border-color padding padding-color))
   (apply #'make-instance 'widget/tooltip
-         :visible #t
          :position position
          :size size
          :content content

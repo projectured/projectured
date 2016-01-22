@@ -471,7 +471,7 @@
     (merge-commands (command/read-selection recursion input printer-iomap 'forward-mapper/xml/element->tree/node 'backward-mapper/xml/element->tree/node)
                     (gesture-case (gesture-of input)
                       ((make-key-press-gesture :scancode-insert)
-                       :domain "XML" :description "Starts an insertion into the children of the XML element"
+                       :domain "XML" :description "Starts a generic insertion into the children of the XML element"
                        :operation (make-operation/compound (bind ((children-length (length (children-of printer-input))))
                                                              (list (make-operation/sequence/replace-range printer-input `((the sequence (children-of (the xml/element document)))
                                                                                                                           (the sequence (subseq (the sequence document) ,children-length ,children-length)))

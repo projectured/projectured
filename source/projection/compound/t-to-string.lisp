@@ -16,11 +16,16 @@
      (sequential
        (recursive
          (type-dispatching
-           (document/base (document->tree 'initial-factory))
+           (document/base (document->tree 'default-factory))
            (document/sequence (copying))
            (book/base (book->tree))
            (json/base (json->tree))
-           (xml/base (xml->tree))))
+           (xml/base (xml->tree))
+           (common-lisp/base (sequential
+                               (common-lisp->lisp-form)
+                               (lisp-form->tree)))
+           (lisp-form/base (lisp-form->tree))
+           (tree/base (preserving))))
        (recursive
          (type-dispatching
            (tree/base (tree->text))

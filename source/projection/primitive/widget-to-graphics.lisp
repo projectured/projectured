@@ -345,15 +345,15 @@
                          (bind ((content-output (output-of (va content-iomap)))
                                 (content-rectangle (bounds-of content-output))
                                 (margin (margin-of input)))
-                           (make-graphics/window (position-of input)
-                                                 (size-of input)
-                                                 (make-graphics/canvas (list (make-graphics/rounded-rectangle (- (position-of content-rectangle) (make-2d (left-of margin) (top-of margin)))
-                                                                                                              (+ (size-of content-rectangle) (make-2d (+ (left-of margin) (right-of margin))
-                                                                                                                                                      (+ (top-of margin) (bottom-of margin))))
-                                                                                                              9
-                                                                                                              :fill-color (color/lighten *color/solarized/yellow* 0.75))
-                                                                             content-output)
-                                                                       0)))
+                           (make-output/window (position-of input)
+                                               (size-of input)
+                                               (make-graphics/canvas (list (make-graphics/rounded-rectangle (- (position-of content-rectangle) (make-2d (left-of margin) (top-of margin)))
+                                                                                                            (+ (size-of content-rectangle) (make-2d (+ (left-of margin) (right-of margin))
+                                                                                                                                                    (+ (top-of margin) (bottom-of margin))))
+                                                                                                            9
+                                                                                                            :fill-color (color/lighten *color/solarized/yellow* 0.75))
+                                                                           content-output)
+                                                                     0)))
                          (make-graphics/canvas nil 0)))))
     (make-iomap/compound projection recursion input input-reference output (as (list (va content-iomap))))))
 
@@ -417,14 +417,17 @@
                                                `((tooltip-of (the widget/shell document))
                                                  ,@(typed-reference (document-type input) input-reference))))))
          (content-bounding-rectangle (bounds-of (output-of (va content-iomap))))
-         (output (as (make-graphics/window (make-2d 200 200) ; TODO: initial position
-                                           (size-of input)
-                                           (make-graphics/canvas (as (append (widget/make-surrounding-graphics input (size-of content-bounding-rectangle) (content-fill-color-of input))
-                                                                             (optional-list (make-graphics/canvas (list (output-of (va content-iomap))) (widget/content-top-left input))
-                                                                                            (when (va tooltip-iomap)
-                                                                                              (output-of (va tooltip-iomap))))))
-                                                                 0)
-                                           :title "ProjecturEd"))))
+         (output (as (bind ((tooltip (when (va tooltip-iomap)
+                                       (output-of (va tooltip-iomap)))))
+                       (make-output/display (optional-list (make-output/window (make-2d 200 200) ; TODO: initial position
+                                                                               (size-of input)
+                                                                               (make-graphics/canvas (as (append (widget/make-surrounding-graphics input (size-of content-bounding-rectangle) (content-fill-color-of input))
+                                                                                                                 (list (make-graphics/canvas (list (output-of (va content-iomap)))
+                                                                                                                                             (widget/content-top-left input)))))
+                                                                                                     0)
+                                                                               :title "ProjecturEd")
+                                                           (when (typep tooltip 'output/window)
+                                                             tooltip)))))))
     (make-iomap/compound projection recursion input input-reference output (as (list (va content-iomap))))))
 
 (def printer widget/title-pane->graphics/canvas (projection recursion input input-reference)
@@ -602,6 +605,7 @@
                                                (operation/save-document operation)
                                                (operation/load-document operation)
                                                (operation/widget/tabbed-pane/select-page operation)
+                                               (operation/widget/scroll-pane/scroll operation)
                                                (operation/replace-selection
                                                 (make-operation/replace-selection printer-input (append `((the ,(document-type (content-of printer-input)) (content-of (the widget/shell document)))) (selection-of operation))))
                                                (operation/sequence/replace-range
@@ -617,10 +621,7 @@
                                                (operation/focusing/replace-part
                                                 operation)
                                                (operation/show-context-sensitive-help
-                                                (bind ((content (text/make-text (iter (for command :in (commands-of operation))
-                                                                                      (unless (first-iteration-p)
-                                                                                        (collect (text/newline)))
-                                                                                      (appending (make-command-help-text command)))))
+                                                (bind ((content (make-help/context-sensitive (commands-of operation)))
                                                        (size (size-of (make-bounding-rectangle (printer-output content recursion)))))
                                                   (make-operation/replace-target printer-input
                                                                                  '((the widget/tooltip (tooltip-of (the widget/shell document))))
@@ -644,14 +645,13 @@
                                                (operation/compound
                                                 (bind ((child-operations (mapcar #'recurse (elements-of operation))))
                                                   (unless (some 'null child-operations)
-                                                    (make-operation/compound child-operations))))
-                                               (t
-                                                (if (and (or operation (typep (gesture-of input) 'gesture/mouse/move))
-                                                         (tooltip-of printer-input)
-                                                         (visible-p (tooltip-of printer-input)))
-                                                    (make-operation/compound (optional-list operation (make-instance 'operation/widget/hide :widget tooltip)))
-                                                    operation)))))
-                                    (recurse (operation-of content-command)))
+                                                    (make-operation/compound child-operations)))))))
+                                    (bind ((operation (recurse (operation-of content-command))))
+                                      (if (and operation
+                                               (tooltip-of printer-input)
+                                               (visible-p (tooltip-of printer-input)))
+                                          (make-operation/compound (optional-list operation (make-instance 'operation/widget/hide :widget tooltip)))
+                                          operation)))
                                   :domain (domain-of content-command)
                                   :description (description-of content-command))
                     (document/read-operation gesture)

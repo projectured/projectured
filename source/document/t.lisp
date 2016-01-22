@@ -106,6 +106,7 @@
      :domain "Document" :description "Execute garbage collector"
      :operation (make-operation/functional (lambda () (trivial-garbage:gc :full #t))))))
 
+;; TODO: simplify and generalize
 (def function operation/extend (printer-input path operation)
   (labels ((recurse (operation)
              (typecase operation
@@ -120,6 +121,8 @@
                 (make-operation/string/replace-range printer-input (append path (selection-of operation)) (replacement-of operation)))
                (operation/sequence/replace-range
                 (make-operation/sequence/replace-range printer-input (append path (selection-of operation)) (replacement-of operation)))
+               (operation/sequence/swap-ranges
+                (make-operation/sequence/swap-ranges printer-input (append path (selection-1-of operation)) (append path (selection-2-of operation))))
                (operation/text/replace-range
                 (make-operation/text/replace-range printer-input (append path (selection-of operation)) (replacement-of operation)))
                (operation/replace-target
@@ -141,6 +144,7 @@
                     (make-operation/compound operations)))))))
     (recurse operation)))
 
+;; TODO: simplify and generalize
 (def function operation/read-backward (recursion input printer-iomap backward-mapper operation-mapper)
   (bind ((printer-input (input-of printer-iomap)))
     (labels ((recurse (operation)
@@ -186,6 +190,17 @@
                                    (output-element-operation (operation-of output-child-command)))
                               (operation/extend printer-input selection output-element-operation))
                             (make-operation/sequence/replace-range printer-input selection (replacement-of operation))))))
+                 (operation/sequence/swap-ranges
+                  (bind (((:values selection-1 child-selection-1 child-iomap) (funcall backward-mapper printer-iomap (selection-1-of operation)))
+                         ((:values selection-2 child-selection-2 child-iomap) (funcall backward-mapper printer-iomap (selection-2-of operation))))
+                    (or (when operation-mapper (funcall operation-mapper operation selection-1 child-selection-1 child-iomap))
+                        (if (and child-iomap child-selection-1 child-selection-2)
+                            (bind ((input-child-operation (make-operation/sequence/swap-ranges (input-of child-iomap) child-selection-1 child-selection-2))
+                                   (input-child-command (clone-command input input-child-operation))
+                                   (output-child-command (recurse-reader recursion input-child-command child-iomap))
+                                   (output-element-operation (operation-of output-child-command)))
+                              (operation/extend printer-input selection-1 output-element-operation))
+                            (make-operation/sequence/swap-ranges printer-input selection-1 selection-2)))))
                  (operation/string/replace-range
                   (bind (((:values selection child-selection child-iomap) (funcall backward-mapper printer-iomap (selection-of operation))))
                     (or (when operation-mapper (funcall operation-mapper operation selection child-selection child-iomap))

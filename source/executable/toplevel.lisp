@@ -101,6 +101,13 @@
   (when (getf arguments argument)
     :measure))
 
+(def function make-default-editor (document)
+  (bind ((document (make-default-document document))
+         (projection (make-default-projection))
+         (backend (projectured.sdl::make-sdl-backend))
+         (devices (make-default-devices)))
+    (make-editor document projection backend devices)))
+
 (def function executable-toplevel (&optional filename)
   (with-standard-toplevel-restarts
     (bind (((:values arguments filenames) (command-line-arguments:process-command-line-options +command-line-options+ (rest sb-ext:*posix-argv*))))
@@ -108,11 +115,8 @@
       (process-version-command-line-argument arguments +version+)
       (process-quiet-command-line-argument arguments)
       (editor.debug "Parsed command line arguments are: ~S" arguments)
-      (bind ((document (make-initial-document (or filename (first filenames))))
-             (projection (make-initial-projection))
-             (backend (projectured/sdl:make-sdl-backend))
-             (devices (make-default-devices))
-             (editor (make-editor document projection backend devices))
+      (bind ((document (make-file-document (or filename (first filenames))))
+             (editor (make-default-editor document))
              (measure-reader (process-measure-command-line-argument arguments :measure-reader))
              (measure-evaluator (process-measure-command-line-argument arguments :measure-evaluator))
              (measure-printer (process-measure-command-line-argument arguments :measure-printer)))

@@ -57,6 +57,20 @@
                        (common-prefix (reduce 'longest-common-prefix matching-prefixes :initial-value (first matching-prefixes))))
                   (subseq common-prefix (min (length common-prefix) (length ,prefix))))))))
 
+(def macro completion-prefix-merge (&body cases)
+  (bind ((result-vars (iter (repeat (length cases))
+                            (collect (gensym "RESULT"))))
+         (completion-vars (iter (repeat (length cases))
+                                (collect (gensym "COMPLETION")))))
+    `(bind (,@(iter (for case :in cases)
+                    (for result-var :in result-vars)
+                    (for completion-var :in completion-vars)
+                    (collect `((:values ,result-var ,completion-var) ,case))))
+       (or ,@result-vars
+           (values nil
+                   (bind ((matching-prefixes (remove-if 'null (list ,@completion-vars))))
+                     (reduce 'longest-common-prefix matching-prefixes :initial-value (first matching-prefixes))))))))
+
 (def function deep-copy (instance)
   (labels ((recurse (instance)
              (etypecase instance

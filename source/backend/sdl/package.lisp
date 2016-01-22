@@ -6,7 +6,7 @@
 
 (in-package :hu.dwim.def)
 
-(def package :projectured/sdl
+(def package :projectured.sdl
   (:use :hu.dwim.asdf
         :hu.dwim.common
         :hu.dwim.def
@@ -18,6 +18,6 @@
    (hu.dwim.util:enable-standard-hu.dwim-syntaxes)
    (hu.dwim.syntax-sugar:enable-case-preserving-syntax :packages '(:hu.dwim.sdl.ffi))))
 
-(in-package :projectured/sdl)
+(in-package :projectured.sdl)
 
-(import-all-owned-symbols :projectured :projectured/sdl)
+(import-all-owned-symbols :projectured :projectured.sdl)

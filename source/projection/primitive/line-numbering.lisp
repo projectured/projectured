@@ -17,10 +17,9 @@
 
 (def function forward-mapper/line-numbering (printer-iomap reference)
   (bind ((projection (projection-of printer-iomap))
-         (recursion (recursion-of printer-iomap))
          (printer-input (input-of printer-iomap)))
     (labels ((map-character-index (character-index)
-               (bind ((character-position (text/relative-position printer-input (text/origin-position printer-input) character-index))
+               (bind ((character-position (text/relative-position printer-input (text/normalize-forward printer-input (text/origin-position printer-input)) character-index))
                       (line-count (text/count printer-input #\NewLine (text/first-position printer-input) character-position)))
                  (+ character-index
                     (text/length printer-input (text/first-position printer-input) (text/origin-position printer-input))

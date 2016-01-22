@@ -57,6 +57,11 @@
    (selection :type reference)
    (replacement :type sequence)))
 
+(def operation operation/sequence/swap-ranges ()
+  ((document :type t)
+   (selection-1 :type reference)
+   (selection-2 :type reference)))
+
 ;;;;;;
 ;;; Construction
 
@@ -65,6 +70,12 @@
                  :document document
                  :selection selection
                  :replacement replacement))
+
+(def function make-operation/sequence/swap-ranges (document selection-1 selection-2)
+  (make-instance 'operation/sequence/swap-ranges
+                 :document document
+                 :selection-1 selection-1
+                 :selection-2 selection-2))
 
 ;;;;;;
 ;;; Evaluator
@@ -104,6 +115,12 @@
          (call-evaluator (make-operation/replace-selection document new-selection))))
       (?a
        (error "Unknown selection ~A" selection)))))
+
+(def evaluator operation/sequence/swap-ranges (operation)
+  (bind ((document (document-of operation))
+         (selection-1 (selection-1-of operation))
+         (selection-2 (selection-2-of operation)))
+    (not-yet-implemented)))
 
 ;;;;;;
 ;;; API

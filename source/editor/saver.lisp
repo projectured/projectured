@@ -12,7 +12,7 @@
 (def namespace saver)
 
 (def definer saver (name arguments &body forms)
-  (bind ((function-name (format-symbol (symbol-package name) "SAVER/~A" name)))
+  (bind ((function-name (format-symbol :projectured "SAVER/~A" name)))
     `(progn
        (def function ,function-name ,arguments ,@forms)
        (setf (find-saver ',name) ',function-name))))
