@@ -12,7 +12,7 @@
 (def namespace maker)
 
 (def definer maker (name arguments &body forms)
-  (bind ((function-name (format-symbol (symbol-package name) "MAKER/~A" name)))
+  (bind ((function-name (format-symbol :projectured "MAKER/~A" name)))
     `(progn
        (def function ,function-name ,arguments ,@forms)
        (setf (find-maker ',name) ',function-name))))

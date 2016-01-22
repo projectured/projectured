@@ -610,7 +610,7 @@
                                                                                                                      (the string (value-of (the json/insertion document)))
                                                                                                                      (the string (subseq (the string document) 0 0))))))))
                       ((make-key-press-gesture :scancode-insert)
-                       :domain "JSON" :description "Starts an insertion into the elements of the JSON array"
+                       :domain "JSON" :description "Starts a generic insertion into the elements of the JSON array"
                        :operation (bind ((elements-length (length (elements-of printer-input))))
                                     (make-operation/compound (list (make-operation/sequence/replace-range printer-input `((the sequence (elements-of (the json/array document)))
                                                                                                                           (the sequence (subseq (the sequence document) ,elements-length ,elements-length)))
@@ -673,7 +673,7 @@
                                                                                                                      (the string (key-of (the json/object-entry document)))
                                                                                                                      (the string (subseq (the string document) 0 0))))))))
                       ((make-key-press-gesture :scancode-insert)
-                       :domain "JSON" :description "Starts an insertion into the entries of the JSON object"
+                       :domain "JSON" :description "Starts a generic insertion into the entries of the JSON object"
                        :operation (bind ((entries-length (length (entries-of printer-input))))
                                     (make-operation/compound (list (make-operation/sequence/replace-range printer-input `((the sequence (entries-of (the json/object document)))
                                                                                                                           (the sequence (subseq (the sequence document) ,entries-length ,entries-length)))

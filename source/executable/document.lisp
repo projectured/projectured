@@ -9,18 +9,21 @@
 ;;;;;;
 ;;; Document
 
-(def function make-initial-document (filename)
+(def function make-file-document (filename)
+  (if filename
+      (if (probe-file filename)
+          (document/document (:filename filename)
+            (call-loader filename))
+          (document/document (:filename filename)
+            (call-maker filename)))
+      (document/document (:filename "document.pred")
+        (funcall (find-maker 'pred)))))
+
+(def function make-default-document (document)
   (widget/shell (:size (make-2d 1280 720))
     (widget/scroll-pane (:position 0 :size (make-2d 1280 720) :margin (make-inset :all 5))
       (document/clipboard ()
-        (if filename
-            (if (probe-file filename)
-                (document/document (:filename filename)
-                  (call-loader filename))
-                (document/document (:filename filename)
-                  (call-maker filename)))
-            (document/document (:filename "document.pred")
-              (funcall (find-maker 'pred))))))))
+        document))))
 
 (def function make-mixed-example-document ()
   (book/book (:title "Example")

@@ -56,6 +56,7 @@
                                :part (iter (for selection :on (reverse (selection-of (input-of printer-iomap))))
                                            (when (subtypep (second (first selection)) (part-type-of projection))
                                              (return (reverse selection))))))))
+
 (def reader focusing (projection recursion input printer-iomap)
   (declare (ignore recursion))
   (merge-commands (focusing/read-command projection input printer-iomap)

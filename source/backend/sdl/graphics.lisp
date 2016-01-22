@@ -4,7 +4,7 @@
 ;;;
 ;;; See LICENCE for details.
 
-(in-package :projectured/sdl)
+(in-package :projectured.sdl)
 
 ;;;;;;
 ;;; API
@@ -25,7 +25,7 @@
 (def method raw-of :around ((image image/file))
   (or (call-next-method)
       (va (setf (raw-of image)
-                (as (sdl/load-image (namestring (resource-pathname (filename-of image)))))))))
+                (as (#,IMG_Load (namestring (resource-pathname (filename-of image)))))))))
 
 (def function measure-text (text font)
   (cffi:with-foreign-objects ((w :int) (h :int))

@@ -18,7 +18,7 @@
     `(def class* ,name ,supers ,slots ,@options)))
 
 (def definer evaluator (name arguments &body forms)
-  (bind ((function-name (format-symbol (symbol-package name) "EVALUATOR/~A" name)))
+  (bind ((function-name (format-symbol :projectured "EVALUATOR/~A" name)))
     `(progn
        (def function ,function-name ,arguments ,@forms)
        (setf (find-evaluator ',name) ',function-name))))

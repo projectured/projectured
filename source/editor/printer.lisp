@@ -12,7 +12,7 @@
 (def namespace printer)
 
 (def definer printer (name arguments &body forms)
-  (bind ((function-name (format-symbol (symbol-package name) "PRINTER/~A" name)))
+  (bind ((function-name (format-symbol :projectured "PRINTER/~A" name)))
     `(progn
        (def function ,function-name ,arguments ,@forms)
        (setf (find-printer ',name) ',function-name))))

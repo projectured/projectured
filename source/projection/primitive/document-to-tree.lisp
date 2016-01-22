@@ -171,7 +171,7 @@
   (bind ((printer-input (input-of printer-iomap)))
     (merge-commands (gesture-case (gesture-of input)
                       ((make-key-press-gesture :scancode-insert)
-                       :domain "Document" :description "Starts an insertion into the document"
+                       :domain "Document" :description "Starts a generic insertion into the document"
                        :operation (make-operation/compound (list (make-operation/replace-target printer-input nil (document/insertion ()))
                                                                  (make-operation/replace-selection printer-input `((the string (value-of (the document/insertion document)))
                                                                                                                    (the string (subseq (the string document) 0 0))))))))

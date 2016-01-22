@@ -9,7 +9,7 @@
 ;;;;;;
 ;;; Projection
 
-(def function initial-factory (name)
+(def function default-factory (name)
   (completion-prefix-switch name
     ("book" (book/book (:selection '((the string (title-of (the book/book document)))
                                      (the string (subseq (the string document) 0 0))))))
@@ -57,14 +57,23 @@
                                      :selection '((the sequence (entries-of (the json/object document)))
                                                   (the json/insertion (elt (the sequence document) 0))
                                                   (the string (value-of (the json/insertion document)))
-                                                  (the string (subseq (the string document) 0 0)))))))
+                                                  (the string (subseq (the string document) 0 0)))))
+    ("common lisp function definition" (make-common-lisp/function-definition (make-lisp-form/symbol "" "") nil nil
+                                                                             :documentation ""
+                                                                             :selection '((the lisp-form/symbol (name-of (the common-lisp/function-definition document)))
+                                                                                          (the string (name-of (the lisp-form/symbol document)))
+                                                                                          (the string (subseq (the string document) 0 0)))))
+    ("common lisp if" (make-common-lisp/if (make-common-lisp/insertion "" 'common-lisp/complete-document) (make-common-lisp/insertion "" 'common-lisp/complete-document) (make-common-lisp/insertion "" 'common-lisp/complete-document)))
+    ("common lisp progn" (make-common-lisp/progn nil))
+    ("common lisp let" (make-common-lisp/let nil nil))
+    ("common lisp lambda" (make-common-lisp/lambda-function nil nil))))
 
-(def function initial-slot-provider (instance)
+(def function default-slot-provider (instance)
   (remove-if (lambda (slot) (member (slot-definition-name slot)
                                '(raw selection annotation reader printer part-evaluator)))
              (class-slots (class-of instance))))
 
-(def function make-initial-projection ()
+(def function make-default-projection ()
   (recursive
     (type-dispatching
       (widget/base (widget->graphics))
@@ -72,20 +81,30 @@
       (document/clipboard (document/clipboard->t))
       (document
        (type-dispatching
+         (graphics/base (preserving))
          (text/text (sequential
                       (word-wrapping 1280)
                       (text->graphics)))
          (document/reference (sequential
                                (document/reference->text/text)
                                (text->graphics)))
+         (help/context-sensitive (sequential
+                                   (help/context-sensitive->text/text)
+                                   (text->graphics)))
          (document
           (sequential
+            (recursive
+              (type-dispatching
+                (book/book (copying))
+                (book/chapter (chapter-numbering))
+                (sequence (copying))
+                (t (preserving))))
             (focusing 'document nil)
             (recursive
               (reference-dispatching
                 (alternative
                   (type-dispatching
-                    (document/base (document->tree 'initial-factory))
+                    (document/base (document->tree 'default-factory))
                     (document/sequence (copying))
                     (book/paragraph (nesting
                                       (book/paragraph->tree/leaf)
@@ -93,9 +112,15 @@
                     (book/base (book->tree))
                     (json/base (json->tree))
                     (xml/base (xml->tree))
+                    (common-lisp/base (sequential
+                                        (common-lisp->lisp-form)
+                                        (lisp-form->tree)))
+                    (lisp-form/base (lisp-form->tree))
+                    (evaluator/base (evaluator->tree))
+                    (tree/base (preserving))
                     (text/base (word-wrapping 1270)))
                   (recursive
-                    (t->tree 'initial-slot-provider)))))
+                    (t->tree 'default-slot-provider)))))
             (recursive
               (type-dispatching
                 (tree/base (tree->text))

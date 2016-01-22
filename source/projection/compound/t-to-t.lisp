@@ -118,3 +118,75 @@
 
 (def macro xml->tree ()
   '(make-projection/xml->tree))
+
+;;;;;;
+;;; Lisp form to tree
+
+(def function make-projection/lisp-form->tree ()
+  (type-dispatching
+    (lisp-form/insertion (make-projection/lisp-form/insertion->tree/leaf))
+    (lisp-form/comment (make-projection/lisp-form/comment->tree/node))
+    (lisp-form/number (make-projection/lisp-form/number->tree/leaf))
+    (lisp-form/symbol (make-projection/lisp-form/symbol->tree/leaf))
+    (lisp-form/string (make-projection/lisp-form/string->tree/leaf))
+    (lisp-form/quote (make-projection/lisp-form/quote->tree/node))
+    (lisp-form/list (make-projection/lisp-form/list->tree/node))
+    (lisp-form/object (make-projection/lisp-form/object->tree/leaf))
+    (lisp-form/toplevel (make-projection/lisp-form/toplevel->tree/node))))
+
+(def macro lisp-form->tree ()
+  '(make-projection/lisp-form->tree))
+
+;;;;;;
+;;; Lisp form to tree
+
+(def function make-projection/lisp-form->form ()
+  (type-dispatching
+    (lisp-form/number (make-projection/lisp-form/number->number))
+    (lisp-form/string (make-projection/lisp-form/string->string))
+    (lisp-form/symbol (make-projection/lisp-form/symbol->symbol))
+    (lisp-form/quote (make-projection/lisp-form/quote->list))
+    (lisp-form/list (make-projection/lisp-form/list->list))
+    (lisp-form/toplevel (make-projection/lisp-form/toplevel->list))
+    (document/string (document/string->string))
+    (document/number (document/number->number))
+    ((or number symbol string) (preserving))))
+
+(def macro lisp-form->form ()
+  '(make-projection/lisp-form->form))
+
+;;;;;;
+;;; Common lisp to lisp form
+
+(def function make-projection/common-lisp->lisp-form ()
+  (type-dispatching
+    (common-lisp/insertion (make-projection/common-lisp/insertion->lisp-form/insertion))
+    (common-lisp/constant (make-projection/common-lisp/constant->lisp-form/string))
+    (common-lisp/variable-reference (make-projection/common-lisp/variable-reference->lisp-form/symbol))
+    (common-lisp/function-reference (make-projection/common-lisp/function-reference->lisp-form/symbol))
+    (common-lisp/if (make-projection/common-lisp/if->lisp-form/list))
+    (common-lisp/the (make-projection/common-lisp/the->lisp-form/list))
+    (common-lisp/progn (make-projection/common-lisp/progn->lisp-form/list))
+    (common-lisp/lexical-variable-binding (make-projection/common-lisp/lexical-variable-binding->lisp-form/list))
+    (common-lisp/let (make-projection/common-lisp/let->lisp-form/list))
+    (common-lisp/application (make-projection/common-lisp/application->lisp-form/list))
+    (common-lisp/special-variable-definition (make-projection/common-lisp/special-variable-definition->lisp-form/list))
+    (common-lisp/function-definition (make-projection/common-lisp/function-definition->lisp-form/list))
+    (common-lisp/lambda-function (make-projection/common-lisp/lambda-function->lisp-form/list))
+    (common-lisp/function-argument (make-projection/common-lisp/function-argument->lisp-form/symbol))
+    (common-lisp/comment (make-projection/common-lisp/comment->lisp-form/comment))
+    (common-lisp/toplevel (make-projection/common-lisp/toplevel->lisp-form/toplevel))))
+
+(def macro common-lisp->lisp-form ()
+  '(make-projection/common-lisp->lisp-form))
+
+;;;;;;
+;;; Repl to tree
+
+(def function make-projection/evaluator->tree ()
+  (type-dispatching
+    (evaluator/toplevel (make-projection/evaluator/toplevel->tree/node))
+    (evaluator/form (make-projection/evaluator/form->tree/node))))
+
+(def macro evaluator->tree ()
+  '(make-projection/evaluator->tree))

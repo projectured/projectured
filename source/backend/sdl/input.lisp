@@ -4,7 +4,7 @@
 ;;;
 ;;; See LICENCE for details.
 
-(in-package :projectured/sdl)
+(in-package :projectured.sdl)
 
 ;;;;;;
 ;;; API

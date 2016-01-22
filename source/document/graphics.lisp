@@ -84,6 +84,10 @@
    (stroke-color :type style/color)
    (fill-color :type style/color)))
 
+(def document graphics/bezier (graphics/base)
+  ((points :type sequence)
+   (stroke-color :type style/color)))
+
 (def document graphics/circle (graphics/base)
   ((position :type 2d)
    (radius :type number)
@@ -117,12 +121,6 @@
    (orientation :type (member nil :horizontal :vertical))
    (elements :type sequence)))
 
-(def document graphics/window (graphics/base)
-  ((position :type 2d)
-   (size :type 2d)
-   (content :type t)
-   (title :type string)))
-
 ;;;;;;
 ;;; Construction
 
@@ -141,6 +139,9 @@
 (def function make-graphics/polygon (points &key stroke-color fill-color)
   (make-instance 'graphics/polygon :points points :stroke-color stroke-color :fill-color fill-color))
 
+(def function make-graphics/bezier (points &key stroke-color)
+  (make-instance 'graphics/bezier :points points :stroke-color stroke-color))
+
 (def function make-graphics/circle (position radius &key stroke-color fill-color)
   (make-instance 'graphics/circle :position position :radius radius :stroke-color stroke-color :fill-color fill-color))
 
@@ -158,9 +159,6 @@
 
 (def function make-graphics/canvas (elements position &key selection)
   (make-instance 'graphics/canvas :position position :elements elements :selection selection))
-
-(def function make-graphics/window (position size content &key title selection)
-  (make-instance 'graphics/window :position position :size size :content content :title title :selection selection))
 
 ;;;;;;
 ;;; API
@@ -204,6 +202,18 @@
                            (bottom-right (make-2d max-x max-y)))
                       (make-rectangle top-left (- bottom-right top-left)))))))
 
+    (graphics/bezier
+     (iter (with points = (points-of instance))
+           (for point :in-sequence points)
+           (minimizing (2d-x point) :into min-x)
+           (minimizing (2d-y point) :into min-y)
+           (maximizing (2d-x point) :into max-x)
+           (maximizing (2d-y point) :into max-y)
+           (finally
+            (return (bind ((top-left (make-2d min-x min-y))
+                           (bottom-right (make-2d max-x max-y)))
+                      (make-rectangle top-left (- bottom-right top-left)))))))
+
     (graphics/line
      (bind ((begin (begin-of instance))
             (begin-x (2d-x begin))
@@ -226,26 +236,32 @@
      (make-rectangle (- (position-of instance) (radius-of instance)) (* 2 (radius-of instance))))
 
     (graphics/point
-     (make-rectangle (position-of instance) (make-2d 1 1)))
-
-    (graphics/window
-     (make-rectangle (content-of instance) (size-of instance)))))
+     (make-rectangle (position-of instance) (make-2d 1 1)))))
 
 (def function make-reference (instance position reference)
   (typecase instance
     (graphics/point
      nil)
+
     (graphics/line
      nil)
+
     (graphics/rectangle
      (when (rectangle-contains-point? instance position)
        reference))
+
     (graphics/polygon
      (not-yet-implemented))
+
+    (graphics/bezier
+     (not-yet-implemented))
+
     (graphics/circle
      (not-yet-implemented))
+
     (graphics/ellipse
      (not-yet-implemented))
+
     (graphics/text
      ;; TODO: figure out which
      (when (rectangle-contains-point? (bounds-of instance) position)
@@ -258,14 +274,17 @@
                  (append reference
                          `((the string (text-of (the graphics/text document)))
                            (the string (subseq (the string document) ,(1- index) ,(1- index))))))))))
+
     (graphics/image
      (when (rectangle-contains-point? (bounds-of instance) position)
        reference))
+
     (graphics/viewport
      (when (rectangle-contains-point? instance position)
        (make-reference (content-of instance) (- position (position-of instance))
                        (append reference
                                `((the ,(document-type (content-of instance)) (content-of (the graphics/viewport document))))))))
+
     (graphics/canvas
      (bind ((elements (elements-of instance)))
        (if (typep elements 'computed-ll)

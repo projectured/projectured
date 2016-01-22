@@ -148,6 +148,7 @@
   (bind ((document (document-of operation))
          (selection (selection-of operation))
          (replacement (replacement-of operation)))
+    ;; TODO: make replacement text/text
     (pattern-case (reverse selection)
       (((the text/text (text/subseq (the text/text document) ?start-character-index ?end-character-index))
         . ?rest)
@@ -689,18 +690,6 @@
                                               :line-color (or line-color (line-color-of element))
                                               :padding (or padding (padding-of element)))))))
 
-;; TODO: move and rename
-(def function make-command-help-text (command)
-  (bind ((gesture (gesture-of command))
-         (modifier-text (describe-gesture-modifiers gesture))
-         (gesture-text (describe-gesture-keys gesture)))
-    (list
-     (text/string (or (domain-of command) "Unspecified") :font *font/default* :font-color *color/solarized/red*)
-     (text/string " " :font *font/default* :font-color *color/black*)
-     (text/string (string+ modifier-text gesture-text) :font *font/ubuntu/monospace/regular/18* :font-color *color/solarized/blue*)
-     (text/string " " :font *font/default* :font-color *color/black*)
-     (text/string (or (description-of command) "No description") :font *font/default* :font-color *color/black*))))
-
 (def function text/read-replace-selection-operation (text key &optional modifier)
   (bind ((new-position
           (pattern-case (selection-of text)
@@ -855,19 +844,19 @@
          :operation (make-operation/describe (selection-of text)))
         ((make-key-press-gesture :scancode-a :control)
          :domain "Text" :description "TODO"
-         :operation (make-instance 'operation/show-annotation :document text :selection (selection-of text))))
+         :operation (make-instance 'operation/show-annotation :document text :selection (selection-of text)))
+        ((make-key-press-gesture :scancode-return)
+         :domain "Text" :description "Inserts a newline at the selection"
+         :operation (make-operation/text/replace-range text (selection-of text) (string #\NewLine))))
       ;; TODO: move into gesture-case
       (cond ((and (typep gesture 'gesture/keyboard/type-in)
                   (character-of gesture)
                   (or (graphic-char-p (character-of gesture))
                       (whitespace? (character-of gesture))))
-             (bind ((character (character-of gesture))
-                    (replacement (cond ((eq character #\Return)
-                                        (string #\NewLine))
-                                       (t (string character)))))
+             (bind ((character (character-of gesture)))
                (pattern-case (selection-of text)
                  (((the text/text (text/subseq (the text/text document) ?b ?b)) . ?rest)
                   (make-command gesture
-                                (make-operation/text/replace-range text (selection-of text) replacement)
+                                (make-operation/text/replace-range text (selection-of text) (string character))
                                 :domain "Text"
                                 :description "Inserts a new character at the selection"))))))))
