@@ -37,23 +37,26 @@ To finish the installation of Quicklisp approve the prompted question.
 
 ### 3. Check out some git repos ###
 
-At the time of writing the ASDF shipped with Quicklisp is too old, so you might need to clone the latest release:
+If you want to play with the latest (and potentially less stable) version of ProjecturEd:
+```
+cd ~/quicklisp/local-projects/
+git clone https://github.com/projectured/projectured.git
+```
+
+At the time of writing the ASDF shipped with Quicklisp is too old,
+so you may need to clone the latest release if your lisp implementation
+is also shipped with an old ASDF:
 ```
 cd ~/quicklisp/local-projects/
 git clone https://gitlab.common-lisp.net/asdf/asdf.git --branch release
 ```
 
-At the time of writing the following two systems are not in Quicklisp:
+At the time of writing the following systems are not yet in Quicklisp
+or contain unmerged changes:
 ```
 cd ~/quicklisp/local-projects/
-git clone https://github.com/lispgames/cl-sdl2-image.git
-git clone https://github.com/bogosortist/cl-sdl2-ttf.git
-```
-
-If you want to play with the latest (and potentially less stable) version of ProjecturEd:
-```
-cd ~/quicklisp/local-projects/
-git clone https://github.com/projectured/projectured.git
+git clone https://github.com/attila-lendvai/cffi.git --branch c2ffi
+git clone https://github.com/attila-lendvai/hu.dwim.sdl.git
 ```
 
 ### 4. Build a standalone executable of ProjecturEd ###
