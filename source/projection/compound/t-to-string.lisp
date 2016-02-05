@@ -16,7 +16,7 @@
      (sequential
        (recursive
          (type-dispatching
-           (document/base (document->tree 'default-factory))
+           (document/base (document->tree 'default-factory 'default-searcher))
            (document/sequence (copying))
            (book/base (book->tree))
            (json/base (json->tree))

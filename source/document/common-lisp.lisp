@@ -185,10 +185,10 @@
 (def method initialize-instance :after ((instance common-lisp/function-definition/completion) &key &allow-other-keys)
   (set-funcallable-instance-function
    instance
-   (lambda (factory input name)
+   (lambda (factory printer-input reader-input name)
      (bind ((function-definition (function-definition-of factory)))
        (completion-prefix-merge
-         (common-lisp/complete-document factory input name)
+         (common-lisp/complete-document factory printer-input reader-input name)
          (completion-prefix-switch name
            ((name-of (name-of function-definition))
             (bind ((name-length (length (name-of (name-of function-definition)))))
@@ -198,22 +198,23 @@
                                                                                               (the string (name-of (the lisp-form/symbol document)))
                                                                                               (the string (subseq (the string document) ,name-length ,name-length))))
                                             nil
-                                            :factory (factory-of input)
+                                            :factory (factory-of printer-input)
                                             :selection `((the common-lisp/function-reference (operator-of (the common-lisp/application document)))
                                                          (the common-lisp/function-definition (function-of (the common-lisp/function-reference document)))
                                                          (the lisp-form/symbol (name-of (the common-lisp/function-definition document)))
                                                          (the string (name-of (the lisp-form/symbol document)))
                                                          (the string (subseq (the string document) ,name-length ,name-length)))))))
-         (iter (for binding :in-sequence (bindings-of function-definition))
-               (when (and (typep binding 'common-lisp/function-argument)
-                          (string= name (string-downcase (name-of (name-of binding)))))
-                 (return (bind ((name-length (length name)))
-                           (make-common-lisp/variable-reference binding :selection `((the common-lisp/required-function-argument (variable-of (the common-lisp/variable-reference document)))
-                                                                                     (the lisp-form/symbol (name-of (the common-lisp/required-function-argument document)))
-                                                                                     (the string (name-of (the lisp-form/symbol document)))
-                                                                                     (the string (subseq (the string document) ,name-length ,name-length)))))))))))))
+         (completion-prefix-switch* name
+                                    (iter (for binding :in-sequence (bindings-of function-definition))
+                                          (for name = (string-downcase (name-of (name-of binding))))
+                                          (collect (cons name
+                                                         (bind ((name-length (length name)))
+                                                           (make-common-lisp/variable-reference binding :selection `((the common-lisp/required-function-argument (variable-of (the common-lisp/variable-reference document)))
+                                                                                                                     (the lisp-form/symbol (name-of (the common-lisp/required-function-argument document)))
+                                                                                                                     (the string (name-of (the lisp-form/symbol document)))
+                                                                                                                     (the string (subseq (the string document) ,name-length ,name-length))))))))))))))
 
-(def function common-lisp/complete-document/fuction-definition (factory input name)
+(def function common-lisp/complete-document/fuction-definition (factory printer-input reader-input name)
   (bind ((name-length (length name)))
     (make-common-lisp/required-function-argument (make-lisp-form/symbol name "COMMON-LISP-USER"
                                                                         :selection `((the string (name-of (the lisp-form/symbol document)))
@@ -222,7 +223,7 @@
                                                               (the string (name-of (the lisp-form/symbol document)))
                                                               (the string (subseq (the string document) ,name-length ,name-length))))))
 
-(def function common-lisp/complete-document (factory input name)
+(def function common-lisp/complete-document (factory printer-input reader-input name)
   (bind (((:values document completion)
           (completion-prefix-switch name
             ("defun" (make-common-lisp/function-definition (make-lisp-form/symbol "" "COMMON-LISP-USER")
@@ -232,11 +233,11 @@
                                                            :selection '((the lisp-form/symbol (name-of (the common-lisp/function-definition document)))
                                                                         (the string (name-of (the lisp-form/symbol document)))
                                                                         (the string (subseq (the string document) 0 0)))))
-            ("if" (make-common-lisp/if (make-common-lisp/insertion "" (factory-of input) :default-value "enter condition"
+            ("if" (make-common-lisp/if (make-common-lisp/insertion "" (factory-of printer-input) :default-value "enter condition"
                                                                    :selection  '((the string (value-of (the common-lisp/insertion document)))
                                                                                  (the string (subseq (the string document) 0 0))))
-                                       (make-common-lisp/insertion "" (factory-of input) :default-value "enter then branch")
-                                       (make-common-lisp/insertion "" (factory-of input) :default-value "enter else branch")
+                                       (make-common-lisp/insertion "" (factory-of printer-input) :default-value "enter then branch")
+                                       (make-common-lisp/insertion "" (factory-of printer-input) :default-value "enter else branch")
                                        :selection '((the common-lisp/insertion (condition-of (the common-lisp/if document)))
                                                     (the string (value-of (the common-lisp/insertion document)))
                                                     (the string (subseq (the string document) 0 0)))))
@@ -245,24 +246,33 @@
             ("lambda" (make-common-lisp/lambda-function nil nil)))))
     (if (or document completion)
         (values document completion)
-        (or (when (and (not (zerop (length name)))
-                       (every 'digit-char-p name))
-              (bind ((position (length name)))
-                (make-common-lisp/constant (lisp-form/number (:selection `((the number (value-of (the lisp-form/number document)))
-                                                                           (the string (write-to-string (the number document)))
-                                                                           (the string (subseq (the string document) ,position ,position))))
-                                             (parse-number:parse-number name))
-                                           :selection `((the lisp-form/number (value-of (the common-lisp/constant document)))
-                                                        (the number (value-of (the lisp-form/number document)))
-                                                        (the string (write-to-string (the number document)))
-                                                        (the string (subseq (the string document) ,position ,position))))))
-            (awhen (find-symbol (string-upcase name) :common-lisp-user)
-              (bind ((position (length (symbol-name it))))
-                (make-common-lisp/application (make-lisp-form/symbol* it) nil
-                                              :selection `((the lisp-form/symbol (operator-of (the common-lisp/application document)))
-                                                           (the string (name-of (the lisp-form/symbol document)))
-                                                           (the string (subseq (the string document) ,position ,position)))
-                                              :factory (factory-of input))))))))
+        (or (awhen (find-symbol (string-upcase name) :common-lisp-user)
+              (bind ((position (length (symbol-name it)))
+                     (argument-insertion? (and reader-input
+                                               (gesture= (gesture-of reader-input)
+                                                         (make-type-in-gesture #\Space)))))
+                (make-common-lisp/application (make-lisp-form/symbol* it)
+                                              (when argument-insertion?
+                                                (list-ll (make-common-lisp/insertion "" (factory-of printer-input)
+                                                                                  :selection  '((the string (value-of (the common-lisp/insertion document)))
+                                                                                                (the string (subseq (the string document) 0 0))))))
+                                              :selection (if argument-insertion?
+                                                             `((the sequence (arguments-of (the common-lisp/application document)))
+                                                               (the common-lisp/insertion (elt (the sequence document) 0))
+                                                               (the string (value-of (the common-lisp/insertion document)))
+                                                               (the string (subseq (the string document) 0 0)))
+                                                             `((the lisp-form/symbol (operator-of (the common-lisp/application document)))
+                                                               (the string (name-of (the lisp-form/symbol document)))
+                                                               (the string (subseq (the string document) ,position ,position))))
+                                              :factory (factory-of printer-input))))
+            #+nil
+            (values nil
+                    (bind ((symbols (prog1-bind symbols nil
+                                      (do-symbols (symbol :common-lisp-user)
+                                        (push (string-downcase (symbol-name symbol)) symbols))))
+                           (matching-prefixes (remove-if-not (curry 'starts-with-subseq name) symbols))
+                           (common-prefix (reduce 'longest-common-prefix matching-prefixes :initial-value (first matching-prefixes))))
+                      (subseq common-prefix (min (length common-prefix) (length name)))))))))
 
 (def maker lisp ()
   (make-common-lisp/insertion "" 'common-lisp/complete-document

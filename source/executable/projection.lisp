@@ -92,26 +92,37 @@
                                '(raw selection annotation reader printer part-evaluator)))
              (class-slots (class-of instance))))
 
+(def function default-searcher (search instance)
+  (search-parts instance (lambda (instance)
+                           (typecase instance
+                             (json/null
+                              (search-ignorecase search (value-of instance)))
+                             (json/boolean
+                               (search-ignorecase search (if (value-p instance)
+                                                             (true-value-of instance)
+                                                             (false-value-of instance))))
+                             (json/number
+                               (search-ignorecase search (write-to-string(value-of instance))))
+                             (json/string
+                               (search-ignorecase search (value-of instance)))
+                             (json/object-entry
+                              (search-ignorecase search (key-of instance)))
+                             (common-lisp/constant
+                              (search-ignorecase search (write-to-string (value-of (value-of instance)))))
+                             (common-lisp/variable-reference
+                              (search-ignorecase search (name-of (name-of (variable-of instance)))))
+                             (common-lisp/application
+                              (typecase (operator-of instance)
+                                (lisp-form/symbol
+                                 (search-ignorecase search (name-of (operator-of instance))))
+                                (common-lisp/function-reference
+                                 (search-ignorecase search (name-of (name-of (function-of (operator-of instance))))))))
+                             (common-lisp/function-definition
+                              (search-ignorecase search (name-of (name-of instance))))))
+                :slot-provider 'default-slot-provider))
+
 (def function make-default-projection ()
-  (recursive
-    (type-dispatching
-      (widget/base (widget->graphics))
-      (document/document (document/document->t))
-      (document/clipboard (document/clipboard->t))
-      (document/reflection (document/reflection->graphics/canvas))
-      (document
-       (type-dispatching
-         (graphics/base (preserving))
-         (text/text (sequential
-                      (word-wrapping 1280)
-                      (text->graphics)))
-         (document/reference (sequential
-                               (document/reference->text/text)
-                               (text->graphics)))
-         (help/context-sensitive (sequential
-                                   (help/context-sensitive->text/text)
-                                   (text->graphics)))
-         (document
+  (bind ((document-projection
           (sequential
             (recursive
               (type-dispatching
@@ -124,8 +135,9 @@
               (reference-dispatching
                 (alternative
                   (type-dispatching
-                    (document/base (document->tree 'default-factory))
                     (document/sequence (copying))
+                    (document/search-result (document/search-result->tree/node))
+                    (document/base (document->tree 'default-factory 'default-searcher))
                     (book/paragraph (nesting
                                       (book/paragraph->tree/leaf)
                                       (text-aligning 1270)))
@@ -145,4 +157,26 @@
               (type-dispatching
                 (tree/base (tree->text))
                 (text/text (preserving))))
-            (text->graphics))))))))
+            (text->graphics))))
+    (recursive
+      (type-dispatching
+        (widget/base (widget->graphics))
+        (document/document (document/document->t))
+        (document/clipboard (document/clipboard->t))
+        (document/reflection (document/reflection->graphics/canvas))
+        (document
+         (type-dispatching
+           (graphics/base (preserving))
+           (text/text (sequential
+                        (word-wrapping 1280)
+                        (text->graphics)))
+           (document/reference (sequential
+                                 (document/reference->text/text)
+                                 (text->graphics)))
+           (document/search (sequential
+                              (document/search->document/search-result 'default-searcher)
+                              document-projection))
+           (help/context-sensitive (sequential
+                                     (help/context-sensitive->text/text)
+                                     (text->graphics)))
+           (document document-projection)))))))

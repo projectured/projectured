@@ -789,14 +789,23 @@
 (def function recurse/slot (recursion input slot input-reference)
   (bind ((value (slot-value input slot))
          (reader (find-slot-reader (class-of input) (find-slot (class-of input) slot))))
-    (if (typep value 'sequence)
-        (iter (for index :from 0)
-              (for element :in-sequence (slot-value input slot))
-              (collect (recurse-printer recursion element `((elt (the sequence document) ,index)
-                                                            (the sequence (,reader (the ,(document-type input) document)))
-                                                            ,@(typed-reference (document-type input) input-reference)))))
-        (recurse-printer recursion value `((,reader (the ,(document-type input) document))
-                                           ,@(typed-reference (document-type input) input-reference))))))
+    (typecase value
+      (computed-ll
+       (map-ll* (slot-value input slot)
+                (lambda (element index)
+                  (recurse-printer recursion (value-of element)
+                                   `((elt (the sequence document) ,index)
+                                     (the sequence (,reader (the ,(document-type input) document)))
+                                     ,@(typed-reference (document-type input) input-reference))))))
+      (sequence
+       (iter (for index :from 0)
+             (for element :in-sequence (slot-value input slot))
+             (collect (recurse-printer recursion element `((elt (the sequence document) ,index)
+                                                           (the sequence (,reader (the ,(document-type input) document)))
+                                                           ,@(typed-reference (document-type input) input-reference))))))
+      (t
+       (recurse-printer recursion value `((,reader (the ,(document-type input) document))
+                                          ,@(typed-reference (document-type input) input-reference)))))))
 
 (def function recurse/ordinary-lambda-list (recursion input input-reference)
   (bind ((arguments (bindings-of input))
@@ -994,10 +1003,8 @@
                                                                         (common-lisp/function-reference
                                                                          (bind ((function-name (name-of (function-of operator))))
                                                                            (values (name-of function-name) (package-of function-name)))))))
-                       (make-lisp-form/list (cons (make-lisp-form/symbol operator-name operator-package :default-value "enter function name" :font-color *color/solarized/violet* :selection (as (nthcdr 2 (va output-selection))))
-                                                  (iter (for argument-iomap :in-sequence (va argument-iomaps))
-                                                        (for argument-output = (output-of argument-iomap))
-                                                        (collect argument-output)))
+                       (make-lisp-form/list (append-ll (list-ll (list-ll (make-lisp-form/symbol operator-name operator-package :default-value "enter function name" :font-color *color/solarized/violet* :selection (as (nthcdr 2 (va output-selection)))))
+                                                                (map-ll (va argument-iomaps) 'output-of)))
                                             :selection output-selection
                                             :collapsed (as (collapsed-p input)))))))
     (make-iomap/compound projection recursion input input-reference output argument-iomaps)))
@@ -1020,7 +1027,7 @@
 (def printer common-lisp/function-definition->lisp-form/list (projection recursion input input-reference)
   (bind ((binding-iomaps (as (recurse/ordinary-lambda-list recursion input input-reference)))
          (body-iomaps (as (recurse/slot recursion input 'body input-reference)))
-         (output-selection (as (print-selection (make-iomap/compound projection recursion input input-reference nil (as (append (va binding-iomaps) (va body-iomaps))))
+         (output-selection (as (print-selection (make-iomap/compound projection recursion input input-reference nil (as (append (va binding-iomaps) (coerce (va body-iomaps) 'list))))
                                                 (selection-of input)
                                                 'forward-mapper/common-lisp/function-definition->lisp-form/list)))
          (output (as (bind ((documentation (documentation-of input))
@@ -1040,7 +1047,7 @@
                                                                      (tree/base (tree/clone body-output :indentation 2))))))
                                             :collapsed (as (collapsed-p input))
                                             :selection output-selection)))))
-    (make-iomap/compound projection recursion input input-reference output (as (append (va binding-iomaps) (va body-iomaps))))))
+    (make-iomap/compound projection recursion input input-reference output (as (append (va binding-iomaps) (coerce (va body-iomaps) 'list))))))
 
 (def printer common-lisp/lambda-function->lisp-form/list (projection recursion input input-reference)
   (bind ((binding-iomaps (as (recurse/ordinary-lambda-list recursion input input-reference)))
@@ -1101,36 +1108,73 @@
 
 (def reader common-lisp/insertion->lisp-form/insertion (projection recursion input printer-iomap)
   (declare (ignore projection))
-  (bind ((printer-input (input-of printer-iomap)))
-    (merge-commands (gesture-case (gesture-of input)
+  (bind ((gesture (gesture-of input))
+         (printer-input (input-of printer-iomap)))
+    (merge-commands (gesture-case gesture
                       ((make-key-press-gesture :scancode-tab)
                        :domain "Common Lisp" :description "Inserts the suggested completion at the selection"
-                       :operation (bind (((:values nil completion) (funcall (factory-of printer-input) (factory-of printer-input) printer-input (value-of printer-input)))
+                       :operation (bind (((:values nil completion) (funcall (factory-of printer-input) (factory-of printer-input) printer-input input (value-of printer-input)))
                                          (end (length (value-of printer-input))))
                                     (when completion
                                       (make-operation/string/replace-range printer-input `((the string (value-of (the common-lisp/insertion document)))
                                                                                            (the string (subseq (the string document) ,end ,end))) completion))))
                       ((make-key-press-gesture :scancode-return)
                        :domain "Common Lisp" :description "Inserts a new object of the provided type"
-                       :operation (bind (((:values immediate-new-instance completion) (funcall (factory-of printer-input) (factory-of printer-input) printer-input (value-of printer-input)))
-                                         (new-instance (or immediate-new-instance (funcall (factory-of printer-input) (factory-of printer-input) printer-input (string+ (value-of printer-input) completion)))))
+                       :operation (bind (((:values immediate-new-instance completion) (funcall (factory-of printer-input) (factory-of printer-input) printer-input input (value-of printer-input)))
+                                         (new-instance (or immediate-new-instance (funcall (factory-of printer-input) (factory-of printer-input) printer-input input (string+ (value-of printer-input) completion)))))
                                     (when new-instance
                                       (make-operation/replace-target printer-input nil new-instance))))
                       ((make-type-in-gesture #\Space)
                        :domain "Common Lisp" :description "Inserts a new object of the provided type"
-                       :operation (bind (((:values immediate-new-instance completion) (funcall (factory-of printer-input) (factory-of printer-input) printer-input (value-of printer-input)))
-                                         (new-instance (or immediate-new-instance (funcall (factory-of printer-input) (factory-of printer-input) printer-input (string+ (value-of printer-input) completion)))))
+                       :operation (bind (((:values immediate-new-instance completion) (funcall (factory-of printer-input) (factory-of printer-input) printer-input input (value-of printer-input)))
+                                         (new-instance (or immediate-new-instance (funcall (factory-of printer-input) (factory-of printer-input) printer-input input (string+ (value-of printer-input) completion)))))
                                     (when new-instance
                                       (make-operation/replace-target printer-input nil new-instance))))
                       ((make-type-in-gesture #\()
                        :domain "Common Lisp" :description "TODO"
                        :operation (make-operation/functional (lambda () (notf (compound-p printer-input)))))
+                      ((make-type-in-gesture #\")
+                       :domain "Common Lisp" :description "TODO"
+                       :operation (make-operation/replace-target printer-input nil (make-common-lisp/constant
+                                                                                    (lisp-form/string (:selection `((the string (value-of (the lisp-form/string document)))
+                                                                                                                    (the string (subseq (the string document) 0 0)))) "")
+                                                                                    :selection `((the lisp-form/number (value-of (the common-lisp/constant document)))
+                                                                                                 (the string (value-of (the lisp-form/string document)))
+                                                                                                 (the string (subseq (the string document) 0 0))))))
+                      ((make-type-in-gesture #\')
+                       :domain "Common Lisp" :description "TODO"
+                       :operation (make-operation/replace-target printer-input nil (make-common-lisp/constant
+                                                                                    (lisp-form/quote (:selection `((the lisp-form/symbol (value-of (the lisp-form/quote document)))
+                                                                                                                   (the string (name-of (the lisp-form/symbol document)))
+                                                                                                                   (the string (subseq (the string document) 0 0))))
+                                                                                      (lisp-form/symbol (:selection `((the string (name-of (the lisp-form/symbol document)))
+                                                                                                                      (the string (subseq (the string document) 0 0))))
+                                                                                                        "" "COMMON-LISP-USER"))
+                                                                                    :selection `((the lisp-form/quote (value-of (the common-lisp/constant document)))
+                                                                                                 (the lisp-form/symbol (value-of (the lisp-form/quote document)))
+                                                                                                 (the string (name-of (the lisp-form/symbol document)))
+                                                                                                 (the string (subseq (the string document) 0 0))))))
                       #+nil
                       ((make-key-press-gesture :scancode-escape)
                        :domain "Common Lisp" :description "Aborts the object insertion"
                        :operation (make-operation/replace-target printer-input nil (document/nothing))))
+                    (when (and (typep gesture 'gesture/keyboard/type-in)
+                               (digit-char-p (character-of gesture)))
+                      (make-command gesture
+                                    (make-operation/replace-target printer-input nil
+                                                                   (make-common-lisp/constant
+                                                                    (lisp-form/number (:selection `((the number (value-of (the lisp-form/number document)))
+                                                                                                    (the string (write-to-string (the number document)))
+                                                                                                    (the string (subseq (the string document) 1 1))))
+                                                                      (parse-number:parse-number (string (character-of gesture))))
+                                                                    :selection `((the lisp-form/number (value-of (the common-lisp/constant document)))
+                                                                                 (the number (value-of (the lisp-form/number document)))
+                                                                                 (the string (write-to-string (the number document)))
+                                                                                 (the string (subseq (the string document) 1 1)))))
+                                    :domain "Common Lisp"
+                                    :description "Inserts a new constant number at the selection"))
                     (command/read-backward recursion input printer-iomap 'backward-mapper/common-lisp/insertion->lisp-form/insertion nil)
-                    (make-nothing-command (gesture-of input)))))
+                    (make-nothing-command gesture))))
 
 (def reader common-lisp/constant->lisp-form/string (projection recursion input printer-iomap)
   (declare (ignore projection))
@@ -1151,10 +1195,19 @@
 
 (def reader common-lisp/if->lisp-form/list (projection recursion input printer-iomap)
   (declare (ignore projection))
-  (merge-commands (common-lisp/read-expression-command printer-iomap (gesture-of input))
-                  (command/read-selection recursion input printer-iomap 'forward-mapper/common-lisp/if->lisp-form/list 'backward-mapper/common-lisp/if->lisp-form/list)
-                  (command/read-backward recursion input printer-iomap 'backward-mapper/common-lisp/if->lisp-form/list nil)
-                  (make-nothing-command (gesture-of input))))
+  (bind ((printer-input (input-of printer-iomap)))
+    (merge-commands (common-lisp/read-expression-command printer-iomap (gesture-of input))
+                    (command/read-selection recursion input printer-iomap 'forward-mapper/common-lisp/if->lisp-form/list 'backward-mapper/common-lisp/if->lisp-form/list)
+                    ;; TODO:
+                    #+nil
+                    (gesture-case (gesture-of input)
+                      ((make-type-in-gesture #\Space)
+                       :domain "Common Lisp" :description "Moves the selection to the next branch"
+                       :operation (pattern-case (selection-of printer-input)
+                                    (((the ?type (condition-of (the common-lisp/if document))) . ?rest)
+                                     (make-operation/replace-selection printer-input `((the ,(document-type (then-of printer-input)) (then-of (the common-lisp/if document)))))))))
+                    (command/read-backward recursion input printer-iomap 'backward-mapper/common-lisp/if->lisp-form/list nil)
+                    (make-nothing-command (gesture-of input)))))
 
 (def reader common-lisp/the->lisp-form/list (projection recursion input printer-iomap)
   (declare (ignore projection))
@@ -1208,7 +1261,7 @@
                                                                                                                           (the sequence (subseq (the sequence document) ,arguments-length ,arguments-length)))
                                                                                                           (list (make-common-lisp/insertion "" 'common-lisp/complete-document :compound #t)))
                                                                    (make-operation/replace-selection printer-input `((the sequence (arguments-of (the common-lisp/application document)))
-                                                                                                                     (the document/insertion (elt (the sequence document) ,arguments-length))
+                                                                                                                     (the common-lisp/insertion (elt (the sequence document) ,arguments-length))
                                                                                                                      (the string (value-of (the common-lisp/insertion document)))
                                                                                                                      (the string (subseq (the string document) 0 0))))))))
                       ((make-type-in-gesture #\Space)
@@ -1218,14 +1271,15 @@
                                                                                                                           (the sequence (subseq (the sequence document) ,arguments-length ,arguments-length)))
                                                                                                           (list (make-common-lisp/insertion "" (factory-of printer-input))))
                                                                    (make-operation/replace-selection printer-input `((the sequence (arguments-of (the common-lisp/application document)))
-                                                                                                                     (the document/insertion (elt (the sequence document) ,arguments-length))
+                                                                                                                     (the common-lisp/insertion (elt (the sequence document) ,arguments-length))
                                                                                                                      (the string (value-of (the common-lisp/insertion document)))
                                                                                                                      (the string (subseq (the string document) 0 0))))))))
                       ((make-key-press-gesture :scancode-insert)
                        :domain "Common lisp" :description "Starts an insertion into the arguments of the application"
                        :operation (bind ((argument-length (length (arguments-of printer-input))))
                                     (make-operation/compound (list (make-operation/sequence/replace-range printer-input `((the sequence (arguments-of (the common-lisp/function-definition document)))
-                                                                                                                          (the sequence (subseq (the sequence document) ,argument-length ,argument-length))) (list (document/insertion ())))
+                                                                                                                          (the sequence (subseq (the sequence document) ,argument-length ,argument-length)))
+                                                                                                          (list (document/insertion ())))
                                                                    (make-operation/replace-selection printer-input `((the sequence (arguments-of (the common-lisp/function-definition document)))
                                                                                                                      (the document/insertion (elt (the sequence document) ,argument-length))
                                                                                                                      (the string (value-of (the document/insertion document)))
@@ -1253,7 +1307,7 @@
                                                                                                                           (the sequence (subseq (the sequence document) ,body-length ,body-length)))
                                                                                                           (list (make-common-lisp/insertion "" (make-instance 'common-lisp/function-definition/completion :function-definition printer-input) :compound #t)))
                                                                    (make-operation/replace-selection printer-input `((the sequence (body-of (the common-lisp/function-definition document)))
-                                                                                                                     (the document/insertion (elt (the sequence document) ,body-length))
+                                                                                                                     (the common-lisp/insertion (elt (the sequence document) ,body-length))
                                                                                                                      (the string (value-of (the common-lisp/insertion document)))
                                                                                                                      (the string (subseq (the string document) 0 0))))))))
                       ((make-type-in-gesture #\Space)
@@ -1272,7 +1326,8 @@
                        :domain "Common lisp" :description "Starts an insertion into the body of the function definition"
                        :operation (bind ((body-length (length (body-of printer-input))))
                                     (make-operation/compound (list (make-operation/sequence/replace-range printer-input `((the sequence (body-of (the common-lisp/function-definition document)))
-                                                                                                                          (the sequence (subseq (the sequence document) ,body-length ,body-length))) (list (document/insertion ())))
+                                                                                                                          (the sequence (subseq (the sequence document) ,body-length ,body-length)))
+                                                                                                          (list (document/insertion ())))
                                                                    (make-operation/replace-selection printer-input `((the sequence (body-of (the common-lisp/function-definition document)))
                                                                                                                      (the document/insertion (elt (the sequence document) ,body-length))
                                                                                                                      (the string (value-of (the document/insertion document)))

@@ -15,8 +15,11 @@
 (def projection document/insertion->tree/leaf ()
   ((factory :type function)))
 
-(def projection document/search->tree/node ()
+(def projection document/search->document/search-result ()
   ((searcher :type function)))
+
+(def projection document/search-result->tree/node ()
+  ())
 
 (def projection document/reflection->graphics/canvas ()
   ((display-selection :type boolean)
@@ -31,8 +34,11 @@
 (def function make-projection/document/insertion->tree/leaf (factory)
   (make-projection 'document/insertion->tree/leaf :factory factory))
 
-(def function make-projection/document/search->tree/node (searcher)
-  (make-projection 'document/search->tree/node :searcher searcher))
+(def function make-projection/document/search->document/search-result (searcher)
+  (make-projection 'document/search->document/search-result :searcher searcher))
+
+(def function make-projection/document/search-result->tree/node ()
+  (make-projection 'document/search-result->tree/node))
 
 (def function make-projection/document/reflection->graphics/canvas ()
   (make-projection 'document/reflection->graphics/canvas :display-selection #f :display-last-commands #f))
@@ -46,8 +52,11 @@
 (def macro document/insertion->tree/leaf (factory)
   `(make-projection/document/insertion->tree/leaf ,factory))
 
-(def macro document/search->tree/node (searcher)
-  `(make-projection/document/search->tree/node ,searcher))
+(def macro document/search->document/search-result (searcher)
+  `(make-projection/document/search->document/search-result ,searcher))
+
+(def macro document/search-result->tree/node ()
+  `(make-projection/document/search-result->tree/node))
 
 (def macro document/reflection->graphics/canvas ()
   `(make-projection/document/reflection->graphics/canvas))
@@ -55,16 +64,51 @@
 ;;;;;;
 ;;; IO map
 
-(def iomap iomap/document/search->tree/node ()
+(def iomap iomap/document/search->document/search-result ()
   ((result :type sequence)))
 
 ;;;;;;
 ;;; Forward mapper
 
+(def function forward-mapper/document/search->document/search-result (printer-iomap reference)
+  (bind ((projection (projection-of printer-iomap))
+         (recursion (recursion-of printer-iomap)))
+    (pattern-case reference
+      (((the string (search-of (the document/search document)))
+        (the string (subseq (the string document) ?start-index ?end-index)))
+       `((the sequence (children-of (the tree/node document)))
+         (the tree/leaf (elt (the sequence document) 0))
+         (the text/text (content-of (the tree/leaf document)))
+         (the text/text (text/subseq (the text/text document) ,?start-index ,?end-index))))
+      (((the ?type (content-of (the document/search document)))
+        . ?rest)
+       #+nil
+       (iter (for index :from 0)
+             (for reference :in result)
+             (when (and (<= (length reference) (length ?rest))
+                        (equal reference (subseq ?rest 0 (length reference))))
+               (return (values (append `((the sequence (children-of (the tree/node document)))
+                                         (the ?type (elt (the sequence document) ,index))
+                                         (the sequence (children-of (the tree/node document)))
+                                         (the tree/node (elt (the sequence document) 0)))
+                                       (subseq ?rest (length reference)))
+                               index)))))
+      (((the document/search-result (printer-output (the document/search document) ?projection ?recursion)) . ?rest)
+       (when (eq projection ?projection)
+         ?rest)))))
+
+(def function forward-mapper/document/search-result->tree/node (printer-iomap reference)
+  (bind ((projection (projection-of printer-iomap))
+         (recursion (recursion-of printer-iomap)))
+    (pattern-case reference
+      (((the tree/node (printer-output (the document/search-result document) ?projection ?recursion)) . ?rest)
+       (when (eq projection ?projection)
+         ?rest)))))
+
 ;;;;;;
 ;;; Backward mapper
 
-(def function backward-mapper/document/search->tree/node (printer-iomap reference)
+(def function backward-mapper/document/search->document/search-result (printer-iomap reference)
   (bind ((projection (projection-of printer-iomap))
          (recursion (recursion-of printer-iomap))
          (printer-input (input-of printer-iomap)))
@@ -85,7 +129,15 @@
                ;; TODO:
                nil))
       (?a
-       (append `((the tree/node (printer-output (the document/search document) ,projection ,recursion))) reference)))))
+       (append `((the document/search-result (printer-output (the document/search document) ,projection ,recursion))) reference)))))
+
+(def function backward-mapper/document/search-result->tree/node (printer-iomap reference)
+  (bind ((projection (projection-of printer-iomap))
+         (recursion (recursion-of printer-iomap))
+         (printer-input (input-of printer-iomap)))
+    (pattern-case reference
+      (?a
+       (append `((the tree/node (printer-output (the document/search-result document) ,projection ,recursion))) reference)))))
 
 ;;;;;;
 ;;; Printer
@@ -129,62 +181,62 @@
                            (text/string (suffix-of input) :font font :font-color (color/lighten *color/solarized/gray* 0.75))))))))
     (make-iomap projection recursion input input-reference output)))
 
-(def printer document/search->tree/node (projection recursion input input-reference)
+(def printer document/search->document/search-result (projection recursion input input-reference)
   (bind ((content (content-of input))
          (search (search-of input))
          (empty-search? (string= search ""))
          (result (unless empty-search?
                    (funcall (searcher-of projection) search content)))
-         ((:values output-selection selection-index)
-          (pattern-case (selection-of input)
-            (((the string (search-of (the document/search document)))
-              (the string (subseq (the string document) ?start-index ?end-index)))
-             `((the sequence (children-of (the tree/node document)))
-               (the tree/leaf (elt (the sequence document) 0))
-               (the text/text (content-of (the tree/leaf document)))
-               (the text/text (text/subseq (the text/text document) ,?start-index ,?end-index))))
-            (((the ?type (content-of (the document/search document)))
-              . ?rest)
-             (iter (for index :from 0)
-                   (for reference :in result)
-                   (when (and (<= (length reference) (length ?rest))
-                              (equal reference (subseq ?rest 0 (length reference))))
-                     (return (values (append `((the sequence (children-of (the tree/node document)))
-                                               (the ?type (elt (the sequence document) ,index))
-                                               (the sequence (children-of (the tree/node document)))
-                                               (the tree/node (elt (the sequence document) 0)))
-                                             (subseq ?rest (length reference)))
-                                     index)))))
-            (((the tree/node (printer-output (the document/search document) ?projection ?recursion)) . ?rest)
-             (when (eq projection ?projection)
-               ?rest))))
-         (output (make-tree/node (iter (for index :from 0)
-                                       (for reference :in result)
-                                       (collect (tree/node (:indentation 0 :selection (nthcdr 2 output-selection))
-                                                  (bind ((content (eval-reference content (flatten-reference reference))))
-                                                    (when (typep content 'document)
-                                                      ;; KLUDGE:
-                                                      (setf (selection-of content) (when (eql index selection-index)
-                                                                                     (nthcdr 4 output-selection))))
-                                                    content))))
-                                 :selection (when selection-index output-selection))))
-    (make-instance 'iomap/document/search->tree/node
+         (output-selection (as (print-selection (make-instance 'iomap/document/search->document/search-result
+                                                               :projection projection :recursion recursion
+                                                               :input input :input-reference input-reference :output nil
+                                                               :result result)
+                                                (selection-of input)
+                                                'forward-mapper/document/search->document/search-result)))
+         (output (make-document/search-result (iter (for index :from 0)
+                                                    (for reference :in result)
+                                                    (collect (bind ((content (eval-reference content (flatten-reference reference))))
+                                                               (when (typep content 'document)
+                                                                 ;; KLUDGE:
+                                                                 #+nil
+                                                                 (setf (selection-of content) (when (eql index selection-index)
+                                                                                                (nthcdr 4 output-selection))))
+                                                               content)))
+                                              :selection output-selection)))
+    (make-instance 'iomap/document/search->document/search-result
                    :projection projection :recursion recursion
                    :input input :input-reference input-reference :output output
                    :result result)))
+
+(def printer document/search-result->tree/node (projection recursion input input-reference)
+  (bind ((element-iomaps (as (map-ll* (ll (elements-of input)) (lambda (element index)
+                                                                 (recurse-printer recursion (value-of element)
+                                                                                  `((elt (the sequence document) ,index)
+                                                                                    (the sequence (elements-of (the document/search-result document)))
+                                                                                    ,@(typed-reference (document-type input) input-reference)))))))
+         (output-selection (as (print-selection (make-iomap/compound projection recursion input input-reference nil element-iomaps)
+                                                (selection-of input)
+                                                'forward-mapper/document/search-result->tree/node)))
+         (output (as (make-tree/node (as (map-ll (va element-iomaps)
+                                                 (lambda (element-iomap)
+                                                   (tree/node (:indentation 0 :selection (as (nthcdr 2 (va output-selection))))
+                                                     (output-of element-iomap)))))
+                                     :separator (text/text () (text/string " " :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
+                                     :selection output-selection))))
+    (make-iomap/compound projection recursion input input-reference output element-iomaps)))
 
 (def printer document/reflection->graphics/canvas (projection recursion input input-reference)
   (bind ((content-iomap (as (recurse-printer recursion (content-of input)
                                              `((content-of (the document/reflection document))
                                                ,@(typed-reference (document-type input) input-reference)))))
-         (selection-iomap (as (recurse-printer recursion (document/reference () (selection-of (content-of input)))
+         (selection-iomap (as (recurse-printer recursion (document/reference () (nthcdr 3 (selection-of (content-of input))))
                                                `((selection-of (the document/reflection document))
                                                  ,@(typed-reference (document-type input) input-reference)))))
          (last-commands-iomap (as (awhen (last-commands-of input)
                                     (recurse-printer recursion (make-help/context-sensitive (last-commands-of input))
                                                      `((last-commands-of (the document/reflection document))
                                                        ,@(typed-reference (document-type input) input-reference))))))
-         (output (as (make-graphics/canvas (append (list (output-of (va content-iomap)))
+         (output (make-graphics/canvas (as (append (list (output-of (va content-iomap)))
                                                    (when (display-selection-p projection)
                                                      (list (make-graphics/canvas (as (when (selection-of (content-of input))
                                                                                        (bind ((height (2d-y (size-of (bounds-of (output-of (va selection-iomap)))))))
@@ -199,7 +251,7 @@
                                                                                                                               9
                                                                                                                               :fill-color (color/lighten *color/solarized/yellow* 0.75))
                                                                                              (make-graphics/canvas (list (output-of (va last-commands-iomap))) (make-2d 5 640)))))
-                                                                                 0)))) 0))))
+                                                                                 0))))) 0)))
     (make-iomap/compound projection recursion input input-reference output (as (list (va content-iomap))))))
 
 ;;;;;;
@@ -325,7 +377,7 @@
                                   :description (description-of input))
                     (make-nothing-command (gesture-of input)))))
 
-(def reader document/search->tree/node (projection recursion input printer-iomap)
+(def reader document/search->document/search-result (projection recursion input printer-iomap)
   (bind ((printer-input (input-of printer-iomap)))
     (merge-commands (awhen (labels ((recurse (operation)
                                       (typecase operation
@@ -405,6 +457,12 @@
                                     :domain (domain-of input)
                                     :description (description-of input)))
                     (make-nothing-command (gesture-of input)))))
+
+(def reader document/search-result->tree/node (projection recursion input printer-iomap)
+  (declare (ignore projection))
+  (merge-commands (command/read-selection recursion input printer-iomap 'forward-mapper/document/search-result->tree/node 'backward-mapper/document/search-result->tree/node)
+                  (command/read-backward recursion input printer-iomap 'backward-mapper/document/search-result->tree/node nil)
+                  (make-nothing-command (gesture-of input))))
 
 (def reader document/reflection->graphics/canvas (projection recursion input printer-iomap)
   (bind ((printer-input (input-of printer-iomap))

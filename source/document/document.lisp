@@ -29,6 +29,9 @@
   ((content :type t)
    (search :type string)))
 
+(def document document/search-result (document/base)
+  ((elements :type sequence)))
+
 (def document document/clipboard (document/base)
   ((content :type t)
    (slice :type t)))
@@ -58,6 +61,9 @@
 (def function make-document/search (content &key search selection)
   (make-instance 'document/search :content content :search (or search "") :selection selection))
 
+(def function make-document/search-result (elements &key selection)
+  (make-instance 'document/search-result :elements elements :selection selection))
+
 (def function make-document/clipboard (content &key selection slice)
   (make-instance 'document/clipboard :content content :selection selection :slice slice))
 
@@ -84,6 +90,9 @@
 
 (def macro document/search ((&key selection search) &body content)
   `(make-document/search ,(first content) :search ,search :selection ,selection))
+
+(def macro document/search-result ((&key selection) &body elements)
+  `(make-document/search-result (list ,@elements) :selection ,selection))
 
 (def macro document/clipboard ((&key selection slice) &body content)
   `(make-document/clipboard ,(first content) :selection ,selection :slice ,slice))

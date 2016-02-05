@@ -154,7 +154,7 @@
                                                 (output-of it)
                                                 (tree/leaf (:selection (as (nthcdr 2 (va output-selection))))
                                                   (text/text (:selection (as (nthcdr 3 (va output-selection))))
-                                                    (text/string "?" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*)))))
+                                                    (text/string "not evaluated yet" :font *font/ubuntu/monospace/regular/24* :font-color (color/lighten *color/solarized/gray* 0.75))))))
                                      :indentation 0
                                      :separator (text/text () (text/string " " :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
                                      :selection output-selection))))
@@ -168,6 +168,13 @@
   (bind ((printer-input (input-of printer-iomap)))
     (merge-commands (command/read-selection recursion input printer-iomap 'forward-mapper/evaluator/toplevel->tree/node 'backward-mapper/evaluator/toplevel->tree/node)
                     (gesture-case (gesture-of input)
+                      ((make-key-press-gesture :scancode-insert)
+                       :domain "Evaluator" :description "Starts a generic insertion into the elements of the toplevel"
+                       :operation (bind ((elements-length (length (elements-of printer-input))))
+                                    (make-operation/sequence/replace-range printer-input `((the sequence (elements-of (the evaluator/toplevel document)))
+                                                                                           (the sequence (subseq (the sequence document) ,elements-length ,elements-length)))
+                                                                           (list (document/insertion (:selection '((the string (value-of (the document/insertion document)))
+                                                                                                                   (the string (subseq (the string document) 0 0)))))))))
                       ((make-key-press-gesture :scancode-return :control)
                        :domain "Evaluator" :description "Inserts a new form at the selection"
                        :operation (bind ((elements-length (length (elements-of printer-input))))
@@ -175,7 +182,7 @@
                                                                                                           `((the sequence (elements-of (the evaluator/toplevel document)))
                                                                                                             (the sequence (subseq (the sequence document) ,elements-length ,elements-length)))
                                                                                                           (list (evaluator/form ()
-                                                                                                                  (make-common-lisp/insertion "" 'common-lisp/complete-document
+                                                                                                                  (make-common-lisp/insertion "" (make-instance 'evaluator/completion :toplevel printer-input)
                                                                                                                                               :default-value "enter form"))))
                                                                    (make-operation/replace-selection printer-input
                                                                                                      `((the sequence (elements-of (the evaluator/toplevel document)))

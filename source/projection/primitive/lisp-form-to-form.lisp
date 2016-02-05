@@ -72,7 +72,7 @@
 
 (def printer lisp-form/list->list (projection recursion input input-reference)
   (bind ((output (iter (for index :from 0)
-                       (for element :in (elements-of input))
+                       (for element :in-sequence (elements-of input))
                        (collect (output-of (recurse-printer recursion element `((elt (the sequence document) ,index)
                                                                                 ,@(typed-reference (document-type input) input-reference))))))))
     (make-iomap projection recursion input input-reference output)))
@@ -80,7 +80,7 @@
 (def printer lisp-form/toplevel->list (projection recursion input input-reference)
   (bind ((output (list* 'progn
                         (iter (for index :from 0)
-                              (for element :in (elements-of input))
+                              (for element :in-sequence (elements-of input))
                               (collect (output-of (recurse-printer recursion element `((elt (the sequence document) ,index)
                                                                                        ,@(typed-reference (document-type input) input-reference)))))))))
     (make-iomap projection recursion input input-reference output)))

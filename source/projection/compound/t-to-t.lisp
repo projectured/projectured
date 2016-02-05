@@ -65,15 +65,16 @@
 ;;;;;;
 ;;; Document to tree
 
-(def function make-projection/document->tree (factory)
+(def function make-projection/document->tree (factory searcher)
   (type-dispatching
     (document/document (document/document->t))
     (document/nothing (document/nothing->tree/leaf))
     (document/insertion (document/insertion->tree/leaf factory))
-    (document/clipboard (document/clipboard->t))))
+    (document/clipboard (document/clipboard->t))
+    (document/search (document/search->document/search-result searcher))))
 
-(def macro document->tree (factory)
-  `(make-projection/document->tree ,factory))
+(def macro document->tree (factory searcher)
+  `(make-projection/document->tree ,factory ,searcher))
 
 ;;;;;;
 ;;; Book to tree

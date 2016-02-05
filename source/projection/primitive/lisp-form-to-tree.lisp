@@ -168,6 +168,12 @@
   (bind ((projection (projection-of printer-iomap))
          (recursion (recursion-of printer-iomap)))
     (pattern-case reference
+      (((the ?type (value-of (the lisp-form/quote document)))
+        . ?rest)
+       (values `((the sequence (children-of (the tree/node document)))
+                 (the ,(document-type (output-of (content-iomap-of printer-iomap))) (elt (the sequence document) 0)))
+               ?rest
+               (content-iomap-of printer-iomap)))
       (((the tree/node (printer-output (the lisp-form/quote document) ?projection ?recursion)) . ?rest)
        (when (eq projection ?projection)
          ?rest)))))
@@ -293,6 +299,12 @@
   (bind ((projection (projection-of printer-iomap))
          (recursion (recursion-of printer-iomap)))
     (pattern-case reference
+      (((the sequence (children-of (the tree/node document)))
+        (the tree/leaf (elt (the sequence document) 0))
+        . ?rest)
+       (values `((the ,(document-type (input-of (content-iomap-of printer-iomap))) (value-of (the lisp-form/quote document))))
+               ?rest
+               (content-iomap-of printer-iomap)))
       (?a
        (append `((the tree/node (printer-output (the lisp-form/quote document) ,projection ,recursion))) reference)))))
 
@@ -348,8 +360,8 @@
   (bind ((output-selection (as (print-selection (make-iomap projection recursion input input-reference nil)
                                                 (selection-of input)
                                                 'forward-mapper/lisp-form/insertion->tree/leaf)))
-         (output (as (bind (((:values nil completion) (funcall (factory-of input) (factory-of input) input (value-of input)))
-                            (commitable? (not (null (funcall (factory-of input) (factory-of input) input (string+ (value-of input) completion)))))
+         (output (as (bind (((:values nil completion) (funcall (factory-of input) (factory-of input) input nil (value-of input)))
+                            (commitable? (not (null (funcall (factory-of input) (factory-of input) input nil (string+ (value-of input) completion)))))
                             (value-color (if commitable? *color/solarized/green* *color/solarized/red*)))
                        (tree/leaf (:selection output-selection :indentation (indentation-of input)
                                    :opening-delimiter (when (compound-p input)
@@ -417,13 +429,13 @@
   (bind ((value-iomap (as (recurse-printer recursion (value-of input)
                                            `((value-of (the sequence document))
                                              ,@(typed-reference (document-type input) input-reference)))))
-         (output-selection (as (print-selection (make-iomap projection recursion input input-reference nil)
+         (output-selection (as (print-selection (make-iomap/content projection recursion input input-reference nil value-iomap)
                                                 (selection-of input)
                                                 'forward-mapper/lisp-form/quote->tree/node)))
          (output (as (tree/node (:selection output-selection :indentation (indentation-of input)
                                  :opening-delimiter (text/text () (text/string "'" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*)))
                        (output-of (va value-iomap))))))
-    (make-iomap projection recursion input input-reference output)))
+    (make-iomap/content projection recursion input input-reference output value-iomap)))
 
 (def printer lisp-form/list->tree/node (projection recursion input input-reference)
   (bind ((deep-list (find-if (of-type 'lisp-form/list) (elements-of input)))

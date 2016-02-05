@@ -65,7 +65,12 @@
     (editor.debug "Selection of ~A is set to ~A" document new-selection)))
 
 (def evaluator operation/replace-target (operation)
-  (setf (eval-reference (document-of operation) (flatten-reference (selection-of operation))) (replacement-of operation)))
+  (setf (eval-reference (document-of operation) (flatten-reference (selection-of operation))) (replacement-of operation))
+  ;; KLUDGE: horrible way to keep the selection up to date?!!
+  (when (typep (replacement-of operation) 'document)
+    (set-selection (document-of operation) (append (butlast (selection-of operation))
+                                                   `((the ,(document-type (replacement-of operation)) ,(third (first (last (selection-of operation))))))
+                                                   (selection-of (replacement-of operation))))))
 
 (def evaluator operation/describe (operation)
   (values))
@@ -305,3 +310,6 @@
              (when (typep document 'document)
                (setf (selection-of document) selection))))
     (recurse document selection)))
+
+(def function get-selection (document)
+  (not-yet-implemented))

@@ -41,6 +41,33 @@
 (def function search-ignorecase (sequence1 sequence2)
   (search sequence1 sequence2 :test 'char=ignorecase))
 
+(def function search-parts (root test &key (slot-provider (compose 'class-slots 'class-of)))
+  (bind ((seen-set (make-hash-table))
+         (result nil))
+    (labels ((recurse (instance reference)
+               (unless (gethash instance seen-set)
+                 (setf (gethash instance seen-set) #t)
+                 (when (funcall test instance)
+                   (when (typep instance 'common-lisp/constant)
+                     (break))
+                   (push (reverse (typed-reference (document-type instance) reference)) result))
+                 (typecase instance
+                   (sequence
+                    (iter (for index :from 0)
+                          (for element :in-sequence instance)
+                          (recurse element `((elt (the sequence document) ,index)
+                                             ,@(typed-reference (document-type instance) reference)))))
+                   (standard-object
+                    (iter (with class = (class-of instance))
+                          (for slot :in (funcall slot-provider instance))
+                          (when (slot-boundp-using-class class instance slot)
+                            (for slot-value = (slot-value-using-class class instance slot))
+                            (for slot-reader = (find-slot-reader class slot))
+                            (recurse slot-value `((,slot-reader (the ,(document-type instance) document))
+                                                  ,@(typed-reference (document-type instance) reference))))))))))
+      (recurse root nil))
+    (nreverse result)))
+
 (def function longest-common-prefix (string-1 string-2)
   (iter (for index :from 0)
         (while (and (< index (length string-1))
@@ -56,6 +83,17 @@
                 (bind ((matching-prefixes (remove-if-not (curry 'starts-with-subseq ,prefix) (list ,@(mapcar 'first cases))))
                        (common-prefix (reduce 'longest-common-prefix matching-prefixes :initial-value (first matching-prefixes))))
                   (subseq common-prefix (min (length common-prefix) (length ,prefix))))))))
+
+(def function completion-prefix-switch* (prefix name-object-pairs)
+  (or (iter (for name-object-pair :in-sequence name-object-pairs)
+            (for name = (car name-object-pair))
+            (for object = (cdr name-object-pair))
+            (when (string= prefix name)
+              (return object)))
+      (values nil
+              (bind ((matching-prefixes (remove-if-not (curry 'starts-with-subseq prefix) (mapcar 'car name-object-pairs)))
+                     (common-prefix (reduce 'longest-common-prefix matching-prefixes :initial-value (first matching-prefixes))))
+                (subseq common-prefix (min (length common-prefix) (length prefix)))))))
 
 (def macro completion-prefix-merge (&body cases)
   (bind ((result-vars (iter (repeat (length cases))
