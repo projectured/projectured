@@ -11,10 +11,16 @@
 
 (def namespace reader)
 
-(def definer reader (name arguments &body forms)
+(def definer reader (name &body forms)
   (bind ((function-name (format-symbol :projectured "READER/~A" name)))
     `(progn
-       (def function ,function-name ,arguments ,@forms)
+       (def function ,function-name (-projection- -recursion- -input- -printer-iomap-)
+         (declare (ignorable -projection- -recursion- -input- -printer-iomap-))
+         (bind ((-printer-input- (input-of -printer-iomap-))
+                (-printer-output- (output-of -printer-iomap-))
+                (-gesture- (gesture-of -input-)))
+           (declare (ignorable -printer-input- -printer-output- -gesture-))
+           ,@forms))
        (setf (find-reader ',name) ',function-name))))
 
 ;;;;;;;

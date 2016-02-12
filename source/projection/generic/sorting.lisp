@@ -35,64 +35,63 @@
 ;;;;;;
 ;;; Forward mapper
 
-(def function forward-mapper/sorting (printer-iomap reference)
-  (pattern-case reference
+(def forward-mapper sorting ()
+  (pattern-case -reference-
     (((the ?element-type (elt (the sequence document) ?element-index))
       . ?rest)
-     (bind ((output-index (position ?element-index (input-indices-of printer-iomap))))
+     (bind ((output-index (position ?element-index (input-indices-of -printer-iomap-))))
        (values`((the ,?element-type (elt (the sequence document) ,output-index)))
               ?rest
-              (elt (element-iomaps-of printer-iomap) ?element-index))))))
+              (elt (element-iomaps-of -printer-iomap-) ?element-index))))))
 
 ;;;;;;
 ;;; Backward mapper
 
-(def function backward-mapper/sorting (printer-iomap reference)
-  (pattern-case reference
+(def backward-mapper sorting ()
+  (pattern-case -reference-
     (((the ?element-type (elt (the sequence document) ?element-index)) . ?rest)
-     (bind ((element-index (elt (input-indices-of printer-iomap) ?element-index)))
+     (bind ((element-index (elt (input-indices-of -printer-iomap-) ?element-index)))
        (values `((the ,?element-type (elt (the sequence document) ,element-index)))
                ?rest
-               (elt (element-iomaps-of printer-iomap) element-index))))))
+               (elt (element-iomaps-of -printer-iomap-) element-index))))))
 
 ;;;;;;
 ;;; Printer
 
-(def printer sorting (projection recursion input input-reference)
+(def printer sorting ()
   (bind ((element-iomaps (as (iter (for index :from 0)
-                                   (for element :in-sequence input)
-                                   (collect (recurse-printer recursion element `((elt (the sequence document) ,index)
-                                                                                 ,@(typed-reference (document-type input) input-reference)))))))
-         (key (or (key-of input) (key-of projection)))
-         (predicate (or (predicate-of input) (predicate-of projection)))
-         (indices (iter (for index :from 0 :below (length input))
+                                   (for element :in-sequence -input-)
+                                   (collect (recurse-printer -recursion- element `((elt (the sequence document) ,index)
+                                                                                   ,@(typed-reference (document-type -input-) -input-reference-)))))))
+         (key (or (key-of -input-) (key-of -projection-)))
+         (predicate (or (predicate-of -input-) (predicate-of -projection-)))
+         (indices (iter (for index :from 0 :below (length -input-))
                         (collect index)))
          (input-indices (if (and key predicate)
-                            (stable-sort indices predicate :key (lambda (index) (funcall key (elt input index))))
+                            (stable-sort indices predicate :key (lambda (index) (funcall key (elt -input- index))))
                             indices))
          (output-elements (as (iter (for input-index :in input-indices)
                                     (collect (output-of (elt (va element-iomaps) input-index))))))
          (output-selection (as (print-selection (make-instance 'iomap/sorting
-                                                               :projection projection :recursion recursion
-                                                               :input input :output nil
+                                                               :projection -projection- :recursion -recursion-
+                                                               :input -input- :output nil
                                                                :element-iomaps element-iomaps
                                                                :input-indices input-indices)
-                                                (selection-of input)
+                                                (selection-of -input-)
                                                 'forward-mapper/sorting)))
-         (output (as (etypecase input
+         (output (as (etypecase -input-
                        (t ;; KLUDGE: typechecking fails in SBCL document/sequence
                         (make-document/sequence (va output-elements) :selection output-selection))
                        (sequence (va output-elements))))))
     (make-instance 'iomap/sorting
-                   :projection projection :recursion recursion
-                   :input input :output output
+                   :projection -projection- :recursion -recursion-
+                   :input -input- :output output
                    :element-iomaps element-iomaps
                    :input-indices input-indices)))
 
 ;;;;;;
 ;;; Reader
 
-(def reader sorting (projection recursion input printer-iomap)
-  (declare (ignore projection))
-  (merge-commands (command/read-backward recursion input printer-iomap 'backward-mapper/sorting nil)
-                  (make-nothing-command (gesture-of input))))
+(def reader sorting ()
+  (merge-commands (command/read-backward -recursion- -input- -printer-iomap- 'backward-mapper/sorting nil)
+                  (make-nothing-command -gesture-)))

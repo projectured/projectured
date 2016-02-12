@@ -11,14 +11,16 @@
 
 (def namespace printer)
 
-(def definer printer (name arguments &body forms)
+(def definer printer (name &body forms)
   (bind ((function-name (format-symbol :projectured "PRINTER/~A" name)))
     `(progn
-       (def function ,function-name ,arguments ,@forms)
+       (def function ,function-name (-projection- -recursion- -input- -input-reference-)
+         (declare (ignorable -projection- -recursion- -input- -input-reference-))
+         ,@forms)
        (setf (find-printer ',name) ',function-name))))
 
 ;;;;;;;
-;;; Printer
+;;; API
 
 (def function call-printer (projection recursion input input-reference)
   (declare (type projection projection recursion)

@@ -27,12 +27,11 @@
 ;;;;;;
 ;;; Printer
 
-(def printer preserving (projection recursion input input-reference)
-  (make-iomap projection recursion input input-reference input))
+(def printer preserving ()
+  (make-iomap -projection- -recursion- -input- -input-reference- -input-))
 
 ;;;;;;
 ;;; Reader
 
-(def reader preserving (projection recursion input printer-iomap)
-  (declare (ignore projection recursion printer-iomap))
-  input)
+(def reader preserving ()
+  -input-)

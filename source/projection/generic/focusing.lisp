@@ -32,9 +32,9 @@
 ;;;;;;
 ;;; Printer
 
-(def printer focusing (projection recursion input input-reference)
-  (bind ((output (as (funcall (part-evaluator-of projection) input))))
-    (make-iomap projection recursion input input-reference output)))
+(def printer focusing ()
+  (bind ((output (as (funcall (part-evaluator-of -projection-) -input-))))
+    (make-iomap -projection- -recursion- -input- -input-reference- output)))
 
 ;;;;;;
 ;;; Reader
@@ -57,12 +57,11 @@
                                            (when (subtypep (second (first selection)) (part-type-of projection))
                                              (return (reverse selection))))))))
 
-(def reader focusing (projection recursion input printer-iomap)
-  (declare (ignore recursion))
-  (merge-commands (focusing/read-command projection input printer-iomap)
-                  (awhen (operation/extend (input-of printer-iomap) (part-of projection) (operation-of input))
-                    (clone-command input it))
-                  (make-nothing-command (gesture-of input))))
+(def reader focusing ()
+  (merge-commands (focusing/read-command -projection- -input- -printer-iomap-)
+                  (awhen (operation/extend (input-of -printer-iomap-) (part-of -projection-) (operation-of -input-))
+                    (clone-command -input- it))
+                  (make-nothing-command (gesture-of -input-))))
 
 ;;;;;;
 ;;; Operation

@@ -27,7 +27,7 @@
 ;;;;;;
 ;;; Printer
 
-(def printer document/reference->text/text (projection recursion input input-reference)
+(def printer document/reference->text/text ()
   (bind ((font *font/ubuntu/monospace/regular/18*))
     (labels ((recurse (path)
                (pattern-case path
@@ -106,12 +106,16 @@
                   (list (text/string "Unknown reference part: " :font font :font-color *color/black*)
                         (text/string (write-to-string path) :font font :font-color *color/solarized/blue*)
                         (text/newline :font font))))))
-      (bind ((output (text/make-text (butlast (recurse (reverse (path-of input)))))))
-        (make-iomap projection recursion input input-reference output)))))
+      (bind ((output (if (path-of -input-)
+                         (text/make-text (butlast (recurse (reverse (path-of -input-)))))
+                         (text/text ()
+                           (text/string "The " :font font :font-color *color/black*)
+                           (text/string (symbol-name (document-type -input-)) :font font :font-color *color/solarized/blue*)
+                           (text/string " document." :font font :font-color *color/black*)))))
+        (make-iomap -projection- -recursion- -input- -input-reference- output)))))
 
 ;;;;;;
 ;;; Reader
 
-(def reader document/reference->text/text (projection recursion input printer-iomap)
-  (declare (ignore projection recursion printer-iomap))
-  input)
+(def reader document/reference->text/text ()
+  -input-)

@@ -39,11 +39,11 @@
 ;;;;;;
 ;;; Construction
 
-(def macro versioning/version ()
-  )
+(def macro versioning/version (name &key author creation selection)
+  `(make-versioning/version ,name :author ,author :creation ,creation :selection ,selection))
 
-(def macro versioning/object-version ()
-  )
+(def macro versioning/object-version ((version &key selection) content)
+  `(make-versioning/object-version ,version ,content :selection ,selection))
 
-(def macro versioning/versioned-object ()
-  )
+(def macro versioning/versioned-object ((&key selection) &body elements)
+  `(make-versioning/versioned-object (list ,@elements) :selection ,selection))

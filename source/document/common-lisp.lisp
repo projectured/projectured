@@ -306,9 +306,9 @@
                       (make-common-lisp/variable-reference (make-common-lisp/lexical-variable-binding (make-lisp-form/symbol* ?atom) nil))
                       (make-common-lisp/constant* ?atom))))))
       (bind ((*package* (find-package :common-lisp-user)))
-        (make-common-lisp/toplevel (iter (for form = (read input nil nil))
-                                         (while form)
-                                         (collect (recurse-form form))))))))
+        (make-common-lisp/toplevel (ll (iter (for form = (read input nil nil))
+                                             (while form)
+                                             (collect (recurse-form form)))))))))
 
 (def saver lisp (filename document)
   (with-output-to-file (output filename :if-does-not-exist :create :if-exists :overwrite :element-type '(unsigned-byte 8))

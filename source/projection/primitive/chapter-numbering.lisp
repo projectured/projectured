@@ -27,17 +27,17 @@
 ;;;;;;
 ;;; Printer
 
-(def printer chapter-numbering (projection recursion input input-reference)
-  (bind ((element-iomaps (as (map-ll* (ll (elements-of input))
+(def printer chapter-numbering ()
+  (bind ((element-iomaps (as (map-ll* (ll (elements-of -input-))
                                       (lambda (element index)
-                                        (recurse-printer recursion (value-of element)
+                                        (recurse-printer -recursion- (value-of element)
                                                          `((elt (the sequence document) ,index)
                                                            (the sequence (elements-of (the book/chapter document)))
-                                                           ,@(typed-reference (document-type input) input-reference)))))))
+                                                           ,@(typed-reference (document-type -input-) -input-reference-)))))))
          (output (make-book/chapter (map-ll (va element-iomaps) 'output-of)
-                                    :title (as (title-of input))
-                                    :collapsed (as (collapsed-p input))
-                                    :numbering (as (pattern-case input-reference
+                                    :title (as (title-of -input-))
+                                    :collapsed (as (collapsed-p -input-))
+                                    :numbering (as (pattern-case -input-reference-
                                                      (((elt (the sequence document) ?subchapter-element-index)
                                                        (the sequence (elements-of (the book/chapter document)))
                                                        (the book/chapter (elt (the sequence document) ?chapter-element-index))
@@ -58,12 +58,11 @@
                                                       (write-to-string (1+ ?index)))
                                                      (()
                                                       "1")))
-                                    :selection (as (selection-of input)))))
-    (make-iomap projection recursion input input-reference output)))
+                                    :selection (as (selection-of -input-)))))
+    (make-iomap -projection- -recursion- -input- -input-reference- output)))
 
 ;;;;;;
 ;;; Reader
 
-(def reader chapter-numbering (projection recursion input printer-iomap)
-  (declare (ignore projection recursion printer-iomap))
-  input)
+(def reader chapter-numbering ()
+  -input-)

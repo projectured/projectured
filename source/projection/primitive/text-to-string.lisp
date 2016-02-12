@@ -27,14 +27,12 @@
 ;;;;;;
 ;;; Printer
 
-(def printer text->string (projection recursion input input-reference)
-  (bind ((output (text/as-string input)))
-    (make-iomap/compound projection recursion input input-reference output
-                          (list (make-iomap projection recursion input input-reference output)))))
+(def printer text->string ()
+  (bind ((output (text/as-string -input-)))
+    (make-iomap -projection- -recursion- -input- -input-reference- output)))
 
 ;;;;;;
 ;;; Reader
 
-(def reader text->string (projection recursion input printer-iomap)
-  (declare (ignore projection recursion printer-iomap))
-  input)
+(def reader text->string ()
+  -input-)

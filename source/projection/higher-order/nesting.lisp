@@ -28,21 +28,20 @@
 ;;;;;;
 ;;; Printer
 
-(def printer nesting (projection recursion input input-reference)
-  (bind ((elements (elements-of projection))
+(def printer nesting ()
+  (bind ((elements (elements-of -projection-))
          (output-iomap (if elements
-                           (bind ((recursion (make-projection/nesting (rest elements) (or (recursion-of projection) recursion))))
-                             (call-printer (first elements) recursion input input-reference))
-                           (recurse-printer (recursion-of projection) input input-reference))))
-    (make-iomap/compound projection recursion input input-reference (output-of output-iomap) (list output-iomap))))
+                           (bind ((recursion (make-projection/nesting (rest elements) (or (recursion-of -projection-) -recursion-))))
+                             (call-printer (first elements) recursion -input- -input-reference-))
+                           (recurse-printer (recursion-of -projection-) -input- -input-reference-))))
+    (make-iomap/compound -projection- -recursion- -input- -input-reference- (output-of output-iomap) (list output-iomap))))
 
 ;;;;;;
 ;;; Reader
 
-(def reader nesting (projection recursion input printer-iomap)
-  (declare (ignore recursion))
-  (bind ((elements (elements-of projection))
-         (content-iomap (the-only-element (child-iomaps-of printer-iomap))))
+(def reader nesting ()
+  (bind ((elements (elements-of -projection-))
+         (content-iomap (the-only-element (child-iomaps-of -printer-iomap-))))
     (if elements
-        (call-reader (first elements) (recursion-of content-iomap) input content-iomap)
-        (recurse-reader (recursion-of projection) input content-iomap))))
+        (call-reader (first elements) (recursion-of content-iomap) -input- content-iomap)
+        (recurse-reader (recursion-of -projection-) -input- content-iomap))))

@@ -39,6 +39,7 @@
                                            (:file "iomap")
                                            (:file "loader")
                                            (:file "maker")
+                                           (:file "mapper")
                                            (:file "operation")
                                            (:file "printer")
                                            (:file "projection")

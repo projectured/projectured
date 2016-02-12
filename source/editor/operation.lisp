@@ -58,6 +58,7 @@
 ;;; Evaluator
 
 (def evaluator operation/quit (operation)
+  (declare (ignore operation))
   (throw :quit-editor nil))
 
 (def evaluator operation/functional (operation)

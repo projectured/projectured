@@ -70,8 +70,7 @@
     (document/document (document/document->t))
     (document/nothing (document/nothing->tree/leaf))
     (document/insertion (document/insertion->tree/leaf factory))
-    (document/clipboard (document/clipboard->t))
-    (document/search (document/search->document/search-result searcher))))
+    (document/clipboard (document/clipboard->t))))
 
 (def macro document->tree (factory searcher)
   `(make-projection/document->tree ,factory ,searcher))
@@ -182,7 +181,7 @@
   '(make-projection/common-lisp->lisp-form))
 
 ;;;;;;
-;;; Repl to tree
+;;; Evaluator to tree
 
 (def function make-projection/evaluator->tree ()
   (type-dispatching
@@ -191,3 +190,14 @@
 
 (def macro evaluator->tree ()
   '(make-projection/evaluator->tree))
+
+;;;;;;
+;;; Searching
+
+(def function make-projection/searching->tree ()
+  (type-dispatching
+    (searching/result (searching/result->tree/node))
+    (searching/result-element (searching/result-element->tree/node))))
+
+(def macro searching->tree ()
+  '(make-projection/searching->tree))

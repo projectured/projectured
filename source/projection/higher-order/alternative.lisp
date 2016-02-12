@@ -28,26 +28,26 @@
 ;;;;;;
 ;;; Printer
 
-(def printer alternative (projection recursion input input-reference)
-  (bind ((selected-alternative-iomap (as (bind ((selection-element (elt (alternatives-of projection) (selection-of projection))))
-                                           (call-printer selection-element recursion input input-reference))))
+(def printer alternative ()
+  (bind ((selected-alternative-iomap (as (bind ((selection-element (elt (alternatives-of -projection-) (selection-of -projection-))))
+                                           (call-printer selection-element -recursion- -input- -input-reference-))))
          (output (as (output-of (va selected-alternative-iomap)))))
-    (make-iomap/compound projection recursion input input-reference output (as (list (va selected-alternative-iomap))))))
+    (make-iomap/compound -projection- -recursion- -input- -input-reference- output (as (list (va selected-alternative-iomap))))))
 
 ;;;;;;
 ;;; Reader
 
-(def reader alternative (projection recursion input printer-iomap)
-  (merge-commands (bind ((selection-element (elt (alternatives-of projection) (selection-of projection)))
-                         (selected-alternative-iomap (first (child-iomaps-of printer-iomap)))
-                         (command (call-reader selection-element recursion input selected-alternative-iomap)))
+(def reader alternative ()
+  (merge-commands (bind ((selection-element (elt (alternatives-of -projection-) (selection-of -projection-)))
+                         (selected-alternative-iomap (first (child-iomaps-of -printer-iomap-)))
+                         (command (call-reader selection-element -recursion- -input- selected-alternative-iomap)))
                     (when (and command (operation-of command))
                       command))
-                  (gesture-case (gesture-of input)
+                  (gesture-case (gesture-of -input-)
                     ((make-key-press-gesture :scancode-n '(:shift :control))
                      :domain "Generic" :description "Switches to the next alternative notation"
-                     :operation (make-operation/select-next-alternative projection)))
-                  (make-nothing-command (gesture-of input))))
+                     :operation (make-operation/select-next-alternative -projection-)))
+                  (make-nothing-command -gesture-)))
 
 ;;;;;;
 ;;; Operation

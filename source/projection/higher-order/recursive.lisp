@@ -60,15 +60,13 @@
 ;;;;;;
 ;;; Printer
 
-(def printer recursive (projection recursion input input-reference)
-  (declare (ignore recursion))
-  (bind ((child (child-of projection)))
-    (call-printer child projection input input-reference)))
+(def printer recursive ()
+  (bind ((child (child-of -projection-)))
+    (call-printer child -projection- -input- -input-reference-)))
 
 ;;;;;;
 ;;; Reader
 
-(def reader recursive (projection recursion input printer-iomap)
-  (declare (ignore recursion))
-  (bind ((child (child-of projection)))
-    (call-reader child projection input printer-iomap)))
+(def reader recursive ()
+  (bind ((child (child-of -projection-)))
+    (call-reader child -projection- -input- -printer-iomap-)))

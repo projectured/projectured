@@ -41,6 +41,7 @@
 (def function search-ignorecase (sequence1 sequence2)
   (search sequence1 sequence2 :test 'char=ignorecase))
 
+;; TODO: merge with seach-parts*
 (def function search-parts (root test &key (slot-provider (compose 'class-slots 'class-of)))
   (bind ((seen-set (make-hash-table))
          (result nil))
@@ -48,8 +49,6 @@
                (unless (gethash instance seen-set)
                  (setf (gethash instance seen-set) #t)
                  (when (funcall test instance)
-                   (when (typep instance 'common-lisp/constant)
-                     (break))
                    (push (reverse (typed-reference (document-type instance) reference)) result))
                  (typecase instance
                    (sequence
@@ -66,6 +65,34 @@
                             (recurse slot-value `((,slot-reader (the ,(document-type instance) document))
                                                   ,@(typed-reference (document-type instance) reference))))))))))
       (recurse root nil))
+    (nreverse result)))
+
+;; TODO: merge with seach-parts
+(def function search-parts* (root test &key (slot-provider (compose 'class-slots 'class-of)))
+  (bind ((seen-set (make-hash-table))
+         (visit-set (list (list root nil)))
+         (result nil))
+    (iter (while visit-set)
+          (for (instance reference) = (pop visit-set))
+          (unless (gethash instance seen-set)
+            (setf (gethash instance seen-set) #t)
+            (when (funcall test instance)
+              (push (reverse (typed-reference (document-type instance) reference)) result))
+            (typecase instance
+              (sequence
+               (iter (for index :from 0)
+                     (for element :in-sequence instance)
+                     (appendf visit-set
+                              (list (list element `((elt (the sequence document) ,index)
+                                                    ,@(typed-reference (document-type instance) reference)))))))
+              (standard-object
+               (iter (with class = (class-of instance))
+                     (for slot :in (funcall slot-provider instance))
+                     (when (slot-boundp-using-class class instance slot)
+                       (for slot-value = (slot-value-using-class class instance slot))
+                       (for slot-reader = (find-slot-reader class slot))
+                       (appendf visit-set (list (list slot-value `((,slot-reader (the ,(document-type instance) document))
+                                                                   ,@(typed-reference (document-type instance) reference)))))))))))
     (nreverse result)))
 
 (def function longest-common-prefix (string-1 string-2)
