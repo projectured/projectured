@@ -52,7 +52,6 @@
                  :padding padding))
 
 (def function text/make-string (content &key font font-color fill-color line-color padding)
-  #+nil (check-type content string)
   (make-instance 'text/string
                  :content content
                  :font font
@@ -75,13 +74,13 @@
 ;;; Construction
 
 (def macro text/newline (&key font padding)
-  `(text/make-newline :font ,(or font '*font/default*) :padding ,padding))
+  `(text/make-newline :font ,font :padding ,padding))
 
 (def macro text/spacing (size &key unit font font-color fill-color line-color padding)
-  `(text/make-spacing ,size :unit ,unit :font ,(or font '*font/default*) :font-color ,font-color :fill-color ,fill-color :line-color ,line-color :padding ,padding))
+  `(text/make-spacing ,size :unit ,unit :font ,font :font-color ,font-color :fill-color ,fill-color :line-color ,line-color :padding ,padding))
 
 (def macro text/string (content &key font font-color fill-color line-color padding)
-  `(text/make-string ,content :font ,(or font '*font/default*) :font-color ,(or font-color '*color/default*) :fill-color ,fill-color :line-color ,line-color :padding ,padding))
+  `(text/make-string ,content :font ,font :font-color ,font-color :fill-color ,fill-color :line-color ,line-color :padding ,padding))
 
 (def macro text/graphics (content &key fill-color line-color padding)
   `(text/make-graphics ,content :fill-color ,fill-color :line-color ,line-color :padding ,padding))
@@ -481,7 +480,7 @@
 ;; TODO: what is this?
 (def function text/subbox (text start-position end-position)
   (declare (ignore text start-position end-position))
-  (not-yet-implemented))
+  (values))
 
 (def function text/empty? (text)
   (bind ((elements (elements-of text)))
@@ -843,7 +842,7 @@
          :domain "Text" :description "Describes the character at the selection"
          :operation (make-operation/describe (selection-of text)))
         ((make-key-press-gesture :scancode-a :control)
-         :domain "Text" :description "TODO"
+         :domain "Text" :description "Toggles showing the annotation at the selection"
          :operation (make-instance 'operation/show-annotation :document text :selection (selection-of text)))
         ((make-key-press-gesture :scancode-return)
          :domain "Text" :description "Inserts a newline at the selection"

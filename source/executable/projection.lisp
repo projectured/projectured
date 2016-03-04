@@ -15,22 +15,19 @@
                                      (the string (subseq (the string document) 0 0))))))
     ("chapter" (book/chapter (:selection '((the string (title-of (the book/chapter document)))
                                            (the string (subseq (the string document) 0 0))))))
-    ("paragraph" (book/paragraph (:alignment :justified
-                                             :selection '((the text/text (content-of (the book/paragraph document)))
-                                                          (the text/text (text/subseq (the text/text document) 0 0))))
-                   (text/text () (text/string "" :font *font/liberation/serif/regular/24* :font-color *color/solarized/content/darker*))))
+    ("paragraph" (book/paragraph (:alignment :justified :selection '((the text/text (content-of (the book/paragraph document)))))
+                   (text/text (:selection '((the text/text (text/subseq (the text/text document) 0 0))))
+                     (text/string "" :font *font/liberation/serif/regular/24* :font-color *color/solarized/content/darker*))))
     ("list" (book/list (:selection '((the sequence (elements-of (the book/list document)))
-                                     (the book/paragraph (elt (the sequence document) 0))
-                                     (the text/text (content-of (the book/paragraph document)))
-                                     (the text/text (text/subseq (the text/text document) 0 0))))
-              (book/paragraph (:selection '((the text/text (content-of (the book/paragraph document)))
-                                            (the text/text (text/subseq (the text/text document) 0 0))))
-                (text/text () (text/string "" :font *font/liberation/serif/regular/24* :font-color *color/solarized/content/darker*)))))
-    ("picture" (book/picture (:selection '((the image/file (content-of (the book/picture document)))
-                                           (the string (filename-of (the image/file document)))
-                                           (the string (subseq (the string document) 0 0))))
-                 (image/file () "")))
-    ("text" (text/text (:selection '((the text/text (text/subseq (the text/text document) 0 0)))) (text/string "")))
+                                     (the book/paragraph (elt (the sequence document) 0))))
+              (book/paragraph (:selection '((the text/text (content-of (the book/paragraph document)))))
+                (text/text (:selection '((the text/text (text/subseq (the text/text document) 0 0))))
+                  (text/string "" :font *font/liberation/serif/regular/24* :font-color *color/solarized/content/darker*)))))
+    ("picture" (book/picture (:selection '((the image/file (content-of (the book/picture document)))))
+                 (image/file (:selection '((the string (filename-of (the image/file document)))
+                                           (the string (subseq (the string document) 0 0)))) "")))
+    ("text" (text/text (:selection '((the text/text (text/subseq (the text/text document) 0 0))))
+              (text/string "")))
     ("xml element" (xml/element ("" nil :selection '((the string (xml/start-tag (the xml/element document)))
                                                      (the string (subseq (the string document) 0 0))))))
     ("xml attribute" (xml/attribute (:selection '((the string (name-of (the xml/attribute document)))
@@ -43,9 +40,7 @@
     ("json number" (json/number () 0))
     ("json string" (json/string () ""))
     ("json array" (json/array (:selection '((the sequence (elements-of (the json/array document)))
-                                            (the json/insertion (elt (the sequence document) 0))
-                                            (the string (value-of (the json/insertion document)))
-                                            (the string (subseq (the string document) 0 0))))
+                                            (the json/insertion (elt (the sequence document) 0))))
                     (json/insertion (:selection '((the string (value-of (the json/insertion document)))
                                                   (the string (subseq (the string document) 0 0)))))))
     ("json object entry" (json/object-entry (:selection '((the string (key-of (the json/object-entry document)))
@@ -55,9 +50,7 @@
     ("json object" (make-json/object (list (json/insertion (:selection '((the string (value-of (the json/insertion document)))
                                                                          (the string (subseq (the string document) 0 0))))))
                                      :selection '((the sequence (entries-of (the json/object document)))
-                                                  (the json/insertion (elt (the sequence document) 0))
-                                                  (the string (value-of (the json/insertion document)))
-                                                  (the string (subseq (the string document) 0 0)))))
+                                                  (the json/insertion (elt (the sequence document) 0)))))
     ("common lisp function definition" (make-common-lisp/function-definition (make-lisp-form/symbol "" "") nil nil
                                                                              :documentation ""
                                                                              :selection '((the lisp-form/symbol (name-of (the common-lisp/function-definition document)))
@@ -68,20 +61,13 @@
     ("common lisp let" (make-common-lisp/let nil nil))
     ("common lisp lambda" (make-common-lisp/lambda-function nil nil))
     ("evaluator toplevel" (evaluator/toplevel (:selection '((the sequence (elements-of (the evaluator/toplevel document)))
-                                                            (the evaluator/form (elt (the sequence document) 0))
-                                                            (the common-lisp/insertion (form-of (the evaluator/form document)))
-                                                            (the string (value-of (the common-lisp/insertion document)))
-                                                            (the string (subseq (the string document) 0 0))))
-                            (evaluator/form (:selection '((the common-lisp/insertion (form-of (the evaluator/form document)))
-                                                          (the string (value-of (the common-lisp/insertion document)))
-                                                          (the string (subseq (the string document) 0 0))))
+                                                            (the evaluator/form (elt (the sequence document) 0))))
+                            (evaluator/form (:selection '((the common-lisp/insertion (form-of (the evaluator/form document)))))
                               (make-common-lisp/insertion "" 'common-lisp/complete-document
                                                           :default-value "enter form"
                                                           :selection '((the string (value-of (the common-lisp/insertion document)))
                                                                        (the string (subseq (the string document) 0 0)))))))
-    ("evaluator form" (evaluator/form (:selection '((the common-lisp/insertion (form-of (the evaluator/form document)))
-                                                    (the string (value-of (the common-lisp/insertion document)))
-                                                    (the string (subseq (the string document) 0 0))))
+    ("evaluator form" (evaluator/form (:selection '((the common-lisp/insertion (form-of (the evaluator/form document)))))
                         (make-common-lisp/insertion "" 'common-lisp/complete-document
                                                     :default-value "enter form"
                                                     :selection '((the string (value-of (the common-lisp/insertion document)))
@@ -126,8 +112,9 @@
     (type-dispatching
       (graphics/base (preserving))
       (widget/base (widget->graphics))
-      (document/document (document/document->t))
-      (document/clipboard (document/clipboard->t))
+      (workbench/document (workbench/document->t))
+      (clipboard/slice (clipboard/slice->t))
+      (clipboard/collection (clipboard/collection->t))
       (document/reflection (document/reflection->graphics/canvas))
       (document/reference (sequential
                             (document/reference->text/text)
@@ -149,28 +136,89 @@
                   (focusing 'document nil)
                   (recursive
                     (reference-dispatching
-                      (alternative
-                        (type-dispatching
-                          (document/sequence (copying))
-                          (document/base (document->tree 'default-factory 'default-searcher))
-                          (searching/base (searching->tree))
-                          (book/paragraph (nesting
-                                            (book/paragraph->tree/leaf)
-                                            (text-aligning 1270)))
-                          (book/base (book->tree))
-                          (json/base (json->tree))
-                          (xml/base (xml->tree))
-                          (common-lisp/base (sequential
-                                              (common-lisp->lisp-form)
-                                              (lisp-form->tree)))
-                          (lisp-form/base (lisp-form->tree))
-                          (evaluator/base (evaluator->tree))
-                          (tree/base (preserving))
-                          (text/base (word-wrapping 1270)))
-                        (recursive
-                          (t->tree 'default-slot-provider)))))
+                        (alternative
+                          (type-dispatching
+                            (document/sequence (copying))
+                            (document/base (document->tree 'default-factory 'default-searcher))
+                            (searching/base (searching->tree))
+                            (book/paragraph (nesting
+                                              (book/paragraph->tree/leaf)
+                                              (text-aligning 1270)))
+                            (book/base (book->tree))
+                            (json/base (json->tree))
+                            (xml/base (xml->tree))
+                            (common-lisp/base (sequential
+                                                (common-lisp->lisp-form)
+                                                (lisp-form->tree)))
+                            (lisp-form/base (lisp-form->tree))
+                            (evaluator/base (evaluator->tree))
+                            (tree/base (preserving))
+                            (text/base (word-wrapping 1270)))
+                          (recursive
+                            (t->tree 'default-slot-provider)))))
                   (recursive
                     (type-dispatching
                       (tree/base (tree->text))
                       (text/text (preserving))))
                   (text->graphics))))))
+
+#+nil
+(def function make-default-projection ()
+  (sequential
+    (recursive
+      (type-dispatching
+        (workbench/base (workbench->widget))
+        (t (preserving))))
+    (recursive
+      (type-dispatching
+        (graphics/base (preserving))
+        (widget/base (widget->graphics))
+        (workbench/document (workbench/document->t))
+        (clipboard/slice (clipboard/slice->t))
+        (clipboard/collection (clipboard/collection->t))
+        (document/reflection (document/reflection->graphics/canvas))
+        (document/reference (sequential
+                              (document/reference->text/text)
+                              (text->graphics)))
+        (searching/search (searching/search->graphics/canvas))
+        (text/text (sequential
+                     (word-wrapping 1280)
+                     (text->graphics)))
+        (help/context-sensitive (sequential
+                                  (help/context-sensitive->text/text)
+                                  (text->graphics)))
+        (document (sequential
+                    (recursive
+                      (type-dispatching
+                        (book/book (copying))
+                        (book/chapter (chapter-numbering))
+                        (sequence (copying))
+                        (t (preserving))))
+                    (focusing 'document nil)
+                    (recursive
+                      (reference-dispatching
+                        (alternative
+                          (type-dispatching
+                            (document/sequence (copying))
+                            (document/base (document->tree 'default-factory 'default-searcher))
+                            (searching/base (searching->tree))
+                            (book/paragraph (nesting
+                                              (book/paragraph->tree/leaf)
+                                              (text-aligning 1270)))
+                            (book/base (book->tree))
+                            (json/base (json->tree))
+                            (xml/base (xml->tree))
+                            (common-lisp/base (sequential
+                                                (common-lisp->lisp-form)
+                                                (lisp-form->tree)))
+                            (lisp-form/base (lisp-form->tree))
+                            (evaluator/base (evaluator->tree))
+                            (tree/base (preserving))
+                            (text/base (word-wrapping 1270)))
+                          (recursive
+                            (t->tree 'default-slot-provider)))))
+                    (recursive
+                      (type-dispatching
+                        (tree/base (tree->text))
+                        (text/text (preserving))))
+                    (text->graphics)))))))

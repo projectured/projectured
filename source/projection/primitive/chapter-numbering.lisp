@@ -58,7 +58,7 @@
                                                       (write-to-string (1+ ?index)))
                                                      (()
                                                       "1")))
-                                    :selection (as (selection-of -input-)))))
+                                    :selection (as (get-selection -input-)))))
     (make-iomap -projection- -recursion- -input- -input-reference- output)))
 
 ;;;;;;

@@ -148,7 +148,7 @@
                                                                :projection -projection- :recursion -recursion-
                                                                :input -input- :input-reference -input-reference-
                                                                :line-iomaps line-iomaps)
-                                                (selection-of -input-)
+                                                (get-selection -input-)
                                                 'forward-mapper/word-wrapping)))
          (output (text/make-text (as (or (append-ll (map-ll (va line-iomaps) 'output-of))
                                          (list (text/string ""))))

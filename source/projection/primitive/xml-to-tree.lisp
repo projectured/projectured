@@ -254,7 +254,7 @@
 
 (def printer xml/insertion->tree/leaf ()
   (bind ((output-selection (as (print-selection (make-iomap -projection- -recursion- -input- -input-reference- nil)
-                                                (selection-of -input-)
+                                                (get-selection -input-)
                                                 'forward-mapper/xml/insertion->tree/leaf)))
          (output (as (tree/leaf (:selection output-selection)
                        (text/text (:selection (as (nthcdr 1 (va output-selection))))
@@ -263,7 +263,7 @@
 
 (def printer xml/text->tree/leaf ()
   (bind ((output-selection (as (print-selection (make-iomap -projection- -recursion- -input- -input-reference- nil)
-                                                (selection-of -input-)
+                                                (get-selection -input-)
                                                 'forward-mapper/xml/text->tree/leaf)))
          (output (as (tree/leaf (:selection output-selection)
                        (text/make-default-text (value-of -input-) "enter xml text" :selection (as (nthcdr 1 (va output-selection))) :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/green*)))))
@@ -271,7 +271,7 @@
 
 (def printer xml/attribute->tree/node ()
   (bind ((output-selection (as (print-selection (make-iomap -projection- -recursion- -input- -input-reference- nil)
-                                                (selection-of -input-)
+                                                (get-selection -input-)
                                                 'forward-mapper/xml/attribute->tree/node)))
          (output (as (tree/node (:separator (text/text () (text/string "=" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
                                   :selection output-selection)
@@ -300,7 +300,7 @@
                                                                :projection -projection- :recursion -recursion-
                                                                :input -input- :input-reference -input-reference-
                                                                :attribute-iomaps attribute-iomaps :child-iomaps child-iomaps)
-                                                (selection-of -input-)
+                                                (get-selection -input-)
                                                 'forward-mapper/xml/element->tree/node)))
          (output (as (bind ((children (children-of -input-))
                             (element-name (text/make-default-text (name-of -input-) "enter xml element name" :selection (as (nthcdr 3 (va output-selection))) :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/blue*)))

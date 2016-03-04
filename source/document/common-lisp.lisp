@@ -199,11 +199,7 @@
                                                                                               (the string (subseq (the string document) ,name-length ,name-length))))
                                             nil
                                             :factory (factory-of printer-input)
-                                            :selection `((the common-lisp/function-reference (operator-of (the common-lisp/application document)))
-                                                         (the common-lisp/function-definition (function-of (the common-lisp/function-reference document)))
-                                                         (the lisp-form/symbol (name-of (the common-lisp/function-definition document)))
-                                                         (the string (name-of (the lisp-form/symbol document)))
-                                                         (the string (subseq (the string document) ,name-length ,name-length)))))))
+                                            :selection '((the common-lisp/function-reference (operator-of (the common-lisp/application document))))))))
          (completion-prefix-switch* name
                                     (iter (for binding :in-sequence (bindings-of function-definition))
                                           (for name = (string-downcase (name-of (name-of binding))))
@@ -219,9 +215,7 @@
     (make-common-lisp/required-function-argument (make-lisp-form/symbol name "COMMON-LISP-USER"
                                                                         :selection `((the string (name-of (the lisp-form/symbol document)))
                                                                                      (the string (subseq (the string document) ,name-length ,name-length))))
-                                                 :selection `((the lisp-form/symbol (name-of (the common-lisp/function-argument document)))
-                                                              (the string (name-of (the lisp-form/symbol document)))
-                                                              (the string (subseq (the string document) ,name-length ,name-length))))))
+                                                 :selection `((the lisp-form/symbol (name-of (the common-lisp/function-argument document)))))))
 
 (def function common-lisp/complete-document (factory printer-input reader-input name)
   (bind (((:values document completion)
@@ -238,9 +232,7 @@
                                                                                  (the string (subseq (the string document) 0 0))))
                                        (make-common-lisp/insertion "" (factory-of printer-input) :default-value "enter then branch")
                                        (make-common-lisp/insertion "" (factory-of printer-input) :default-value "enter else branch")
-                                       :selection '((the common-lisp/insertion (condition-of (the common-lisp/if document)))
-                                                    (the string (value-of (the common-lisp/insertion document)))
-                                                    (the string (subseq (the string document) 0 0)))))
+                                       :selection '((the common-lisp/insertion (condition-of (the common-lisp/if document))))))
             ("progn" (make-common-lisp/progn nil))
             ("let" (make-common-lisp/let nil nil))
             ("lambda" (make-common-lisp/lambda-function nil nil)))))
@@ -254,13 +246,11 @@
                 (make-common-lisp/application (make-lisp-form/symbol* it)
                                               (when argument-insertion?
                                                 (list-ll (make-common-lisp/insertion "" (factory-of printer-input)
-                                                                                  :selection  '((the string (value-of (the common-lisp/insertion document)))
-                                                                                                (the string (subseq (the string document) 0 0))))))
+                                                                                     :selection  '((the string (value-of (the common-lisp/insertion document)))
+                                                                                                   (the string (subseq (the string document) 0 0))))))
                                               :selection (if argument-insertion?
                                                              `((the sequence (arguments-of (the common-lisp/application document)))
-                                                               (the common-lisp/insertion (elt (the sequence document) 0))
-                                                               (the string (value-of (the common-lisp/insertion document)))
-                                                               (the string (subseq (the string document) 0 0)))
+                                                               (the common-lisp/insertion (elt (the sequence document) 0)))
                                                              `((the lisp-form/symbol (operator-of (the common-lisp/application document)))
                                                                (the string (name-of (the lisp-form/symbol document)))
                                                                (the string (subseq (the string document) ,position ,position))))

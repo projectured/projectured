@@ -7,6 +7,30 @@
 (in-package :projectured)
 
 ;;;;;;
+;;; Primitive to t
+
+(def function make-projection/primitive->t ()
+  (type-dispatching
+    (primitive/boolean (primitive/boolean->boolean))
+    (primitive/number (primitive/number->number))
+    (primitive/string (primitive/string->string))))
+
+(def macro primitive->t ()
+  '(make-projection/primitive->t))
+
+;;;;;;
+;;; Primitive to text
+
+(def function make-projection/primitive->text ()
+  (type-dispatching
+    (primitive/boolean (primitive/boolean->text/text))
+    (primitive/number (primitive/number->text/text))
+    (primitive/string (primitive/string->text/text))))
+
+(def macro primitive->text ()
+  '(make-projection/primitive->text))
+
+;;;;;;
 ;;; Text to graphics
 
 (def function make-projection/text->graphics ()
@@ -36,6 +60,21 @@
   '(make-projection/widget->graphics))
 
 ;;;;;;
+;;; Syntax to text
+
+(def function make-projection/syntax->text ()
+  (type-dispatching
+    (syntax/delimitation (syntax/delimitation->text/text))
+    (syntax/indentation (syntax/indentation->text/text))
+    (syntax/collapsible (syntax/collapsible->text/text))
+    (syntax/leaf (syntax/leaf->text/text))
+    (syntax/separation (syntax/separation->text/text))
+    (syntax/node (syntax/node->text/text))))
+
+(def macro syntax->text ()
+  `(make-projection/syntax->text))
+
+;;;;;;
 ;;; Tree to text
 
 (def function make-projection/tree->text ()
@@ -52,8 +91,8 @@
 (def function make-projection/t->tree (slot-provider)
   (type-dispatching
     (null (make-projection/t/null->tree/leaf))
-    ((or number document/number) (make-projection/t/number->tree/leaf))
-    ((or string document/string) (make-projection/t/string->tree/leaf))
+    ((or number primitive/number) (make-projection/t/number->tree/leaf))
+    ((or string primitive/string) (make-projection/t/string->tree/leaf))
     (symbol (make-projection/t/symbol->tree/leaf))
     (pathname (make-projection/t/pathname->tree/leaf))
     (sequence (make-projection/t/sequence->tree/node))
@@ -63,14 +102,56 @@
   `(make-projection/t->tree ,slot-provider))
 
 ;;;;;;
+;;; Workbench to t
+
+(def function make-projection/workbench->t ()
+  (type-dispatching
+    (workbench/document (workbench/document->t))))
+
+(def macro workbench->t ()
+  `(make-projection/workbench->t))
+
+;;;;;;
+;;; Workbench to widget
+
+(def function make-projection/workbench->widget ()
+  (type-dispatching
+    (workbench/workbench (workbench/workbench->widget/shell))
+    (workbench/navigator (workbench/navigator->widget/title-pane))
+    (workbench/console (workbench/console->widget/title-pane))
+    (workbench/editor (workbench/editor->widget/tabbed-pane))
+    (workbench/document (workbench/document->widget/scroll-pane))))
+
+(def macro workbench->widget ()
+  '(make-projection/workbench->widget))
+
+;;;;;;
+;;; Clipboard to t
+
+(def function make-projection/clipboard->t ()
+  (type-dispatching
+    (clipboard/slice (clipboard/slice->t))
+    (clipboard/collection (clipboard/collection->t))))
+
+(def macro clipboard->t ()
+  `(make-projection/clipboard->t))
+
+;;;;;;
+;;; Document to t
+
+(def function make-projection/document->t ()
+  (type-dispatching))
+
+(def macro document->t ()
+  `(make-projection/document->t))
+
+;;;;;;
 ;;; Document to tree
 
 (def function make-projection/document->tree (factory searcher)
   (type-dispatching
-    (document/document (document/document->t))
     (document/nothing (document/nothing->tree/leaf))
-    (document/insertion (document/insertion->tree/leaf factory))
-    (document/clipboard (document/clipboard->t))))
+    (document/insertion (document/insertion->tree/leaf factory))))
 
 (def macro document->tree (factory searcher)
   `(make-projection/document->tree ,factory ,searcher))
@@ -148,8 +229,8 @@
     (lisp-form/quote (make-projection/lisp-form/quote->list))
     (lisp-form/list (make-projection/lisp-form/list->list))
     (lisp-form/toplevel (make-projection/lisp-form/toplevel->list))
-    (document/string (document/string->string))
-    (document/number (document/number->number))
+    (primitive/string (primitive/string->string))
+    (primitive/number (primitive/number->number))
     ((or number symbol string) (preserving))))
 
 (def macro lisp-form->form ()

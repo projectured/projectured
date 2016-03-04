@@ -124,7 +124,7 @@
                         (when (elements-of text)
                           (make-element (text/origin-position (output-of (va content-iomap)))))))))
          (output-selection (as (print-selection (make-iomap/compound -projection- -recursion- -input- -input-reference- nil (as (list (va content-iomap))))
-                                                (selection-of -input-)
+                                                (get-selection -input-)
                                                 'forward-mapper/text-aligning)))
          (output (if (eq (alignment-of -input-) :left)
                      (as (output-of (va content-iomap)))

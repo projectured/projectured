@@ -196,7 +196,7 @@
                                                                :projection -projection- :recursion -recursion-
                                                                :input -input- :input-reference -input-reference-
                                                                :content-iomap content-iomap)
-                                                (selection-of -input-)
+                                                (get-selection -input-)
                                                 'forward-mapper/tree/leaf->text/text)))
          (output-elements (as (bind ((output-delimiters? (output-delimiters-p -projection-))
                                      (opening-delimiter (opening-delimiter-of -input-))
@@ -243,22 +243,23 @@
                                              (make-computed-ll (as (bind ((indented-child (as (text/make-text (append-ll (map-ll* (ll (elements-of child-output))
                                                                                                                                   (lambda (child-element-element index)
                                                                                                                                     (declare (ignore index))
-                                                                                                                                    (bind ((child-element (value-of child-element-element)))
+                                                                                                                                    (bind ((child-element (value-of child-element-element))
+                                                                                                                                           (font (or (font-of child-element) *font/default*)))
                                                                                                                                       (if (and indentation
                                                                                                                                                (not (previous-element-of child-element-element)))
                                                                                                                                           (if (zerop indentation)
-                                                                                                                                              (ll (list (text/newline :font *font/ubuntu/monospace/regular/24*)
+                                                                                                                                              (ll (list (text/newline)
                                                                                                                                                         child-element)
                                                                                                                                                   1)
-                                                                                                                                              (ll (list (text/newline :font *font/ubuntu/monospace/regular/24*)
-                                                                                                                                                        (text/string (make-string-of-spaces indentation) :font *font/ubuntu/monospace/regular/24*)
+                                                                                                                                              (ll (list (text/newline)
+                                                                                                                                                        (text/string (make-string-of-spaces indentation) :font font)
                                                                                                                                                         child-element)
                                                                                                                                                   2))
                                                                                                                                           (if (and (not (zerop line-indentation))
                                                                                                                                                    (text/newline? child-element)
                                                                                                                                                    ;; TODO: delme or not? this produces extra indentation
                                                                                                                                                    #+nil(previous-element-of child-element-element))
-                                                                                                                                              (ll (list child-element (text/string (make-string-of-spaces line-indentation) :font *font/ubuntu/monospace/regular/24*)))
+                                                                                                                                              (ll (list child-element (text/string (make-string-of-spaces line-indentation) :font font)))
                                                                                                                                               (ll (list child-element)))))))))))
                                                                           (indented-child-origin-preceding-length (as (text/length (va indented-child) (text/first-position (va indented-child)) (text/origin-position (va indented-child)))))
                                                                           (indented-child-origin-following-length (as (text/length (va indented-child) (text/origin-position (va indented-child)) (text/last-position (va indented-child))))))
@@ -304,13 +305,13 @@
                                                                  (aif (separator-of -input-)
                                                                       (separate-elements-ll indented-children (ll (elements-of it)))
                                                                       indented-children)))
-                                                    (list-ll (text/string "")))
+                                                    (list-ll #+nil (text/string "" :font *font/default*)))
                                                 (when (collapsed-p -input-)
                                                   (list-ll (text/string " …"
                                                                         :font (font-of (last-elt (elements-of (output-of (content-iomap-of (value-of (first-element (va node-child-iomaps))))))))
                                                                         :font-color *color/solarized/gray*)))
                                                 (when (and output-delimiters? closing-delimiter) (elements-of closing-delimiter))))))
-         (output-selection (as (pattern-case (selection-of -input-)
+         (output-selection (as (pattern-case (get-selection -input-)
                                  (((the tree/node document))
                                   (bind ((text (text/make-text output-elements))
                                          (origin-position (text/origin-position text))
@@ -335,7 +336,7 @@
                                    (the ?child-type (elt (the sequence document) ?child-index))
                                    . ?rest)
                                   (bind ((child-iomap (elt (va node-child-iomaps) ?child-index)))
-                                    (pattern-case (selection-of (output-of (content-iomap-of child-iomap)))
+                                    (pattern-case (get-selection (output-of (content-iomap-of child-iomap)))
                                       (((the text/text (text/subseq (the text/text document) ?child-character-index ?child-character-index)))
                                        (bind ((character-index (find-parent-character-index child-iomap ?child-character-index)))
                                          `((the text/text (text/subseq (the text/text document) ,character-index ,character-index)))))
@@ -377,10 +378,10 @@
         reference)))
 
 (def reader tree/leaf->text/text ()
-  (bind ((selection (selection-of -printer-input-))
+  (bind ((selection (get-selection -printer-input-))
          (text-selection? (text/reference? selection))
          (tree-selection? (tree/reference? selection)))
-    (merge-commands (pattern-case (selection-of -printer-input-)
+    (merge-commands (pattern-case selection
                       (((the ?content-type (content-of (the tree/leaf document))) . ?rest)
                        (bind ((content-iomap (content-iomap-of -printer-iomap-))
                               (output-operation (operation-of (recurse-reader -recursion- (make-nothing-command -gesture-) content-iomap))))
@@ -389,7 +390,7 @@
                     (gesture-case -gesture-
                       ((make-key-press-gesture :scancode-i :control)
                        :domain "Tree" :description "Describes the node at the selection"
-                       :operation (when tree-selection? (make-operation/describe (selection-of -printer-input-))))
+                       :operation (when tree-selection? (make-operation/describe selection)))
                       ((make-key-press-gesture :scancode-space :control)
                        :domain "Tree" :description "Turns the selection into a text selection"
                        :operation (when tree-selection?
@@ -410,16 +411,16 @@
                            (operation (when command (operation-of command))))
                       (if (and (typep -gesture- 'gesture/mouse/click)
                                (typep operation 'operation/replace-selection)
-                               (equal (selection-of operation) (selection-of -printer-input-)))
+                               (equal (selection-of operation) selection))
                           (clone-command command (make-operation/replace-selection -printer-input- '((the tree/leaf document))))
                           command))
                     (make-nothing-command -gesture-))))
 
 (def reader tree/node->text/text ()
-  (bind ((selection (selection-of -printer-input-))
+  (bind ((selection (get-selection -printer-input-))
          (text-selection? (text/reference? selection))
          (tree-selection? (tree/reference? selection)))
-    (merge-commands (pattern-case (selection-of -printer-input-)
+    (merge-commands (pattern-case selection
                       (((the sequence (children-of (the tree/node document)))
                         (the ?element-type (elt (the sequence document) ?element-index)) . ?rest)
                        (bind ((child-iomap (content-iomap-of (elt (child-iomaps-of -printer-iomap-) ?element-index)))
@@ -433,7 +434,7 @@
                     (gesture-case -gesture-
                       ((make-key-press-gesture :scancode-i :control)
                        :domain "Tree" :description "Describes the node at the selection"
-                       :operation (when tree-selection? (make-operation/describe (selection-of -printer-input-))))
+                       :operation (when tree-selection? (make-operation/describe selection)))
                       ((make-key-press-gesture :scancode-space :control)
                        :domain "Tree" :description "Turns the selection into a text position selection"
                        :operation (when tree-selection?
@@ -456,7 +457,7 @@
                       ((make-key-press-gesture :scancode-home '(:control :alt))
                        :domain "Tree" :description "Moves the selection to the root node"
                        :operation (bind ((new-selection '((the tree/node document))))
-                                    (unless (equal new-selection (selection-of -printer-input-))
+                                    (unless (equal new-selection selection)
                                       (make-operation/replace-selection -printer-input- new-selection))))
                       ((make-key-press-gesture :scancode-up)
                        :domain "Tree" :description "Moves the selection to the parent node"
@@ -648,7 +649,7 @@
                            (operation (when command (operation-of command))))
                       (if (and (typep -gesture- 'gesture/mouse/click)
                                (typep operation 'operation/replace-selection))
-                          (cond ((equal (selection-of operation) (selection-of -printer-input-))
+                          (cond ((equal (selection-of operation) selection)
                                  (clone-command command (make-operation/replace-selection -printer-input- '((the tree/node document)))))
                                 ((equal (modifiers-of -gesture-) '(:control))
                                  (make-command -gesture- (make-operation/tree/toggle-collapsed -printer-input- '((the tree/node document)))

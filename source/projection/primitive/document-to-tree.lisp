@@ -47,7 +47,7 @@
 ;;; Printer
 
 (def printer document/nothing->tree/leaf ()
-  (bind ((output-selection (as (pattern-case (selection-of -input-)
+  (bind ((output-selection (as (pattern-case (get-selection -input-)
                                  (((the string (value-of (the document/nothing document)))
                                    (the string (subseq (the string document) ?character-index ?character-index)))
                                   `((the text/text (content-of (the tree/leaf document)))
@@ -58,7 +58,7 @@
     (make-iomap -projection- -recursion- -input- -input-reference- output)))
 
 (def printer document/insertion->tree/leaf ()
-  (bind ((output-selection (as (pattern-case (selection-of -input-)
+  (bind ((output-selection (as (pattern-case (get-selection -input-)
                                  (((the string (value-of (the document/insertion document)))
                                    (the string (subseq (the string document) ?character-index ?character-index)))
                                   (bind ((character-index (+ (length (prefix-of -input-)) ?character-index)))
@@ -89,7 +89,7 @@
   (bind ((content-iomap (as (recurse-printer -recursion- (content-of -input-)
                                              `((content-of (the document/reflection document))
                                                ,@(typed-reference (document-type -input-) -input-reference-)))))
-         (selection-iomap (as (recurse-printer -recursion- (document/reference () (nthcdr 3 (selection-of (content-of -input-))))
+         (selection-iomap (as (recurse-printer -recursion- (document/reference () (nthcdr 3 (get-selection (content-of -input-))))
                                                `((selection-of (the document/reflection document))
                                                  ,@(typed-reference (document-type -input-) -input-reference-)))))
          (last-commands-iomap (as (awhen (last-commands-of -input-)

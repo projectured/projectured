@@ -218,7 +218,7 @@
 (def function widget/content-top-left (widget)
   (+ (inset/top-left (margin-of widget)) (inset/top-left (border-of widget)) (inset/top-left (padding-of widget))))
 
-(def function widget/make-surrounding-graphics (widget content-size content-fill-color &key margin-corners border-corners (padding-corners nil padding-corners?) content-corners (border-extra-size 0))
+(def function widget/make-surrounding-graphics (widget content-size content-fill-color &key (margin-corners nil margin-corners?) border-corners (padding-corners nil padding-corners?) content-corners (border-extra-size 0))
   (bind ((margin (margin-of widget))
          (margin-color (margin-color-of widget))
          (border (border-of widget))
@@ -226,7 +226,7 @@
          (padding (padding-of widget))
          (padding-color (padding-color-of widget)))
     (append (when margin-color
-              (list (if margin-corners
+              (list (if margin-corners?
                         (make-graphics/rounded-rectangle 0
                                                          (+ content-size border-extra-size (inset/size margin) (inset/size border) (inset/size padding))
                                                          9
@@ -288,7 +288,7 @@
                                                ,@(typed-reference (document-type -input-) -input-reference-)))))
          (output (as (bind ((content-output (output-of (va content-iomap)))
                             (content-bounding-rectangle (bounds-of (output-of (va content-iomap)))))
-                       (make-graphics/canvas (list (make-graphics/canvas (widget/make-surrounding-graphics -input- (size-of content-bounding-rectangle) (content-fill-color-of -input-) :margin-corners '(nil)) 0)
+                       (make-graphics/canvas (list (make-graphics/canvas (widget/make-surrounding-graphics -input- (size-of content-bounding-rectangle) (content-fill-color-of -input-) :margin-corners nil) 0)
                                                    (make-graphics/canvas (list content-output) (widget/content-top-left -input-)))
                                              (position-of -input-))))))
     (make-iomap/compound -projection- -recursion- -input- -input-reference- output (as (list (va content-iomap))))))
@@ -473,6 +473,7 @@
                                                                                                          *color/solarized/content/lighter*
                                                                                                          *color/solarized/content/darker*))
                                                  :into selector-graphics)
+                                               #+nil
                                                (collect (make-graphics/image (+ x (position-of bounding-rectangle) (size-of bounding-rectangle) (make-2d 16 -12))
                                                                              (image/file () (resource-pathname "image/close.png")))
                                                  :into selector-graphics)
@@ -564,7 +565,7 @@
                                  (operation/focusing/replace-part
                                   operation)
                                  (operation/show-context-sensitive-help
-                                  (bind ((content (make-help/context-sensitive (commands-of operation)))
+                                  (bind ((content (make-help/context-sensitive (stable-sort (commands-of operation) 'string< :key 'domain-of)))
                                          (size (size-of (make-bounding-rectangle (printer-output content -recursion-)))))
                                     (make-operation/replace-target -printer-input-
                                                                    '((the widget/tooltip (tooltip-of (the widget/shell document))))
@@ -593,11 +594,10 @@
                         (when operation
                           (if (and (tooltip-of -printer-input-)
                                    (visible-p (tooltip-of -printer-input-)))
-                              (make-operation/compound (optional-list (make-command -gesture-
-                                                                                    operation
-                                                                                    :domain (domain-of content-command)
-                                                                                    :description (description-of content-command))
-                                                                      (make-instance 'operation/widget/hide :widget tooltip)))
+                              (make-command -gesture-
+                                            (make-operation/compound (optional-list operation (make-instance 'operation/widget/hide :widget tooltip)))
+                                            :domain (domain-of content-command)
+                                            :description (description-of content-command))
                               (make-command -gesture-
                                             operation
                                             :domain (domain-of content-command)
@@ -646,10 +646,7 @@
                           (the ?type (elt (the sequence document) ?index))
                           . ?rest)
                          (bind ((child-iomap (elt (child-iomaps-of -printer-iomap-) ?index))
-                                (child-gesture (if (typep -gesture- 'gesture/mouse/click)
-                                                   ;; TODO: width
-                                                   (make-instance 'gesture/mouse/click :modifiers (modifiers-of -gesture-) :button (button-of -gesture-) :position (- (position-of -gesture-) (make-2d 250 0)))
-                                                   -gesture-))
+                                (child-gesture -gesture-)
                                 (child-input (make-command child-gesture
                                                            (operation-of -input-)
                                                            :domain (domain-of -input-)

@@ -47,14 +47,14 @@
            (check-type input string)
            (make-instance 'event/keyboard/type-in
                           :timestamp (get-internal-real-time)
-                          :modifiers nil
+                          :modifiers (translate-modifiers (#,SDL_GetModState))
                           :mouse-position (current-mouse-position)
                           ;; TODO FIXME this assumption is wrong. see: https://wiki.libsdl.org/Tutorials/TextInput
                           :character (first-elt input))))
         (#.#,SDL_MOUSEMOTION
          (make-instance 'event/mouse/move
                         :timestamp (get-internal-real-time)
-                        :modifiers nil
+                        :modifiers (translate-modifiers (#,SDL_GetModState))
                         :mouse-position (current-mouse-position)))
         ((#.#,SDL_MOUSEBUTTONDOWN #.#,SDL_MOUSEBUTTONUP)
          (bind ((button (cffi:foreign-slot-value event '#,SDL_MouseButtonEvent '#,button)))
@@ -62,14 +62,14 @@
                               'event/mouse/button-press
                               'event/mouse/button-release)
                           :timestamp (get-internal-real-time)
-                          :modifiers nil
+                          :modifiers (translate-modifiers (#,SDL_GetModState))
                           :button (translate-mouse-button button)
                           :mouse-position (make-2d (cffi:foreign-slot-value event '#,SDL_MouseButtonEvent '#,x)
                                                    (cffi:foreign-slot-value event '#,SDL_MouseButtonEvent '#,y)))))
         (#.#,SDL_MOUSEWHEEL
          (make-instance 'event/mouse/scroll-wheel
                         :timestamp (get-internal-real-time)
-                        :modifiers nil
+                        :modifiers (translate-modifiers (#,SDL_GetModState))
                         :scroll (make-2d (cffi:foreign-slot-value event '#,SDL_MouseWheelEvent '#,x)
                                          (cffi:foreign-slot-value event '#,SDL_MouseWheelEvent '#,y))
                         :mouse-position (current-mouse-position)))
@@ -77,7 +77,7 @@
          (make-instance 'event/window/quit
                         :mouse-position (current-mouse-position)))))))
 
-(def function translate-modifier-keys (keys)
+(def function translate-modifiers (modifiers)
   (labels
       ((modifier-key (key)
          (ecase key
@@ -85,7 +85,10 @@
            ((#,KMOD_LSHIFT #,KMOD_RSHIFT) :shift)
            ((#,KMOD_LALT #,KMOD_RALT) :alt)
            ((#,KMOD_LGUI #,KMOD_NUM #,KMOD_MODE) nil))))
-    (remove nil (mapcar #'modifier-key (cffi:foreign-bitfield-symbols '#,SDL_Keymod keys)))))
+    (remove nil (mapcar #'modifier-key modifiers))))
+
+(def function translate-modifier-keys (keys)
+  (translate-modifiers (cffi:foreign-bitfield-symbols '#,SDL_Keymod keys)))
 
 ;; turn an SDL_SCANCODE_A into a :SCANCODE_A.
 (def function translate-scancode (scancode)

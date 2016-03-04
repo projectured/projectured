@@ -14,16 +14,17 @@
    (icon :type t)
    (description :type string)
    (gesture :type gesture)
+   (accessible :type boolean)
    (operation :type operation)))
 
 ;;;;;;
 ;;; Construction
 
-(def function make-command (gesture operation &key domain icon description)
+(def function make-command (gesture operation &key (accessible #t) domain icon description)
   (assert domain)
   ;; (assert (not (and operation (string= "Does nothing" description))))
   (make-instance 'command
-                 :gesture gesture :operation operation
+                 :gesture gesture :operation operation :accessible accessible
                  :domain domain :icon icon :description description))
 
 (def function make-nothing-command (gesture)
@@ -64,14 +65,15 @@
                 (make-command ,gesture-variable
                               (make-instance 'operation/show-context-sensitive-help
                                              :commands (optional-list ,@(iter (for case :in cases)
-                                                                              (collect `(bind ((gesture ,(first case))
-                                                                                               (operation ,(getf (rest case) :operation)))
-                                                                                          (when operation
+                                                                              (collect `(bind ((-gesture- ,(first case))
+                                                                                               (accessible ,(getf (rest case) :accessible #t)))
+                                                                                          (when accessible
                                                                                             (make-instance 'command
-                                                                                                           :gesture gesture
+                                                                                                           :gesture -gesture-
                                                                                                            :domain ,(getf (rest case) :domain)
                                                                                                            :description ,(getf (rest case) :description)
-                                                                                                           :operation operation)))))))
+                                                                                                           :accessible accessible
+                                                                                                           :operation ,(getf (rest case) :operation))))))))
                               :domain "Default"
                               :description "Shows context sensitive help"))
            ,@(iter (for case :in cases)

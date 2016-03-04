@@ -39,26 +39,23 @@
 ;;;;;;
 ;;; Reader
 
-(def function focusing/read-command (projection input printer-iomap)
-  (gesture-case (gesture-of input)
-    ((make-key-press-gesture :scancode-comma :control)
-     :domain "Focusing" :description "Moves the focus one level up"
-     :operation (when (part-of projection)
-                  (make-instance 'operation/focusing/replace-part
-                                 :projection projection
-                                 :part (iter (for selection :on (reverse (butlast (part-of projection))))
-                                             (when (subtypep (second (first selection)) (part-type-of projection))
-                                               (return (reverse selection)))))))
-    ((make-key-press-gesture :scancode-period :control)
-     :domain "Focusing" :description "Moves the focus to the selection"
-     :operation (make-instance 'operation/focusing/replace-part
-                               :projection projection
-                               :part (iter (for selection :on (reverse (selection-of (input-of printer-iomap))))
-                                           (when (subtypep (second (first selection)) (part-type-of projection))
-                                             (return (reverse selection))))))))
-
 (def reader focusing ()
-  (merge-commands (focusing/read-command -projection- -input- -printer-iomap-)
+  (merge-commands (gesture-case -gesture-
+                    ((make-key-press-gesture :scancode-comma :control)
+                     :domain "Focusing" :description "Moves the focus one level up"
+                     :operation (when (part-of -projection-)
+                                  (make-instance 'operation/focusing/replace-part
+                                                 :projection -projection-
+                                                 :part (iter (for selection :on (reverse (butlast (part-of -projection-))))
+                                                             (when (subtypep (second (first selection)) (part-type-of -projection-))
+                                                               (return (reverse selection)))))))
+                    ((make-key-press-gesture :scancode-period :control)
+                     :domain "Focusing" :description "Moves the focus to the selection"
+                     :operation (make-instance 'operation/focusing/replace-part
+                                               :projection -projection-
+                                               :part (iter (for selection :on (reverse (get-selection (input-of -printer-iomap-))))
+                                                           (when (subtypep (second (first selection)) (part-type-of -projection-))
+                                                             (return (reverse selection)))))))
                   (awhen (operation/extend (input-of -printer-iomap-) (part-of -projection-) (operation-of -input-))
                     (clone-command -input- it))
                   (make-nothing-command (gesture-of -input-))))

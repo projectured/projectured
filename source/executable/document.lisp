@@ -15,22 +15,23 @@
                           (call-loader filename)
                           (call-maker filename))
                       (funcall (find-maker 'pred)))))
-    (document/document (:filename (or filename "document.pred")
-                        :selection `((the ,(document-type content) (content-of (the document/document document)))
-                                     ,@(selection-of content)))
+    (workbench/document (:title "title" :filename (or filename "document.pred") :selection `((the ,(document-type content) (content-of (the workbench/document document)))))
       content)))
 
 (def function make-default-document (document)
   (widget/shell (:size (make-2d 1280 720))
-    (document/reflection (:selection `((the widget/scroll-pane (content-of (the document/reflection document)))
-                                       (the document/clipboard (content-of (the widget/scroll-pane document)))
-                                       (the ,(document-type document) (content-of (the document/clipboard document)))))
-      (widget/scroll-pane (:position 0 :size (make-2d 1280 720) :margin (make-inset :all 5) :selection `((the document/clipboard (content-of (the widget/scroll-pane document)))
-                                                                                                         (the ,(document-type document) (content-of (the document/clipboard document)))
-                                                                                                         ,@(selection-of document)))
-        (document/clipboard (:selection `((the ,(document-type document) (content-of (the document/clipboard document)))
-                                          ,@(selection-of document)))
-          document)))))
+    (document/reflection (:selection '((the widget/scroll-pane (content-of (the document/reflection document)))))
+      (widget/scroll-pane (:position 0 :size (make-2d 1280 720) :margin (make-inset :all 5) :selection '((the clipboard/slice (content-of (the widget/scroll-pane document)))))
+        (clipboard/slice (:selection '((the clipboard/collection (content-of (the clipboard/slice document)))))
+          (clipboard/collection (:selection `((the ,(document-type document) (content-of (the clipboard/slice document)))))
+            document))))))
+
+#+nil
+(def function make-default-document (document)
+  (workbench/workbench ()
+    (workbench/navigator ())
+    (workbench/editor ()
+      document)))
 
 ;;;;;;
 ;;; Example

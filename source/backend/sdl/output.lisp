@@ -132,7 +132,7 @@
             (corners (corners-of instance))
             (stroke-color (stroke-color-of instance))
             (fill-color (fill-color-of instance)))
-       (if (equal corners '(nil))
+       (if (equal corners 'nil)
            (progn
              (when fill-color
                (#,roundedBoxRGBA renderer

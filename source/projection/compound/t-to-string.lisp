@@ -25,10 +25,12 @@
                                (common-lisp->lisp-form)
                                (lisp-form->tree)))
            (lisp-form/base (lisp-form->tree))
-           (tree/base (preserving))))
+           (tree/base (preserving))
+           (syntax/base (preserving))))
        (recursive
          (type-dispatching
            (tree/base (tree->text))
+           (syntax/base (syntax->text))
            (text/text (preserving))))))))
 
 (def function make-projection/t->string ()

@@ -340,7 +340,7 @@
                                                                :projection -projection- :recursion -recursion-
                                                                :input -input- :input-reference -input-reference-
                                                                :element-iomaps element-iomaps)
-                                                (selection-of -input-)
+                                                (get-selection -input-)
                                                 'forward-mapper/book/book->tree/node)))
          (output (make-tree/node (as (append-ll (list-ll (ll (append (list (tree/leaf (:selection (as (nthcdr 2 (va output-selection))))
                                                                              (as (text/make-default-text (title-of -input-) "enter book title" :selection (as (nthcdr 3 (va output-selection))) :font *font/liberation/serif/bold/42* :font-color *color/solarized/red*))))
@@ -371,7 +371,7 @@
                                                                :projection -projection- :recursion -recursion-
                                                                :input -input- :input-reference -input-reference-
                                                                :element-iomaps element-iomaps)
-                                                (selection-of -input-)
+                                                (get-selection -input-)
                                                 'forward-mapper/book/chapter->tree/node)))
          (title-output (as (bind ((title (title-of -input-))
                                   (title? (string= title ""))
@@ -418,7 +418,7 @@
                                                                :projection -projection- :recursion -recursion-
                                                                :input -input- :input-reference -input-reference-
                                                                :content-iomap content-iomap)
-                                                (selection-of -input-)
+                                                (get-selection -input-)
                                                 'forward-mapper/book/paragraph->tree/leaf)))
          (output (as (bind ((content-output (output-of (va content-iomap))))
                        (tree/leaf (:selection output-selection)
@@ -449,7 +449,7 @@
                                                                :projection -projection- :recursion -recursion-
                                                                :input -input- :input-reference -input-reference-
                                                                :element-iomaps (va element-iomaps))
-                                                (selection-of -input-)
+                                                (get-selection -input-)
                                                 'forward-mapper/book/list->tree/node)))
          (output (as (make-tree/node (map-ll* (va element-iomaps) (lambda (element-iomap index)
                                                                     (if (typep (input-of (value-of element-iomap)) 'book/list)
@@ -487,7 +487,7 @@
                                  (print-selection (make-instance 'iomap/book/picture->tree/leaf
                                                                  :projection -projection- :recursion -recursion-
                                                                  :input -input- :input-reference -input-reference-)
-                                                  (selection-of -input-)
+                                                  (get-selection -input-)
                                                   'forward-mapper/book/picture->tree/leaf))))
          (output (as (tree/leaf (:selection output-selection)
                        (text/text (:selection (as (nthcdr 1 (va output-selection))))

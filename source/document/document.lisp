@@ -12,10 +12,6 @@
 (def document document/base ()
   ())
 
-(def document document/document (document/base)
-  ((filename :type pathname)
-   (content :type t)))
-
 (def document document/nothing (document/base)
   ((value "Empty document" :type string :allocation :class)))
 
@@ -24,13 +20,6 @@
    (value :type string)
    (suffix " here" :type string :allocation :class)
    (font nil :type style/font)))
-
-(def document document/clipboard (document/base)
-  ((content :type t)
-   (slice :type t)))
-
-(def document document/history (document/base)
-  ((operations :type sequence)))
 
 (def document document/reference (document/base)
   ((path :type reference)))
@@ -42,20 +31,11 @@
 ;;;;;;
 ;;; Construction
 
-(def function make-document/document (content &key filename selection)
-  (make-instance 'document/document :content content :filename filename :selection selection))
-
 (def function make-document/nothing (&key selection)
   (make-instance 'document/nothing :selection selection))
 
 (def function make-document/insertion (&key selection (value "") font)
   (make-instance 'document/insertion :selection selection :value value :font font))
-
-(def function make-document/clipboard (content &key selection slice)
-  (make-instance 'document/clipboard :content content :selection selection :slice slice))
-
-(def function make-document/history (operations &key selection)
-  (make-instance 'document/history :operations operations :selection selection))
 
 (def function make-document/reference (path &key selection)
   (make-instance 'document/reference :path path :selection selection))
@@ -66,20 +46,11 @@
 ;;;;;;
 ;;; Construction
 
-(def macro document/document ((&key filename selection) &body content)
-  `(make-document/document ,(first content) :filename ,filename :selection ,selection))
-
 (def macro document/nothing ((&key selection))
   `(make-document/nothing :selection ,selection))
 
 (def macro document/insertion ((&key selection font) &body value)
   `(make-document/insertion :selection ,selection :value ,(or value "") :font ,font))
-
-(def macro document/clipboard ((&key selection slice) &body content)
-  `(make-document/clipboard ,(first content) :selection ,selection :slice ,slice))
-
-(def macro document/history ((&key selection) &body operations)
-  `(make-document/history (list ,@operations) :selection ,selection))
 
 (def macro document/reference ((&key selection) &body path)
   `(make-document/reference ,(first path) :selection ,selection))

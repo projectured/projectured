@@ -46,6 +46,6 @@
     (vector 'vector)
     (computed-ll 'sequence)
     (document/sequence 'sequence)
-    (document/string 'document/string)
+    (primitive/string 'primitive/string)
     (sequence 'sequence)
     (t (type-of instance))))

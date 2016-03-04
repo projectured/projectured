@@ -141,8 +141,8 @@
                (operation/show-context-sensitive-help
                 (make-instance 'operation/show-context-sensitive-help
                                :commands (iter (for command :in (commands-of operation))
-                                               (awhen (command/extend command printer-input path)
-                                                 (collect it)))))
+                                               (collect (or (command/extend command printer-input path)
+                                                            (make-command (gesture-of command) nil :accessible #f :domain (domain-of command) :description (description-of command)))))))
                (operation/compound
                 (bind ((operations (mapcar #'recurse (elements-of operation))))
                   (unless (some 'null operations)
@@ -259,8 +259,9 @@
                  (operation/show-context-sensitive-help
                   (make-instance 'operation/show-context-sensitive-help
                                  :commands (iter (for command :in (commands-of operation))
-                                                 (awhen (command/read-backward recursion command printer-iomap backward-mapper operation-mapper)
-                                                   (collect it)))))
+                                                 (collect (aif (command/read-backward recursion command printer-iomap backward-mapper operation-mapper)
+                                                               it
+                                                               (make-command (gesture-of command) nil :accessible #f :domain (domain-of command) :description (description-of command)))))))
                  (operation/compound
                   (bind ((operations (mapcar #'recurse (elements-of operation))))
                     (unless (some 'null operations)
@@ -273,7 +274,7 @@
 
 (def function command/read-selection (recursion input printer-iomap forward-mapper backward-mapper)
   (bind ((printer-input (input-of printer-iomap))
-         ((:values selection child-selection child-iomap) (funcall forward-mapper printer-iomap (when (typep printer-input 'document) (selection-of printer-input)))))
+         ((:values selection child-selection child-iomap) (funcall forward-mapper printer-iomap (when (typep printer-input 'document) (get-selection printer-input)))))
     (when child-selection
       (bind ((child-input-command (clone-command input))
              (child-output-command (recurse-reader recursion child-input-command child-iomap))
@@ -289,7 +290,7 @@
 (def function print-selection (iomap input-selection forward-mapper)
   (bind (((:values selection nil child-iomap) (funcall forward-mapper iomap input-selection)))
     (if child-iomap
-        (append selection (selection-of (output-of child-iomap)))
+        (append selection (get-selection (output-of child-iomap)))
         selection)))
 
 (def function remove-selection (document selection)
@@ -304,12 +305,27 @@
       (recurse document selection))))
 
 (def function set-selection (document selection)
-  (labels ((recurse (document selection)
-             (when (rest selection)
-               (recurse (eval-reference document (first selection)) (rest selection)))
-             (when (typep document 'document)
-               (setf (selection-of document) selection))))
-    (recurse document selection)))
+  (labels ((recurse (document document-part selection selection-part)
+             (bind ((selection-part (append selection-part (list (first selection))))
+                    (document-part (eval-reference document-part (first selection))))
+               (cond ((not (rest selection))
+                      (setf (selection-of document) selection-part))
+                     ((pattern-case (first selection)
+                        ((the ?type (printer-output . ?rest))
+                         #t))
+                      (setf (selection-of document) selection))
+                     ((typep document-part 'document)
+                      (setf (selection-of document) selection-part)
+                      (recurse document-part document-part (rest selection) nil))
+                     (t
+                      (recurse document document-part (rest selection) selection-part))))))
+    (recurse document document selection nil)))
 
 (def function get-selection (document)
-  (not-yet-implemented))
+  (labels ((recurse (document)
+             (when (typep document 'document)
+               (append (selection-of document)
+                       (bind ((document-part (eval-reference document (flatten-reference (selection-of document)))))
+                         (unless (eq document document-part)
+                           (recurse document-part)))))))
+    (recurse document)))

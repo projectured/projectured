@@ -114,7 +114,8 @@
                        (etypecase text-element
                          (text/spacing)
                          (text/newline
-                          (maximize (2d-y (measure-text " " (font-of text-element)))))
+                          (awhen (font-of text-element)
+                            (maximize (2d-y (measure-text " " it)))))
                          (text/string
                           (maximize (+ (2d-y (measure-text " " (font-of text-element)))
                                        (aif (padding-of text-element)
@@ -175,7 +176,7 @@
                          (height (2d-y size)))
                     (values (+ position offset) height))))))
            (print-selection-below (line-iomaps)
-             (pattern-case (selection-of -input-)
+             (pattern-case (get-selection -input-)
                (((the text/text (text/subbox (the text/text document) ?start-index ?end-index)))
                 (bind (((:values start-line-iomap start-line-iomap-element) (find-line-iomap line-iomaps ?start-index))
                        ((:values end-line-iomap end-line-iomap-element) (find-line-iomap line-iomaps ?end-index))
@@ -196,7 +197,7 @@
                                                          3
                                                          :fill-color *color/solarized/background/light*))))))
            (print-selection-above (line-iomaps)
-             (pattern-case (selection-of -input-)
+             (pattern-case (get-selection -input-)
                (((the text/text (text/subseq (the text/text document) ?character-index ?character-index)))
                 (bind ((line-iomap (find-line-iomap line-iomaps ?character-index)))
                   (when line-iomap
@@ -216,7 +217,7 @@
                                              (push 1 last-character-indices)
                                              (push 0 graphics-element-indices)
                                              (list (make-graphics/text 0 ""
-                                                                       :font (font-of (text/element -input- (text/position-element line-start-position)))
+                                                                       :font (or (font-of (text/element -input- (text/position-element line-start-position))) *font/default*)
                                                                        :font-color *color/default*
                                                                        :fill-color nil)))
                                            (iter (with x = 0)

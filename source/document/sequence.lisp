@@ -6,6 +6,8 @@
 
 (in-package :projectured)
 
+;; TODO: rename to primitive/sequence or collection/sequence?
+
 ;;;;;;
 ;;; Document
 

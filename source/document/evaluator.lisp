@@ -63,9 +63,5 @@
                                                                                                                                                   (the string (subseq (the string document) ,name-length ,name-length))))
                                                                                            nil
                                                                                            :factory factory
-                                                                                           :selection `((the common-lisp/function-reference (operator-of (the common-lisp/application document)))
-                                                                                                        (the common-lisp/function-definition (function-of (the common-lisp/function-reference document)))
-                                                                                                        (the lisp-form/symbol (name-of (the common-lisp/function-definition document)))
-                                                                                                        (the string (name-of (the lisp-form/symbol document)))
-                                                                                                        (the string (subseq (the string document) ,name-length ,name-length))))))))))
+                                                                                           :selection '((the common-lisp/function-reference (operator-of (the common-lisp/application document)))))))))))
          (common-lisp/complete-document factory printer-input reader-input name))))))

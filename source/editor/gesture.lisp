@@ -82,7 +82,8 @@
                           :modifiers (modifiers-of event0)
                           :mouse-position (mouse-position-of event0)
                           :key (key-of event0)))
-          ((typep event0 'event/keyboard/type-in)
+          ((and (typep event0 'event/keyboard/type-in)
+                (not (intersection '(:control :alt) (modifiers-of event0))))
            (make-instance 'gesture/keyboard/type-in
                           :modifiers (modifiers-of event0)
                           :mouse-position (mouse-position-of event0)

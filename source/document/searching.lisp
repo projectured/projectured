@@ -22,7 +22,8 @@
 
 (def document searching/result-element (searching/base)
   ((document :type document)
-   (path :type reference)))
+   (path :type reference)
+   (context-depth :type number)))
 
 ;;;;;;
 ;;; Construction
@@ -33,8 +34,8 @@
 (def function make-searching/result (elements &key selection)
   (make-instance 'searching/result :elements elements :selection selection))
 
-(def function make-searching/result-element (document path &key selection)
-  (make-instance 'searching/result-element :document document :path path :selection selection))
+(def function make-searching/result-element (document path &key context-depth selection)
+  (make-instance 'searching/result-element :document document :path path :context-depth (or context-depth 0) :selection selection))
 
 ;;;;;;
 ;;; Construction
@@ -45,5 +46,5 @@
 (def macro searching/result ((&key selection) &body elements)
   `(make-searching/result (list ,@elements) :selection ,selection))
 
-(def macro searching/result-element ((path &key selection) &body document)
-  `(make-searching/result-element ,(first document) ,path :selection ,selection))
+(def macro searching/result-element ((path &key context-depth selection) &body document)
+  `(make-searching/result-element ,(first document) ,path :context-depth ,context-depth :selection ,selection))

@@ -89,8 +89,8 @@
 (def printer copying ()
   (etypecase -input-
     ((and symbol (not null)) (make-iomap -projection- -recursion- -input- -input-reference- -input-))
-    ((or number document/number) (make-iomap -projection- -recursion- -input- -input-reference- -input-))
-    ((or string document/string) (make-iomap -projection- -recursion- -input- -input-reference- -input-))
+    ((or number primitive/number) (make-iomap -projection- -recursion- -input- -input-reference- -input-))
+    ((or string primitive/string) (make-iomap -projection- -recursion- -input- -input-reference- -input-))
     (pathname (make-iomap -projection- -recursion- -input- -input-reference- -input-))
     (style/color (make-iomap -projection- -recursion- -input- -input-reference- -input-))
     (style/font (make-iomap -projection- -recursion- -input- -input-reference- -input-))

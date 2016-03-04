@@ -6,6 +6,8 @@
 
 (in-package :projectured)
 
+;;;; TODO: rename these to syntax/leaf, syntax/ndoe, and add syntax/indentation, syntax/delimitation, syntax/separation
+
 ;;;;;;
 ;;; Document
 

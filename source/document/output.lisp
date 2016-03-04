@@ -29,3 +29,12 @@
 
 (def function make-output/window (position size content &key title selection)
   (make-instance 'output/window :position position :size size :content content :title title :selection selection))
+
+;;;;;;
+;;; Construction
+
+(def macro output/display ((&key selection) &body windows)
+  `(make-output/display (list ,@windows) :selection ,selection))
+
+(def macro output/window ((&key position size title selection) &body content)
+  `(make-output/window ,position ,size ,(first content) :title ,title :selection ,selection))

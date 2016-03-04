@@ -20,7 +20,9 @@
 
 (def projection projection ()
   ((reader :type function)
-   (printer :type function))
+   (printer :type function)
+   (forward-mapper :type function)
+   (backward-mapper :type function))
   (:documentation "A projection describes a bidirectional transformation from one domain to another."))
 
 ;;;;;;

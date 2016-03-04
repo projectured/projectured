@@ -99,7 +99,7 @@
                                                                :projection -projection- :recursion -recursion-
                                                                :input -input- :input-reference -input-reference-
                                                                :line-number-length line-number-length)
-                                                (selection-of -input-)
+                                                (get-selection -input-)
                                                 'forward-mapper/line-numbering)))
          (output (as (text/make-text (as (bind ((elements nil)
                                                 (line-index 0)
