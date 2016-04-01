@@ -40,22 +40,29 @@
 ;;;;;;
 ;;; API
 
-(def function call-forward-mapper (projection recursion printer-iomap reference)
-  (declare (ignore recursion))
-  (or (funcall (forward-mapper-of projection) printer-iomap reference)
-      (pattern-case reference
-        (((the ?output-type (printer-output (the ?input-type document) ?projection ?recursion)) . ?rest)
-         (bind ((input-type (document-type (input-of printer-iomap)))
-                (output-type (document-type (output-of printer-iomap))))
-           (when (and (eq projection ?projection)
-                      ;; TODO: breaks nesting higher order projection
-                      #+nil (eq recursion ?recursion)
-                      (eq input-type ?input-type)
-                      (eq output-type ?output-type))
-             ?rest))))))
+(def function call-forward-mapper (printer-iomap reference)
+  (bind ((projection (projection-of printer-iomap))
+         #+nil(recursion (recursion-of printer-iomap))
+         ((:values selection child-selection child-iomap) (funcall (forward-mapper-of projection) printer-iomap reference)))
+    (if (or selection child-iomap)
+        (values selection child-selection child-iomap)
+        (pattern-case reference
+          (((the ?output-type (printer-output (the ?input-type document) ?projection ?recursion)) . ?rest)
+           (bind ((input-type (document-type (input-of printer-iomap)))
+                  (output-type (document-type (output-of printer-iomap))))
+             (when (and (eq projection ?projection)
+                        ;; TODO: breaks nesting higher order projection
+                        #+nil (eq recursion ?recursion)
+                        (eq input-type ?input-type)
+                        (eq output-type ?output-type))
+               ?rest)))))))
 
-(def function call-backward-mapper (projection recursion printer-iomap reference)
-  (or (funcall (backward-mapper-of projection) printer-iomap reference)
-      (bind ((input-type (document-type (input-of printer-iomap)))
-             (output-type (document-type (output-of printer-iomap))))
-        (append `((the ,output-type (printer-output (the ,input-type document) ,projection ,recursion))) reference))))
+(def function call-backward-mapper (printer-iomap reference)
+  (bind ((projection (projection-of printer-iomap))
+         (recursion (recursion-of printer-iomap)))
+    (bind (((:values selection child-selection child-iomap) (funcall (backward-mapper-of projection) printer-iomap reference)))
+      (if (or selection child-iomap)
+          (values selection child-selection child-iomap)
+          (bind ((input-type (document-type (input-of printer-iomap)))
+                 (output-type (document-type (output-of printer-iomap))))
+            (append `((the ,output-type (printer-output (the ,input-type document) ,projection ,recursion))) reference))))))

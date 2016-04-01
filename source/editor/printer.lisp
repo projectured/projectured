@@ -16,7 +16,8 @@
     `(progn
        (def function ,function-name (-projection- -recursion- -input- -input-reference-)
          (declare (ignorable -projection- -recursion- -input- -input-reference-))
-         ,@forms)
+         (bind ((-printer-iomap-))
+           (setf -printer-iomap- (progn ,@forms))))
        (setf (find-printer ',name) ',function-name))))
 
 ;;;;;;;

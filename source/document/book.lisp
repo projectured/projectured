@@ -56,18 +56,18 @@
 ;;; Construction
 
 (def macro book/book ((&key (title "") author collapsed key predicate selection) &body elements)
-  `(make-book/book (document/sequence (:key ,key :predicate ,predicate) ,@elements)
+  `(make-book/book (collection/sequence (:key ,key :predicate ,predicate) ,@elements)
                    :title ,title :author ,author :collapsed ,collapsed :selection ,selection))
 
 (def macro book/chapter ((&key (title "") numbering collapsed key predicate selection) &body elements)
-  `(make-book/chapter (document/sequence (:key ,key :predicate ,predicate) ,@elements)
+  `(make-book/chapter (collection/sequence (:key ,key :predicate ,predicate) ,@elements)
                       :title ,title :numbering ,numbering :collapsed ,collapsed :selection ,selection))
 
 (def macro book/paragraph ((&key (alignment :left) collapsed selection) &body content)
   `(make-book/paragraph ,(first content) :alignment ,alignment :collapsed ,collapsed :selection ,selection))
 
 (def macro book/list ((&key collapsed key predicate selection) &body elements)
-  `(make-book/list (document/sequence (:key ,key :predicate ,predicate) ,@elements)
+  `(make-book/list (collection/sequence (:key ,key :predicate ,predicate) ,@elements)
                    :collapsed ,collapsed :selection ,selection))
 
 (def macro book/picture ((&key (title "") (alignment :left) collapsed selection) &body content)

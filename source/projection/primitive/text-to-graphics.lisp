@@ -62,10 +62,7 @@
                  (the graphics/canvas (elt (the sequence document) 0))
                  . ?rest)
                ?rest
-               element-iomap)))
-    (((the graphics/canvas (printer-output (the text/text document) ?projection ?recursion)) . ?rest)
-     (when (eq -projection- ?projection)
-       ?rest))))
+               element-iomap)))))
 
 ;;;;;;
 ;;; Backward mapper
@@ -100,9 +97,7 @@
        (values `((the sequence (elements-of (the text/text document)))
                  (the ,(document-type (input-of element-iomap)) (elt (the sequence document) ,?element-index)))
                ?rest
-               element-iomap)))
-    (?a
-     (append `((the graphics/canvas (printer-output (the text/text document) ,-projection- ,-recursion-))) -reference-))))
+               element-iomap)))))
 
 ;;;;;;
 ;;; Printer
@@ -312,10 +307,10 @@
 ;;; Reader
 
 (def reader text/text->graphics/canvas
-    (merge-commands (command/read-selection -recursion- -input- -printer-iomap- 'forward-mapper/text/text->graphics/canvas 'backward-mapper/text/text->graphics/canvas)
-                    (command/read-backward -recursion- -input- -printer-iomap- 'backward-mapper/text/text->graphics/canvas nil)
+    (merge-commands (command/read-selection -recursion- -input- -printer-iomap-)
+                    (command/read-backward -recursion- -input- -printer-iomap-)
                     (text/read-operation -printer-input- -gesture-)
                     (document/read-operation -gesture-)
                     (awhen (graphics/read-operation -printer-output- -gesture-)
-                      (command/read-backward -recursion- it -printer-iomap- 'backward-mapper/text/text->graphics/canvas nil))
+                      (command/read-backward -recursion- it -printer-iomap-))
                     (make-nothing-command -gesture-)))

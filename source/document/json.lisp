@@ -88,7 +88,7 @@
   `(make-json/string ,(first value) :selection ,selection))
 
 (def macro json/array ((&key collapsed key predicate selection) &body elements)
-  `(make-json/array (document/sequence (:key ,key :predicate ,predicate :selection (rest ,selection)) ,@elements)
+  `(make-json/array (collection/sequence (:key ,key :predicate ,predicate :selection (rest ,selection)) ,@elements)
                     :collapsed ,collapsed
                     :selection ,selection))
 
@@ -96,7 +96,7 @@
   `(make-json/object-entry ,key ,value :collapsed ,collapsed :selection ,selection))
 
 (def macro json/object ((&key collapsed key predicate selection) &body key-value-pairs)
-  `(make-json/object (document/sequence (:key ,key :predicate ,predicate)
+  `(make-json/object (collection/sequence (:key ,key :predicate ,predicate)
                        ,@(iter (for (key value) :in key-value-pairs)
                                (collect `(make-json/object-entry ,key ,value))))
                      :collapsed ,collapsed
@@ -117,10 +117,10 @@
        :real (lambda (value) (make-json/number (cl-json::parse-number value)))
        :boolean (lambda (value) (make-json/boolean (cl-json::json-boolean-to-lisp value)))
        :array-element #'cl-json::accumulator-add
-       :end-of-array (lambda () (make-json/array (make-document/sequence (cl-json::accumulator-get-sequence))))
+       :end-of-array (lambda () (make-json/array (make-collection/sequence (cl-json::accumulator-get-sequence))))
        :object-key #'cl-json::accumulator-add-key
        :object-value #'cl-json::accumulator-add-value
-       :end-of-object (lambda () (make-json/object (make-document/sequence (iter (for (key . value) :in (cl-json::accumulator-get))
+       :end-of-object (lambda () (make-json/object (make-collection/sequence (iter (for (key . value) :in (cl-json::accumulator-get))
                                                                             (collect (make-json/object-entry key value))))))
        :string-char #'cl-json::string-stream-accumulator-add
        :end-of-string (lambda () (make-json/string (cl-json::string-stream-accumulator-get))))

@@ -52,10 +52,7 @@
       (((the text/text (text/subseq (the text/text ?a) ?b ?c)))
        `((the text/text (text/subseq (the text/text document) ,(map-character-index ?b) ,(map-character-index ?c)))))
       (((the text/text (text/subbox (the text/text document) ?start-character-index ?end-character-index)))
-       `((the text/text (text/subbox (the text/text document) ,(map-character-index ?start-character-index) ,(map-character-index ?end-character-index)))))
-      (((the text/text (printer-output (the text/text document) ?projection ?recursion)) . ?rest)
-       (when (eq -projection- ?projection)
-         ?rest)))) )
+       `((the text/text (text/subbox (the text/text document) ,(map-character-index ?start-character-index) ,(map-character-index ?end-character-index))))))) )
 
 ;;;;;;
 ;;; Backward mapper
@@ -86,21 +83,14 @@
            `((the text/text (text/subseq (the text/text document) ,b-input-character-index ,c-input-character-index))))))
       (((the text/text (text/subbox (the text/text ?a) ?b ?c)))
        ;; TODO:
-       `((the text/text (text/subbox (the text/text document) ,(map-character-index ?b) ,(map-character-index ?c)))))
-      (?a
-       (append `((the text/text (printer-output (the text/text document) ,-projection- ,-recursion-))) -reference-)))))
+       `((the text/text (text/subbox (the text/text document) ,(map-character-index ?b) ,(map-character-index ?c))))))))
 
 ;;;;;;
 ;;; Printer
 
 (def printer line-numbering ()
   (bind ((line-number-length (as (1+ (floor (log (1+ (text/count -input- #\NewLine))) (log 10)))))
-         (output-selection (as (print-selection (make-instance 'iomap/line-numbering
-                                                               :projection -projection- :recursion -recursion-
-                                                               :input -input- :input-reference -input-reference-
-                                                               :line-number-length line-number-length)
-                                                (get-selection -input-)
-                                                'forward-mapper/line-numbering)))
+         (output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
          (output (as (text/make-text (as (bind ((elements nil)
                                                 (line-index 0)
                                                 (line-number-format-string (format nil "\~~~A,' D " (va line-number-length))))
@@ -130,5 +120,5 @@
 
 (def reader line-numbering ()
   (merge-commands (text/read-operation -printer-input- -gesture-)
-                  (command/read-backward -recursion- -input- -printer-iomap- 'backward-mapper/line-numbering nil)
+                  (command/read-backward -recursion- -input- -printer-iomap-)
                   (make-nothing-command -gesture-)))

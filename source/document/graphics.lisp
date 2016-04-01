@@ -309,7 +309,7 @@
     ((make-instance 'gesture/mouse/click :mouse-position 0 :button :button-left :modifiers nil)
      :domain "Graphics" :description "Moves the selection to where the mouse is pointing at"
      :operation (make-operation/replace-selection graphics (make-reference graphics (mouse-position-of gesture) nil)))
-    ;; KLUDGE: for toggle collapsed tree node operation
+    ;; KLUDGE: for toggle collapsed syntax node operation
     ((make-instance 'gesture/mouse/click :mouse-position 0 :button :button-left :modifiers '(:control))
      :domain "Graphics" :description "Moves the selection to where the mouse is pointing at"
      :operation (make-operation/replace-selection graphics (make-reference graphics (mouse-position-of gesture) nil)))

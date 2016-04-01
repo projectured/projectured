@@ -120,3 +120,57 @@
                      :separator ,separator
                      :indentation ,indentation
                      :selection ,selection))
+
+;;;;;;
+;;; Operation
+
+(def operation operation/syntax ()
+  ())
+
+(def operation operation/syntax/toggle-collapsed (operation/syntax)
+  ((document :type document)
+   (selection :type reference)))
+
+;;;;;;
+;;; Construction
+
+(def function make-operation/syntax/toggle-collapsed (document selection)
+  (make-instance 'operation/syntax/toggle-collapsed :document document :selection selection))
+
+;;;;;;
+;;; Evaluator
+
+(def evaluator operation/syntax/toggle-collapsed (operation)
+  (notf (collapsed-p (eval-reference (document-of operation) (flatten-reference (selection-of operation))))))
+
+;;;;;;
+;;; API
+
+(def function syntax/reference? (reference)
+  (pattern-case (reverse reference)
+    (((the ?type (?if (subtypep ?type 'syntax/base)) ?a) . ?rest)
+     #t)))
+
+(def function syntax/clone-leaf (document &key opening-delimiter closing-delimiter (indentation nil indentation?) (selection nil selection?))
+  (make-syntax/leaf (if selection?
+                        (text/make-text (elements-of (content-of document)) :selection (as (nthcdr 1 (va selection))))
+                        (content-of document))
+                    :opening-delimiter (opening-delimiter-of document) :closing-delimiter (closing-delimiter-of document)
+                    :indentation (if indentation? indentation (indentation-of document))
+                    :selection (if selection? selection (as (selection-of document)))))
+
+(def function syntax/clone-node (document &key collapsed separator opening-delimiter closing-delimiter (indentation nil indentation?) (selection nil selection?))
+  (make-syntax/node (children-of document)
+                    #+nil ;; TODO: this breaks common-lisp nested into json for some reason
+                    (if selection?
+                        (map-ll (ll (children-of document)) (lambda (element) (syntax/clone element :selection (as (nthcdr 2 (va selection))))))
+                        (children-of document))
+                    :collapsed (collapsed-p document)
+                    :opening-delimiter (opening-delimiter-of document) :closing-delimiter (closing-delimiter-of document) :separator (separator-of document)
+                    :indentation (if indentation? indentation (indentation-of document))
+                    :selection (if selection? selection (as (selection-of document)))))
+
+(def function syntax/clone (document &rest args &key &allow-other-keys)
+  (etypecase document
+    (syntax/leaf (apply #'syntax/clone-leaf document args))
+    (syntax/node (apply #'syntax/clone-node document args))))

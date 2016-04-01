@@ -79,8 +79,7 @@
    (sizes :type sequence)))
 
 (def document widget/tabbed-pane (widget/base)
-  ((selector-element-pairs :type sequence)
-   (selected-index :type integer)))
+  ((selector-element-pairs :type sequence)))
 
 (def document widget/scroll-pane (widget/base)
   ((content :type t)
@@ -177,11 +176,10 @@
          :sizes nil
          args))
 
-(def function make-widget/tabbed-pane (selector-element-pairs selected-index &rest args &key margin margin-color border border-color padding padding-color selection)
+(def function make-widget/tabbed-pane (selector-element-pairs &rest args &key margin margin-color border border-color padding padding-color selection)
   (declare (ignore margin margin-color border border-color padding padding-color selection))
   (apply #'make-instance 'widget/tabbed-pane
          :selector-element-pairs selector-element-pairs
-         :selected-index selected-index
          args))
 
 (def function make-widget/scroll-pane (content &rest args &key content-fill-color position size margin margin-color border border-color padding padding-color selection)
@@ -244,7 +242,6 @@
   (declare (ignore margin margin-color border border-color padding padding-color fill-color selection))
   `(make-widget/tabbed-pane (list ,@(iter (for pair :in-sequence selector-element-pairs)
                                           (collect `(list ,(first pair) ,(second pair)))))
-                            0
                             ,@args))
 
 (def macro widget/scroll-pane ((&rest args &key content-fill-color position size margin margin-color border border-color padding padding-color fill-color selection) &body content)
@@ -260,10 +257,6 @@
 (def operation operation/widget/show (operation)
   ((widget :type widget/base)))
 
-(def operation operation/widget/tabbed-pane/select-page (operation)
-  ((tabbed-pane :type widget/tabbed-pane)
-   (selected-index :type integer)))
-
 (def operation operation/widget/scroll-pane/scroll (operation)
   ((scroll-pane :type widget/scroll-pane)
    (scroll-delta :type 2d)))
@@ -276,9 +269,6 @@
 
 (def evaluator operation/widget/show (operation)
   (setf (visible-p (widget-of operation)) #t))
-
-(def evaluator operation/widget/tabbed-pane/select-page (operation)
-  (setf (selected-index-of (tabbed-pane-of operation)) (selected-index-of operation)))
 
 (def evaluator operation/widget/scroll-pane/scroll (operation)
   (bind ((scroll-pane (scroll-pane-of operation)))

@@ -16,20 +16,20 @@
      (sequential
        (recursive
          (type-dispatching
-           (document/base (document->tree 'default-factory 'default-searcher))
-           (document/sequence (copying))
-           (book/base (book->tree))
-           (json/base (json->tree))
-           (xml/base (xml->tree))
+           (document/base (document->syntax 'default-factory 'default-searcher))
+           (collection/sequence (copying))
+           (book/base (book->syntax))
+           (json/base (json->syntax))
+           (xml/base (xml->syntax))
            (common-lisp/base (sequential
-                               (common-lisp->lisp-form)
-                               (lisp-form->tree)))
-           (lisp-form/base (lisp-form->tree))
-           (tree/base (preserving))
+                               (common-lisp->s-expression)
+                               (s-expression->syntax)))
+           (s-expression/base (s-expression->syntax))
+           (syntax/base (preserving))
            (syntax/base (preserving))))
        (recursive
          (type-dispatching
-           (tree/base (tree->text))
+           (syntax/base (syntax->text))
            (syntax/base (syntax->text))
            (text/text (preserving))))))))
 

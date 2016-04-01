@@ -11,7 +11,7 @@
 ;;;;;;
 ;;; Document
 
-(def document document/sequence (sequence)
+(def document collection/sequence (sequence)
   ((elements :type sequence)
    (key :type function)
    (predicate :type function))
@@ -20,8 +20,8 @@
 ;;;;;;
 ;;; Construction
 
-(def function make-document/sequence (elements &key key predicate selection)
-  (make-instance 'document/sequence
+(def function make-collection/sequence (elements &key key predicate selection)
+  (make-instance 'collection/sequence
                  :elements elements
                  :key key :predicate predicate
                  :selection selection))
@@ -29,23 +29,23 @@
 ;;;;;;
 ;;; Construction
 
-(def macro document/sequence ((&key key predicate selection) &body elements)
-  `(make-document/sequence (list-ll ,@elements) :key ,key :predicate ,predicate :selection ,selection))
+(def macro collection/sequence ((&key key predicate selection) &body elements)
+  `(make-collection/sequence (list-ll ,@elements) :key ,key :predicate ,predicate :selection ,selection))
 
 ;;;;;;
 ;;; API
 
-(def method sb-sequence:length ((instance document/sequence))
+(def method sb-sequence:length ((instance collection/sequence))
   (length (elements-of instance)))
 
-(def method sb-sequence:elt ((instance document/sequence) index)
+(def method sb-sequence:elt ((instance collection/sequence) index)
   (elt (elements-of instance) index))
 
-(def method (setf sb-sequence:elt) (new-value (instance document/sequence) index)
+(def method (setf sb-sequence:elt) (new-value (instance collection/sequence) index)
   (setf (elt (elements-of instance) index) new-value))
 
-(def method sb-sequence:make-sequence-like ((instance document/sequence) length &key (initial-element nil initial-element?) initial-contents)
-  (make-instance 'document/sequence
+(def method sb-sequence:make-sequence-like ((instance collection/sequence) length &key (initial-element nil initial-element?) initial-contents)
+  (make-instance 'collection/sequence
                  :elements (if initial-element?
                                (make-array (list length) :initial-element initial-element)
                                (make-array (list length) :initial-contents (append initial-contents (make-list (- length (length initial-contents))))))
@@ -92,7 +92,7 @@
        (bind ((reference (reverse ?rest))
               (flat-reference (flatten-reference reference))
               (old-document (eval-reference document flat-reference))
-              (old-sequence (if (typep old-document 'document/sequence)
+              (old-sequence (if (typep old-document 'collection/sequence)
                                 (elements-of old-document)
                                 old-document))
               (new-sequence (concatenate
@@ -111,7 +111,7 @@
                                  (append reference `((the ,type (elt (the sequence document) ,index))
                                                      (the ,type document)))))))
          ;; KLUDGE: to make sure we always end up with a computed-ll sequence
-         (if (typep old-document 'document/sequence)
+         (if (typep old-document 'collection/sequence)
              (setf (elements-of (eval-reference document flat-reference)) (ll new-sequence))
              (setf (eval-reference document flat-reference) (ll new-sequence)))
          (call-evaluator (make-operation/replace-selection document new-selection))))
@@ -127,7 +127,7 @@
 ;;;;;;
 ;;; API
 
-(def method hu.dwim.serializer:write-object-slots ((class standard-class) (object document/sequence) context)
+(def method hu.dwim.serializer:write-object-slots ((class standard-class) (object collection/sequence) context)
   (bind ((class (class-of object))
          (slots (closer-mop:class-slots class)))
     (hu.dwim.serializer::write-variable-length-positive-integer (length slots) context)
@@ -142,7 +142,7 @@
                                                      context))
             (hu.dwim.serializer::write-unsigned-byte-8 hu.dwim.serializer::+unbound-slot-code+ context))))))
 
-(def method hu.dwim.serializer:read-object-slots ((class standard-class) (prototype document/sequence) context &key &allow-other-keys)
+(def method hu.dwim.serializer:read-object-slots ((class standard-class) (prototype collection/sequence) context &key &allow-other-keys)
   (bind ((object (allocate-instance class)))
     (hu.dwim.serializer::announce-identity object context)
     (iter (repeat (the fixnum (hu.dwim.serializer::read-variable-length-positive-integer context)))

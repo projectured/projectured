@@ -183,3 +183,13 @@
 
 (def function describe-gesture (gesture)
   (string+ (describe-gesture-modifiers gesture) (describe-gesture-keys gesture)))
+
+(def function clone-gesture (gesture &rest args)
+  (bind ((class (class-of gesture))
+         (copy (allocate-instance class))
+         (slots (class-slots class)))
+    (iter (for slot :in slots)
+          (for arg = (getf args (first (slot-definition-initargs slot))))
+          (when (or arg (slot-boundp-using-class class gesture slot))
+            (setf (slot-value-using-class class copy slot) (or arg (slot-value-using-class class gesture slot)))))
+    copy))

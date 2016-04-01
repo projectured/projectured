@@ -56,7 +56,7 @@
   `(make-xml/attribute ,name ,value :selection ,selection))
 
 (def macro xml/element ((name attributes &key collapsed selection) &body children)
-  `(make-xml/element ,name (document/sequence () ,@attributes) (document/sequence () ,@children) :collapsed ,collapsed :selection ,selection))
+  `(make-xml/element ,name (collection/sequence () ,@attributes) (collection/sequence () ,@children) :collapsed ,collapsed :selection ,selection))
 
 ;;;;;;
 ;;; Reference

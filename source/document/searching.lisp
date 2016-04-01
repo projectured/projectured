@@ -12,9 +12,13 @@
 (def document searching/base ()
   ())
 
+(def document searching/parameters (searching/base)
+  ((text :type string)
+   (case-sensitive :type boolean)))
+
 (def document searching/search (searching/base)
-  ((document :type document)
-   (search :type string)
+  ((parameters :type string)
+   (document :type document)
    (result :type document)))
 
 (def document searching/result (searching/base)
@@ -28,8 +32,8 @@
 ;;;;;;
 ;;; Construction
 
-(def function make-searching/search (document search &key result selection)
-  (make-instance 'searching/search :document document :search search :result result :selection selection))
+(def function make-searching/search (parameters document &key result selection)
+  (make-instance 'searching/search :parameters parameters :document document :result result :selection selection))
 
 (def function make-searching/result (elements &key selection)
   (make-instance 'searching/result :elements elements :selection selection))
@@ -40,8 +44,8 @@
 ;;;;;;
 ;;; Construction
 
-(def macro searching/search ((search &key result selection) &body document)
-  `(make-searching/search ,(first document) ,search :result ,result :selection ,selection))
+(def macro searching/search ((&key result selection) &body body)
+  `(make-searching/search ,(first body) ,(second body) :result ,result :selection ,selection))
 
 (def macro searching/result ((&key selection) &body elements)
   `(make-searching/result (list ,@elements) :selection ,selection))

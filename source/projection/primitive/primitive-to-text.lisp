@@ -52,10 +52,7 @@
     (((the number (value-of (the primitive/number document)))
       (the string (write-to-string (the number document)))
       (the string (subseq (the string document) ?start-index ?end-index)))
-     `((the text/text (text/subseq (the text/text document) ,?start-index ,?end-index))))
-    (((the string (printer-output (the primitive/number document) ?projection ?recursion)) . ?rest)
-     (when (eq -projection- ?projection)
-       ?rest))))
+     `((the text/text (text/subseq (the text/text document) ,?start-index ,?end-index))))))
 
 ;;;;;;
 ;;; Backward mapper
@@ -67,33 +64,25 @@
     (((the text/text (text/subseq (the text/text document) ?start-index ?end-index)))
      `((the number (value-of (the primitive/number document)))
        (the string (write-to-string (the number document)))
-       (the string (subseq (the string document) ,?start-index ,?end-index))))
-    (?a
-     (append `((the string (printer-output (the primitive/number document) ,-projection- ,-recursion-))) -reference-))))
+       (the string (subseq (the string document) ,?start-index ,?end-index))))))
 
 ;;;;;;
 ;;; Printer
 
 (def printer primitive/boolean->text/text ()
-  (bind ((output-selection (as (print-selection (make-iomap -projection- -recursion- -input- -input-reference- nil)
-                                                (get-selection -input-)
-                                                'forward-mapper/primitive/boolean->text/text)))
+  (bind ((output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
          (output (as (text/text (:selection output-selection)
                        (text/string (if (value-of -input-) "true" "false"))))))
     (make-iomap -projection- -recursion- -input- -input-reference- output)))
 
 (def printer primitive/number->text/text ()
-  (bind ((output-selection (as (print-selection (make-iomap -projection- -recursion- -input- -input-reference- nil)
-                                                (get-selection -input-)
-                                                'forward-mapper/primitive/number->text/text)))
+  (bind ((output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
          (output (as (text/text (:selection output-selection)
                        (text/string (write-to-string (value-of -input-)))))))
     (make-iomap -projection- -recursion- -input- -input-reference- output)))
 
 (def printer primitive/string->text/text ()
-  (bind ((output-selection (as (print-selection (make-iomap -projection- -recursion- -input- -input-reference- nil)
-                                                (get-selection -input-)
-                                                'forward-mapper/primitive/number->text/text)))
+  (bind ((output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
          (output (as (text/text (:selection output-selection)
                        (text/string (value-of -input-))))))
     (make-iomap -projection- -recursion- -input- -input-reference- output)))
@@ -102,7 +91,7 @@
 ;;; Reader
 
 (def reader primitive/boolean->text/text ()
-  (merge-commands (command/read-backward -recursion- -input- -printer-iomap- 'backward-mapper/primitive/boolean->text/text nil)
+  (merge-commands (command/read-backward -recursion- -input- -printer-iomap-)
                   (make-nothing-command -gesture-)))
 
 (def reader primitive/number->text/text ()
@@ -123,9 +112,9 @@
                                                                             (the string (write-to-string (the number document)))
                                                                             (the string (subseq (the string document) 0 0)))
                                                                           (replacement-of operation))))))))))
-    (merge-commands (command/read-backward -recursion- -input- -printer-iomap- 'backward-mapper/primitive/number->text/text operation-mapper)
+    (merge-commands (command/read-backward -recursion- -input- -printer-iomap- operation-mapper)
                     (make-nothing-command -gesture-))))
 
 (def reader primitive/string->text/text ()
-  (merge-commands (command/read-backward -recursion- -input- -printer-iomap- 'backward-mapper/primitive/string->text/text nil)
+  (merge-commands (command/read-backward -recursion- -input- -printer-iomap-)
                   (make-nothing-command -gesture-)))

@@ -9,122 +9,109 @@
 ;;;;;;
 ;;; Projection
 
-(def projection evaluator/toplevel->tree/node ()
+(def projection evaluator/toplevel->syntax/node ()
   ())
 
-(def projection evaluator/form->tree/node ()
+(def projection evaluator/form->syntax/node ()
   ())
 
 ;;;;;;
 ;;; Construction
 
-(def function make-projection/evaluator/toplevel->tree/node ()
-  (make-projection 'evaluator/toplevel->tree/node))
+(def function make-projection/evaluator/toplevel->syntax/node ()
+  (make-projection 'evaluator/toplevel->syntax/node))
 
-(def function make-projection/evaluator/form->tree/node ()
-  (make-projection 'evaluator/form->tree/node))
+(def function make-projection/evaluator/form->syntax/node ()
+  (make-projection 'evaluator/form->syntax/node))
 
 ;;;;;;
 ;;; Construction
 
-(def macro evaluator/toplevel->tree/node ()
-  '(make-projection/evaluator/toplevel->tree/node))
+(def macro evaluator/toplevel->syntax/node ()
+  '(make-projection/evaluator/toplevel->syntax/node))
 
-(def macro evaluator/form->tree/node ()
-  '(make-projection/evaluator/form->tree/node))
+(def macro evaluator/form->syntax/node ()
+  '(make-projection/evaluator/form->syntax/node))
 
 ;;;;;;
 ;;; Forward mapper
 
-(def forward-mapper evaluator/toplevel->tree/node ()
+(def forward-mapper evaluator/toplevel->syntax/node ()
   (pattern-case -reference-
     (((the sequence (elements-of (the evaluator/toplevel document)))
       (the ?type (elt (the sequence document) ?index))
       . ?rest)
      (bind ((form-iomap (elt (child-iomaps-of -printer-iomap-) ?index)))
-       (values `((the sequence (children-of (the tree/node document)))
+       (values `((the sequence (children-of (the syntax/node document)))
                  (the ,(document-type (output-of form-iomap)) (elt (the sequence document) ,?index)))
                ?rest
-               form-iomap)))
-    (((the tree/node (printer-output (the evaluator/toplevel document) ?projection ?recursion)) . ?rest)
-     (when (eq -projection- ?projection)
-       ?rest))))
+               form-iomap)))))
 
-(def forward-mapper evaluator/form->tree/node ()
+(def forward-mapper evaluator/form->syntax/node ()
   (pattern-case -reference-
     (((the ?type (form-of (the evaluator/form document)))
       . ?rest)
      (bind ((form-iomap (elt (child-iomaps-of -printer-iomap-) 0)))
-       (values `((the sequence (children-of (the tree/node document)))
+       (values `((the sequence (children-of (the syntax/node document)))
                  (the ,(document-type (output-of form-iomap)) (elt (the sequence document) 1)))
                ?rest
                form-iomap)))
     (((the ?type (result-of (the evaluator/form document)))
       . ?rest)
      (bind ((result-iomap (elt (child-iomaps-of -printer-iomap-) 1)))
-       (values `((the sequence (children-of (the tree/node document)))
+       (values `((the sequence (children-of (the syntax/node document)))
                  (the ,(document-type (output-of result-iomap)) (elt (the sequence document) 3)))
                ?rest
-               result-iomap)))
-    (((the tree/node (printer-output (the evaluator/form document) ?projection ?recursion)) . ?rest)
-     (when (eq -projection- ?projection)
-       ?rest))))
+               result-iomap)))))
 
 ;;;;;;
 ;;; Backward mapper
 
-(def backward-mapper evaluator/toplevel->tree/node ()
+(def backward-mapper evaluator/toplevel->syntax/node ()
   (pattern-case -reference-
-    (((the sequence (children-of (the tree/node document)))
+    (((the sequence (children-of (the syntax/node document)))
       (the ?type (elt (the sequence document) ?index))
       . ?rest)
      (bind ((form-iomap (elt (child-iomaps-of -printer-iomap-) ?index)))
        (values `((the sequence (elements-of (the evaluator/toplevel document)))
                  (the ,(document-type (input-of form-iomap)) (elt (the sequence document) ,?index)))
                ?rest
-               form-iomap)))
-    (?a
-     (append `((the tree/node (printer-output (the evaluator/toplevel document) ,-projection- ,-recursion-))) -reference-))))
+               form-iomap)))))
 
-(def backward-mapper evaluator/form->tree/node ()
+(def backward-mapper evaluator/form->syntax/node ()
   (pattern-case -reference-
-    (((the sequence (children-of (the tree/node document)))
+    (((the sequence (children-of (the syntax/node document)))
       (the ?type (elt (the sequence document) 1))
       . ?rest)
      (bind ((form-iomap (elt (child-iomaps-of -printer-iomap-) 0)))
        (values `((the ,(document-type (input-of form-iomap)) (form-of (the evaluator/form document))))
                ?rest
                form-iomap)))
-    (((the sequence (children-of (the tree/node document)))
+    (((the sequence (children-of (the syntax/node document)))
       (the ?type (elt (the sequence document) 3))
       . ?rest)
      (bind ((result-iomap (elt (child-iomaps-of -printer-iomap-) 1)))
-       (if result-iomap
-           (values `((the ,(document-type (input-of result-iomap)) (result-of (the evaluator/form document))))
-                   ?rest
-                   result-iomap)
-           (append `((the tree/node (printer-output (the evaluator/form document) ,-projection- ,-recursion-))) -reference-))))
-    (?a
-     (append `((the tree/node (printer-output (the evaluator/form document) ,-projection- ,-recursion-))) -reference-))))
+       (when result-iomap
+         (values `((the ,(document-type (input-of result-iomap)) (result-of (the evaluator/form document))))
+                 ?rest
+                 result-iomap))))))
 
 ;;;;;;
 ;;; Printer
 
-(def printer evaluator/toplevel->tree/node ()
+(def printer evaluator/toplevel->syntax/node ()
   (bind ((element-iomaps (as (map-ll* (ll (elements-of -input-)) (lambda (element index)
                                                                    (recurse-printer -recursion- (value-of element)
                                                                                     `((elt (the sequence document) ,index)
                                                                                       (the sequence (elements-of (the evaluator/toplevel document)))
                                                                                       ,@(typed-reference (document-type -input-) -input-reference-)))))))
-         (output-selection (as (print-selection (make-iomap/compound -projection- -recursion- -input- -input-reference- nil element-iomaps)
-                                                (get-selection -input-)
-                                                'forward-mapper/evaluator/toplevel->tree/node)))
-         (output (as (make-tree/node (map-ll (va element-iomaps) #'output-of)
-                                     :separator (text/text () (text/string " " :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
-                                     :selection output-selection))))
+         (output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+         (output (as (make-syntax/node (map-ll (va element-iomaps) #'output-of)
+                                       :separator (text/text () (text/string " " :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
+                                       :selection output-selection))))
     (make-iomap/compound -projection- -recursion- -input- -input-reference- output element-iomaps)))
 
-(def printer evaluator/form->tree/node ()
+(def printer evaluator/form->syntax/node ()
   (bind ((form-iomap (as (recurse-printer -recursion- (form-of -input-)
                                           `((form-of (the evaluator/form document))
                                             ,@(typed-reference (document-type -input-) -input-reference-)))))
@@ -132,31 +119,29 @@
                              (recurse-printer -recursion- (result-of -input-)
                                               `((result-of (the evaluator/form document))
                                                 ,@(typed-reference (document-type -input-) -input-reference-))))))
-         (output-selection (as (print-selection (make-iomap/compound -projection- -recursion- -input- -input-reference- nil (as (list (va form-iomap) (va result-iomap))))
-                                                (get-selection -input-)
-                                                'forward-mapper/evaluator/form->tree/node)))
-         (output (as (make-tree/node (list (tree/leaf (:selection (as (nthcdr 2 (va output-selection))))
-                                             (text/text (:selection (as (nthcdr 3 (va output-selection))))
-                                               (text/string ">" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*)))
-                                           (output-of (va form-iomap))
-                                           (tree/leaf (:indentation 0 :selection (as (nthcdr 2 (va output-selection))))
-                                             (text/text (:selection (as (nthcdr 3 (va output-selection))))
-                                               (text/string "=" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*)))
-                                           (aif (va result-iomap)
-                                                (output-of it)
-                                                (tree/leaf (:selection (as (nthcdr 2 (va output-selection))))
-                                                  (text/text (:selection (as (nthcdr 3 (va output-selection))))
-                                                    (text/string "not evaluated yet" :font *font/ubuntu/monospace/regular/24* :font-color (color/lighten *color/solarized/gray* 0.75))))))
-                                     :indentation 0
-                                     :separator (text/text () (text/string " " :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
-                                     :selection output-selection))))
+         (output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+         (output (as (make-syntax/node (list (syntax/leaf (:selection (as (nthcdr 2 (va output-selection))))
+                                               (text/text (:selection (as (nthcdr 3 (va output-selection))))
+                                                 (text/string ">" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*)))
+                                             (output-of (va form-iomap))
+                                             (syntax/leaf (:indentation 0 :selection (as (nthcdr 2 (va output-selection))))
+                                               (text/text (:selection (as (nthcdr 3 (va output-selection))))
+                                                 (text/string "=" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*)))
+                                             (aif (va result-iomap)
+                                                  (output-of it)
+                                                  (syntax/leaf (:selection (as (nthcdr 2 (va output-selection))))
+                                                    (text/text (:selection (as (nthcdr 3 (va output-selection))))
+                                                      (text/string "not evaluated yet" :font *font/ubuntu/monospace/regular/24* :font-color (color/lighten *color/solarized/gray* 0.75))))))
+                                       :indentation 0
+                                       :separator (text/text () (text/string " " :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
+                                       :selection output-selection))))
     (make-iomap/compound -projection- -recursion- -input- -input-reference- output (as (list (va form-iomap) (va result-iomap))))))
 
 ;;;;;;
 ;;; Reader
 
-(def reader evaluator/toplevel->tree/node ()
-  (merge-commands (command/read-selection -recursion- -input- -printer-iomap- 'forward-mapper/evaluator/toplevel->tree/node 'backward-mapper/evaluator/toplevel->tree/node)
+(def reader evaluator/toplevel->syntax/node ()
+  (merge-commands (command/read-selection -recursion- -input- -printer-iomap-)
                   (gesture-case -gesture-
                     ((make-key-press-gesture :scancode-insert)
                      :domain "Evaluator" :description "Starts a generic insertion into the elements of the toplevel"
@@ -180,10 +165,10 @@
                                                                                                      (the common-lisp/insertion (form-of (the evaluator/form document)))
                                                                                                      (the string (value-of (the common-lisp/insertion document)))
                                                                                                      (the string (subseq (the string document) 0 0)))))))))
-                  (command/read-backward -recursion- -input- -printer-iomap- 'backward-mapper/evaluator/toplevel->tree/node nil)
+                  (command/read-backward -recursion- -input- -printer-iomap-)
                   (make-nothing-command -gesture-)))
 
-(def reader evaluator/form->tree/node ()
+(def reader evaluator/form->syntax/node ()
   (merge-commands (gesture-case -gesture-
                     ((make-key-press-gesture :scancode-e :control)
                      :domain "Evaluator" :description "Evaluates the common lisp form at the selection and outputs the result"
@@ -191,8 +176,8 @@
                                                              (setf (result-of -printer-input-)
                                                                    (make-common-lisp/constant* (eval (printer-output (form-of -printer-input-)
                                                                                                                      (sequential
-                                                                                                                       (recursive (make-projection/common-lisp->lisp-form))
-                                                                                                                       (recursive (make-projection/lisp-form->form)))))))))))
-                  (command/read-selection -recursion- -input- -printer-iomap- 'forward-mapper/evaluator/form->tree/node 'backward-mapper/evaluator/form->tree/node)
-                  (command/read-backward -recursion- -input- -printer-iomap- 'backward-mapper/evaluator/form->tree/node nil)
+                                                                                                                       (recursive (make-projection/common-lisp->s-expression))
+                                                                                                                       (recursive (make-projection/s-expression->form)))))))))))
+                  (command/read-selection -recursion- -input- -printer-iomap-)
+                  (command/read-backward -recursion- -input- -printer-iomap-)
                   (make-nothing-command -gesture-)))

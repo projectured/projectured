@@ -27,7 +27,7 @@
                  (image/file (:selection '((the string (filename-of (the image/file document)))
                                            (the string (subseq (the string document) 0 0)))) "")))
     ("text" (text/text (:selection '((the text/text (text/subseq (the text/text document) 0 0))))
-              (text/string "")))
+              (text/string "" :font *font/liberation/sans/regular/18*)))
     ("xml element" (xml/element ("" nil :selection '((the string (xml/start-tag (the xml/element document)))
                                                      (the string (subseq (the string document) 0 0))))))
     ("xml attribute" (xml/attribute (:selection '((the string (name-of (the xml/attribute document)))
@@ -51,10 +51,10 @@
                                                                          (the string (subseq (the string document) 0 0))))))
                                      :selection '((the sequence (entries-of (the json/object document)))
                                                   (the json/insertion (elt (the sequence document) 0)))))
-    ("common lisp function definition" (make-common-lisp/function-definition (make-lisp-form/symbol "" "") nil nil
+    ("common lisp function definition" (make-common-lisp/function-definition (make-s-expression/symbol "" "COMMON-LISP-USER") nil nil
                                                                              :documentation ""
-                                                                             :selection '((the lisp-form/symbol (name-of (the common-lisp/function-definition document)))
-                                                                                          (the string (name-of (the lisp-form/symbol document)))
+                                                                             :selection '((the s-expression/symbol (name-of (the common-lisp/function-definition document)))
+                                                                                          (the string (name-of (the s-expression/symbol document)))
                                                                                           (the string (subseq (the string document) 0 0)))))
     ("common lisp if" (make-common-lisp/if (make-common-lisp/insertion "" 'common-lisp/complete-document) (make-common-lisp/insertion "" 'common-lisp/complete-document) (make-common-lisp/insertion "" 'common-lisp/complete-document)))
     ("common lisp progn" (make-common-lisp/progn nil))
@@ -99,7 +99,7 @@
                                (search-ignorecase search (name-of (name-of (variable-of instance)))))
                               (common-lisp/application
                                (typecase (operator-of instance)
-                                 (lisp-form/symbol
+                                 (s-expression/symbol
                                   (search-ignorecase search (name-of (operator-of instance))))
                                  (common-lisp/function-reference
                                   (search-ignorecase search (name-of (name-of (function-of (operator-of instance))))))))
@@ -107,62 +107,6 @@
                                (search-ignorecase search (name-of (name-of instance))))))
                  :slot-provider 'default-slot-provider))
 
-(def function make-default-projection ()
-  (recursive
-    (type-dispatching
-      (graphics/base (preserving))
-      (widget/base (widget->graphics))
-      (workbench/document (workbench/document->t))
-      (clipboard/slice (clipboard/slice->t))
-      (clipboard/collection (clipboard/collection->t))
-      (document/reflection (document/reflection->graphics/canvas))
-      (document/reference (sequential
-                            (document/reference->text/text)
-                            (text->graphics)))
-      (searching/search (searching/search->graphics/canvas))
-      (text/text (sequential
-                   (word-wrapping 1280)
-                   (text->graphics)))
-      (help/context-sensitive (sequential
-                                (help/context-sensitive->text/text)
-                                (text->graphics)))
-      (document (sequential
-                  (recursive
-                    (type-dispatching
-                      (book/book (copying))
-                      (book/chapter (chapter-numbering))
-                      (sequence (copying))
-                      (t (preserving))))
-                  (focusing 'document nil)
-                  (recursive
-                    (reference-dispatching
-                        (alternative
-                          (type-dispatching
-                            (document/sequence (copying))
-                            (document/base (document->tree 'default-factory 'default-searcher))
-                            (searching/base (searching->tree))
-                            (book/paragraph (nesting
-                                              (book/paragraph->tree/leaf)
-                                              (text-aligning 1270)))
-                            (book/base (book->tree))
-                            (json/base (json->tree))
-                            (xml/base (xml->tree))
-                            (common-lisp/base (sequential
-                                                (common-lisp->lisp-form)
-                                                (lisp-form->tree)))
-                            (lisp-form/base (lisp-form->tree))
-                            (evaluator/base (evaluator->tree))
-                            (tree/base (preserving))
-                            (text/base (word-wrapping 1270)))
-                          (recursive
-                            (t->tree 'default-slot-provider)))))
-                  (recursive
-                    (type-dispatching
-                      (tree/base (tree->text))
-                      (text/text (preserving))))
-                  (text->graphics))))))
-
-#+nil
 (def function make-default-projection ()
   (sequential
     (recursive
@@ -173,16 +117,13 @@
       (type-dispatching
         (graphics/base (preserving))
         (widget/base (widget->graphics))
-        (workbench/document (workbench/document->t))
-        (clipboard/slice (clipboard/slice->t))
-        (clipboard/collection (clipboard/collection->t))
-        (document/reflection (document/reflection->graphics/canvas))
+        (clipboard/base (clipboard->t))
         (document/reference (sequential
                               (document/reference->text/text)
                               (text->graphics)))
         (searching/search (searching/search->graphics/canvas))
         (text/text (sequential
-                     (word-wrapping 1280)
+                     (word-wrapping 1000)
                      (text->graphics)))
         (help/context-sensitive (sequential
                                   (help/context-sensitive->text/text)
@@ -199,26 +140,33 @@
                       (reference-dispatching
                         (alternative
                           (type-dispatching
-                            (document/sequence (copying))
-                            (document/base (document->tree 'default-factory 'default-searcher))
-                            (searching/base (searching->tree))
+                            (collection/sequence (copying))
+                            (document/base (document->syntax 'default-factory 'default-searcher))
+                            (searching/base (searching->syntax))
                             (book/paragraph (nesting
-                                              (book/paragraph->tree/leaf)
+                                              (book/paragraph->syntax/leaf)
                                               (text-aligning 1270)))
-                            (book/base (book->tree))
-                            (json/base (json->tree))
-                            (xml/base (xml->tree))
+                            (book/base (book->syntax))
+                            (file-system/base (file-system->syntax))
+                            (json/base (json->syntax))
+                            (xml/base (xml->syntax))
                             (common-lisp/base (sequential
-                                                (common-lisp->lisp-form)
-                                                (lisp-form->tree)))
-                            (lisp-form/base (lisp-form->tree))
-                            (evaluator/base (evaluator->tree))
-                            (tree/base (preserving))
+                                                (alternative
+                                                  (type-dispatching
+                                                    (common-lisp/application (alternative
+                                                                               (preserving)
+                                                                               (inlining)))
+                                                    (common-lisp/base (preserving))))
+                                                (common-lisp->s-expression)
+                                                (s-expression->syntax)))
+                            (s-expression/base (s-expression->syntax))
+                            (evaluator/base (evaluator->syntax))
+                            (syntax/base (preserving))
                             (text/base (word-wrapping 1270)))
                           (recursive
-                            (t->tree 'default-slot-provider)))))
+                            (t->syntax 'default-slot-provider)))))
                     (recursive
                       (type-dispatching
-                        (tree/base (tree->text))
+                        (syntax/base (syntax->text))
                         (text/text (preserving))))
                     (text->graphics)))))))

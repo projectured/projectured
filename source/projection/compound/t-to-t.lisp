@@ -64,52 +64,31 @@
 
 (def function make-projection/syntax->text ()
   (type-dispatching
+    (syntax/node (syntax/node->text/text))
+    (syntax/leaf (syntax/leaf->text/text))
     (syntax/delimitation (syntax/delimitation->text/text))
     (syntax/indentation (syntax/indentation->text/text))
     (syntax/collapsible (syntax/collapsible->text/text))
-    (syntax/leaf (syntax/leaf->text/text))
-    (syntax/separation (syntax/separation->text/text))
-    (syntax/node (syntax/node->text/text))))
+    (syntax/separation (syntax/separation->text/text))))
 
 (def macro syntax->text ()
   `(make-projection/syntax->text))
 
 ;;;;;;
-;;; Tree to text
-
-(def function make-projection/tree->text ()
-  (type-dispatching
-    (tree/leaf (tree/leaf->text/text))
-    (tree/node (tree/node->text/text))))
-
-(def macro tree->text ()
-  `(make-projection/tree->text))
-
-;;;;;;
 ;;; T
 
-(def function make-projection/t->tree (slot-provider)
+(def function make-projection/t->syntax (slot-provider)
   (type-dispatching
-    (null (make-projection/t/null->tree/leaf))
-    ((or number primitive/number) (make-projection/t/number->tree/leaf))
-    ((or string primitive/string) (make-projection/t/string->tree/leaf))
-    (symbol (make-projection/t/symbol->tree/leaf))
-    (pathname (make-projection/t/pathname->tree/leaf))
-    (sequence (make-projection/t/sequence->tree/node))
-    ((or structure-object standard-object) (make-projection/t/object->tree/node slot-provider))))
+    (null (make-projection/t/null->syntax/leaf))
+    ((or number primitive/number) (make-projection/t/number->syntax/leaf))
+    ((or string primitive/string) (make-projection/t/string->syntax/leaf))
+    (symbol (make-projection/t/symbol->syntax/leaf))
+    (pathname (make-projection/t/pathname->syntax/leaf))
+    (sequence (make-projection/t/sequence->syntax/node))
+    ((or structure-object standard-object) (make-projection/t/object->syntax/node slot-provider))))
 
-(def macro t->tree (slot-provider)
-  `(make-projection/t->tree ,slot-provider))
-
-;;;;;;
-;;; Workbench to t
-
-(def function make-projection/workbench->t ()
-  (type-dispatching
-    (workbench/document (workbench/document->t))))
-
-(def macro workbench->t ()
-  `(make-projection/workbench->t))
+(def macro t->syntax (slot-provider)
+  `(make-projection/t->syntax ,slot-provider))
 
 ;;;;;;
 ;;; Workbench to widget
@@ -117,9 +96,13 @@
 (def function make-projection/workbench->widget ()
   (type-dispatching
     (workbench/workbench (workbench/workbench->widget/shell))
-    (workbench/navigator (workbench/navigator->widget/title-pane))
-    (workbench/console (workbench/console->widget/title-pane))
-    (workbench/editor (workbench/editor->widget/tabbed-pane))
+    (workbench/page (workbench/page->widget/tabbed-pane))
+    (workbench/navigator (workbench/navigator->widget/scroll-pane))
+    (workbench/console (workbench/console->widget/scroll-pane))
+    (workbench/descriptor (workbench/descriptor->widget/scroll-pane))
+    (workbench/operator (workbench/operator->widget/scroll-pane))
+    (workbench/searcher (workbench/searcher->widget/scroll-pane))
+    (workbench/evaluator (workbench/evaluator->widget/scroll-pane))
     (workbench/document (workbench/document->widget/scroll-pane))))
 
 (def macro workbench->widget ()
@@ -146,139 +129,150 @@
   `(make-projection/document->t))
 
 ;;;;;;
-;;; Document to tree
+;;; Document to syntax
 
-(def function make-projection/document->tree (factory searcher)
+(def function make-projection/document->syntax (factory searcher)
   (type-dispatching
-    (document/nothing (document/nothing->tree/leaf))
-    (document/insertion (document/insertion->tree/leaf factory))))
+    (document/nothing (document/nothing->syntax/leaf))
+    (document/insertion (document/insertion->syntax/leaf factory))))
 
-(def macro document->tree (factory searcher)
-  `(make-projection/document->tree ,factory ,searcher))
+(def macro document->syntax (factory searcher)
+  `(make-projection/document->syntax ,factory ,searcher))
 
 ;;;;;;
-;;; Book to tree
+;;; Book to syntax
 
-(def function make-projection/book->tree ()
+(def function make-projection/book->syntax ()
   (type-dispatching
-    (book/book (book/book->tree/node))
-    (book/chapter (book/chapter->tree/node))
-    (book/paragraph (book/paragraph->tree/leaf))
-    (book/list (book/list->tree/node))
-    (book/picture (book/picture->tree/leaf))))
+    (book/book (book/book->syntax/node))
+    (book/chapter (book/chapter->syntax/node))
+    (book/paragraph (book/paragraph->syntax/leaf))
+    (book/list (book/list->syntax/node))
+    (book/picture (book/picture->syntax/leaf))))
 
-(def macro book->tree ()
-  '(make-projection/book->tree))
+(def macro book->syntax ()
+  '(make-projection/book->syntax))
 
 ;;;;;;
-;;; JSON to tree
+;;; File system
 
-(def function make-projection/json->tree ()
+(def function make-projection/file-system->syntax ()
   (type-dispatching
-    (json/insertion (make-projection/json/insertion->tree/leaf))
-    (json/null (make-projection/json/null->tree/leaf))
-    (json/boolean (make-projection/json/boolean->tree/leaf))
-    (json/number (make-projection/json/number->tree/leaf))
-    (json/string (make-projection/json/string->tree/leaf))
-    (json/array (make-projection/json/array->tree/node))
-    (json/object-entry (make-projection/json/object-entry->tree/node))
-    (json/object (make-projection/json/object->tree/node))))
+    (file-system/file (file-system/file->syntax/leaf))
+    (file-system/directory (file-system/directory->syntax/node))))
 
-(def macro json->tree ()
-  '(make-projection/json->tree))
+(def macro file-system->syntax ()
+  '(make-projection/file-system->syntax))
 
 ;;;;;;
-;;; XML to tree
+;;; JSON to syntax
 
-(def function make-projection/xml->tree ()
+(def function make-projection/json->syntax ()
   (type-dispatching
-    (xml/insertion (make-projection/xml/insertion->tree/leaf))
-    (xml/text (make-projection/xml/text->tree/leaf))
-    (xml/attribute (make-projection/xml/attribute->tree/node))
-    (xml/element (make-projection/xml/element->tree/node))))
+    (json/insertion (make-projection/json/insertion->syntax/leaf))
+    (json/null (make-projection/json/null->syntax/leaf))
+    (json/boolean (make-projection/json/boolean->syntax/leaf))
+    (json/number (make-projection/json/number->syntax/leaf))
+    (json/string (make-projection/json/string->syntax/leaf))
+    (json/array (make-projection/json/array->syntax/node))
+    (json/object-entry (make-projection/json/object-entry->syntax/node))
+    (json/object (make-projection/json/object->syntax/node))))
 
-(def macro xml->tree ()
-  '(make-projection/xml->tree))
+(def macro json->syntax ()
+  '(make-projection/json->syntax))
 
 ;;;;;;
-;;; Lisp form to tree
+;;; XML to syntax
 
-(def function make-projection/lisp-form->tree ()
+(def function make-projection/xml->syntax ()
   (type-dispatching
-    (lisp-form/insertion (make-projection/lisp-form/insertion->tree/leaf))
-    (lisp-form/comment (make-projection/lisp-form/comment->tree/node))
-    (lisp-form/number (make-projection/lisp-form/number->tree/leaf))
-    (lisp-form/symbol (make-projection/lisp-form/symbol->tree/leaf))
-    (lisp-form/string (make-projection/lisp-form/string->tree/leaf))
-    (lisp-form/quote (make-projection/lisp-form/quote->tree/node))
-    (lisp-form/list (make-projection/lisp-form/list->tree/node))
-    (lisp-form/object (make-projection/lisp-form/object->tree/leaf))
-    (lisp-form/toplevel (make-projection/lisp-form/toplevel->tree/node))))
+    (xml/insertion (make-projection/xml/insertion->syntax/leaf))
+    (xml/text (make-projection/xml/text->syntax/leaf))
+    (xml/attribute (make-projection/xml/attribute->syntax/node))
+    (xml/element (make-projection/xml/element->syntax/node))))
 
-(def macro lisp-form->tree ()
-  '(make-projection/lisp-form->tree))
+(def macro xml->syntax ()
+  '(make-projection/xml->syntax))
 
 ;;;;;;
-;;; Lisp form to tree
+;;; Lisp form to syntax
 
-(def function make-projection/lisp-form->form ()
+(def function make-projection/s-expression->syntax ()
   (type-dispatching
-    (lisp-form/number (make-projection/lisp-form/number->number))
-    (lisp-form/string (make-projection/lisp-form/string->string))
-    (lisp-form/symbol (make-projection/lisp-form/symbol->symbol))
-    (lisp-form/quote (make-projection/lisp-form/quote->list))
-    (lisp-form/list (make-projection/lisp-form/list->list))
-    (lisp-form/toplevel (make-projection/lisp-form/toplevel->list))
+    (s-expression/insertion (make-projection/s-expression/insertion->syntax/leaf))
+    (s-expression/comment (make-projection/s-expression/comment->syntax/node))
+    (s-expression/number (make-projection/s-expression/number->syntax/leaf))
+    (s-expression/symbol (make-projection/s-expression/symbol->syntax/leaf))
+    (s-expression/string (make-projection/s-expression/string->syntax/leaf))
+    (s-expression/quote (make-projection/s-expression/quote->syntax/node))
+    (s-expression/list (make-projection/s-expression/list->syntax/node))
+    (s-expression/object (make-projection/s-expression/object->syntax/leaf))
+    (s-expression/toplevel (make-projection/s-expression/toplevel->syntax/node))))
+
+(def macro s-expression->syntax ()
+  '(make-projection/s-expression->syntax))
+
+;;;;;;
+;;; Lisp form to syntax
+
+(def function make-projection/s-expression->form ()
+  (type-dispatching
+    (s-expression/number (make-projection/s-expression/number->number))
+    (s-expression/string (make-projection/s-expression/string->string))
+    (s-expression/symbol (make-projection/s-expression/symbol->symbol))
+    (s-expression/quote (make-projection/s-expression/quote->list))
+    (s-expression/list (make-projection/s-expression/list->list))
+    (s-expression/toplevel (make-projection/s-expression/toplevel->list))
     (primitive/string (primitive/string->string))
     (primitive/number (primitive/number->number))
     ((or number symbol string) (preserving))))
 
-(def macro lisp-form->form ()
-  '(make-projection/lisp-form->form))
+(def macro s-expression->form ()
+  '(make-projection/s-expression->form))
 
 ;;;;;;
 ;;; Common lisp to lisp form
 
-(def function make-projection/common-lisp->lisp-form ()
+(def function make-projection/common-lisp->s-expression ()
   (type-dispatching
-    (common-lisp/insertion (make-projection/common-lisp/insertion->lisp-form/insertion))
-    (common-lisp/constant (make-projection/common-lisp/constant->lisp-form/string))
-    (common-lisp/variable-reference (make-projection/common-lisp/variable-reference->lisp-form/symbol))
-    (common-lisp/function-reference (make-projection/common-lisp/function-reference->lisp-form/symbol))
-    (common-lisp/if (make-projection/common-lisp/if->lisp-form/list))
-    (common-lisp/the (make-projection/common-lisp/the->lisp-form/list))
-    (common-lisp/progn (make-projection/common-lisp/progn->lisp-form/list))
-    (common-lisp/lexical-variable-binding (make-projection/common-lisp/lexical-variable-binding->lisp-form/list))
-    (common-lisp/let (make-projection/common-lisp/let->lisp-form/list))
-    (common-lisp/application (make-projection/common-lisp/application->lisp-form/list))
-    (common-lisp/special-variable-definition (make-projection/common-lisp/special-variable-definition->lisp-form/list))
-    (common-lisp/function-definition (make-projection/common-lisp/function-definition->lisp-form/list))
-    (common-lisp/lambda-function (make-projection/common-lisp/lambda-function->lisp-form/list))
-    (common-lisp/function-argument (make-projection/common-lisp/function-argument->lisp-form/symbol))
-    (common-lisp/comment (make-projection/common-lisp/comment->lisp-form/comment))
-    (common-lisp/toplevel (make-projection/common-lisp/toplevel->lisp-form/toplevel))))
+    (common-lisp/insertion (make-projection/common-lisp/insertion->s-expression/insertion))
+    (common-lisp/constant (make-projection/common-lisp/constant->s-expression/string))
+    (common-lisp/variable-reference (make-projection/common-lisp/variable-reference->s-expression/symbol))
+    (common-lisp/function-reference (make-projection/common-lisp/function-reference->s-expression/symbol))
+    (common-lisp/if (make-projection/common-lisp/if->s-expression/list))
+    (common-lisp/the (make-projection/common-lisp/the->s-expression/list))
+    (common-lisp/progn (make-projection/common-lisp/progn->s-expression/list))
+    (common-lisp/lexical-variable-binding (make-projection/common-lisp/lexical-variable-binding->s-expression/list))
+    (common-lisp/let (make-projection/common-lisp/let->s-expression/list))
+    (common-lisp/application (make-projection/common-lisp/application->s-expression/list))
+    (common-lisp/special-variable-definition (make-projection/common-lisp/special-variable-definition->s-expression/list))
+    (common-lisp/function-definition (make-projection/common-lisp/function-definition->s-expression/list))
+    (common-lisp/lambda-function (make-projection/common-lisp/lambda-function->s-expression/list))
+    (common-lisp/function-argument (make-projection/common-lisp/function-argument->s-expression/symbol))
+    (common-lisp/comment (make-projection/common-lisp/comment->s-expression/comment))
+    (common-lisp/toplevel (make-projection/common-lisp/toplevel->s-expression/toplevel))))
 
-(def macro common-lisp->lisp-form ()
-  '(make-projection/common-lisp->lisp-form))
+(def macro common-lisp->s-expression ()
+  '(make-projection/common-lisp->s-expression))
 
 ;;;;;;
-;;; Evaluator to tree
+;;; Evaluator to syntax
 
-(def function make-projection/evaluator->tree ()
+(def function make-projection/evaluator->syntax ()
   (type-dispatching
-    (evaluator/toplevel (make-projection/evaluator/toplevel->tree/node))
-    (evaluator/form (make-projection/evaluator/form->tree/node))))
+    (evaluator/toplevel (make-projection/evaluator/toplevel->syntax/node))
+    (evaluator/form (make-projection/evaluator/form->syntax/node))))
 
-(def macro evaluator->tree ()
-  '(make-projection/evaluator->tree))
+(def macro evaluator->syntax ()
+  '(make-projection/evaluator->syntax))
 
 ;;;;;;
 ;;; Searching
 
-(def function make-projection/searching->tree ()
+(def function make-projection/searching->syntax ()
   (type-dispatching
-    (searching/result (searching/result->tree/node))
-    (searching/result-element (searching/result-element->tree/node))))
+    (searching/result (searching/result->syntax/node))
+    (searching/result-element (searching/result-element->syntax/node))))
 
-(def macro searching->tree ()
-  '(make-projection/searching->tree))
+(def macro searching->syntax ()
+  '(make-projection/searching->syntax))

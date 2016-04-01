@@ -33,10 +33,7 @@
       . ?rest)
      (values nil
              ?rest
-             (elt (child-iomaps-of -printer-iomap-) 0)))
-    (((the text/text (printer-output (the book/paragraph document) ?projection ?recursion)) . ?rest)
-     (when (eq -projection- ?projection)
-       ?rest))))
+             (elt (child-iomaps-of -printer-iomap-) 0)))))
 
 ;;;;;;
 ;;; Backward mappper
@@ -46,9 +43,7 @@
     ((?or nil ((the text/text (text/subseq (the text/text document) ?start-index ?end-index))))
      (values `((the ,(document-type (content-of (input-of -printer-iomap-))) (content-of (the book/paragraph document))))
              -reference-
-             (elt (child-iomaps-of -printer-iomap-) 0)))
-    (?a
-     (append `((the text/text (printer-output (the book/paragraph document) ,-projection- ,-recursion-))) -reference-))))
+             (elt (child-iomaps-of -printer-iomap-) 0)))))
 
 ;;;;;;
 ;;; Printer
@@ -123,9 +118,7 @@
                                                            (make-element it)))))))
                         (when (elements-of text)
                           (make-element (text/origin-position (output-of (va content-iomap)))))))))
-         (output-selection (as (print-selection (make-iomap/compound -projection- -recursion- -input- -input-reference- nil (as (list (va content-iomap))))
-                                                (get-selection -input-)
-                                                'forward-mapper/text-aligning)))
+         (output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
          (output (if (eq (alignment-of -input-) :left)
                      (as (output-of (va content-iomap)))
                      (text/make-text (as (append-ll (va lines))) :selection output-selection))))
@@ -135,6 +128,6 @@
 ;;; Reader
 
 (def reader text-aligning ()
-  (merge-commands (command/read-selection -recursion- -input- -printer-iomap- 'forward-mapper/text-aligning 'backward-mapper/text-aligning)
-                  (command/read-backward -recursion- -input- -printer-iomap- 'backward-mapper/text-aligning nil)
+  (merge-commands (command/read-selection -recursion- -input- -printer-iomap-)
+                  (command/read-backward -recursion- -input- -printer-iomap-)
                   (make-nothing-command -gesture-)))

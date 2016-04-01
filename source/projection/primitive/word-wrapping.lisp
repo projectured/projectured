@@ -52,10 +52,7 @@
                                 (funcall 'count index (input-newline-insertion-indices-of line-iomap) :test '>)))))))
     (pattern-case -reference-
       (((the text/text (text/subseq (the text/text document) ?start-index ?end-index)))
-       `((the text/text (text/subseq (the text/text document) ,(find-output-index ?start-index) ,(find-output-index ?end-index)))))
-      (((the text/text (printer-output (the text/text document) ?projection ?recursion)) . ?rest)
-       (when (eq -projection- ?projection)
-         ?rest)))))
+       `((the text/text (text/subseq (the text/text document) ,(find-output-index ?start-index) ,(find-output-index ?end-index))))))))
 
 ;;;;;;
 ;;; Backward mappper
@@ -74,11 +71,8 @@
       (((the text/text (text/subseq (the text/text document) ?start-index ?end-index)))
        (bind ((start-index (find-input-index ?start-index))
               (end-index (find-input-index ?end-index)))
-         (if (and start-index end-index)
-             `((the text/text (text/subseq (the text/text document) ,start-index ,end-index)))
-             (append `((the text/text (printer-output (the text/text document) ,-projection- ,-recursion-))) -reference-))))
-      (?a
-       (append `((the text/text (printer-output (the text/text document) ,-projection- ,-recursion-))) -reference-)))))
+         (when (and start-index end-index)
+           `((the text/text (text/subseq (the text/text document) ,start-index ,end-index)))))))))
 
 ;;;;;;
 ;;; Printer
@@ -144,12 +138,7 @@
                                                          (as (awhen (text/next-position -input- line-end-position)
                                                                (make-element it (+ output-start-index line-length (length (input-newline-insertion-indices-of line-iomap))) nil)))))))
                             (make-element (text/origin-position -input-) 0 nil))))
-         (output-selection (as (print-selection (make-instance 'iomap/word-wrapping
-                                                               :projection -projection- :recursion -recursion-
-                                                               :input -input- :input-reference -input-reference-
-                                                               :line-iomaps line-iomaps)
-                                                (get-selection -input-)
-                                                'forward-mapper/word-wrapping)))
+         (output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
          (output (text/make-text (as (or (append-ll (map-ll (va line-iomaps) 'output-of))
                                          (list (text/string ""))))
                                  :selection output-selection)))
@@ -162,5 +151,5 @@
 ;;; Reader
 
 (def reader word-wrapping ()
-  (merge-commands (command/read-backward -recursion- -input- -printer-iomap- 'backward-mapper/word-wrapping nil)
+  (merge-commands (command/read-backward -recursion- -input- -printer-iomap-)
                   (make-nothing-command -gesture-)))

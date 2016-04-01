@@ -98,12 +98,10 @@
      (bind ((element-iomaps (as (map-ll* (ll -input-) (lambda (element index)
                                                         (recurse-printer -recursion- (value-of element) `((elt (the sequence document) ,index)
                                                                                                           ,@(typed-reference (document-type -input-) -input-reference-)))))))
-            (output-selection (as (print-selection (make-iomap/compound -projection- -recursion- -input- -input-reference- nil element-iomaps)
-                                                   (selection-of -input-)
-                                                   'forward-mapper/copying)))
+            (output-selection (as (print-selection -printer-iomap- (selection-of -input-))))
             (output (as (etypecase -input-
-                          (document/sequence ;; KLUDGE: typechecking fails in SBCL sequence/
-                              (make-document/sequence (map-ll (va element-iomaps) 'output-of) :selection output-selection))
+                          (collection/sequence ;; KLUDGE: typechecking fails in SBCL sequence/
+                              (make-collection/sequence (map-ll (va element-iomaps) 'output-of) :selection output-selection))
                           (sequence (map-ll (va element-iomaps) 'output-of))))))
        (make-iomap/compound -projection- -recursion- -input- -input-reference- output element-iomaps)))
     (standard-object
@@ -120,12 +118,7 @@
                                                                                    ,@(typed-reference (document-type -input-) -input-reference-))
                                                                                  `((slot-value (the ,(document-type -input-) document) ',(slot-definition-name slot))
                                                                                    ,@(typed-reference (document-type -input-) -input-reference-))))))))))))
-            (output-selection (as (print-selection (make-instance 'iomap/copying
-                                                                  :projection -projection- :recursion -recursion-
-                                                                  :input -input- :output nil
-                                                                  :slot-value-iomaps slot-value-iomaps)
-                                                   (selection-of -input-)
-                                                   'forward-mapper/copying)))
+            (output-selection (as (print-selection -printer-iomap- (selection-of -input-))))
             (output (as (prog1-bind clone (allocate-instance class)
                           (when (typep -input- 'document)
                             (setf (selection-of clone) output-selection #+nil(as (selection-of input))))
@@ -145,6 +138,6 @@
 ;;; Reader
 
 (def reader copying ()
-  (merge-commands (command/read-selection -recursion- -input- -printer-iomap- 'forward-mapper/copying 'backward-mapper/copying)
-                  (command/read-backward -recursion- -input- -printer-iomap- 'backward-mapper/copying nil)
+  (merge-commands (command/read-selection -recursion- -input- -printer-iomap-)
+                  (command/read-backward -recursion- -input- -printer-iomap-)
                   (make-nothing-command -gesture-)))

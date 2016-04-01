@@ -6,8 +6,6 @@
 
 (in-package :projectured)
 
-;;;; TODO: (defun factorial n"The FACTORIAL function computes the product of the integers between 1 and N.(if (< n 2) 1 (* n (factorial (- n 1
-
 ;;;;;;
 ;;; Document
 
@@ -55,11 +53,11 @@
    (factory :type function)))
 
 (def document common-lisp/special-variable-definition (common-lisp/base)
-  ((name :type lisp-form/symbol)
+  ((name :type s-expression/symbol)
    (value :type common-lisp/base)))
 
 (def document common-lisp/function-definition (common-lisp/base)
-  ((name :type lisp-form/symbol)
+  ((name :type s-expression/symbol)
    (bindings :type sequence)
    (allow-other-keys :type boolean)
    (documentation :type string)
@@ -164,9 +162,10 @@
 (def function make-common-lisp/constant* (value)
   (make-common-lisp/constant
    (etypecase value
-     (number (lisp-form/number () value))
-     (string (lisp-form/string () value))
-     (symbol (lisp-form/quote () (make-lisp-form/symbol* value))))))
+     (number (s-expression/number () value))
+     (string (s-expression/string () value))
+     (symbol (s-expression/quote () (make-s-expression/symbol* value)))
+     (list (make-s-expression/list (mapcar 'make-common-lisp/constant* value))))))
 
 ;;;;;;
 ;;; TODO: completion opportunity specifies:
@@ -194,8 +193,8 @@
             (bind ((name-length (length (name-of (name-of function-definition)))))
               (make-common-lisp/application (make-common-lisp/function-reference function-definition
                                                                                  :selection `((the common-lisp/function-definition (function-of (the common-lisp/function-reference document)))
-                                                                                              (the lisp-form/symbol (name-of (the common-lisp/function-definition document)))
-                                                                                              (the string (name-of (the lisp-form/symbol document)))
+                                                                                              (the s-expression/symbol (name-of (the common-lisp/function-definition document)))
+                                                                                              (the string (name-of (the s-expression/symbol document)))
                                                                                               (the string (subseq (the string document) ,name-length ,name-length))))
                                             nil
                                             :factory (factory-of printer-input)
@@ -206,26 +205,26 @@
                                           (collect (cons name
                                                          (bind ((name-length (length name)))
                                                            (make-common-lisp/variable-reference binding :selection `((the common-lisp/required-function-argument (variable-of (the common-lisp/variable-reference document)))
-                                                                                                                     (the lisp-form/symbol (name-of (the common-lisp/required-function-argument document)))
-                                                                                                                     (the string (name-of (the lisp-form/symbol document)))
+                                                                                                                     (the s-expression/symbol (name-of (the common-lisp/required-function-argument document)))
+                                                                                                                     (the string (name-of (the s-expression/symbol document)))
                                                                                                                      (the string (subseq (the string document) ,name-length ,name-length))))))))))))))
 
 (def function common-lisp/complete-document/fuction-definition (factory printer-input reader-input name)
   (bind ((name-length (length name)))
-    (make-common-lisp/required-function-argument (make-lisp-form/symbol name "COMMON-LISP-USER"
-                                                                        :selection `((the string (name-of (the lisp-form/symbol document)))
+    (make-common-lisp/required-function-argument (make-s-expression/symbol name "COMMON-LISP-USER"
+                                                                        :selection `((the string (name-of (the s-expression/symbol document)))
                                                                                      (the string (subseq (the string document) ,name-length ,name-length))))
-                                                 :selection `((the lisp-form/symbol (name-of (the common-lisp/function-argument document)))))))
+                                                 :selection `((the s-expression/symbol (name-of (the common-lisp/function-argument document)))))))
 
 (def function common-lisp/complete-document (factory printer-input reader-input name)
   (bind (((:values document completion)
           (completion-prefix-switch name
-            ("defun" (make-common-lisp/function-definition (make-lisp-form/symbol "" "COMMON-LISP-USER")
+            ("defun" (make-common-lisp/function-definition (make-s-expression/symbol "" "COMMON-LISP-USER")
                                                            (list-ll (make-common-lisp/insertion "" 'common-lisp/complete-document/fuction-definition))
                                                            nil
                                                            :documentation ""
-                                                           :selection '((the lisp-form/symbol (name-of (the common-lisp/function-definition document)))
-                                                                        (the string (name-of (the lisp-form/symbol document)))
+                                                           :selection '((the s-expression/symbol (name-of (the common-lisp/function-definition document)))
+                                                                        (the string (name-of (the s-expression/symbol document)))
                                                                         (the string (subseq (the string document) 0 0)))))
             ("if" (make-common-lisp/if (make-common-lisp/insertion "" (factory-of printer-input) :default-value "enter condition"
                                                                    :selection  '((the string (value-of (the common-lisp/insertion document)))
@@ -243,7 +242,7 @@
                      (argument-insertion? (and reader-input
                                                (gesture= (gesture-of reader-input)
                                                          (make-type-in-gesture #\Space)))))
-                (make-common-lisp/application (make-lisp-form/symbol* it)
+                (make-common-lisp/application (make-s-expression/symbol* it)
                                               (when argument-insertion?
                                                 (list-ll (make-common-lisp/insertion "" (factory-of printer-input)
                                                                                      :selection  '((the string (value-of (the common-lisp/insertion document)))
@@ -251,8 +250,8 @@
                                               :selection (if argument-insertion?
                                                              `((the sequence (arguments-of (the common-lisp/application document)))
                                                                (the common-lisp/insertion (elt (the sequence document) 0)))
-                                                             `((the lisp-form/symbol (operator-of (the common-lisp/application document)))
-                                                               (the string (name-of (the lisp-form/symbol document)))
+                                                             `((the s-expression/symbol (operator-of (the common-lisp/application document)))
+                                                               (the string (name-of (the s-expression/symbol document)))
                                                                (the string (subseq (the string document) ,position ,position))))
                                               :factory (factory-of printer-input))))
             #+nil
@@ -274,12 +273,12 @@
   (with-input-from-file (input filename :element-type 'character)
     (labels ((recurse-binding (form)
                (etypecase form
-                 (symbol (make-common-lisp/required-function-argument (make-lisp-form/symbol* form)))
-                 (cons (make-common-lisp/required-function-argument (make-lisp-form/symbol* (first form))))))
+                 (symbol (make-common-lisp/required-function-argument (make-s-expression/symbol* form)))
+                 (cons (make-common-lisp/required-function-argument (make-s-expression/symbol* (first form))))))
              (recurse-form (form)
                (pattern-case form
                  ((defun ?name ?bindings ?documentation . ?body)
-                  (make-common-lisp/function-definition (make-lisp-form/symbol* ?name)
+                  (make-common-lisp/function-definition (make-s-expression/symbol* ?name)
                                                         (ll (mapcar #'recurse-binding ?bindings))
                                                         (ll (mapcar #'recurse-form ?body))
                                                         :documentation ?documentation))
@@ -290,10 +289,10 @@
                  ((let* ?bindings ?body)
                   (make-common-lisp/let nil nil))
                  ((?function . ?arguments)
-                  (make-common-lisp/application (make-lisp-form/symbol* ?function) (ll (mapcar #'recurse-form ?arguments))))
+                  (make-common-lisp/application (make-s-expression/symbol* ?function) (ll (mapcar #'recurse-form ?arguments))))
                  (?atom
                   (if (symbolp ?atom)
-                      (make-common-lisp/variable-reference (make-common-lisp/lexical-variable-binding (make-lisp-form/symbol* ?atom) nil))
+                      (make-common-lisp/variable-reference (make-common-lisp/lexical-variable-binding (make-s-expression/symbol* ?atom) nil))
                       (make-common-lisp/constant* ?atom))))))
       (bind ((*package* (find-package :common-lisp-user)))
         (make-common-lisp/toplevel (ll (iter (for form = (read input nil nil))

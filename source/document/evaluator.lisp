@@ -32,7 +32,7 @@
 ;;; Construction
 
 (def macro evaluator/toplevel ((&key selection) &body elements)
-  `(make-evaluator/toplevel (document/sequence (:selection (rest ,selection)) ,@elements) :selection ,selection))
+  `(make-evaluator/toplevel (collection/sequence (:selection (rest ,selection)) ,@elements) :selection ,selection))
 
 (def macro evaluator/form ((&key selection) &body body)
   `(make-evaluator/form ,(first body) :result ,(second body) :selection ,selection))
@@ -58,8 +58,8 @@
                                             (collect (cons name
                                                            (bind ((name-length (length name)))
                                                              (make-common-lisp/application (make-common-lisp/function-reference form :selection `((the common-lisp/function-definition (function-of (the common-lisp/function-reference document)))
-                                                                                                                                                  (the lisp-form/symbol (name-of (the common-lisp/function-definition document)))
-                                                                                                                                                  (the string (name-of (the lisp-form/symbol document)))
+                                                                                                                                                  (the s-expression/symbol (name-of (the common-lisp/function-definition document)))
+                                                                                                                                                  (the string (name-of (the s-expression/symbol document)))
                                                                                                                                                   (the string (subseq (the string document) ,name-length ,name-length))))
                                                                                            nil
                                                                                            :factory factory

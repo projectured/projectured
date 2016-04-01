@@ -41,7 +41,7 @@
 (def function search-ignorecase (sequence1 sequence2)
   (search sequence1 sequence2 :test 'char=ignorecase))
 
-;; TODO: merge with seach-parts*
+;; TODO: merge with search-parts*
 (def function search-parts (root test &key (slot-provider (compose 'class-slots 'class-of)))
   (bind ((seen-set (make-hash-table))
          (result nil))
@@ -67,7 +67,7 @@
       (recurse root nil))
     (nreverse result)))
 
-;; TODO: merge with seach-parts
+;; TODO: merge with search-parts
 (def function search-parts* (root test &key (slot-provider (compose 'class-slots 'class-of)))
   (bind ((seen-set (make-hash-table))
          (visit-set (list (list root nil)))
@@ -136,6 +136,21 @@
                    (bind ((matching-prefixes (remove-if 'null (list ,@completion-vars))))
                      (reduce 'longest-common-prefix matching-prefixes :initial-value (first matching-prefixes))))))))
 
+(def function shallow-copy (instance)
+  (etypecase instance
+    ((or number string symbol pathname function)
+     instance)
+    (sequence
+     (copy-seq instance))
+    (standard-object
+     (bind ((class (class-of instance))
+            (copy (allocate-instance class))
+            (slots (class-slots class)))
+       (iter (for slot :in slots)
+             (when (slot-boundp-using-class class instance slot)
+               (setf (slot-value-using-class class copy slot) (slot-value-using-class class instance slot))))
+       copy))))
+
 (def function deep-copy (instance)
   (labels ((recurse (instance)
              (etypecase instance
@@ -143,8 +158,8 @@
                 instance)
                (style/base
                 instance)
-               (document/sequence
-                (make-document/sequence (iter (for element :in-sequence instance)
+               (collection/sequence
+                (make-collection/sequence (iter (for element :in-sequence instance)
                                               (collect (recurse element)))
                                         :selection (recurse (selection-of instance))))
                (sequence

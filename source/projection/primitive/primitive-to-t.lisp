@@ -53,10 +53,7 @@
       (the string (write-to-string (the number document)))
       (the string (subseq (the string document) ?start-index ?end-index)))
      `((the string (write-to-string (the number document)))
-       (the string (subseq (the string document) ,?start-index ,?end-index))))
-    (((the number (printer-output (the primitive/number document) ?projection ?recursion)) . ?rest)
-     (when (eq -projection- ?projection)
-       ?rest))))
+       (the string (subseq (the string document) ,?start-index ,?end-index))))))
 
 ;;;;;;
 ;;; Backward mapper
@@ -69,9 +66,7 @@
       (the string (subseq (the string document) ?start-index ?end-index)))
      `((the number (value-of (the primitive/number document)))
        (the string (write-to-string (the number document)))
-       (the string (subseq (the string document) ,?start-index ,?end-index))))
-    (?a
-     (append `((the number (printer-output (the primitive/number document) ,-projection- ,-recursion-))) -reference-))))
+       (the string (subseq (the string document) ,?start-index ,?end-index))))))
 
 ;;;;;;
 ;;; Printer
@@ -92,7 +87,7 @@
 ;;; Reader
 
 (def reader primitive/boolean->boolean ()
-  (merge-commands (command/read-backward -recursion- -input- -printer-iomap- 'backward-mapper/primitive/boolean->boolean nil)
+  (merge-commands (command/read-backward -recursion- -input- -printer-iomap-)
                   (make-nothing-command -gesture-)))
 
 (def reader primitive/number->number ()
@@ -113,9 +108,9 @@
                                                                             (the string (write-to-string (the number document)))
                                                                             (the string (subseq (the string document) 0 0)))
                                                                           (replacement-of operation))))))))))
-    (merge-commands (command/read-backward -recursion- -input- -printer-iomap- 'backward-mapper/primitive/number->number operation-mapper)
+    (merge-commands (command/read-backward -recursion- -input- -printer-iomap- operation-mapper)
                     (make-nothing-command -gesture-))))
 
 (def reader primitive/string->string ()
-  (merge-commands (command/read-backward -recursion- -input- -printer-iomap- 'backward-mapper/primitive/string->string nil)
+  (merge-commands (command/read-backward -recursion- -input- -printer-iomap-)
                   (make-nothing-command -gesture-)))

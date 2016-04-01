@@ -72,16 +72,10 @@
                             indices))
          (output-elements (as (iter (for input-index :in input-indices)
                                     (collect (output-of (elt (va element-iomaps) input-index))))))
-         (output-selection (as (print-selection (make-instance 'iomap/sorting
-                                                               :projection -projection- :recursion -recursion-
-                                                               :input -input- :output nil
-                                                               :element-iomaps element-iomaps
-                                                               :input-indices input-indices)
-                                                (selection-of -input-)
-                                                'forward-mapper/sorting)))
+         (output-selection (as (print-selection -printer-iomap- (selection-of -input-))))
          (output (as (etypecase -input-
-                       (t ;; KLUDGE: typechecking fails in SBCL document/sequence
-                        (make-document/sequence (va output-elements) :selection output-selection))
+                       (t ;; KLUDGE: typechecking fails in SBCL collection/sequence
+                        (make-collection/sequence (va output-elements) :selection output-selection))
                        (sequence (va output-elements))))))
     (make-instance 'iomap/sorting
                    :projection -projection- :recursion -recursion-
@@ -93,5 +87,5 @@
 ;;; Reader
 
 (def reader sorting ()
-  (merge-commands (command/read-backward -recursion- -input- -printer-iomap- 'backward-mapper/sorting nil)
+  (merge-commands (command/read-backward -recursion- -input- -printer-iomap-)
                   (make-nothing-command -gesture-)))

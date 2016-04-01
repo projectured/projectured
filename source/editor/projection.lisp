@@ -30,5 +30,10 @@
 
 (def function make-projection (name &rest args)
   (bind ((reader (find-reader name))
-         (printer (find-printer name)))
-    (apply #'make-instance name :reader reader :printer printer args)))
+         (printer (find-printer name))
+         (forward-mapper (find-forward-mapper name :otherwise nil))
+         (backward-mapper (find-backward-mapper name :otherwise nil)))
+    (apply #'make-instance name
+           :reader reader :printer printer
+           :forward-mapper forward-mapper :backward-mapper backward-mapper
+           args)))
