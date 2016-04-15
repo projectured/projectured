@@ -47,14 +47,14 @@
 ;;; Forward mapper
 
 (def forward-mapper searching/search->graphics/canvas ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the string (search-of (the searching/search document)))
       (the string (subseq (the string document) ?start-index ?end-index)))
      `((the text/text (content-of (the widget/text document)))
        (the text/text (text/subseq (the text/text document) ,?start-index ,?end-index))))))
 
 (def forward-mapper searching/result->syntax/node ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the sequence (elements-of (the searching/result document)))
       (the ?type (elt (the sequence document) ?index))
       . ?rest)
@@ -69,7 +69,7 @@
                element-iomap)))))
 
 (def forward-mapper searching/result-element->syntax/node ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the ?type (document-of (the searching/result-element document)))
       . ?rest)
      (bind ((content-iomap (content-iomap-of -printer-iomap-)))
@@ -82,14 +82,14 @@
 ;;; Backward mapper
 
 (def backward-mapper searching/search->graphics/canvas ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the text/text (content-of (the widget/text document)))
       (the text/text (text/subseq (the text/text document) ?start-index ?end-index)))
      `((the string (search-of (the searching/search document)))
        (the string (subseq (the string document) ,?start-index ,?end-index))))))
 
 (def backward-mapper searching/result->syntax/node ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the sequence (children-of (the syntax/node document)))
       (the syntax/node (elt (the sequence document) ?index))
       (the sequence (children-of (the syntax/node document)))
@@ -104,7 +104,7 @@
                element-iomap)))))
 
 (def backward-mapper searching/result-element->syntax/node ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the sequence (children-of (the syntax/node document)))
       (the ?type (elt (the sequence document) 1))
       . ?rest)
@@ -118,7 +118,7 @@
 ;;; Printer
 
 (def printer searching/search->graphics/canvas ()
-  (bind ((output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+  (bind ((output-selection (as (print-selection -printer-iomap-)))
          (document-iomap (as (recurse-printer -recursion- (document-of -input-)
                                               `((document-of (the searching/search document))
                                                 ,@(typed-reference (document-type -input-) -input-reference-)))))
@@ -146,7 +146,7 @@
                                                         (list (output-of it))
                                                         (list (output-of (va document-iomap))))
                                                    (when (or (va result-iomap)
-                                                             (and (pattern-case (get-selection -input-)
+                                                             (and (reference-case (get-selection -input-)
                                                                     (((the string (search-of (the searching/search document)))
                                                                       (the string (subseq (the string document) 0 0)))
                                                                      #t))
@@ -162,25 +162,25 @@
                                                          `((elt (the sequence document) ,index)
                                                            (the sequence (elements-of (the searching/result document)))
                                                            ,@(typed-reference (document-type -input-) -input-reference-)))))))
-         (output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+         (output-selection (as (print-selection -printer-iomap-)))
          (output (as (make-syntax/node (map-ll* (va element-iomaps)
                                                 (lambda (element index)
                                                   (bind ((element-iomap (value-of element)))
                                                     (syntax/node (:indentation 0
                                                                                :separator (text/text () (text/string " " :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
-                                                                               :selection (as (pattern-case (va output-selection)
+                                                                               :selection (as (reference-case (va output-selection)
                                                                                                 (((the sequence (children-of (the syntax/node document)))
                                                                                                   (the syntax/node (elt (the sequence document) ?index))
                                                                                                   . ?rest)
                                                                                                  (nthcdr 2 (va output-selection))))))
-                                                      (syntax/leaf (:selection (as (pattern-case (va output-selection)
+                                                      (syntax/leaf (:selection (as (reference-case (va output-selection)
                                                                                      (((the sequence (children-of (the syntax/node document)))
                                                                                        (the syntax/node (elt (the sequence document) ?index))
                                                                                        (the sequence (children-of (the syntax/node document)))
                                                                                        (the syntax/leaf (elt (the sequence document) 0))
                                                                                        . ?rest)
                                                                                       (nthcdr 4 (va output-selection))))))
-                                                        (text/text (:selection (as (pattern-case (va output-selection)
+                                                        (text/text (:selection (as (reference-case (va output-selection)
                                                                                      (((the sequence (children-of (the syntax/node document)))
                                                                                        (the syntax/node (elt (the sequence document) ?index))
                                                                                        (the sequence (children-of (the syntax/node document)))
@@ -190,7 +190,7 @@
                                                                                       (nthcdr 5 (va output-selection))))))
                                                           (text/string (format nil "~A. match" (1+ index)) :font *font/liberation/serif/regular/24* :font-color *color/solarized/content/dark* :line-color *color/solarized/background/lighter*)))
                                                       (syntax/node (:indentation 0
-                                                                                 :selection (as (pattern-case (va output-selection)
+                                                                                 :selection (as (reference-case (va output-selection)
                                                                                                   (((the sequence (children-of (the syntax/node document)))
                                                                                                     (the syntax/node (elt (the sequence document) ?index))
                                                                                                     (the sequence (children-of (the syntax/node document)))
@@ -206,9 +206,9 @@
   (bind ((content-iomap (recurse-printer -recursion- (eval-reference (document-of -input-) (flatten-reference (butlast (path-of -input-) (context-depth-of -input-))))
                                          `((document-of (the searching/result-element document))
                                            ,@(typed-reference (document-type -input-) -input-reference-))))
-         (output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+         (output-selection (as (print-selection -printer-iomap-)))
          (output (as (syntax/node (:selection output-selection)
-                       (syntax/leaf (:selection (as (pattern-case (va output-selection)
+                       (syntax/leaf (:selection (as (reference-case (va output-selection)
                                                       (((the sequence (children-of (the syntax/node document)))
                                                         (the syntax/leaf (elt (the sequence document) 0))
                                                         . ?rest)
@@ -223,13 +223,13 @@
                                                  (awhen (butlast (path-of -input-) (context-depth-of -input-))
                                                    (elements-of (printer-output (document/reference () it)
                                                                                 (document/reference->text/text)))))
-                                         :selection (as (pattern-case (va output-selection)
+                                         :selection (as (reference-case (va output-selection)
                                                           (((the sequence (children-of (the syntax/node document)))
                                                             (the syntax/leaf (elt (the sequence document) 0))
                                                             . ?rest)
                                                            (nthcdr 3 (va output-selection)))))))
                        (syntax/clone (output-of content-iomap) :indentation 0
-                                     :selection (as (pattern-case (va output-selection)
+                                     :selection (as (reference-case (va output-selection)
                                                       (((the sequence (children-of (the syntax/node document)))
                                                         (the ?type (elt (the sequence document) 1))
                                                         . ?rest)
@@ -253,7 +253,7 @@
                                                                         (make-operation/replace-selection -printer-input-
                                                                                                           `((the string (search-of (the searching/search document)))
                                                                                                             (the string (subseq (the string document) 0 0)))))))
-                                        ((pattern-case (selection-of -printer-input-)
+                                        ((reference-case (selection-of -printer-input-)
                                            (((the string (search-of (the searching/search document)))
                                              . ?rest)
                                             #f)
@@ -265,7 +265,7 @@
                       ((make-key-press-gesture :scancode-s :control)
                        :domain "Search" :description "Replaces document with search result"
                        :operation (when (and search (not (zerop (length search))))
-                                    (pattern-case (selection-of -printer-input-)
+                                    (reference-case (selection-of -printer-input-)
                                       (((the string (search-of (the searching/search document)))
                                         . ?rest)
                                        (bind ((search-result (make-searching/result (mapcar (lambda (reference)
@@ -279,7 +279,7 @@
                        :operation (when (result-of -printer-input-)
                                     (make-operation/compound (list (make-operation/functional (lambda () (setf (result-of -printer-input-) nil)))
                                                                    (make-operation/replace-selection -printer-input- `((the ,(document-type result) (result-of (the searching/search document))))))))))
-                    (cond ((pattern-case (get-selection -printer-input-)
+                    (cond ((reference-case (get-selection -printer-input-)
                              (((the string (search-of (the searching/search document)))
                                (the string (subseq (the string document) 0 0)))
                               #t))

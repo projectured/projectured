@@ -50,8 +50,8 @@
                      (return (+ (output-start-index-of line-iomap)
                                 (- index (input-start-index-of line-iomap))
                                 (funcall 'count index (input-newline-insertion-indices-of line-iomap) :test '>)))))))
-    (pattern-case -reference-
-      (((the text/text (text/subseq (the text/text document) ?start-index ?end-index)))
+    (pattern-case (force-cc -reference-)
+      (((the text/text (text/subseq (the text/text document) ?start-index ?end-index)) . ?rest)
        `((the text/text (text/subseq (the text/text document) ,(find-output-index ?start-index) ,(find-output-index ?end-index))))))))
 
 ;;;;;;
@@ -67,7 +67,7 @@
                                (+ (input-start-index-of line-iomap)
                                   (- index (output-start-index-of line-iomap))
                                   (- (funcall 'count index (output-newline-insertion-indices-of line-iomap) :test '>)))))))))
-    (pattern-case -reference-
+    (pattern-case (force-cc -reference-)
       (((the text/text (text/subseq (the text/text document) ?start-index ?end-index)))
        (bind ((start-index (find-input-index ?start-index))
               (end-index (find-input-index ?end-index)))
@@ -138,7 +138,7 @@
                                                          (as (awhen (text/next-position -input- line-end-position)
                                                                (make-element it (+ output-start-index line-length (length (input-newline-insertion-indices-of line-iomap))) nil)))))))
                             (make-element (text/origin-position -input-) 0 nil))))
-         (output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+         (output-selection (as (print-selection -printer-iomap-)))
          (output (text/make-text (as (or (append-ll (map-ll (va line-iomaps) 'output-of))
                                          (list (text/string ""))))
                                  :selection output-selection)))

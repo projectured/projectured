@@ -301,6 +301,7 @@
 (def (function o) invalidate-computed-state (computed-state)
   (declare (type computed-state computed-state))
   (labels ((recurse (instance)
+             ;;(print instance)
              #+debug
              (when (cs-debug-invalidation instance)
                (break "Computed state ~A is being invalidated" instance))
@@ -345,6 +346,11 @@
 
 (def macro va (computed-state)
   `(computed-state-value ,computed-state))
+
+(def function va* (computed-state)
+  (if (computed-state-p computed-state)
+      (computed-state-value computed-state)
+      computed-state))
 
 ;;;;;;
 ;;; Computed sequence
@@ -394,7 +400,62 @@
                                                    (make-array (list length) :initial-contents (append initial-contents (make-list (- length (length initial-contents))))))))
 
 ;;;;;;
-;;; Computed linked list
+;;; Computed cons
+
+(def class* computed-cons (sequence)
+  ((head :type t)
+   (tail :type computed-cons))
+  (:metaclass computed-class))
+
+(def function make-computed-cons (head tail)
+  (make-instance 'computed-cons :head head :tail tail))
+
+(def method sb-sequence:length ((sequence computed-cons))
+  (iter (for element :initially sequence :then (tail-of element))
+        (while element)
+        (count 1)))
+
+(def method sb-sequence:elt ((sequence computed-cons) index)
+  (iter (for element :initially sequence :then (tail-of element))
+        (until (zerop index))
+        (decf index)
+        (finally (return (head-of element)))))
+
+(def method (setf sb-sequence:elt) (new-value (sequence computed-cons) index)
+  (iter (for element :initially sequence :then (next-element-of element))
+        (until (zerop index))
+        (decf index)
+        (finally (return (setf (head-of element) new-value)))))
+
+(def function cc (sequence)
+  (if (typep sequence 'computed-cons)
+      sequence
+      (unless (emptyp sequence)
+        (labels ((recurse (index)
+                   (when (< index (length sequence))
+                     (make-computed-cons (elt sequence index) (recurse (1+ index))))))
+          (recurse 0)))))
+
+(def function list-cc (&rest args)
+  (cc args))
+
+(def function append-cc (cc-1 cc-2)
+  (labels ((recurse (instance)
+             (if (null instance)
+                 cc-2
+                 (make-computed-cons (as (head-of instance)) (as (recurse (tail-of instance)))))))
+    (recurse cc-1)))
+
+(def function force-cc (reference &optional (length most-positive-fixnum))
+  (labels ((recurse (instance length)
+             (if (or (zerop length)
+                     (not (typep instance 'computed-cons)))
+                 instance
+                 (cons (head-of instance) (recurse (tail-of instance) (1- length))))))
+    (recurse reference length)))
+
+;;;;;;
+;;; Computed double linked list
 
 (def class* computed-ll (sequence)
   ((value :type t)
@@ -449,13 +510,13 @@
   (if (typep sequence 'computed-ll)
       sequence
       (unless (emptyp sequence)
-        (labels ((make (index previous next)
-                   (make-computed-ll (as (elt sequence index))
+        (labels ((recurse (index previous next)
+                   (make-computed-ll (elt sequence index)
                                      (as (when (> index 0)
-                                           (or previous (make (1- index) nil -self-))))
+                                           (or previous (recurse (1- index) nil -self-))))
                                      (as (when (< index (1- (length sequence)))
-                                           (or next (make (1+ index) -self- nil)))))))
-          (elt-ll (make 0 nil nil) index)))))
+                                           (or next (recurse (1+ index) -self- nil)))))))
+          (elt-ll (recurse 0 nil nil) index)))))
 
 (def function make-ll (length &key (initial-element nil initial-element?) initial-contents)
   (if initial-element?

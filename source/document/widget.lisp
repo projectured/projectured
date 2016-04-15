@@ -220,7 +220,7 @@
 
 (def macro widget/menu ((&rest args &key margin margin-color border border-color padding padding-color fill-color) &body elements)
   (declare (ignore margin margin-color border border-color padding padding-color fill-color))
-  `(make-widget/menu (list ,@elements) ,@args))
+  `(make-widget/menu (list-ll ,@elements) ,@args))
 
 (def macro widget/shell ((&rest args &key content-fill-color size margin margin-color border border-color padding padding-color fill-color selection) &body content)
   (declare (ignore content-fill-color size margin margin-color border border-color padding padding-color fill-color selection))
@@ -228,7 +228,7 @@
 
 (def macro widget/composite ((&rest args &key position margin margin-color border border-color padding padding-color fill-color selection) &body elements)
   (declare (ignore margin margin-color border border-color padding padding-color fill-color selection))
-  `(make-widget/composite ,position (list ,@elements) ,@(remove-from-plist args :position)))
+  `(make-widget/composite ,position (list-ll ,@elements) ,@(remove-from-plist args :position)))
 
 (def macro widget/title-pane ((&rest args &key title content-fill-color margin margin-color border border-color padding padding-color fill-color title-fill-color selection) &body content)
   (declare (ignore content-fill-color margin margin-color border border-color padding padding-color fill-color title-fill-color selection))
@@ -236,12 +236,12 @@
 
 (def macro widget/split-pane ((&rest args &key orientation margin margin-color border border-color padding padding-color fill-color selection) &body elements)
   (declare (ignore margin margin-color border border-color padding padding-color fill-color selection))
-  `(make-widget/split-pane ,orientation (list ,@elements) ,@(remove-from-plist args :orientation)))
+  `(make-widget/split-pane ,orientation (list-ll ,@elements) ,@(remove-from-plist args :orientation)))
 
 (def macro widget/tabbed-pane ((&rest args &key margin margin-color border border-color padding padding-color fill-color selection) &body selector-element-pairs)
   (declare (ignore margin margin-color border border-color padding padding-color fill-color selection))
-  `(make-widget/tabbed-pane (list ,@(iter (for pair :in-sequence selector-element-pairs)
-                                          (collect `(list ,(first pair) ,(second pair)))))
+  `(make-widget/tabbed-pane (list-ll ,@(iter (for pair :in-sequence selector-element-pairs)
+                                             (collect `(list ,(first pair) ,(second pair)))))
                             ,@args))
 
 (def macro widget/scroll-pane ((&rest args &key content-fill-color position size margin margin-color border border-color padding padding-color fill-color selection) &body content)

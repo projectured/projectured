@@ -247,6 +247,8 @@
     (common-lisp/application (make-projection/common-lisp/application->s-expression/list))
     (common-lisp/special-variable-definition (make-projection/common-lisp/special-variable-definition->s-expression/list))
     (common-lisp/function-definition (make-projection/common-lisp/function-definition->s-expression/list))
+    (common-lisp/macro-definition (make-projection/common-lisp/macro-definition->s-expression/list))
+    (common-lisp/class-definition (make-projection/common-lisp/class-definition->s-expression/list))
     (common-lisp/lambda-function (make-projection/common-lisp/lambda-function->s-expression/list))
     (common-lisp/function-argument (make-projection/common-lisp/function-argument->s-expression/symbol))
     (common-lisp/comment (make-projection/common-lisp/comment->s-expression/comment))

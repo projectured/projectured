@@ -91,14 +91,14 @@
 ;;; Forward mapper
 
 (def forward-mapper json/insertion->syntax/leaf ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the string (value-of (the json/insertion document)))
       (the string (subseq (the string document) 0 0)))
      `((the text/text (content-of (the syntax/leaf document)))
        (the text/text (text/subseq (the text/text document) 0 0))))))
 
 (def forward-mapper json/null->syntax/leaf ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the json/null document))
      '((the syntax/leaf document)))
     (((the string (value-of (the json/null document)))
@@ -107,7 +107,7 @@
        (the text/text (text/subseq (the text/text document) ,?start-index ,?end-index))))))
 
 (def forward-mapper json/boolean->syntax/leaf ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the json/boolean document))
      '((the syntax/leaf document)))
     (((the string ((?or false-value-of true-value-of) (the json/boolean document)))
@@ -116,7 +116,7 @@
        (the text/text (text/subseq (the text/text document) ,?start-index ,?end-index))))))
 
 (def forward-mapper json/number->syntax/leaf ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the json/number document))
      '((the syntax/leaf document)))
     (((the primitive/number (value-of (the json/number document)))
@@ -126,7 +126,7 @@
        (the text/text (text/subseq (the text/text document) ,?start-index ,?end-index))))))
 
 (def forward-mapper json/string->syntax/leaf ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the json/string document))
      '((the syntax/leaf document)))
     (((the string (value-of (the json/string document)))
@@ -135,7 +135,7 @@
        (the text/text (text/subseq (the text/text document) ,?start-index ,?end-index))))))
 
 (def forward-mapper json/array->syntax/node ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the json/array document))
      '((the syntax/node document)))
     (((the sequence (elements-of (the json/array document)))
@@ -145,7 +145,7 @@
              (content-iomap-of -printer-iomap-)))))
 
 (def forward-mapper json/object-entry->syntax/node ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the json/object-entry document))
      '((the syntax/node document)))
     (((the string (key-of (the json/object-entry document)))
@@ -167,7 +167,7 @@
              (content-iomap-of -printer-iomap-)))))
 
 (def forward-mapper json/object->syntax/node ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the json/object document))
      '((the syntax/node document)))
     (((the sequence (entries-of (the json/object document)))
@@ -180,14 +180,14 @@
 ;;; Backward mapper
 
 (def backward-mapper json/insertion->syntax/leaf ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the text/text (content-of (the syntax/leaf document)))
       (the text/text (text/subseq (the text/text document) 0 0)))
      `((the string (value-of (the json/insertion document)))
        (the string (subseq (the string document) 0 0))))))
 
 (def backward-mapper json/null->syntax/leaf ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the syntax/leaf document))
      '((the json/null document)))
     (((the text/text (content-of (the syntax/leaf document)))
@@ -196,7 +196,7 @@
        (the string (subseq (the string document) ,?start-index ,?end-index))))))
 
 (def backward-mapper json/boolean->syntax/leaf ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the syntax/leaf document))
      '((the json/boolean document)))
     (((the text/text (content-of (the syntax/leaf document)))
@@ -205,7 +205,7 @@
        (the string (subseq (the string document) ,?start-index ,?end-index))))))
 
 (def backward-mapper json/number->syntax/leaf ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the syntax/leaf document))
      '((the json/number document)))
     (((the text/text (content-of (the syntax/leaf document)))
@@ -216,7 +216,7 @@
          (the string (subseq (the string document) ,?start-index ,?end-index)))))))
 
 (def backward-mapper json/string->syntax/leaf ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the syntax/leaf document))
      '((the json/string document)))
     (((the text/text (content-of (the syntax/leaf document)))
@@ -226,7 +226,7 @@
          (the string (subseq (the string document) ,?start-index ,?end-index)))))))
 
 (def backward-mapper json/array->syntax/node ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the syntax/node document))
      '((the json/array document)))
     (((the sequence (children-of (the syntax/node document)))
@@ -236,7 +236,7 @@
              (content-iomap-of -printer-iomap-)))))
 
 (def backward-mapper json/object-entry->syntax/node ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the syntax/node document))
      '((the json/object-entry document)))
     (((the sequence (children-of (the syntax/node document)))
@@ -259,7 +259,7 @@
              (content-iomap-of -printer-iomap-)))))
 
 (def backward-mapper json/object->syntax/node ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the syntax/node document))
      '((the json/object document)))
     (((the sequence (children-of (the syntax/node document)))
@@ -281,34 +281,34 @@
 ;;; Printer
 
 (def printer json/insertion->syntax/leaf ()
-  (bind ((output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+  (bind ((output-selection (as (print-selection -printer-iomap-)))
          (output (as (syntax/leaf (:selection output-selection)
                        (text/text (:selection (as (nthcdr 1 (va output-selection))))
                          (text/string (value-of -input-) :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/blue*))))))
     (make-iomap -projection- -recursion- -input- -input-reference- output)))
 
 (def printer json/null->syntax/leaf ()
-  (bind ((output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+  (bind ((output-selection (as (print-selection -printer-iomap-)))
          (output (as (syntax/leaf (:selection output-selection)
                        (text/text (:selection (as (nthcdr 1 (va output-selection))))
                          (text/string (value-of -input-) :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/blue*))))))
     (make-iomap -projection- -recursion- -input- -input-reference- output)))
 
 (def printer json/boolean->syntax/leaf ()
-  (bind ((output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+  (bind ((output-selection (as (print-selection -printer-iomap-)))
          (output (as (syntax/leaf (:selection output-selection)
                        (text/text (:selection (as (nthcdr 1 (va output-selection))))
                          (text/string (if (value-p -input-) (true-value-of -input-) (false-value-of -input-)) :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/blue*))))))
     (make-iomap -projection- -recursion- -input- -input-reference- output)))
 
 (def printer json/number->syntax/leaf ()
-  (bind ((output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+  (bind ((output-selection (as (print-selection -printer-iomap-)))
          (output (as (syntax/leaf (:selection output-selection)
                        (text/make-default-text (write-number (value-of -input-) nil) "enter json number" :selection (as (nthcdr 1 (va output-selection))) :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/magenta*)))))
     (make-iomap -projection- -recursion- -input- -input-reference- output)))
 
 (def printer json/string->syntax/leaf ()
-  (bind ((output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+  (bind ((output-selection (as (print-selection -printer-iomap-)))
          (output (as (syntax/leaf (:opening-delimiter (text/text () (text/string "\"" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
                                    :closing-delimiter (text/text () (text/string "\"" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
                                    :selection output-selection)
@@ -319,7 +319,7 @@
   (bind ((element-iomaps (as (recurse-printer -recursion- (elements-of -input-)
                                               `((elements-of (the json/array document))
                                                 ,@(typed-reference (document-type -input-) -input-reference-)))))
-         (output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+         (output-selection (as (print-selection -printer-iomap-)))
          (output (as (bind ((deep-array (find-if-not (of-type '(or json/insertion json/null json/boolean json/number json/string)) (elements-of -input-))))
                        (make-syntax/node (as (map-ll* (ll (output-of (va element-iomaps)))
                                                       (lambda (element index)
@@ -341,7 +341,7 @@
   (bind ((value-iomap (as (recurse-printer -recursion- (value-of -input-)
                                            `((value-of (the json/object-entry document))
                                              ,@(typed-reference (document-type -input-) -input-reference-)))))
-         (output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+         (output-selection (as (print-selection -printer-iomap-)))
          (output (as (syntax/node (:separator (text/text () (text/string " : " :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
                                    :collapsed (as (collapsed-p -input-))
                                    :selection output-selection)
@@ -356,7 +356,7 @@
   (bind ((entry-iomaps (as (recurse-printer -recursion- (entries-of -input-)
                                             `((entries-of (the json/object document))
                                               ,@(typed-reference (document-type -input-) -input-reference-)))))
-         (output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+         (output-selection (as (print-selection -printer-iomap-)))
          (output (as (make-syntax/node (as (map-ll* (ll (output-of (va entry-iomaps)))
                                                     (lambda (element index)
                                                       (declare (ignore index))
@@ -464,7 +464,7 @@
                              (declare (ignore child-selection child-iomap))
                              (typecase operation
                                (operation/text/replace-range
-                                (pattern-case selection
+                                (reference-case selection
                                   (((the primitive/number (value-of (the json/number document)))
                                     (the string (write-to-string (the primitive/number document)))
                                     (the string (subseq (the string document) ?start-index ?end-index)))
@@ -486,7 +486,7 @@
                              (declare (ignore child-selection child-iomap))
                              (typecase operation
                                (operation/text/replace-range
-                                (pattern-case selection
+                                (reference-case selection
                                   (((the string (value-of (the json/string document)))
                                     (the string (subseq (the string document) ?start-index ?end-index)))
                                    (make-operation/string/replace-range -printer-input- selection (replacement-of operation)))
@@ -504,7 +504,7 @@
                              (declare (ignore child-selection child-iomap))
                              (typecase operation
                                (operation/show-annotation
-                                (pattern-case selection
+                                (reference-case selection
                                   (((the syntax/node (printer-output (the json/array document) ?projection ?recursion)) . ?rest)
                                    (make-instance 'operation/show-annotation
                                                   :document (document-of operation)
@@ -540,7 +540,7 @@
                              (declare (ignore child-selection child-iomap))
                              (typecase operation
                                (operation/text/replace-range
-                                (pattern-case selection
+                                (reference-case selection
                                   (((the string (key-of (the json/object-entry document)))
                                     (the string (subseq (the string document) ?start-index ?end-index)))
                                    (make-operation/string/replace-range -printer-input- selection (replacement-of operation)))
@@ -553,7 +553,7 @@
                     (gesture-case -gesture-
                       ((make-key-press-gesture :scancode-tab)
                        :domain "JSON" :description "Moves the selection to the value of the JSON object entry"
-                       :operation (pattern-case (selection-of -printer-input-)
+                       :operation (reference-case (selection-of -printer-input-)
                                     (((the string (key-of (the json/object-entry document)))
                                       (the string (subseq (the string document) ?start-index ?end-index)))
                                      ;; TODO: this is quite fragile

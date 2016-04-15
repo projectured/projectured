@@ -63,6 +63,18 @@
    (documentation :type string)
    (body :type sequence)))
 
+(def document common-lisp/macro-definition (common-lisp/base)
+  ((name :type s-expression/symbol)
+   (bindings :type sequence)
+   (allow-other-keys :type boolean)
+   (documentation :type string)
+   (body :type sequence)))
+
+(def document common-lisp/class-definition (common-lisp/base)
+  ((name :type s-expression/symbol)
+   (supers :type sequence)
+   (slots :type sequence)))
+
 (def document common-lisp/lambda-function (common-lisp/base)
   ((bindings :type sequence)
    (allow-other-keys :type boolean)
@@ -142,6 +154,24 @@
                  :collapsed collapsed
                  :selection selection))
 
+(def function make-common-lisp/macro-definition (name bindings body &key allow-other-keys documentation collapsed selection)
+  (make-instance 'common-lisp/macro-definition
+                 :name name
+                 :bindings bindings
+                 :allow-other-keys allow-other-keys
+                 :documentation documentation
+                 :body body
+                 :collapsed collapsed
+                 :selection selection))
+
+(def function make-common-lisp/class-definition (name supers slots &key collapsed selection)
+  (make-instance 'common-lisp/class-definition
+                 :name name
+                 :supers supers
+                 :slots slots
+                 :collapsed collapsed
+                 :selection selection))
+
 (def function make-common-lisp/lambda-function (bindings body &key allow-other-keys collapsed selection)
   (make-instance 'common-lisp/lambda-function
                  :bindings bindings
@@ -162,6 +192,7 @@
 (def function make-common-lisp/constant* (value)
   (make-common-lisp/constant
    (etypecase value
+     (null (make-s-expression/symbol* nil))
      (number (s-expression/number () value))
      (string (s-expression/string () value))
      (symbol (s-expression/quote () (make-s-expression/symbol* value)))
@@ -277,11 +308,51 @@
                  (cons (make-common-lisp/required-function-argument (make-s-expression/symbol* (first form))))))
              (recurse-form (form)
                (pattern-case form
+                 ;; TODO: this is kludgy at best
+                 ((common-lisp:in-package ?package)
+                  (setf *package* (find-package ?package))
+                  (make-common-lisp/application (make-s-expression/symbol* 'common-lisp:in-package) (list-ll (make-s-expression/symbol* ?package))))
                  ((defun ?name ?bindings ?documentation . ?body)
                   (make-common-lisp/function-definition (make-s-expression/symbol* ?name)
                                                         (ll (mapcar #'recurse-binding ?bindings))
                                                         (ll (mapcar #'recurse-form ?body))
                                                         :documentation ?documentation))
+                 ((def function ?name ?bindings . ?body)
+                  (make-common-lisp/function-definition (make-s-expression/symbol* ?name)
+                                                        (ll (mapcar #'recurse-binding ?bindings))
+                                                        (ll (mapcar #'recurse-form ?body))))
+                 ((def forward-mapper ?name ?bindings . ?body)
+                  (make-common-lisp/function-definition (make-s-expression/symbol* ?name)
+                                                        (ll (mapcar #'recurse-binding ?bindings))
+                                                        (ll (mapcar #'recurse-form ?body))))
+                 ((def backward-mapper ?name ?bindings . ?body)
+                  (make-common-lisp/function-definition (make-s-expression/symbol* ?name)
+                                                        (ll (mapcar #'recurse-binding ?bindings))
+                                                        (ll (mapcar #'recurse-form ?body))))
+                 ((def printer ?name ?bindings . ?body)
+                  (make-common-lisp/function-definition (make-s-expression/symbol* ?name)
+                                                        (ll (mapcar #'recurse-binding ?bindings))
+                                                        (ll (mapcar #'recurse-form ?body))))
+                 ((def reader ?name ?bindings . ?body)
+                  (make-common-lisp/function-definition (make-s-expression/symbol* ?name)
+                                                        (ll (mapcar #'recurse-binding ?bindings))
+                                                        (ll (mapcar #'recurse-form ?body))))
+                 ((def macro ?name ?bindings . ?body)
+                  (make-common-lisp/macro-definition (make-s-expression/symbol* ?name)
+                                                     (ll (mapcar #'recurse-binding ?bindings))
+                                                     (ll (mapcar #'recurse-form ?body))))
+                 ((def document ?name ?supers ?slots . ?options)
+                  (make-common-lisp/class-definition (make-s-expression/symbol* ?name) nil nil))
+                 ((def projection ?name ?supers ?slots . ?options)
+                  (make-common-lisp/class-definition (make-s-expression/symbol* ?name) nil nil))
+                 ((def iomap ?name ?supers ?slots . ?options)
+                  (make-common-lisp/class-definition (make-s-expression/symbol* ?name) nil nil))
+                 ((pattern-case . ?cases)
+                  (make-common-lisp/constant* 'todo))
+                 ((gesture-case . ?cases)
+                  (make-common-lisp/constant* 'todo))
+                 ((bind ?bindings . ?body)
+                  (make-common-lisp/constant* 'todo))
                  ((if ?condition ?then ?else)
                   (make-common-lisp/if (recurse-form ?condition) (recurse-form ?then) (recurse-form ?else)))
                  ((let ?bindings ?body)
@@ -291,10 +362,13 @@
                  ((?function . ?arguments)
                   (make-common-lisp/application (make-s-expression/symbol* ?function) (ll (mapcar #'recurse-form ?arguments))))
                  (?atom
-                  (if (symbolp ?atom)
-                      (make-common-lisp/variable-reference (make-common-lisp/lexical-variable-binding (make-s-expression/symbol* ?atom) nil))
-                      (make-common-lisp/constant* ?atom))))))
-      (bind ((*package* (find-package :common-lisp-user)))
+                  (etypecase ?atom
+                    (symbol (make-common-lisp/variable-reference (make-common-lisp/lexical-variable-binding (make-s-expression/symbol* ?atom) nil)))
+                    ((or number string) (make-common-lisp/constant* ?atom))
+                    (sb-impl::comma
+                     ;; TODO: backquote
+                     (recurse-form (sb-impl::comma-expr ?atom))))))))
+      (bind ((*package* (find-package :common-lisp)))
         (make-common-lisp/toplevel (ll (iter (for form = (read input nil nil))
                                              (while form)
                                              (collect (recurse-form form)))))))))

@@ -43,7 +43,7 @@
 ;;; Forward mapper
 
 (def forward-mapper text/text->graphics/canvas ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the sequence (elements-of (the text/text document)))
       (the ?type (elt (the sequence document) 3))
       . ?rest)
@@ -68,7 +68,7 @@
 ;;; Backward mapper
 
 (def backward-mapper text/text->graphics/canvas ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the sequence (elements-of (the graphics/canvas document)))
       (the graphics/canvas (elt (the sequence document) 1))
       (the sequence (elements-of (the graphics/canvas document)))
@@ -171,7 +171,7 @@
                          (height (2d-y size)))
                     (values (+ position offset) height))))))
            (print-selection-below (line-iomaps)
-             (pattern-case (get-selection -input-)
+             (pattern-case (selection-of -input-)
                (((the text/text (text/subbox (the text/text document) ?start-index ?end-index)))
                 (bind (((:values start-line-iomap start-line-iomap-element) (find-line-iomap line-iomaps ?start-index))
                        ((:values end-line-iomap end-line-iomap-element) (find-line-iomap line-iomaps ?end-index))
@@ -192,7 +192,7 @@
                                                          3
                                                          :fill-color *color/solarized/background/light*))))))
            (print-selection-above (line-iomaps)
-             (pattern-case (get-selection -input-)
+             (pattern-case (selection-of -input-)
                (((the text/text (text/subseq (the text/text document) ?character-index ?character-index)))
                 (bind ((line-iomap (find-line-iomap line-iomaps ?character-index)))
                   (when line-iomap

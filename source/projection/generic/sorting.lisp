@@ -36,7 +36,7 @@
 ;;; Forward mapper
 
 (def forward-mapper sorting ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the ?element-type (elt (the sequence document) ?element-index))
       . ?rest)
      (bind ((output-index (position ?element-index (input-indices-of -printer-iomap-))))
@@ -48,7 +48,7 @@
 ;;; Backward mapper
 
 (def backward-mapper sorting ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the ?element-type (elt (the sequence document) ?element-index)) . ?rest)
      (bind ((element-index (elt (input-indices-of -printer-iomap-) ?element-index)))
        (values `((the ,?element-type (elt (the sequence document) ,element-index)))

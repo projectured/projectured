@@ -147,7 +147,7 @@
 ;;; API
 
 (def function syntax/reference? (reference)
-  (pattern-case (reverse reference)
+  (pattern-case (reverse (coerce (va* reference) 'list))
     (((the ?type (?if (subtypep ?type 'syntax/base)) ?a) . ?rest)
      #t)))
 

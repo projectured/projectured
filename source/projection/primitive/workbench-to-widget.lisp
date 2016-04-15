@@ -100,7 +100,7 @@
 ;;; Forward mapper
 
 (def forward-mapper workbench/workbench->widget/shell ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the workbench/page (navigation-page-of (the workbench/workbench document)))
       . ?rest)
      (values `((the widget/split-pane (content-of (the widget/shell document)))
@@ -128,7 +128,7 @@
              (elt (child-iomaps-of -printer-iomap-) 2)))))
 
 (def forward-mapper workbench/page->widget/tabbed-pane ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the sequence (elements-of (the workbench/page document)))
       (the ?type (elt (the sequence document) ?index))
       . ?rest)
@@ -140,7 +140,7 @@
                element-iomap)))))
 
 (def forward-mapper workbench/navigator->widget/scroll-pane ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the sequence (folders-of (the workbench/navigator document)))
       (the file-system/directory (elt (the sequence document) ?index))
       . ?rest)
@@ -164,7 +164,7 @@
   nil)
 
 (def forward-mapper workbench/evaluator->widget/scroll-pane ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the evaluator/toplevel (content-of (the workbench/evaluator document)))
       . ?rest)
      (bind ((content-iomap (content-iomap-of -printer-iomap-)))
@@ -173,7 +173,7 @@
                content-iomap)))))
 
 (def forward-mapper workbench/document->widget/scroll-pane ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the ?type (content-of (the workbench/document document)))
       . ?rest)
      (bind ((content-iomap (content-iomap-of -printer-iomap-)))
@@ -185,7 +185,7 @@
 ;;; Backward mapper
 
 (def backward-mapper workbench/workbench->widget/shell ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the widget/split-pane (content-of (the widget/shell document)))
       (the sequence (elements-of (the widget/split-pane document)))
       (the widget/tabbed-pane (elt (the sequence document) 0))
@@ -213,7 +213,7 @@
              (elt (child-iomaps-of -printer-iomap-) 2)))))
 
 (def backward-mapper workbench/page->widget/tabbed-pane ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the sequence (selector-element-pairs-of (the widget/tabbed-pane document)))
       (the sequence (elt (the sequence document) ?index))
       (the ?type (elt (the sequence document) 1))
@@ -225,7 +225,7 @@
                element-iomap)))))
 
 (def backward-mapper workbench/navigator->widget/scroll-pane ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the widget/composite (content-of (the widget/scroll-pane document)))
       (the sequence (elements-of (the widget/composite document)))
       (the ?type (elt (the sequence document) ?index))
@@ -249,7 +249,7 @@
   nil)
 
 (def backward-mapper workbench/evaluator->widget/scroll-pane ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the ?type (content-of (the widget/scroll-pane document)))
       . ?rest)
      (bind ((content-iomap (content-iomap-of -printer-iomap-)))
@@ -258,7 +258,7 @@
                content-iomap)))))
 
 (def backward-mapper workbench/document->widget/scroll-pane ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the ?type (content-of (the widget/scroll-pane document)))
       . ?rest)
      (bind ((content-iomap (content-iomap-of -printer-iomap-)))
@@ -279,17 +279,16 @@
          (information-page-iomap (as (recurse-printer -recursion- (information-page-of -input-)
                                                       `((information-page-of (the workbench/workbench document))
                                                         ,@(typed-reference (document-type -input-) -input-reference-)))))
-         (output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
-         (output (as (widget/shell (:size (make-2d 1280 720)
-                                    :border (make-inset :all 5)
-                                    :border-color *color/solarized/background/lighter*
-                                    :selection output-selection)
-                       (widget/split-pane (:selection (as (nthcdr 1 (va output-selection))))
-                         (output-of (va navigation-page-iomap))
-                         (widget/split-pane (:orientation :vertical
-                                             :selection (as (nthcdr 3 (va output-selection))))
-                           (output-of (va editing-page-iomap))
-                           (output-of (va information-page-iomap))))))))
+         (output-selection (as (print-selection -printer-iomap-)))
+         (output (widget/shell (:size (make-2d 1280 720)
+                                :border (make-inset :all 5)
+                                :border-color *color/solarized/background/lighter*
+                                :selection (as (subseq (force-cc (va output-selection) 1) 0 1)))
+                   (widget/split-pane (:orientation :horizontal :selection (as (subseq (force-cc (va output-selection) 3) 1 3)))
+                     (as (output-of (va navigation-page-iomap)))
+                     (widget/split-pane (:orientation :vertical :selection (as (subseq (force-cc (va output-selection) 5) 3 5)))
+                       (as (output-of (va editing-page-iomap)))
+                       (as (output-of (va information-page-iomap))))))))
     (make-iomap/compound -projection- -recursion- -input- -input-reference- output (as (list (va navigation-page-iomap) (va editing-page-iomap) (va information-page-iomap))))))
 
 (def printer workbench/page->widget/tabbed-pane ()
@@ -299,14 +298,14 @@
                                                               `((elt (the sequence document) ,index)
                                                                 (the sequence (elements-of (the workbench/page document)))
                                                                 ,@(typed-reference (document-type -input-) -input-reference-)))))))
-         (output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
-         (output (as (make-widget/tabbed-pane (iter (for document :in-sequence (elements-of -input-))
+         (output-selection (as (print-selection -printer-iomap-)))
+         (output (make-widget/tabbed-pane (as (iter (for document :in-sequence (elements-of -input-))
                                                     (for document-iomap :in (va document-iomaps))
                                                     (collect (list (text/text () (text/string (title-of document) :font *font/liberation/sans/regular/24* :font-color *color/black*))
-                                                                   (output-of document-iomap))))
-                                              :border (make-inset :all 5)
-                                              :border-color *color/solarized/content/lighter*
-                                              :selection output-selection))))
+                                                                   (output-of document-iomap)))))
+                                          :border (make-inset :all 5)
+                                          :border-color *color/solarized/content/lighter*
+                                          :selection (as (subseq (force-cc (va output-selection) 3) 0 3)))))
     (make-iomap/compound -projection- -recursion- -input- -input-reference- output document-iomaps)))
 
 (def printer workbench/navigator->widget/scroll-pane ()
@@ -316,73 +315,73 @@
                                                             `((elt (the sequence document) ,index)
                                                               (the sequence (folders-of (the workbench/navigator document)))
                                                               ,@(typed-reference (document-type -input-) -input-reference-)))))))
-         (output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
-         (output (as (widget/scroll-pane (:size (make-2d 224 655)
-                                          :padding (make-inset :all 5)
-                                          :padding-color *color/white*
-                                          :selection output-selection)
-                       (make-widget/composite 0 (mapcar 'output-of (va folder-iomaps))
-                                              :selection (as (nthcdr 1 (va output-selection))))))))
+         (output-selection (as (print-selection -printer-iomap-)))
+         (output (widget/scroll-pane (:size (make-2d 224 655)
+                                      :padding (make-inset :all 5)
+                                      :padding-color *color/white*
+                                      :selection (as (subseq (va output-selection) 0 1)))
+                   (make-widget/composite 0 (as (mapcar 'output-of (va folder-iomaps)))
+                                          :selection (as (subseq (va output-selection) 1 3))))))
     (make-iomap/compound -projection- -recursion- -input- -input-reference- output folder-iomaps)))
 
 (def printer workbench/console->widget/scroll-pane ()
   (bind ((content-iomap (as (recurse-printer -recursion- (content-of -input-)
                                              `((content-of (the workbench/document document))
                                                ,@(typed-reference (document-type -input-) -input-reference-)))))
-         (output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
-         (output (as (widget/scroll-pane (:size (make-2d 1000 130)
-                                          :padding (make-inset :all 5)
-                                          :padding-color *color/white*
-                                          :selection output-selection)
-                       (output-of (va content-iomap))))))
+         (output-selection (as (print-selection -printer-iomap-)))
+         (output (widget/scroll-pane (:size (make-2d 1000 130)
+                                      :padding (make-inset :all 5)
+                                      :padding-color *color/white*
+                                      :selection (as (subseq (va output-selection) 0 1)))
+                   (as (output-of (va content-iomap))))))
     (make-iomap/content -projection- -recursion- -input- -input-reference- output content-iomap)))
 
 (def printer workbench/descriptor->widget/scroll-pane ()
   (bind ((content-iomap (as (recurse-printer -recursion- (content-of -input-)
                                              `((content-of (the workbench/document document))
                                                ,@(typed-reference (document-type -input-) -input-reference-)))))
-         (output (as (widget/scroll-pane (:size (make-2d 1000 130)
-                                          :padding (make-inset :all 5)
-                                          :padding-color *color/white*)
-                       (output-of (va content-iomap))))))
+         (output (widget/scroll-pane (:size (make-2d 1000 130)
+                                      :padding (make-inset :all 5)
+                                      :padding-color *color/white*)
+                   (as (output-of (va content-iomap))))))
     (make-iomap/content -projection- -recursion- -input- -input-reference- output content-iomap)))
 
 (def printer workbench/operator->widget/scroll-pane ()
-  (bind ((output (as (widget/scroll-pane (:size (make-2d 1000 130)
-                                          :padding (make-inset :all 5)
-                                          :padding-color *color/white*)
-                       (make-graphics/canvas nil 0)))))
+  (bind ((output (widget/scroll-pane (:size (make-2d 1000 130)
+                                      :padding (make-inset :all 5)
+                                      :padding-color *color/white*)
+                   (make-graphics/canvas nil 0))))
     (make-iomap/content -projection- -recursion- -input- -input-reference- output nil)))
 
 (def printer workbench/searcher->widget/scroll-pane ()
-  (bind ((output (as (widget/scroll-pane (:size (make-2d 1000 130)
-                                          :padding (make-inset :all 5)
-                                          :padding-color *color/white*)
-                       (make-graphics/canvas nil 0)))))
+  (bind ((output (widget/scroll-pane (:size (make-2d 1000 130)
+                                      :padding (make-inset :all 5)
+                                      :padding-color *color/white*)
+                   (make-graphics/canvas nil 0))))
     (make-iomap/content -projection- -recursion- -input- -input-reference- output nil)))
 
 (def printer workbench/evaluator->widget/scroll-pane ()
   (bind ((content-iomap (as (recurse-printer -recursion- (content-of -input-)
                                              `((content-of (the workbench/document document))
                                                ,@(typed-reference (document-type -input-) -input-reference-)))))
-         (output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
-         (output (as (widget/scroll-pane (:size (make-2d 1000 130)
-                                          :padding (make-inset :all 5)
-                                          :padding-color *color/white*
-                                          :selection output-selection)
-                       (output-of (va content-iomap))))))
+         (output-selection (as (print-selection -printer-iomap-)))
+         (output (widget/scroll-pane (:size (make-2d 1000 130)
+                                      :padding (make-inset :all 5)
+                                      :padding-color *color/white*
+                                      :selection (as (subseq (va output-selection) 0 1)))
+                   (as (output-of (va content-iomap))))))
     (make-iomap/content -projection- -recursion- -input- -input-reference- output content-iomap)))
 
 (def printer workbench/document->widget/scroll-pane ()
   (bind ((content-iomap (as (recurse-printer -recursion- (content-of -input-)
                                              `((content-of (the workbench/document document))
                                                ,@(typed-reference (document-type -input-) -input-reference-)))))
-         (output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
-         (output (as (widget/scroll-pane (:size (make-2d 1000 461)
-                                          :padding (make-inset :all 5)
-                                          :padding-color *color/white*
-                                          :selection output-selection)
-                       (output-of (va content-iomap))))))
+         (output-selection (as (print-selection -printer-iomap-)))
+         (output (widget/scroll-pane (:size (make-2d 1000 461)
+                                      :padding (make-inset :all 5)
+                                      :padding-color *color/white*
+                                      :selection (as (subseq (force-cc (va output-selection) 1) 0 1)))
+                   (as (output-of (va content-iomap))))))
     (make-iomap/content -projection- -recursion- -input- -input-reference- output content-iomap)))
 
 ;;;;;;
@@ -402,7 +401,7 @@
                      :operation (make-operation/replace-selection -printer-input- '((the workbench/page (information-page-of (the workbench/workbench document))))))
                     ((make-key-press-gesture :scancode-return)
                      :domain "File system" :description "Opens the selected document"
-                     :operation (pattern-case (reverse (get-selection -printer-input-))
+                     :operation (reference-case (reverse (get-selection -printer-input-))
                                   (((the string (subseq (the string document) ?start-index ?end-index))
                                     (the string (file-namestring (the pathname document)))
                                     (the pathname (pathname-of (the file-system/file document)))

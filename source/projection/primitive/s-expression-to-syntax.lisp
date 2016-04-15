@@ -100,14 +100,14 @@
 ;;; Forward mapper
 
 (def forward-mapper s-expression/insertion->syntax/leaf ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the string (value-of (the s-expression/insertion document)))
       (the string (subseq (the string document) ?start-index ?end-index)))
      `((the text/text (content-of (the syntax/leaf document)))
        (the text/text (text/subseq (the text/text document) ,?start-index ,?end-index))))))
 
 (def forward-mapper s-expression/comment->syntax/node ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the text/text (content-of (the s-expression/comment document)))
       (the text/text (text/subseq (the text/text document) ?start-index ?end-index)))
      `((the sequence (children-of (the syntax/node document)))
@@ -116,7 +116,7 @@
        (the text/text (text/subseq (the text/text document) ,?start-index ,?end-index))))))
 
 (def forward-mapper s-expression/number->syntax/leaf ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the ?type (value-of (the s-expression/number document)))
       (the string (write-to-string (the ?type document)))
       (the string (subseq (the string document) ?start-index ?end-index)))
@@ -124,7 +124,7 @@
        (the text/text (text/subseq (the text/text document) ,?start-index ,?end-index))))))
 
 (def forward-mapper s-expression/symbol->syntax/leaf ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the string (name-of (the s-expression/symbol document)))
       (the string (subseq (the string document) ?start-index ?end-index)))
      (bind ((offset (if (fully-qualified-p -projection-) (+ 2 (length (package-of -printer-input-))) 0)))
@@ -132,14 +132,14 @@
          (the text/text (text/subseq (the text/text document) ,(+ ?start-index offset) ,(+ ?end-index offset))))))))
 
 (def forward-mapper s-expression/string->syntax/leaf ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the string (value-of (the s-expression/string document)))
       (the string (subseq (the string document) ?start-index ?end-index)))
      `((the text/text (content-of (the syntax/leaf document)))
        (the text/text (text/subseq (the text/text document) ,?start-index ,?end-index))))))
 
 (def forward-mapper s-expression/quote->syntax/node ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the ?type (value-of (the s-expression/quote document)))
       . ?rest)
      (values `((the sequence (children-of (the syntax/node document)))
@@ -148,7 +148,7 @@
              (content-iomap-of -printer-iomap-)))))
 
 (def forward-mapper s-expression/list->syntax/node ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the s-expression/list document))
      `((the syntax/node document)))
     (((the sequence (elements-of (the s-expression/list document)))
@@ -165,7 +165,7 @@
   nil)
 
 (def forward-mapper s-expression/toplevel->syntax/node ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the s-expression/toplevel document))
      `((the syntax/node document)))
     (((the sequence (elements-of (the s-expression/toplevel document)))
@@ -181,14 +181,14 @@
 ;;; Backward mapper
 
 (def backward-mapper s-expression/insertion->syntax/leaf ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the text/text (content-of (the syntax/leaf document)))
       (the text/text (text/subseq (the text/text document) ?start-index ?end-index)))
      `((the string (value-of (the s-expression/insertion document)))
        (the string (subseq (the string document) ,?start-index ,?end-index))))))
 
 (def backward-mapper s-expression/comment->syntax/node ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the sequence (children-of (the syntax/node document)))
       (the syntax/leaf (elt (the sequence document) 0))
       (the text/text (content-of (the syntax/leaf document)))
@@ -197,7 +197,7 @@
        (the text/text (text/subseq (the text/text document) ,?start-index ,?end-index))))))
 
 (def backward-mapper s-expression/number->syntax/leaf ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the text/text (content-of (the syntax/leaf document)))
       (the text/text (text/subseq (the text/text document) ?start-index ?end-index)))
      (unless (string= "" (write-number (value-of -printer-input-) nil))
@@ -207,7 +207,7 @@
            (the string (subseq (the string document) ,?start-index ,?end-index))))))))
 
 (def backward-mapper s-expression/symbol->syntax/leaf ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the text/text (content-of (the syntax/leaf document)))
       (the text/text (text/subseq (the text/text document) ?start-index ?end-index)))
      (unless (string= (name-of -printer-input-) "")
@@ -216,7 +216,7 @@
            (the string (subseq (the string document) ,(- ?start-index offset) ,(- ?end-index offset)))))))))
 
 (def backward-mapper s-expression/string->syntax/leaf ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the text/text (content-of (the syntax/leaf document)))
       (the text/text (text/subseq (the text/text document) ?start-index ?end-index)))
      (unless (string= (value-of -printer-input-) "")
@@ -224,7 +224,7 @@
          (the string (subseq (the string document) ,?start-index ,?end-index)))))))
 
 (def backward-mapper s-expression/quote->syntax/node ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the sequence (children-of (the syntax/node document)))
       (the syntax/leaf (elt (the sequence document) 0))
       . ?rest)
@@ -233,7 +233,7 @@
              (content-iomap-of -printer-iomap-)))))
 
 (def backward-mapper s-expression/list->syntax/node ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the syntax/node document))
      `((the s-expression/list document)))
     (((the sequence (children-of (the syntax/node document)))
@@ -250,7 +250,7 @@
   nil)
 
 (def backward-mapper s-expression/toplevel->syntax/node ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the syntax/node document))
      `((the s-expression/toplevel document)))
     (((the sequence (children-of (the syntax/node document)))
@@ -267,7 +267,7 @@
 ;;; Printer
 
 (def printer s-expression/insertion->syntax/leaf ()
-  (bind ((output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+  (bind ((output-selection (as (print-selection -printer-iomap-)))
          (output (as (bind (((:values nil completion) (funcall (factory-of -input-) (factory-of -input-) -input- nil (value-of -input-)))
                             (commitable? (not (null (funcall (factory-of -input-) (factory-of -input-) -input- nil (string+ (value-of -input-) completion)))))
                             (value-color (if commitable? *color/solarized/green* *color/solarized/red*)))
@@ -287,7 +287,7 @@
 
 (def printer s-expression/comment->syntax/node ()
   (bind ((content-iomap (as (recurse-printer -recursion- (content-of -input-) -input-reference-)))
-         (output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+         (output-selection (as (print-selection -printer-iomap-)))
          ;; TODO:
          (output (as (make-syntax/node (list (syntax/leaf (:selection (as (nthcdr 2 (va output-selection))))
                                                (output-of (va content-iomap))))
@@ -297,13 +297,13 @@
     (make-iomap -projection- -recursion- -input- -input-reference- output)))
 
 (def printer s-expression/number->syntax/leaf ()
-  (bind ((output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+  (bind ((output-selection (as (print-selection -printer-iomap-)))
          (output (as (syntax/leaf (:selection output-selection :indentation (indentation-of -input-))
                        (text/make-default-text (write-number (value-of -input-) nil) "enter lisp number" :selection (as (nthcdr 1 (va output-selection))) :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/magenta*)))))
     (make-iomap -projection- -recursion- -input- -input-reference- output)))
 
 (def printer s-expression/symbol->syntax/leaf ()
-  (bind ((output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+  (bind ((output-selection (as (print-selection -printer-iomap-)))
          (output (as (bind ((font-color (or (font-color-of -input-) *color/solarized/violet*))
                             (name (name-of -input-))
                             (name-string (string-downcase (if (string= "KEYWORD" (package-of -input-)) (string+ ":" name) name))))
@@ -317,7 +317,7 @@
 
 (def printer s-expression/string->syntax/leaf ()
   (bind ((value (write-to-string (value-of -input-)))
-         (output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+         (output-selection (as (print-selection -printer-iomap-)))
          (output (as (syntax/leaf (:selection output-selection :indentation (indentation-of -input-)
                                    :opening-delimiter (text/text () (text/string "\"" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
                                    :closing-delimiter (text/text () (text/string "\"" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*)))
@@ -328,7 +328,7 @@
   (bind ((value-iomap (as (recurse-printer -recursion- (value-of -input-)
                                            `((value-of (the sequence document))
                                              ,@(typed-reference (document-type -input-) -input-reference-)))))
-         (output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+         (output-selection (as (print-selection -printer-iomap-)))
          (output (as (syntax/node (:selection output-selection :indentation (indentation-of -input-)
                                    :opening-delimiter (text/text () (text/string "'" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*)))
                        (output-of (va value-iomap))))))
@@ -342,7 +342,7 @@
                                                              `((elt (the sequence document) ,index)
                                                                (the sequence (elements-of (the document list-form/list)))
                                                                ,@(typed-reference (document-type -input-) -input-reference-)))))))
-         (output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+         (output-selection (as (print-selection -printer-iomap-)))
          (output (as (bind ((separator-font-color *color/solarized/gray*)
                             (separator-fill-color nil))
                        (make-syntax/node (as (map-ll (ll (va element-iomaps))
@@ -371,7 +371,7 @@
     (make-iomap/compound -projection- -recursion- -input- -input-reference- output element-iomaps)))
 
 (def printer s-expression/object->syntax/leaf ()
-  (bind ((output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+  (bind ((output-selection (as (print-selection -printer-iomap-)))
          (output (as (syntax/leaf (:selection output-selection)
                        (text/text (:selection (as (nthcdr 1 (va output-selection))))
                          (text/string (write-to-string -input-) :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/red*))))))
@@ -383,7 +383,7 @@
                                                                                `((elt (the sequence document) ,index)
                                                                                  (the sequence (elements-of (the s-expression/toplevel document)))
                                                                                  ,@(typed-reference (document-type -input-) -input-reference-)))))))
-         (output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+         (output-selection (as (print-selection -printer-iomap-)))
          (output (as (make-syntax/node (map-ll (va element-iomaps) 'output-of)
                                        :indentation (indentation-of -input-)
                                        :collapsed (as (collapsed-p -input-))
@@ -399,7 +399,7 @@
                              (declare (ignore child-selection child-iomap))
                              (typecase operation
                                (operation/text/replace-range
-                                (pattern-case selection
+                                (reference-case selection
                                   (((the string (value-of (the s-expression/insertion document)))
                                     (the string (subseq (the string document) ?start-index ?end-index)))
                                    (make-operation/string/replace-range -printer-input- selection (replacement-of operation)))))))))
@@ -415,7 +415,7 @@
                              (declare (ignore child-selection child-iomap))
                              (typecase operation
                                (operation/text/replace-range
-                                (pattern-case selection
+                                (reference-case selection
                                   (((the ?type (value-of (the s-expression/number document)))
                                     (the string (write-to-string (the ?type document)))
                                     (the string (subseq (the string document) ?start-index ?end-index)))
@@ -439,7 +439,7 @@
                              (declare (ignore child-selection child-iomap))
                              (typecase operation
                                (operation/text/replace-range
-                                (pattern-case selection
+                                (reference-case selection
                                   (((the string (name-of (the s-expression/symbol document)))
                                     (the string (subseq (the string document) ?start-index ?end-index)))
                                    (make-operation/string/replace-range -printer-input- selection (replacement-of operation)))
@@ -460,7 +460,7 @@
                              (declare (ignore child-selection child-iomap))
                              (typecase operation
                                (operation/text/replace-range
-                                (pattern-case selection
+                                (reference-case selection
                                   (((the string (value-of (the s-expression/string document)))
                                     (the string (subseq (the string document) ?start-index ?end-index)))
                                    (make-operation/string/replace-range -printer-input- selection (replacement-of operation)))

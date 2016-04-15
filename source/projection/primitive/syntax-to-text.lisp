@@ -141,7 +141,7 @@
 
 (def forward-mapper syntax/leaf->text/text ()
   (bind ((content-iomap (content-iomap-of -printer-iomap-)))
-    (pattern-case -reference-
+    (reference-case -reference-
       (((the syntax/leaf document))
        (bind ((start-index (aif (opening-delimiter-of -printer-input-) (- (text/length it)) 0))
               (end-index (+ (text/length (output-of content-iomap)) (aif (closing-delimiter-of -printer-input-) (text/length it) 0))))
@@ -195,7 +195,7 @@
   nil)
 
 (def backward-mapper syntax/leaf->text/text ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the text/text (text/subseq (the text/text document) ?start-character-index ?end-character-index)))
      (bind ((content-iomap (content-iomap-of -printer-iomap-))
             (content-output (output-of content-iomap))
@@ -219,7 +219,7 @@
   nil)
 
 (def backward-mapper syntax/node->text/text ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the text/text (text/subseq (the text/text document) ?parent-start-character-index ?parent-end-character-index)) . ?rest)
      (bind (((:values child-start-index child-start-character-index) (find-child-character-index -printer-iomap- ?parent-start-character-index))
             ((:values child-end-index child-end-character-index) (find-child-character-index -printer-iomap- ?parent-end-character-index)))
@@ -248,7 +248,7 @@
   (bind ((content-iomap (as (recurse-printer -recursion- (content-of -input-)
                                              `(((content-of (the ,(document-type -input-) document)))
                                                ,@(typed-reference (document-type -input-) -input-reference-)))))
-         (output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+         (output-selection (as (print-selection -printer-iomap-)))
          (output-elements (as (bind ((output-delimiters? (output-delimiters-p -projection-))
                                      (opening-delimiter (opening-delimiter-of -input-))
                                      (closing-delimiter (closing-delimiter-of -input-)))
@@ -263,7 +263,7 @@
   (bind ((content-iomap (as (recurse-printer -recursion- (content-of -input-)
                                              `(((content-of (the ,(document-type -input-) document)))
                                                ,@(typed-reference (document-type -input-) -input-reference-)))))
-         (output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+         (output-selection (as (print-selection -printer-iomap-)))
          (output-elements (as ;; TODO: indent all lines
                             (elements-of (output-of (va content-iomap)))))
          (output (text/make-text output-elements :selection output-selection)))
@@ -273,7 +273,7 @@
   (bind ((content-iomap (as (recurse-printer -recursion- (content-of -input-)
                                              `(((content-of (the ,(document-type -input-) document)))
                                                ,@(typed-reference (document-type -input-) -input-reference-)))))
-         (output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+         (output-selection (as (print-selection -printer-iomap-)))
          (output-elements (as (concatenate-ll 0
                                               ;; TODO: get first line
                                               (elements-of (output-of (va content-iomap)))
@@ -287,7 +287,7 @@
 (def printer syntax/leaf->text/text ()
   (bind ((content-reference `(((content-of (the ,(document-type -input-) document))) ,@(typed-reference (document-type -input-) -input-reference-)))
          (content-iomap (as (recurse-printer -recursion- (content-of -input-) content-reference)))
-         (output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+         (output-selection (as (print-selection -printer-iomap-)))
          (output-elements (as (bind ((output-delimiters? (output-delimiters-p -projection-))
                                      (opening-delimiter (opening-delimiter-of -input-))
                                      (closing-delimiter (closing-delimiter-of -input-)))
@@ -302,7 +302,7 @@
                    :content-iomap content-iomap)))
 
 (def printer syntax/separation->text/text ()
-  (bind ((output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+  (bind ((output-selection (as (print-selection -printer-iomap-)))
          (output-elements nil)
          (output (text/make-text output-elements :selection output-selection)))
     (make-iomap -projection- -recursion- -input- -input-reference- output)))
@@ -409,7 +409,7 @@
                                                                         :font (font-of (last-elt (elements-of (output-of (content-iomap-of (value-of (first-element (va node-child-iomaps))))))))
                                                                         :font-color *color/solarized/gray*)))
                                                 (when (and output-delimiters? closing-delimiter) (elements-of closing-delimiter))))))
-         (output-selection (as (pattern-case (get-selection -input-)
+         (output-selection (as (reference-case (get-selection -input-)
                                  (((the syntax/node document))
                                   (bind ((text (text/make-text output-elements))
                                          (origin-position (text/origin-position text))
@@ -434,7 +434,7 @@
                                    (the ?child-type (elt (the sequence document) ?child-index))
                                    . ?rest)
                                   (bind ((child-iomap (elt (va node-child-iomaps) ?child-index)))
-                                    (pattern-case (get-selection (output-of (content-iomap-of child-iomap)))
+                                    (reference-case (get-selection (output-of (content-iomap-of child-iomap)))
                                       (((the text/text (text/subseq (the text/text document) ?child-character-index ?child-character-index)))
                                        (bind ((character-index (find-parent-character-index child-iomap ?child-character-index)))
                                          `((the text/text (text/subseq (the text/text document) ,character-index ,character-index)))))
@@ -488,7 +488,7 @@
   (bind ((selection (get-selection -printer-input-))
          (text-selection? (text/reference? selection))
          (syntax-selection? (syntax/reference? selection)))
-    (merge-commands (pattern-case selection
+    (merge-commands (reference-case selection
                       (((the ?content-type (content-of (the syntax/leaf document))) . ?rest)
                        (bind ((content-iomap (content-iomap-of -printer-iomap-))
                               (output-operation (operation-of (recurse-reader -recursion- (make-nothing-command -gesture-) content-iomap))))
@@ -530,7 +530,7 @@
   (bind ((selection (get-selection -printer-input-))
          (text-selection? (text/reference? selection))
          (syntax-selection? (syntax/reference? selection)))
-    (merge-commands (pattern-case selection
+    (merge-commands (reference-case selection
                       (((the sequence (children-of (the syntax/node document)))
                         (the ?element-type (elt (the sequence document) ?element-index)) . ?rest)
                        (bind ((child-iomap (content-iomap-of (elt (child-iomaps-of -printer-iomap-) ?element-index)))
@@ -552,7 +552,7 @@
                       ((make-key-press-gesture :scancode-space :control)
                        :domain "Syntax" :description "Turns the selection into a tree node selection"
                        :operation (when text-selection?
-                                    (pattern-case selection
+                                    (reference-case selection
                                       ((?or ((the text/text (printer-output (the syntax/node document) ?projection ?recursion))
                                              (the text/text (text/subseq (the text/text document) ?start-index ?end-index)))
                                             ((the text/text (opening-delimiter-of (the syntax/node document)))
@@ -572,7 +572,7 @@
                       ((make-key-press-gesture :scancode-up)
                        :domain "Syntax" :description "Moves the selection to the parent node"
                        :operation (when syntax-selection?
-                                    (pattern-case selection
+                                    (reference-case selection
                                       (((the sequence (children-of (the syntax/node document)))
                                         (the ?child-type (elt (the sequence document) ?child-index))
                                         (the ?child-type document))
@@ -580,7 +580,7 @@
                       ((make-key-press-gesture :scancode-down)
                        :domain "Syntax" :description "Moves the selection to the first child node"
                        :operation (when syntax-selection?
-                                    (pattern-case selection
+                                    (reference-case selection
                                       (((the syntax/node document))
                                        (bind ((child-type (type-of (elt (children-of -printer-input-) 0))))
                                          (make-operation/replace-selection -printer-input- `((the sequence (children-of (the syntax/node document)))
@@ -589,7 +589,7 @@
                       ((make-key-press-gesture :scancode-home)
                        :domain "Syntax" :description "Moves the selection to the first sibling node"
                        :operation (when syntax-selection?
-                                    (pattern-case selection
+                                    (reference-case selection
                                       (((the sequence (children-of (the syntax/node document)))
                                         (the ?child-type (elt (the sequence document) ?child-index))
                                         (the ?child-type document))
@@ -600,7 +600,7 @@
                       ((make-key-press-gesture :scancode-end)
                        :domain "Syntax" :description "Moves the selection to the last sibling node"
                        :operation (when syntax-selection?
-                                    (pattern-case selection
+                                    (reference-case selection
                                       (((the sequence (children-of (the syntax/node document)))
                                         (the ?child-type (elt (the sequence document) ?child-index))
                                         (the ?child-type document))
@@ -612,7 +612,7 @@
                       ((make-key-press-gesture :scancode-left)
                        :domain "Syntax" :description "Moves the selection to the preceding sibling node"
                        :operation (when syntax-selection?
-                                    (pattern-case selection
+                                    (reference-case selection
                                       (((the sequence (children-of (the syntax/node document)))
                                         (the ?child-type (elt (the sequence document) ?child-index))
                                         (the ?child-type document))
@@ -624,7 +624,7 @@
                       ((make-key-press-gesture :scancode-right)
                        :domain "Syntax" :description "Moves the selection to the following sibling node"
                        :operation (when syntax-selection?
-                                    (pattern-case selection
+                                    (reference-case selection
                                       (((the sequence (children-of (the syntax/node document)))
                                         (the ?child-type (elt (the sequence document) ?child-index))
                                         (the ?child-type document))
@@ -636,7 +636,7 @@
                       ((make-key-press-gesture :scancode-up :alt)
                        :domain "Syntax" :description "Moves the selection to the first character of the parent node"
                        :operation (when text-selection?
-                                    (pattern-case selection
+                                    (reference-case selection
                                       ((?or ((the sequence (children-of (the syntax/node document)))
                                              (the syntax/node (elt (the sequence document) ?child-index))
                                              (the text/text (printer-output (the syntax/node document) ?projection ?recursion))
@@ -652,7 +652,7 @@
                       ((make-key-press-gesture :scancode-down :alt)
                        :domain "Syntax" :description "Moves the selection to the first character of the first child node"
                        :operation (when text-selection?
-                                    (pattern-case selection
+                                    (reference-case selection
                                       ((?or ((the text/text (printer-output (the syntax/node document) ?projection ?recursion))
                                              . ?rest)
                                             ((the text/text (opening-delimiter-of (the syntax/node document)))
@@ -663,7 +663,7 @@
                       ((make-key-press-gesture :scancode-home :alt)
                        :domain "Syntax" :description "Moves the selection to the first character of the first sibling node"
                        :operation (when text-selection?
-                                    (pattern-case selection
+                                    (reference-case selection
                                       ((?or ((the sequence (children-of (the syntax/node document)))
                                              (the syntax/node (elt (the sequence document) ?child-index))
                                              (the text/text (printer-output (the syntax/node document) ?projection ?recursion))
@@ -679,7 +679,7 @@
                       ((make-key-press-gesture :scancode-end :alt)
                        :domain "Syntax" :description "Moves the selection to the first character of the last sibling node"
                        :operation (when text-selection?
-                                    (pattern-case selection
+                                    (reference-case selection
                                       ((?or ((the sequence (children-of (the syntax/node document)))
                                              (the syntax/node (elt (the sequence document) ?child-index))
                                              (the text/text (printer-output (the syntax/node document) ?projection ?recursion))
@@ -695,7 +695,7 @@
                       ((make-key-press-gesture :scancode-left :alt)
                        :domain "Syntax" :description "Moves the selection to the first character of the preceding sibling node"
                        :operation (when text-selection?
-                                    (pattern-case selection
+                                    (reference-case selection
                                       ((?or ((the sequence (children-of (the syntax/node document)))
                                              (the syntax/node (elt (the sequence document) ?child-index))
                                              (the text/text (printer-output (the syntax/node document) ?projection ?recursion))
@@ -712,7 +712,7 @@
                       ((make-key-press-gesture :scancode-right :alt)
                        :domain "Syntax" :description "Moves the selection to the first character of the following sibling node"
                        :operation (when text-selection?
-                                    (pattern-case selection
+                                    (reference-case selection
                                       ((?or ((the sequence (children-of (the syntax/node document)))
                                              (the syntax/node (elt (the sequence document) ?child-index))
                                              (the text/text (printer-output (the syntax/node document) ?projection ?recursion))
@@ -728,7 +728,7 @@
                                          (make-operation/replace-selection -printer-input- (syntax/make-text-reference -projection- -recursion- -printer-iomap- (1+ ?child-index))))))))
                       ((make-key-press-gesture :scancode-delete)
                        :domain "Syntax" :description "Deletes the selected child from the node"
-                       :operation (pattern-case selection
+                       :operation (reference-case selection
                                     (((the sequence (children-of (the syntax/node document)))
                                       (the ?type (elt (the sequence document) ?index))
                                       (the ?type document))
@@ -737,7 +737,7 @@
                                                                             nil))))
                       ((make-key-press-gesture :scancode-k :control)
                        :domain "Syntax" :description "Deletes the selected child from the node"
-                       :operation (pattern-case selection
+                       :operation (reference-case selection
                                     (((the sequence (children-of (the syntax/node document)))
                                       (the ?type (elt (the sequence document) ?index))
                                       . ?rest)
@@ -746,7 +746,7 @@
                                                                             nil))))
                       ((make-key-press-gesture :scancode-t :control)
                        :domain "Syntax" :description "Transposes the selected child and the following sibling"
-                       :operation (pattern-case selection
+                       :operation (reference-case selection
                                     (((the sequence (children-of (the syntax/node document)))
                                       (the ?type (elt (the sequence document) ?index))
                                       . ?rest)

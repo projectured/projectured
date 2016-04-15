@@ -37,7 +37,7 @@
 ;;; Printer
 
 (def printer document/nothing->syntax/leaf ()
-  (bind ((output-selection (as (pattern-case (get-selection -input-)
+  (bind ((output-selection (as (reference-case (get-selection -input-)
                                  (((the string (value-of (the document/nothing document)))
                                    (the string (subseq (the string document) ?character-index ?character-index)))
                                   `((the text/text (content-of (the syntax/leaf document)))
@@ -48,7 +48,7 @@
     (make-iomap -projection- -recursion- -input- -input-reference- output)))
 
 (def printer document/insertion->syntax/leaf ()
-  (bind ((output-selection (as (pattern-case (get-selection -input-)
+  (bind ((output-selection (as (reference-case (get-selection -input-)
                                  (((the string (value-of (the document/insertion document)))
                                    (the string (subseq (the string document) ?character-index ?character-index)))
                                   (bind ((character-index (+ (length (prefix-of -input-)) ?character-index)))
@@ -91,7 +91,7 @@
                                              (operation/quit operation)
                                              (operation/functional operation)
                                              (operation/replace-selection
-                                              (awhen (pattern-case (selection-of operation)
+                                              (awhen (reference-case (selection-of operation)
                                                        (((the text/text (content-of (the syntax/leaf document)))
                                                          (the text/text (text/subseq (the text/text document) ?character-index ?character-index)))
                                                         `((the string (value-of (the document/nothing document)))
@@ -145,7 +145,7 @@
                                              (operation/functional operation)
                                              (operation/replace-selection
                                               (make-operation/replace-selection -printer-input-
-                                                                                (pattern-case (selection-of operation)
+                                                                                (reference-case (selection-of operation)
                                                                                   (((the text/text (content-of (the syntax/leaf document)))
                                                                                     (the text/text (text/subseq (the text/text document) ?character-index ?character-index)))
                                                                                    (bind ((prefix-start-index 0)
@@ -169,7 +169,7 @@
                                              (operation/text/replace-range
                                               (awhen (bind ((value-start-index (length (prefix-of -printer-input-)))
                                                             (value-end-index (+ value-start-index (length (value-of -printer-input-)))))
-                                                       (pattern-case (selection-of operation)
+                                                       (reference-case (selection-of operation)
                                                          (((the text/text (content-of (the syntax/leaf document)))
                                                            (the text/text (text/subseq (the text/text document) ?start-character-index ?end-character-index)))
                                                           (when (and (<= value-start-index ?start-character-index value-end-index) (<= value-start-index ?end-character-index value-end-index))

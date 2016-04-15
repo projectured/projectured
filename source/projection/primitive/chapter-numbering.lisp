@@ -37,7 +37,7 @@
          (output (make-book/chapter (map-ll (va element-iomaps) 'output-of)
                                     :title (as (title-of -input-))
                                     :collapsed (as (collapsed-p -input-))
-                                    :numbering (as (pattern-case -input-reference-
+                                    :numbering (as (reference-case -input-reference-
                                                      (((elt (the sequence document) ?subchapter-element-index)
                                                        (the sequence (elements-of (the book/chapter document)))
                                                        (the book/chapter (elt (the sequence document) ?chapter-element-index))

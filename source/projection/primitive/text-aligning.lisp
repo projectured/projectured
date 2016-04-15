@@ -28,7 +28,7 @@
 ;;; Forward mappper
 
 (def forward-mapper text-aligning ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the ?type (content-of (the book/paragraph document)))
       . ?rest)
      (values nil
@@ -39,7 +39,7 @@
 ;;; Backward mappper
 
 (def backward-mapper text-aligning ()
-  (pattern-case -reference-
+  (reference-case -reference-
     ((?or nil ((the text/text (text/subseq (the text/text document) ?start-index ?end-index))))
      (values `((the ,(document-type (content-of (input-of -printer-iomap-))) (content-of (the book/paragraph document))))
              -reference-
@@ -118,7 +118,7 @@
                                                            (make-element it)))))))
                         (when (elements-of text)
                           (make-element (text/origin-position (output-of (va content-iomap)))))))))
-         (output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+         (output-selection (as (print-selection -printer-iomap-)))
          (output (if (eq (alignment-of -input-) :left)
                      (as (output-of (va content-iomap)))
                      (text/make-text (as (append-ll (va lines))) :selection output-selection))))

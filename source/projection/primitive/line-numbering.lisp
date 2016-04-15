@@ -48,7 +48,7 @@
                   (text/length -printer-input- (text/first-position -printer-input-) (text/origin-position -printer-input-))
                   (* (1+ (line-number-length-of -printer-iomap-))
                      (1+ line-count))))))
-    (pattern-case -reference-
+    (reference-case -reference-
       (((the text/text (text/subseq (the text/text ?a) ?b ?c)))
        `((the text/text (text/subseq (the text/text document) ,(map-character-index ?b) ,(map-character-index ?c)))))
       (((the text/text (text/subbox (the text/text document) ?start-character-index ?end-character-index)))
@@ -68,7 +68,7 @@
                (values line-number? new-line-count (if line-number?
                                                        (- character-index origin-character-index line-start-character-index)
                                                        (- character-index origin-character-index (* (1+ line-number-length) (1+ new-line-count))))))))
-    (pattern-case -reference-
+    (reference-case -reference-
       (((the text/text (text/subseq (the text/text ?a) ?b ?b)))
        (bind (((:values line-number? line-index input-character-index) (map-character-index ?b)))
          (declare (ignore line-index))
@@ -90,7 +90,7 @@
 
 (def printer line-numbering ()
   (bind ((line-number-length (as (1+ (floor (log (1+ (text/count -input- #\NewLine))) (log 10)))))
-         (output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+         (output-selection (as (print-selection -printer-iomap-)))
          (output (as (text/make-text (as (bind ((elements nil)
                                                 (line-index 0)
                                                 (line-number-format-string (format nil "\~~~A,' D " (va line-number-length))))

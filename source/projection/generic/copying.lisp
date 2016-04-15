@@ -38,7 +38,7 @@
     (number -reference-)
     (string -reference-)
     (sequence
-     (pattern-case -reference-
+     (reference-case -reference-
        (((the ?type (elt (the sequence document) ?index)) . ?rest)
         (bind ((output-element (output-of (elt (child-iomaps-of -printer-iomap-) ?index))))
           (values `((the ,(document-type output-element) (elt (the sequence document) ,?index)))
@@ -46,7 +46,7 @@
                   (elt (child-iomaps-of -printer-iomap-) ?index))))
        (?a -reference-)))
     (standard-object
-     (pattern-case -reference-
+     (reference-case -reference-
        (((the ?type (?reader (the ?input-type document))) . ?rest)
         (bind ((class (class-of -printer-input-))
                (slots (remove-if (lambda (slot) (member (slot-definition-name slot) '(selection))) (class-slots class)))
@@ -66,7 +66,7 @@
     (number -reference-)
     (string -reference-)
     (sequence
-     (pattern-case -reference-
+     (reference-case -reference-
        (((the ?type (elt (the sequence document) ?index)) . ?rest)
         (bind ((input-element (input-of (elt (child-iomaps-of -printer-iomap-) ?index))))
           (values `((the ,(document-type input-element) (elt (the sequence document) ,?index)))
@@ -74,7 +74,7 @@
                   (elt (child-iomaps-of -printer-iomap-) ?index))))
        (?a -reference-)))
     (standard-object
-     (pattern-case -reference-
+     (reference-case -reference-
        (((the ?type (?reader (the ?input-type document))) . ?rest)
         (bind ((class (class-of -printer-input-))
                (slots (remove-if (lambda (slot) (member (slot-definition-name slot) '(selection))) (class-slots class)))

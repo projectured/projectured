@@ -37,7 +37,7 @@
 ;;; Forward mapper
 
 (def forward-mapper evaluator/toplevel->syntax/node ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the sequence (elements-of (the evaluator/toplevel document)))
       (the ?type (elt (the sequence document) ?index))
       . ?rest)
@@ -48,7 +48,7 @@
                form-iomap)))))
 
 (def forward-mapper evaluator/form->syntax/node ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the ?type (form-of (the evaluator/form document)))
       . ?rest)
      (bind ((form-iomap (elt (child-iomaps-of -printer-iomap-) 0)))
@@ -68,7 +68,7 @@
 ;;; Backward mapper
 
 (def backward-mapper evaluator/toplevel->syntax/node ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the sequence (children-of (the syntax/node document)))
       (the ?type (elt (the sequence document) ?index))
       . ?rest)
@@ -79,7 +79,7 @@
                form-iomap)))))
 
 (def backward-mapper evaluator/form->syntax/node ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the sequence (children-of (the syntax/node document)))
       (the ?type (elt (the sequence document) 1))
       . ?rest)
@@ -105,7 +105,7 @@
                                                                                     `((elt (the sequence document) ,index)
                                                                                       (the sequence (elements-of (the evaluator/toplevel document)))
                                                                                       ,@(typed-reference (document-type -input-) -input-reference-)))))))
-         (output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+         (output-selection (as (print-selection -printer-iomap-)))
          (output (as (make-syntax/node (map-ll (va element-iomaps) #'output-of)
                                        :separator (text/text () (text/string " " :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
                                        :selection output-selection))))
@@ -119,7 +119,7 @@
                              (recurse-printer -recursion- (result-of -input-)
                                               `((result-of (the evaluator/form document))
                                                 ,@(typed-reference (document-type -input-) -input-reference-))))))
-         (output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+         (output-selection (as (print-selection -printer-iomap-)))
          (output (as (make-syntax/node (list (syntax/leaf (:selection (as (nthcdr 2 (va output-selection))))
                                                (text/text (:selection (as (nthcdr 3 (va output-selection))))
                                                  (text/string ">" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*)))

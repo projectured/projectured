@@ -62,14 +62,14 @@
 ;;; Forward mapper
 
 (def forward-mapper xml/insertion->syntax/leaf ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the string (value-of (the xml/insertion document)))
       (the string (subseq (the string document) 0 0)))
      `((the text/text (content-of (the syntax/leaf document)))
        (the text/text (text/subseq (the text/text document) 0 0))))))
 
 (def forward-mapper xml/text->syntax/leaf ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the xml/text document))
      '((the syntax/leaf document)))
     (((the string (value-of (the xml/text document)))
@@ -78,7 +78,7 @@
        (the text/text (text/subseq (the text/text document) ,?start-index ,?end-index))))))
 
 (def forward-mapper xml/attribute->syntax/node ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the xml/attribute document))
      '((the syntax/node document)))
     (((the string (name-of (the xml/attribute document)))
@@ -95,7 +95,7 @@
        (the text/text (text/subseq (the text/text document) ,?start-character-index ,?end-character-index))))))
 
 (def forward-mapper xml/element->syntax/node ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the xml/element document))
      '((the syntax/node document)))
     (((the string (xml/start-tag (the xml/element document)))
@@ -135,14 +135,14 @@
 ;;; Backward mapper
 
 (def backward-mapper xml/insertion->syntax/leaf ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the text/text (content-of (the syntax/leaf document)))
       (the text/text (text/subseq (the text/text document) 0 0)))
      `((the string (value-of (the xml/insertion document)))
        (the string (subseq (the string document) 0 0))))))
 
 (def backward-mapper xml/text->syntax/leaf ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the syntax/leaf document))
      '((the xml/text document)))
     (((the text/text (content-of (the syntax/leaf document)))
@@ -152,7 +152,7 @@
          (the string (subseq (the string document) ,?start-index ,?end-index)))))))
 
 (def backward-mapper xml/attribute->syntax/node ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the syntax/node document))
      '((the xml/attribute document)))
     (((the sequence (children-of (the syntax/node document)))
@@ -173,7 +173,7 @@
 (def backward-mapper xml/element->syntax/node ()
   (bind ((first-child-index (if (attribute-iomaps-of -printer-iomap-) 2 1))
          (last-child-index (+ first-child-index (1- (length (children-of -printer-input-))))))
-    (pattern-case -reference-
+    (reference-case -reference-
       (((the syntax/node document))
        '((the xml/element document)))
       (((the sequence (children-of (the syntax/node document)))
@@ -185,21 +185,21 @@
         (the ?child-type (elt (the sequence document) ?child-index))
         . ?rest)
        (econd ((= 0 ?child-index)
-               (pattern-case ?rest
+               (reference-case ?rest
                  (((the text/text (content-of (the syntax/leaf document)))
                    (the text/text (text/subseq (the text/text document) ?start-character-index ?end-character-index)))
                   (unless (string= (name-of -printer-input-) "")
                     `((the string (xml/start-tag (the xml/element document)))
                       (the string (subseq (the string document) ,?start-character-index ,?end-character-index)))))))
               ((= (1+ last-child-index) ?child-index)
-               (pattern-case ?rest
+               (reference-case ?rest
                  (((the text/text (content-of (the syntax/leaf document)))
                    (the text/text (text/subseq (the text/text document) ?start-character-index ?end-character-index)))
                   (unless (string= (name-of -printer-input-) "")
                     `((the string (xml/end-tag (the xml/element document)))
                       (the string (subseq (the string document) ,?start-character-index ,?end-character-index)))))))
               ((< ?child-index first-child-index)
-               (pattern-case ?rest
+               (reference-case ?rest
                  (((the sequence (children-of (the syntax/node document)))
                    (the ?attribute-type (elt (the sequence document) ?attribute-index))
                    . ?rest)
@@ -222,20 +222,20 @@
 ;;; Printer
 
 (def printer xml/insertion->syntax/leaf ()
-  (bind ((output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+  (bind ((output-selection (as (print-selection -printer-iomap-)))
          (output (as (syntax/leaf (:selection output-selection)
                        (text/text (:selection (as (nthcdr 1 (va output-selection))))
                          (text/string (value-of -input-) :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/blue*))))))
     (make-iomap -projection- -recursion- -input- -input-reference- output)))
 
 (def printer xml/text->syntax/leaf ()
-  (bind ((output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+  (bind ((output-selection (as (print-selection -printer-iomap-)))
          (output (as (syntax/leaf (:selection output-selection)
                        (text/make-default-text (value-of -input-) "enter xml text" :selection (as (nthcdr 1 (va output-selection))) :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/green*)))))
     (make-iomap -projection- -recursion- -input- -input-reference- output)))
 
 (def printer xml/attribute->syntax/node ()
-  (bind ((output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+  (bind ((output-selection (as (print-selection -printer-iomap-)))
          (output (as (syntax/node (:separator (text/text () (text/string "=" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
                                   :selection output-selection)
                        (syntax/leaf (:selection (as (nthcdr 2 (va output-selection))))
@@ -259,7 +259,7 @@
                                                                            `((elt (the sequence document) ,index)
                                                                              (the sequence (children-of (the xml/element document)))
                                                                              ,@(typed-reference (document-type -input-) -input-reference-)))))))
-         (output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+         (output-selection (as (print-selection -printer-iomap-)))
          (output (as (bind ((children (children-of -input-))
                             (element-name (text/make-default-text (name-of -input-) "enter xml element name" :selection (as (nthcdr 3 (va output-selection))) :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/blue*)))
                        (make-syntax/node (append-ll (ll (append (list (ll (list (syntax/leaf (:opening-delimiter (text/text () (text/string "<" :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/gray*))
@@ -322,7 +322,7 @@
                              (declare (ignore child-selection child-iomap))
                              (typecase operation
                                (operation/text/replace-range
-                                (pattern-case selection
+                                (reference-case selection
                                   (((the string (value-of (the xml/text document)))
                                     (the string (subseq (the string document) ?start-character-index ?end-character-index)))
                                    (make-operation/string/replace-range -printer-input- selection (replacement-of operation)))
@@ -339,7 +339,7 @@
                              (declare (ignore child-selection child-iomap))
                              (typecase operation
                                (operation/text/replace-range
-                                (pattern-case selection
+                                (reference-case selection
                                   (((the string (name-of (the xml/attribute document)))
                                     (the string (subseq (the string document) ?start-character-index ?end-character-index)))
                                    (make-operation/string/replace-range -printer-input- selection (replacement-of operation)))
@@ -365,7 +365,7 @@
     (merge-commands (gesture-case -gesture-
                       ((make-type-in-gesture #\=)
                        :domain "XML" :description "Moves the selection to the value"
-                       :operation (pattern-case (selection-of -printer-input-)
+                       :operation (reference-case (selection-of -printer-input-)
                                     (((the string (name-of (the xml/attribute document)))
                                       (the string (subseq (the string document) ?start-character-index ?end-character-index)))
                                      (make-operation/replace-selection -printer-input-
@@ -379,7 +379,7 @@
                              (declare (ignore child-selection child-iomap))
                              (typecase operation
                                (operation/text/replace-range
-                                (pattern-case selection
+                                (reference-case selection
                                   (((the string (xml/start-tag (the xml/element document)))
                                     (the string (subseq (the string document) ?start-character-index ?end-character-index)))
                                    (make-operation/string/replace-range -printer-input- selection (replacement-of operation)))
@@ -417,7 +417,7 @@
                                                                                                                        (the string (subseq (the string document) 0 0))))))))
                       ((make-key-press-gesture :scancode-space)
                        :domain "XML" :description "Inserts a new XML attribute into the attributes of the XML element"
-                       :operation (pattern-case (selection-of -printer-input-)
+                       :operation (reference-case (selection-of -printer-input-)
                                     ((?or ((the string (xml/start-tag (the xml/element document)))
                                            (the string (subseq (the string document) ?start-index ?end-index)))
                                           ((the sequence (attributes-of (the xml/element document)))

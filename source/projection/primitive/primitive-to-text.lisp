@@ -46,7 +46,7 @@
 ;;; Forward mapper
 
 (def forward-mapper primitive/number->text/text ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the primitive/number document))
      '((the string document)))
     (((the number (value-of (the primitive/number document)))
@@ -58,7 +58,7 @@
 ;;; Backward mapper
 
 (def backward-mapper primitive/number->text/text ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the string document))
      '((the primitive/number document)))
     (((the text/text (text/subseq (the text/text document) ?start-index ?end-index)))
@@ -70,19 +70,19 @@
 ;;; Printer
 
 (def printer primitive/boolean->text/text ()
-  (bind ((output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+  (bind ((output-selection (as (print-selection -printer-iomap-)))
          (output (as (text/text (:selection output-selection)
                        (text/string (if (value-of -input-) "true" "false"))))))
     (make-iomap -projection- -recursion- -input- -input-reference- output)))
 
 (def printer primitive/number->text/text ()
-  (bind ((output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+  (bind ((output-selection (as (print-selection -printer-iomap-)))
          (output (as (text/text (:selection output-selection)
                        (text/string (write-to-string (value-of -input-)))))))
     (make-iomap -projection- -recursion- -input- -input-reference- output)))
 
 (def printer primitive/string->text/text ()
-  (bind ((output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+  (bind ((output-selection (as (print-selection -printer-iomap-)))
          (output (as (text/text (:selection output-selection)
                        (text/string (value-of -input-))))))
     (make-iomap -projection- -recursion- -input- -input-reference- output)))
@@ -99,7 +99,7 @@
                              (declare (ignore child-selection child-iomap))
                              (typecase operation
                                (operation/text/replace-range
-                                (pattern-case selection
+                                (reference-case selection
                                   (((the number (value-of (the primitive/number document)))
                                     (the string (write-to-string (the number document)))
                                     (the string (subseq (the string document) ?start-index ?end-index)))

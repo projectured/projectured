@@ -39,7 +39,7 @@
          (type-color (type-color-of -projection-))
          (static-color (static-color-of -projection-)))
     (labels ((recurse (path)
-               (pattern-case path
+               (reference-case path
                  (()
                   nil)
                  (((the ?a document) . ?rest)
@@ -118,7 +118,7 @@
                         (text/string (write-to-string path) :font font :font-color type-color)
                         (text/newline :font font))))))
       (bind ((output (if (path-of -input-)
-                         (text/make-text (butlast (recurse (reverse (path-of -input-)))))
+                         (text/make-text (butlast (recurse (reverse (coerce (path-of -input-) 'list)))))
                          (text/text ()
                            (text/string "The " :font static-font :font-color static-color)
                            (text/string (symbol-name (document-type -input-)) :font font :font-color type-color)

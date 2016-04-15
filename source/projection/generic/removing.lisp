@@ -56,7 +56,7 @@
                                 (finally (nreversef input-indices))))
          (output (etypecase -input-
                    (collection/sequence
-                       (bind ((output-selection (pattern-case (selection-of -input-)
+                       (bind ((output-selection (reference-case (selection-of -input-)
                                                   (((the ?element-type (elt (the sequence document) ?element-index))
                                                     . ?rest)
                                                    (append `((the ,?element-type (elt (the sequence document) ,(position ?element-index input-indices)))) ?rest)))))
@@ -79,13 +79,13 @@
                              (operation/functional operation)
                              (operation/replace-selection
                               (awhen (when (typep -printer-input- 'collection/sequence)
-                                       (pattern-case (selection-of operation)
+                                       (reference-case (selection-of operation)
                                          (((the ?element-type (elt (the sequence document) ?element-index)) . ?rest)
                                           (append `((the ,?element-type (elt (the sequence document) ,(elt (input-indices-of -printer-iomap-) ?element-index)))) ?rest))))
                                 (make-operation/replace-selection -printer-input- it)))
                              (operation/sequence/replace-range
                               (awhen (when (typep -printer-input- 'collection/sequence)
-                                       (pattern-case (selection-of operation)
+                                       (reference-case (selection-of operation)
                                          (((the ?element-type (elt (the sequence document) ?element-index)) . ?rest)
                                           (append `((the ,?element-type (elt (the sequence document) ,(elt (input-indices-of -printer-iomap-) ?element-index)))) ?rest))))
                                 (make-operation/sequence/replace-range -printer-input- it (replacement-of operation))))

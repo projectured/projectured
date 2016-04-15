@@ -82,7 +82,7 @@
 ;;; Forward mapper
 
 (def forward-mapper t/sequence->syntax/node ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the sequence document))
      `((the syntax/node document)))
     (((the string (elt (the sequence document) ?index))
@@ -107,7 +107,7 @@
   (bind ((class (class-of -printer-input-))
          (slots (funcall (slot-provider-of -projection-) -printer-input-))
          (slot-readers (mapcar (curry 'find-slot-reader class) slots)))
-    (pattern-case -reference-
+    (reference-case -reference-
       (((the ?type document))
        `((the syntax/node document)))
       (((the string (?slot-reader (the ?input-type document)))
@@ -146,7 +146,7 @@
 ;;; Forward mapper
 
 (def backward-mapper t/sequence->syntax/node ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the syntax/node document))
      `((the sequence document)))
     (((the sequence (children-of (the syntax/node document)))
@@ -169,7 +169,7 @@
                element-iomap)))))
 
 (def backward-mapper t/object->syntax/node ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the syntax/node document))
      `((the ,(document-type -printer-input-) document)))
     (((the sequence (children-of (the syntax/node document)))
@@ -216,7 +216,7 @@
                                                                       `((elt (the ,(document-type -input-) document) ,index)
                                                                         ,@(typed-reference (document-type -input-) -input-reference-)))))))
          (output-selection (as (when (typep -input- 'document)
-                                 (print-selection -printer-iomap- (get-selection -input-)))))
+                                 (print-selection -printer-iomap-))))
          (output (as (if (emptyp -input-)
                          (syntax/leaf (:selection output-selection)
                            (text/text (:selection (as (nthcdr 1 (va output-selection))))
@@ -247,7 +247,7 @@
                                              (recurse-printer -recursion- (slot-value-using-class class -input- slot) slot-reference)
                                              (make-iomap -recursion- -recursion- nil slot-reference (syntax/leaf ()
                                                                                                       (text/make-simple-text "<unbound>" :font *font/ubuntu/monospace/italic/24* :font-color *color/solarized/gray*))))))))
-         (output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+         (output-selection (as (print-selection -printer-iomap-)))
          (output (as (make-syntax/node (list* (syntax/leaf (:selection (as (nthcdr 2 (va output-selection))))
                                               (text/text (:selection (as (nthcdr 3 (va output-selection))))
                                                 (text/string (symbol-name (class-name (class-of -input-))) :font *font/ubuntu/monospace/regular/24* :font-color *color/solarized/red*)))
@@ -299,7 +299,7 @@
                              (declare (ignore child-selection child-iomap))
                              (typecase operation
                                (operation/text/replace-range
-                                (pattern-case selection
+                                (reference-case selection
                                   (((the string (elt (the sequence document) ?index))
                                     (the string (subseq (the string document) ?start-index ?end-index)))
                                    (make-operation/sequence/replace-range -printer-input- selection (replacement-of operation)))))))))
@@ -312,7 +312,7 @@
                              (declare (ignore child-selection child-iomap))
                              (typecase operation
                                (operation/text/replace-range
-                                (pattern-case selection
+                                (reference-case selection
                                   (((the string (?reader (the ?type document)))
                                     (the string (subseq (the string document) ?start-index ?end-index)))
                                    (make-operation/string/replace-range -printer-input- selection (replacement-of operation)))

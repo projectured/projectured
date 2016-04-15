@@ -37,7 +37,7 @@
 ;;; Forward mapper
 
 (def forward-mapper file-system/file->syntax/leaf ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the file-system/file document))
      '((the syntax/leaf document)))
     (((the pathname (pathname-of (the file-system/file document)))
@@ -47,7 +47,7 @@
        (the text/text (text/subseq (the text/text document) ,?start-index ,?end-index))))))
 
 (def forward-mapper file-system/directory->syntax/node ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the file-system/directory document))
      '((the syntax/node document)))
     (((the sequence (elements-of (the file-system/directory document)))
@@ -63,7 +63,7 @@
 ;;; Backward mapper
 
 (def backward-mapper file-system/file->syntax/leaf ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the syntax/leaf document))
      '((the file-system/file document)))
     (((the text/text (content-of (the syntax/leaf document)))
@@ -73,7 +73,7 @@
        (the string (subseq (the string document) ,?start-index ,?end-index))))))
 
 (def backward-mapper file-system/directory->syntax/node ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the syntax/node document))
      '((the file-system/directory document)))
     (((the sequence (children-of (the syntax/node document)))
@@ -90,7 +90,7 @@
 ;;; Printer
 
 (def printer file-system/file->syntax/leaf ()
-  (bind ((output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+  (bind ((output-selection (as (print-selection -printer-iomap-)))
          (output (as (syntax/leaf (:selection output-selection)
                        (text/text (:selection (as (nthcdr 1 (va output-selection))))
                          ;; (text/graphics (image/file () (resource-pathname "image/file.png")))
@@ -104,7 +104,7 @@
                                                                          `((elt (the sequence (elements-of document)) ,index)
                                                                            ,@(typed-reference (document-type -input-) -input-reference-))))
                                    (collect element-iomap))))
-         (output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+         (output-selection (as (print-selection -printer-iomap-)))
          (output (as (make-syntax/node (list* (syntax/leaf (:selection (as (nthcdr 2 (va output-selection))))
                                                 (text/text (:selection (as (nthcdr 3 (va output-selection))))
                                                   ;; (text/graphics (image/file () (resource-pathname "image/directory.png")))

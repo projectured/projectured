@@ -46,7 +46,7 @@
 ;;; Forward mapper
 
 (def forward-mapper primitive/number->number ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the primitive/number document))
      '((the number document)))
     (((the number (value-of (the primitive/number document)))
@@ -59,7 +59,7 @@
 ;;; Backward mapper
 
 (def backward-mapper primitive/number->number ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the number document))
      '((the primitive/number document)))
     (((the string (write-to-string (the number document)))
@@ -95,7 +95,7 @@
                              (declare (ignore child-selection child-iomap))
                              (typecase operation
                                (operation/text/replace-range
-                                (pattern-case selection
+                                (reference-case selection
                                   (((the number (value-of (the primitive/number document)))
                                     (the string (write-to-string (the number document)))
                                     (the string (subseq (the string document) ?start-index ?end-index)))

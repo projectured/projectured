@@ -58,9 +58,7 @@
 
 (def evaluator operation/replace-selection (operation)
   (bind ((document (document-of operation))
-         (old-selection (when (typep document 'document) (selection-of document)))
          (new-selection (selection-of operation)))
-    (remove-selection document old-selection)
     (set-selection document new-selection)
     (editor.debug "Selection of ~A is set to ~A" document new-selection)))
 
@@ -286,12 +284,15 @@
   (awhen (operation/read-backward recursion input printer-iomap operation-mapper)
     (clone-command input it)))
 
-(def function print-selection (iomap input-selection)
-  (bind (((:values selection nil child-iomap) (call-forward-mapper iomap input-selection)))
+(def function print-selection (iomap)
+  ;; TODO: get-selection here prevents being lazy in terms of selection changes
+  (bind (((:values selection nil child-iomap) (call-forward-mapper iomap (get-selection (input-of iomap)))))
     (if child-iomap
-        (append selection (get-selection (output-of child-iomap)))
+        ;; TODO: get-selection here prevents being lazy in terms of selection changes
+        (append-cc (cc selection) (as (get-selection (output-of child-iomap))))
         selection)))
 
+#+nil ;; TODO: delete?
 (def function remove-selection (document selection)
   (labels ((recurse (document selection)
              (when (rest selection)
@@ -304,24 +305,31 @@
       (recurse document selection))))
 
 (def function set-selection (document selection)
-  (labels ((recurse (document document-part selection selection-part)
+  (labels ((recurse (document document-part selection selection-part path)
              (bind ((selection-part (append selection-part (list (first selection))))
                     (document-part (eval-reference document-part (first selection))))
+               ;;(format t "~%~A ~A ~A ~A" document document-part selection selection-part)
                (cond ((not (rest selection))
-                      (setf (selection-of document) selection-part))
+                      (unless (equal (selection-of document) selection-part)
+                        (setf (selection-of document) selection-part)))
                      ((pattern-case selection
                         (((the ?type (printer-output . ?arguments))
                           . ?rest)
                          #t))
                       (setf (selection-of document) selection))
                      ((typep document-part 'document)
-                      (unless (equal (selection-of document) selection-part)
-                        (setf (selection-of document) selection-part))
-                      (recurse document-part document-part (rest selection) nil))
+                      (if (member document-part path)
+                          (recurse document document-part (rest selection) selection-part (cons document-part path))
+                          (progn
+                            (unless (equal (selection-of document) selection-part)
+                              (setf (selection-of document) selection-part))
+                            (recurse document-part document-part (rest selection) nil (cons document-part path)))))
                      (t
-                      (recurse document document-part (rest selection) selection-part))))))
-    (recurse document document selection nil)))
+                      (recurse document document-part (rest selection) selection-part (cons document-part path)))))))
+    (recurse document document selection nil nil)))
 
+;; TODO: this prevents laziness because it goes down recursively indefinitely
+#+nil
 (def function get-selection (document)
   (labels ((recurse (document)
              (when (typep document 'document)
@@ -333,4 +341,19 @@
                             (bind ((document-part (eval-reference document (flatten-reference (selection-of document)))))
                               (unless (eq document document-part)
                                 (recurse document-part)))))))))
+    (recurse document)))
+
+(def function get-selection (document)
+  (labels ((recurse (document)
+             (when (typep document 'document)
+               (bind ((selection (selection-of document)))
+                 (pattern-case selection
+                   (((the ?type (printer-output . ?arguments))
+                     . ?rest)
+                    (cc selection))
+                   (? (append-cc (cc selection)
+                                 (bind ((document-part (eval-reference document (flatten-reference selection))))
+                                   (unless (eq document document-part)
+                                     (when (typep document-part 'document)
+                                       (as (recurse document-part))))))))))))
     (recurse document)))

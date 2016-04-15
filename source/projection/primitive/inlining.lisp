@@ -28,7 +28,7 @@
 ;;; Forward mapper
 
 (def forward-mapper inlining ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the common-lisp/function-reference (operator-of (the common-lisp/application document)))
       (the common-lisp/function-definition (function-of (the common-lisp/function-reference document)))
       (the sequence (body-of (the common-lisp/function-definition document)))
@@ -57,7 +57,7 @@
 ;;; Backward mapper
 
 (def backward-mapper inlining ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the sequence (body-of (the common-lisp/let document)))
       . ?rest)
      `((the common-lisp/function-reference (operator-of (the common-lisp/application document)))
@@ -86,7 +86,7 @@
 ;;; printer
 
 (def printer inlining ()
-  (bind ((output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+  (bind ((output-selection (as (print-selection -printer-iomap-)))
          (output (as (bind ((operator (operator-of -input-)))
                        ;; TODO: delete kludge to avoid infinite inlining of recursion functions
                        (if (and (typep operator 'common-lisp/function-reference) (< (length -input-reference-) 16))
@@ -105,6 +105,46 @@
                                                                                                   `((elt (the sequence document) ,index)
                                                                                                     (the sequence (arguments-of (the ,(document-type -input-) document)))
                                                                                                     ,@(typed-reference (document-type -input-) -input-reference-)))))))))))))
+    (make-iomap -projection- -recursion- -input- -input-reference- output)))
+
+#+nil
+(def printer inlining ()
+  (bind ((output-selection (as (print-selection -printer-iomap-)))
+         (output (as (labels ((recurse (instance selection)
+                                (etypecase instance
+                                  ((or number string) instance)
+                                  (collection/sequence (make-collection/sequence instance :selection selection))
+                                  (sequence instance)
+                                  (standard-object
+                                   (bind ((class (class-of instance))
+                                          (slots (class-slots class)))
+                                     (prog1-bind clone (allocate-instance class)
+                                       (iter (for slot :in slots)
+                                             (setf (slot-value-using-class class clone slot)
+                                                   (if (eq (slot-definition-name slot) 'selection)
+                                                       selection
+                                                       (recurse (slot-value-using-class class instance slot) (cdr selection)))))))))))
+                       (bind ((operator (operator-of -input-)))
+                         ;; TODO: delete kludge to avoid infinite inlining of recursion functions
+                         (if (and (typep operator 'common-lisp/function-reference) (< (length -input-reference-) 16))
+                             (make-common-lisp/let (map-ll* (arguments-of -input-)
+                                                            (lambda (argument-element index)
+                                                              (bind ((binding (elt (bindings-of (function-of operator)) index))
+                                                                     (value (recurse (value-of argument-element) (nthcdr 3 (va output-selection)))))
+                                                                (make-common-lisp/lexical-variable-binding (name-of binding) value
+                                                                                                           :selection (as (nthcdr 2 (va output-selection)))))))
+                                                   (map-ll* (body-of (function-of operator))
+                                                            (lambda (body-element index)
+                                                              (recurse (value-of body-element) (nthcdr 2 (va output-selection)))))
+                                                   :selection output-selection)
+                             (make-common-lisp/application operator
+                                                           (map-ll* (arguments-of -input-)
+                                                                    (lambda (argument-element index)
+                                                                      (bind ((argument (value-of argument-element)))
+                                                                        (output-of (recurse-printer -recursion- argument
+                                                                                                    `((elt (the sequence document) ,index)
+                                                                                                      (the sequence (arguments-of (the ,(document-type -input-) document)))
+                                                                                                      ,@(typed-reference (document-type -input-) -input-reference-))))))))))))))
     (make-iomap -projection- -recursion- -input- -input-reference- output)))
 
 ;;;;;;

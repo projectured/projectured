@@ -653,7 +653,7 @@
   text)
 
 (def function text/reference? (reference)
-  (pattern-case (reverse reference)
+  (pattern-case (reverse (coerce (va* reference) 'list))
     (((the text/text (text/subseq (the text/text document) ?b ?a)) . ?rest)
      #t)))
 

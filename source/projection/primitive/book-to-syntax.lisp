@@ -82,7 +82,7 @@
 ;;; Forward mapper
 
 (def forward-mapper book/book->syntax/node ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the book/book document))
      '((the syntax/node document)))
     (((the string (title-of (the book/book document)))
@@ -117,7 +117,7 @@
                element-iomap)))))
 
 (def forward-mapper book/chapter->syntax/node ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the book/chapter document))
      '((the syntax/node document)))
     (((the string (title-of (the book/chapter document)))
@@ -144,7 +144,7 @@
                element-iomap)))))
 
 (def forward-mapper book/paragraph->syntax/leaf ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the book/paragraph document))
      '((the syntax/leaf document)))
     (((the ?type (content-of (the book/paragraph document))))
@@ -157,7 +157,7 @@
                content-iomap)))))
 
 (def forward-mapper book/list->syntax/node ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the book/list document))
      '((the syntax/node document)))
     (((the sequence (elements-of (the book/list document)))
@@ -173,7 +173,7 @@
                element-iomap)))))
 
 (def forward-mapper book/picture->syntax/leaf ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the book/picture document))
      '((the syntax/leaf document)))
     (((the image/file (content-of (the book/picture document)))
@@ -186,7 +186,7 @@
 ;;; Backward mapper
 
 (def backward-mapper book/book->syntax/node ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the syntax/node document))
      '((the book/book document)))
     (((the sequence (children-of (the syntax/node document)))
@@ -206,7 +206,7 @@
       . ?rest)
      (bind ((author (author-of -printer-input-)))
        (if (and author (= ?child-index 1))
-           (pattern-case -reference-
+           (reference-case -reference-
              (((the sequence (children-of (the syntax/node document)))
                (the syntax/leaf (elt (the sequence document) 1))
                (the syntax/leaf document))
@@ -228,7 +228,7 @@
                      element-iomap)))))))
 
 (def backward-mapper book/chapter->syntax/node ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the syntax/node document))
      '((the book/chapter document)))
     (((the sequence (children-of (the syntax/node document)))
@@ -259,7 +259,7 @@
                element-iomap)))))
 
 (def backward-mapper book/paragraph->syntax/leaf ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the syntax/leaf document))
      '((the book/paragraph document)))
     (((the text/text (content-of (the syntax/leaf document)))
@@ -269,7 +269,7 @@
          (values nil ?rest content-iomap))))))
 
 (def backward-mapper book/list->syntax/node ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the syntax/node document))
      '((the book/list document)))
     (((the sequence (children-of (the syntax/node document)))
@@ -285,7 +285,7 @@
                element-iomap)))))
 
 (def backward-mapper book/picture->syntax/leaf ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the syntax/leaf document))
      '((the book/picture document)))
     (((the text/text (content-of (the syntax/leaf document)))
@@ -304,7 +304,7 @@
                                                                                     `((elt (the sequence document) ,index)
                                                                                       (the sequence (elements-of (the book/book document)))
                                                                                       ,@(typed-reference (document-type -input-) -input-reference-)))))))
-         (output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+         (output-selection (as (print-selection -printer-iomap-)))
          (output (make-syntax/node (as (append-ll (list-ll (ll (append (list (syntax/leaf (:selection (as (nthcdr 2 (va output-selection))))
                                                                              (as (text/make-default-text (title-of -input-) "enter book title" :selection (as (nthcdr 3 (va output-selection))) :font *font/liberation/serif/bold/42* :font-color *color/solarized/red*))))
                                                                      (when-bind author (author-of -input-)
@@ -330,10 +330,10 @@
                                                                                     `((elt (the sequence document) ,index)
                                                                                       (the sequence (elements-of (the book/chapter document)))
                                                                                       ,@(typed-reference (document-type -input-) -input-reference-)))))))
-         (output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+         (output-selection (as (print-selection -printer-iomap-)))
          (title-output (as (bind ((title (title-of -input-))
                                   (title? (string= title ""))
-                                  (title-font (pattern-case -input-reference-
+                                  (title-font (reference-case -input-reference-
                                                 (((elt (the sequence document) ?subindex)
                                                   (the sequence (elements-of (the book/chapter document)))
                                                   (the book/chapter (elt (the sequence document) ?index))
@@ -372,7 +372,7 @@
 
 (def printer book/paragraph->syntax/leaf ()
   (bind ((content-iomap (as (recurse-printer -recursion- -input- -input-reference-)))
-         (output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+         (output-selection (as (print-selection -printer-iomap-)))
          (output (as (bind ((content-output (output-of (va content-iomap))))
                        (syntax/leaf (:selection output-selection)
                          (if (zerop (text/length content-output))
@@ -398,7 +398,7 @@
                                                                                     `((elt (the sequence document) ,index)
                                                                                       (the sequence (elements-of (the book/list document)))
                                                                                       ,@(typed-reference (document-type -input-) -input-reference-)))))))
-         (output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+         (output-selection (as (print-selection -printer-iomap-)))
          (output (as (make-syntax/node (map-ll* (va element-iomaps) (lambda (element-iomap index)
                                                                     (if (typep (input-of (value-of element-iomap)) 'book/list)
                                                                         (syntax/node (:indentation 2 :selection (as (nthcdr 2 (va output-selection))))
@@ -432,7 +432,7 @@
                              (color/lighten *color/solarized/gray* 0.75)
                              *color/solarized/gray*))
          (output-selection (as (unless file-exists?
-                                 (print-selection -printer-iomap- (get-selection -input-)))))
+                                 (print-selection -printer-iomap-))))
          (output (as (syntax/leaf (:selection output-selection)
                        (text/text (:selection (as (nthcdr 1 (va output-selection))))
                          (if file-exists?
@@ -450,7 +450,7 @@
                              (declare (ignore child-selection child-iomap))
                              (typecase operation
                                (operation/text/replace-range
-                                (pattern-case selection
+                                (reference-case selection
                                   (((the string (title-of (the book/book document)))
                                     (the string (subseq (the string document) ?start-character-index ?end-character-index)))
                                    (make-operation/string/replace-range -printer-input- selection (replacement-of operation)))
@@ -474,7 +474,7 @@
     (merge-commands (gesture-case -gesture-
                       ((make-key-press-gesture :scancode-delete)
                        :domain "Book" :description "Deletes the selected element from the book"
-                       :operation (pattern-case (selection-of -printer-input-)
+                       :operation (reference-case (selection-of -printer-input-)
                                     (((the sequence (elements-of (the book/book document)))
                                       (the ?type (elt (the sequence document) ?index))
                                       (the ?type document))
@@ -501,7 +501,7 @@
                     (gesture-case -gesture-
                       ((make-key-press-gesture :scancode-delete)
                        :domain "Book" :description "Deletes the author of the book"
-                       :operation (pattern-case (selection-of -printer-input-)
+                       :operation (reference-case (selection-of -printer-input-)
                                     (((the string (author-of (the book/book document)))
                                       (the string document))
                                      (make-operation/replace-target -printer-iomap- (selection-of -printer-input-) nil)))))
@@ -512,7 +512,7 @@
                              (declare (ignore child-selection child-iomap))
                              (typecase operation
                                (operation/text/replace-range
-                                (pattern-case selection
+                                (reference-case selection
                                   (((the string (title-of (the book/chapter document)))
                                     (the string (subseq (the string document) ?start-character-index ?end-character-index)))
                                    (make-operation/string/replace-range -printer-input- selection (replacement-of operation)))
@@ -523,7 +523,7 @@
     (merge-commands (gesture-case -gesture-
                       ((make-key-press-gesture :scancode-delete)
                        :domain "Book" :description "Deletes the selected element from the chapter"
-                       :operation (pattern-case (selection-of -printer-input-)
+                       :operation (reference-case (selection-of -printer-input-)
                                     (((the sequence (elements-of (the book/chapter document)))
                                       (the ?type (elt (the sequence document) ?index))
                                       (the ?type document))
@@ -567,7 +567,7 @@
                              (declare (ignore child-selection child-iomap))
                              (typecase operation
                                (operation/text/replace-range
-                                (pattern-case selection
+                                (reference-case selection
                                   (((the syntax/leaf (printer-output (the book/paragraph document) ?projection ?recursion)) . ?rest)
                                    (make-operation/text/replace-range -printer-input- '((the text/text (content-of (the book/paragraph document)))
                                                                                         (the text/text (text/subseq (the text/text document) 0 0)))
@@ -603,7 +603,7 @@
                              (declare (ignore child-selection child-iomap))
                              (typecase operation
                                (operation/text/replace-range
-                                (pattern-case selection
+                                (reference-case selection
                                   (((the image/file (content-of (the book/picture document)))
                                     (the string (filename-of (the image/file document)))
                                     (the string (subseq (the string document) ?start-character-index ?end-character-index)))

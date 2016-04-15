@@ -120,7 +120,7 @@
 (def forward-mapper widget/label->graphics/canvas ())
 
 (def forward-mapper widget/text->graphics/canvas ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the ?type (content-of (the widget/text document)))
       . ?rest)
      (values `((the sequence (elements-of (the graphics/canvas document)))
@@ -137,7 +137,7 @@
 (def forward-mapper widget/menu-item->graphics/canvas ())
 
 (def forward-mapper widget/composite->graphics/canvas ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the sequence (elements-of (the widget/composite document)))
       (the ?type (elt (the sequence document) ?index))
       . ?rest)
@@ -149,8 +149,8 @@
                element-iomap)))))
 
 (def forward-mapper widget/shell->graphics/canvas ()
-  (pattern-case -reference-
-    (((the widget/split-pane (content-of (the widget/shell document)))
+  (reference-case -reference-
+    (((the ?type (content-of (the widget/shell document)))
       . ?rest)
      (values `((todo))
              ?rest
@@ -159,7 +159,7 @@
 (def forward-mapper widget/title-pane->graphics/canvas ())
 
 (def forward-mapper widget/split-pane->graphics/canvas ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the sequence (elements-of (the widget/split-pane document)))
       (the ?type (elt (the sequence document) ?index))
       . ?rest)
@@ -168,7 +168,7 @@
              (elt (child-iomaps-of -printer-iomap-) ?index)))))
 
 (def forward-mapper widget/tabbed-pane->graphics/canvas ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the sequence (selector-element-pairs-of (the widget/tabbed-pane document)))
       (the sequence (elt (the sequence document) ?index))
       (the ?type (elt (the sequence document) 1))
@@ -178,7 +178,7 @@
              (elt (child-iomaps-of -printer-iomap-) 0)))))
 
 (def forward-mapper widget/scroll-pane->graphics/canvas ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the ?type (content-of (the widget/scroll-pane document)))
       . ?rest)
      (values `((todo))
@@ -191,7 +191,7 @@
 (def backward-mapper widget/label->graphics/canvas ())
 
 (def backward-mapper widget/text->graphics/canvas ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the sequence (elements-of (the graphics/canvas document)))
       (the graphics/canvas (elt (the sequence document) 1))
       (the sequence (elements-of (the graphics/canvas document)))
@@ -208,7 +208,7 @@
 (def backward-mapper widget/menu-item->graphics/canvas ())
 
 (def backward-mapper widget/composite->graphics/canvas ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((the sequence (elements-of (the graphics/canvas document)))
       (the ?type (elt (the sequence document) ?index))
       . ?rest)
@@ -220,17 +220,17 @@
                element-iomap)))))
 
 (def backward-mapper widget/shell->graphics/canvas ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((todo)
       . ?rest)
-     (values `((the widget/split-pane (content-of (the widget/shell document))))
+     (values `((the ,(document-type (input-of (content-iomap-of -printer-iomap-))) (content-of (the widget/shell document))))
              ?rest
              (content-iomap-of -printer-iomap-)))))
 
 (def backward-mapper widget/title-pane->graphics/canvas ())
 
 (def backward-mapper widget/split-pane->graphics/canvas ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((todo ?index)
       . ?rest)
      (bind ((element-iomap (elt (child-iomaps-of -printer-iomap-) ?index)))
@@ -240,7 +240,7 @@
                element-iomap)))))
 
 (def backward-mapper widget/tabbed-pane->graphics/canvas ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((todo ?index)
       . ?rest)
      (bind ((content-iomap (elt (child-iomaps-of -printer-iomap-) 0)))
@@ -251,7 +251,7 @@
                content-iomap)))))
 
 (def backward-mapper widget/scroll-pane->graphics/canvas ()
-  (pattern-case -reference-
+  (reference-case -reference-
     (((todo)
       . ?rest)
      (bind ((content-iomap (content-iomap-of -printer-iomap-)))
@@ -407,7 +407,7 @@
                                                          `((elt (the sequence document) ,index)
                                                            (the sequence (elements-of (the widget/composite document)))
                                                            ,@(typed-reference (document-type -input-) -input-reference-))))))
-         (output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+         (output-selection (as (print-selection -printer-iomap-)))
          (output (as (make-graphics/canvas (mapcar 'output-of element-iomaps)
                                            (position-of -input-)
                                            :selection output-selection))))
@@ -422,7 +422,7 @@
                                                `((tooltip-of (the widget/shell document))
                                                  ,@(typed-reference (document-type -input-) -input-reference-))))))
          (content-bounding-rectangle (bounds-of (output-of (va content-iomap))))
-         (output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+         (output-selection (as (print-selection -printer-iomap-)))
          (output (as (bind ((tooltip (when (va tooltip-iomap)
                                        (output-of (va tooltip-iomap)))))
                        (make-output/display (optional-list (make-output/window (make-2d 200 200) ; TODO: initial position
@@ -473,7 +473,7 @@
                       (collect (size-of (bounds-of (output-of element-iomap))))))
          (width (apply 'max (mapcar '2d-x sizes)))
          (height (apply 'max (mapcar '2d-y sizes)))
-         (output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+         (output-selection (as (print-selection -printer-iomap-)))
          (output (as (make-graphics/canvas (iter (with d = 0)
                                                  (with orientation = (orientation-of -input-))
                                                  (for index :from 0)
@@ -489,10 +489,12 @@
                                                                                          (:vertical (make-2d width (- splitter-size 2))))
                                                                                        :fill-color *color/solarized/content/darker*))
                                                      (incf d (1+ splitter-size))))
-                                                 (when (pattern-case (selection-of -input-)
+                                                 ;; TODO: kills laziness, because output starts to depend on selection, and selection is not lazy due to cons lists
+                                                 (when (reference-case (selection-of -input-)
                                                          (((the sequence (elements-of (the widget/split-pane document)))
                                                            (the ?type (elt (the sequence document) ?index))
                                                            . ?rest)
+                                                          #+nil ;; TODO
                                                           (and (not (member 'widget/split-pane (list* ?type (mapcar 'second ?rest))))
                                                                (= ?index index))))
                                                    (collect (make-graphics/rounded-rectangle (ecase orientation
@@ -518,18 +520,24 @@
                                                                 (the sequence (elt (the sequence document) ,index))
                                                                 (the sequence (selector-element-pairs-of (the widget/tabbed-pane document)))
                                                                 ,@(typed-reference (document-type -input-) -input-reference-)))))))
-         (content-iomap (as (when (selector-element-pairs-of -input-)
-                              (pattern-case (selection-of -input-)
-                                (((the sequence (selector-element-pairs-of (the widget/tabbed-pane document)))
-                                  (the sequence (elt (the sequence document) ?index))
-                                  (the ?type (elt (the sequence document) 1))
-                                  . ?rest)
-                                 (recurse-printer -recursion- (second (elt (selector-element-pairs-of -input-) ?index))
-                                                  `((elt (the sequence document) 1)
-                                                    (the sequence (elt (the sequence document) ,?index))
-                                                    (the sequence (selector-element-pairs-of (the widget/tabbed-pane document)))
-                                                    ,@(typed-reference (document-type -input-) -input-reference-))))))))
-         (output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+         (content-iomap (as (recurse-printer -recursion- (second (elt (selector-element-pairs-of -input-) 0))
+                                             `((elt (the sequence document) 1)
+                                               (the sequence (elt (the sequence document) 0))
+                                               (the sequence (selector-element-pairs-of (the widget/tabbed-pane document)))
+                                               ,@(typed-reference (document-type -input-) -input-reference-)))
+                            ;; TODO: kills laziness, because output starts to depend on selection, and selection is not lazy due to cons lists
+                            (when (selector-element-pairs-of -input-)
+                                   (reference-case (selection-of -input-)
+                                     (((the sequence (selector-element-pairs-of (the widget/tabbed-pane document)))
+                                       (the sequence (elt (the sequence document) ?index))
+                                       (the ?type (elt (the sequence document) 1))
+                                       . ?rest)
+                                      (recurse-printer -recursion- (second (elt (selector-element-pairs-of -input-) ?index))
+                                                       `((elt (the sequence document) 1)
+                                                         (the sequence (elt (the sequence document) ,?index))
+                                                         (the sequence (selector-element-pairs-of (the widget/tabbed-pane document)))
+                                                         ,@(typed-reference (document-type -input-) -input-reference-))))))))
+         (output-selection (as (print-selection -printer-iomap-)))
          (output (as (make-graphics/canvas (when (selector-element-pairs-of -input-)
                                              (iter (with x = 0)
                                                    (for index :from 0)
@@ -540,7 +548,8 @@
                                                                                              (+ (size-of bounding-rectangle) (make-2d 40 10))
                                                                                              9
                                                                                              :corners '(:bottom-left :bottom-right)
-                                                                                             :fill-color (if (eql index (pattern-case (selection-of -input-)
+                                                                                             ;; TODO: kills laziness, because output starts to depend on selection, and selection is not lazy due to cons lists
+                                                                                             :fill-color (if (eql index (reference-case (selection-of -input-)
                                                                                                                           (((the sequence (selector-element-pairs-of (the widget/tabbed-pane document)))
                                                                                                                             (the sequence (elt (the sequence document) ?index))
                                                                                                                             (the ?type (elt (the sequence document) 1))
@@ -570,7 +579,7 @@
   (bind ((content-iomap (as (recurse-printer -recursion- (content-of -input-)
                                              `((content-of (the widget/scroll-pane document))
                                                ,@(typed-reference (document-type -input-) -input-reference-)))))
-         (output-selection (as (print-selection -printer-iomap- (get-selection -input-))))
+         (output-selection (as (print-selection -printer-iomap-)))
          (output (as (bind ((position (or (position-of -input-) 0))
                             (size (size-of -input-))
                             (content (make-graphics/canvas (list (output-of (va content-iomap))) (as (scroll-position-of -input-)))))
@@ -676,7 +685,7 @@
                   (make-nothing-command -gesture-)))
 
 (def reader widget/split-pane->graphics/canvas ()
-  (bind ((element-gesture (pattern-case (make-reference (output-of -printer-iomap-) (mouse-position-of -gesture-) nil)
+  (bind ((element-gesture (reference-case (make-reference (output-of -printer-iomap-) (mouse-position-of -gesture-) nil)
                             (((the sequence (elements-of (the graphics/canvas document)))
                               (the graphics/canvas (elt (the sequence document) ?index))
                               . ?rest)
@@ -691,7 +700,7 @@
                     (command/read-backward -recursion- element-input -printer-iomap-)
                     #+nil
                     (if (typep -gesture- 'gesture/mouse)
-                        (pattern-case (make-reference (output-of -printer-iomap-) (mouse-position-of -gesture-) nil)
+                        (reference-case (make-reference (output-of -printer-iomap-) (mouse-position-of -gesture-) nil)
                           (((the sequence (elements-of (the graphics/canvas document)))
                             (the graphics/canvas (elt (the sequence document) ?index))
                             . ?rest)
@@ -714,7 +723,7 @@
                                            (operation/extend -printer-input- element-path (operation-of content-command))
                                            :domain (domain-of content-command)
                                            :description (description-of content-command)))))
-                        (pattern-case (selection-of -printer-input-)
+                        (reference-case (selection-of -printer-input-)
                           (((the sequence (elements-of (the widget/split-pane document)))
                             (the ?type (elt (the sequence document) ?index))
                             . ?rest)
@@ -738,7 +747,7 @@
     (merge-commands (gesture-case -gesture-
                       ((make-instance 'gesture/mouse/click :button :button-left :modifiers nil :mouse-position 0)
                        :domain "Widget" :description "Selects the page in the tabbed pane where the mouse is pointing at"
-                       :operation (pattern-case (make-reference (output-of -printer-iomap-) (mouse-position-of -gesture-) nil)
+                       :operation (reference-case (make-reference (output-of -printer-iomap-) (mouse-position-of -gesture-) nil)
                                     (((the sequence (elements-of (the graphics/canvas document)))
                                       (the ?type (elt (the sequence document) ?index))
                                       . ?rest)
@@ -750,7 +759,7 @@
                                                                            (the ?type (elt (the sequence document) 1))))))))
                       ((make-instance 'gesture/mouse/click :button :button-left :modifiers nil :mouse-position 0)
                        :domain "Widget" :description "Closes the page in the tabbed pane where the mouse is pointing at"
-                       :operation (pattern-case (make-reference (output-of -printer-iomap-) (mouse-position-of -gesture-) nil)
+                       :operation (reference-case (make-reference (output-of -printer-iomap-) (mouse-position-of -gesture-) nil)
                                     (((the sequence (elements-of (the graphics/canvas document)))
                                       (the ?type (elt (the sequence document) ?index))
                                       . ?rest)
@@ -765,7 +774,7 @@
                       ((make-key-press-gesture :scancode-tab :control)
                        :domain "Widget" :description "Selects the next page in the tabbed pane"
                        :operation (make-operation/replace-selection -printer-input-
-                                                                    (bind ((index (pattern-case (selection-of -printer-input-)
+                                                                    (bind ((index (reference-case (selection-of -printer-input-)
                                                                                     (((the sequence (selector-element-pairs-of (the widget/tabbed-pane document)))
                                                                                       (the sequence (elt (the sequence document) ?index))
                                                                                       (the ?type (elt (the sequence document) 1))
@@ -777,7 +786,7 @@
                       ((make-key-press-gesture :scancode-tab '(:shift :control))
                        :domain "Widget" :description "Selects the previous page in the tabbed pane"
                        :operation (make-operation/replace-selection -printer-input-
-                                                                    (bind ((index (pattern-case (selection-of -printer-input-)
+                                                                    (bind ((index (reference-case (selection-of -printer-input-)
                                                                                     (((the sequence (selector-element-pairs-of (the widget/tabbed-pane document)))
                                                                                       (the sequence (elt (the sequence document) ?index))
                                                                                       (the ?type (elt (the sequence document) 1))

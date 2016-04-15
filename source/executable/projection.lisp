@@ -107,66 +107,82 @@
                                (search-ignorecase search (name-of (name-of instance))))))
                  :slot-provider 'default-slot-provider))
 
-(def function make-default-projection ()
+(def function make-output-projection (projection)
+  (recursive
+    (type-dispatching
+      (output/base (copying))
+      (document projection)
+      (t (copying)))))
+
+(def function make-document-projection ()
   (sequential
     (recursive
       (type-dispatching
-        (workbench/base (workbench->widget))
+        (book/book (copying))
+        (book/chapter (chapter-numbering))
+        (sequence (copying))
         (t (preserving))))
+    (focusing 'document nil)
+    (recursive
+      (reference-dispatching
+        (alternative
+          (type-dispatching
+            (collection/sequence (copying))
+            (document/base (document->syntax 'default-factory 'default-searcher))
+            (searching/base (searching->syntax))
+            (book/paragraph (nesting
+                              (book/paragraph->syntax/leaf)
+                              (text-aligning 1270)))
+            (book/base (book->syntax))
+            (file-system/base (file-system->syntax))
+            (json/base (json->syntax))
+            (xml/base (xml->syntax))
+            (common-lisp/base (sequential
+                                (alternative
+                                  (type-dispatching
+                                    (common-lisp/application (alternative
+                                                               (preserving)
+                                                               (inlining)))
+                                    (common-lisp/base (preserving))))
+                                (common-lisp->s-expression)
+                                (s-expression->syntax)))
+            (s-expression/base (s-expression->syntax))
+            (evaluator/base (evaluator->syntax))
+            (syntax/base (preserving))
+            (text/base (word-wrapping 1270)))
+          (recursive
+            (t->syntax 'default-slot-provider)))))
     (recursive
       (type-dispatching
-        (graphics/base (preserving))
-        (widget/base (widget->graphics))
-        (clipboard/base (clipboard->t))
-        (document/reference (sequential
-                              (document/reference->text/text)
-                              (text->graphics)))
-        (searching/search (searching/search->graphics/canvas))
-        (text/text (sequential
-                     (word-wrapping 1000)
-                     (text->graphics)))
-        (help/context-sensitive (sequential
-                                  (help/context-sensitive->text/text)
-                                  (text->graphics)))
-        (document (sequential
-                    (recursive
-                      (type-dispatching
-                        (book/book (copying))
-                        (book/chapter (chapter-numbering))
-                        (sequence (copying))
-                        (t (preserving))))
-                    (focusing 'document nil)
-                    (recursive
-                      (reference-dispatching
-                        (alternative
-                          (type-dispatching
-                            (collection/sequence (copying))
-                            (document/base (document->syntax 'default-factory 'default-searcher))
-                            (searching/base (searching->syntax))
-                            (book/paragraph (nesting
-                                              (book/paragraph->syntax/leaf)
-                                              (text-aligning 1270)))
-                            (book/base (book->syntax))
-                            (file-system/base (file-system->syntax))
-                            (json/base (json->syntax))
-                            (xml/base (xml->syntax))
-                            (common-lisp/base (sequential
-                                                (alternative
-                                                  (type-dispatching
-                                                    (common-lisp/application (alternative
-                                                                               (preserving)
-                                                                               (inlining)))
-                                                    (common-lisp/base (preserving))))
-                                                (common-lisp->s-expression)
-                                                (s-expression->syntax)))
-                            (s-expression/base (s-expression->syntax))
-                            (evaluator/base (evaluator->syntax))
-                            (syntax/base (preserving))
-                            (text/base (word-wrapping 1270)))
-                          (recursive
-                            (t->syntax 'default-slot-provider)))))
-                    (recursive
-                      (type-dispatching
-                        (syntax/base (syntax->text))
-                        (text/text (preserving))))
-                    (text->graphics)))))))
+        (syntax/base (syntax->text))
+        (text/text (preserving))))
+    (text->graphics)))
+
+(def function make-widget-projection (projection)
+  (recursive
+    (type-dispatching
+      (graphics/base (preserving))
+      (widget/base (widget->graphics))
+      (clipboard/base (clipboard->t))
+      (document/reference (sequential
+                            (document/reference->text/text)
+                            (text->graphics)))
+      (searching/search (searching/search->graphics/canvas))
+      (text/text (sequential
+                   (word-wrapping 1000)
+                   (text->graphics)))
+      (help/context-sensitive (sequential
+                                (help/context-sensitive->text/text)
+                                (text->graphics)))
+      (document projection))))
+
+(def function make-workbench-projection ()
+  (recursive
+    (type-dispatching
+      (workbench/base (workbench->widget))
+      (t (preserving)))))
+
+(def function make-default-projection ()
+  (sequential
+    (make-workbench-projection)
+    (make-widget-projection (make-document-projection))))

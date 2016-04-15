@@ -21,7 +21,23 @@
     (workbench/document (:title title :filename (or filename "document.pred") :selection `((the ,(document-type content) (content-of (the workbench/document document)))))
       content)))
 
-(def function make-default-document (document)
+(def function make-output-document (document)
+  (output/display ()
+    (output/window (:position (make-2d 200 200) :size (make-2d 1280 720))
+      document)))
+
+(def function make-widget-document (document)
+  (widget/shell (:size (make-2d 1280 720)
+                 :border (make-inset :all 5)
+                 :border-color *color/solarized/background/lighter*
+                 :selection '((the widget/scroll-pane (content-of (the widget/shell document)))))
+    (widget/scroll-pane (:size (make-2d 1260 700)
+                         :padding (make-inset :all 5)
+                         :padding-color *color/white*
+                         :selection `((the ,(document-type document) (content-of (the widget/scroll-pane document)))))
+      document)))
+
+(def function make-workbench-document (document)
   (workbench/workbench (:selection '((the workbench/page (editing-page-of (the workbench/workbench document)))))
     (workbench/page (:selection '((the sequence (elements-of (the workbench/page document)))
                                   (the workbench/navigator (elt (the sequence document) 0))))
@@ -33,7 +49,8 @@
       document)
     (workbench/page (:selection '((the sequence (elements-of (the workbench/page document)))
                                   (the workbench/navigator (elt (the sequence document) 0))))
-      (workbench/descriptor () (as (document/reference () (get-selection document))))
+      ;; TODO: kills laziness, because output starts to depend on selection, and selection is not lazy due to cons lists
+      #+nil (workbench/descriptor () (as (document/reference () (get-selection document))))
       (workbench/console ()
         (text/text ()
           (text/string "Welcome to ProjecturEd!" :font *font/ubuntu/regular/14* :font-color *color/default*)))
@@ -47,6 +64,9 @@
                                         :default-value "enter form"
                                         :selection '((the string (value-of (the common-lisp/insertion document)))
                                                      (the string (subseq (the string document) 0 0))))))))))
+
+(def function make-default-document (document)
+  (make-workbench-document document))
 
 ;;;;;;
 ;;; Example
@@ -137,6 +157,44 @@
 
 (def function save-fibonacci-example ()
   (call-saver (system-relative-pathname :projectured.executable "example/fibonacci.pred") (make-fibonacci-example)))
+
+(def function make-odd-even-example ()
+  (bind ((odd-argument (make-common-lisp/required-function-argument (make-s-expression/symbol* 'num)))
+         (odd-function (make-common-lisp/function-definition (make-s-expression/symbol "ODD?" "COMMON-LISP-USER")
+                                                                   (list-ll odd-argument)
+                                                                   nil
+                                                                   :allow-other-keys #f
+                                                                   :documentation "The ODD? function eturns T if NUM is not divisible by 2, returns NIL otherwise."))
+         (even-argument (make-common-lisp/required-function-argument (make-s-expression/symbol* 'num)))
+         (even-function (make-common-lisp/function-definition (make-s-expression/symbol "EVEN?" "COMMON-LISP-USER")
+                                                                   (list-ll even-argument)
+                                                                   nil
+                                                                   :allow-other-keys #f
+                                                                   :documentation "The EVEN? function returns T if NUM is divisible by 2, returns NIL otherwise.")))
+    (setf (body-of odd-function)
+          (list-ll (make-common-lisp/if (make-common-lisp/application (make-s-expression/symbol* '=)
+                                                                      (list-ll (make-common-lisp/variable-reference odd-argument)
+                                                                               (make-common-lisp/constant* 0)))
+                                        (make-common-lisp/constant* nil)
+                                        (make-common-lisp/application (make-common-lisp/function-reference even-function)
+                                                                      (list-ll (make-common-lisp/application
+                                                                                (make-s-expression/symbol* '-)
+                                                                                (list-ll (make-common-lisp/variable-reference odd-argument)
+                                                                                         (make-common-lisp/constant* 1))))))))
+    (setf (body-of even-function)
+          (list-ll (make-common-lisp/if (make-common-lisp/application (make-s-expression/symbol* '=)
+                                                                      (list-ll (make-common-lisp/variable-reference even-argument)
+                                                                               (make-common-lisp/constant* 0)))
+                                        (make-common-lisp/constant* nil)
+                                        (make-common-lisp/application (make-common-lisp/function-reference odd-function)
+                                                                      (list-ll (make-common-lisp/application
+                                                                                (make-s-expression/symbol* '-)
+                                                                                (list-ll (make-common-lisp/variable-reference even-argument)
+                                                                                         (make-common-lisp/constant* 1))))))))
+    even-function))
+
+(def function save-odd-even-example ()
+  (call-saver (system-relative-pathname :projectured.executable "example/odd-even.pred") (make-odd-even-example)))
 
 (def function make-evaluator-example ()
   (bind ((factorial-function (make-factorial-example)))
