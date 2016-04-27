@@ -1,10 +1,13 @@
  + split selection path and store only relevant parts on individual documents
- - avoid cloning tree nodes (and similar) just for indentation/coloring/etc purposes
+ + avoid cloning tree nodes (and similar) just for indentation/coloring/etc purposes
  + fix navigation in common lisp references, it's broken due to recent selection split
  - change context sensitive help to display available but inaccessible commands too
  - make context sensitive help less fragile wrt. how operations are computed
  - implement key seqeuence gestures, add key gesture prefix parameters to projections
- - rename projections to <name>@<source-type>-><destination-type>? (e.g. syntax@json/array->tree/node)
+ - rename projections to <name>@<source-type>-><destination-type>? (e.g. syntax@json/array->syntax/node)
  + add workbench editor/navigator/console parts
  - searching/search->graphics/canvas projection is plain wrong
- - current get-selection implementation kills laziness, pattern-matching selections is also bad for laziness
+ + current get-selection implementation kills laziness, pattern-matching selections is also bad for laziness
+ - replace Nthcdr calls in selection computations with chomp-selection
+ - separate direct common lisp from more intentional document data structures, introduce new projections
+ 

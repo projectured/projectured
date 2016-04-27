@@ -228,12 +228,12 @@
                                                             (the syntax/leaf (elt (the sequence document) 0))
                                                             . ?rest)
                                                            (nthcdr 3 (va output-selection)))))))
-                       (syntax/clone (output-of content-iomap) :indentation 0
-                                     :selection (as (reference-case (va output-selection)
-                                                      (((the sequence (children-of (the syntax/node document)))
-                                                        (the ?type (elt (the sequence document) 1))
-                                                        . ?rest)
-                                                       (nthcdr 2 (va output-selection))))))))))
+                       (syntax/indentation (:indentation 0 :selection (as (reference-case (va output-selection)
+                                                                            (((the sequence (children-of (the syntax/node document)))
+                                                                              (the ?type (elt (the sequence document) 1))
+                                                                              . ?rest)
+                                                                             (nthcdr 2 (va output-selection))))))
+                         (output-of content-iomap))))))
     (make-iomap/content -projection- -recursion- -input- -input-reference- output content-iomap)))
 
 ;;;;;;
@@ -250,8 +250,7 @@
                        :domain "Search" :description "Starts editing search string"
                        :operation (cond ((not search)
                                          (make-operation/compound (list (make-operation/functional (lambda () (setf (search-of -printer-input-) "")))
-                                                                        (make-operation/replace-selection -printer-input-
-                                                                                                          `((the string (search-of (the searching/search document)))
+                                                                        (make-operation/replace-selection `((the string (search-of (the searching/search document)))
                                                                                                             (the string (subseq (the string document) 0 0)))))))
                                         ((reference-case (selection-of -printer-input-)
                                            (((the string (search-of (the searching/search document)))
@@ -259,8 +258,7 @@
                                             #f)
                                            (?a
                                             #t))
-                                         (make-operation/replace-selection -printer-input-
-                                                                           `((the string (search-of (the searching/search document)))
+                                         (make-operation/replace-selection `((the string (search-of (the searching/search document)))
                                                                              (the string (subseq (the string document) 0 0)))))))
                       ((make-key-press-gesture :scancode-s :control)
                        :domain "Search" :description "Replaces document with search result"
@@ -273,12 +271,12 @@
                                                                                                 document))
                                                                                             (default-searcher (search-of -printer-input-) document)))))
                                          (make-operation/compound (list (make-operation/functional (lambda () (setf (result-of -printer-input-) search-result)))
-                                                                        (make-operation/replace-selection -printer-input- `((the ,(document-type document) (document-of (the searching/search document))))))))))))
+                                                                        (make-operation/replace-selection `((the ,(document-type document) (document-of (the searching/search document))))))))))))
                       ((make-key-press-gesture :scancode-s '(:shift :control))
                        :domain "Search" :description "Reverts search result to the original document"
                        :operation (when (result-of -printer-input-)
                                     (make-operation/compound (list (make-operation/functional (lambda () (setf (result-of -printer-input-) nil)))
-                                                                   (make-operation/replace-selection -printer-input- `((the ,(document-type result) (result-of (the searching/search document))))))))))
+                                                                   (make-operation/replace-selection `((the ,(document-type result) (result-of (the searching/search document))))))))))
                     (cond ((reference-case (get-selection -printer-input-)
                              (((the string (search-of (the searching/search document)))
                                (the string (subseq (the string document) 0 0)))

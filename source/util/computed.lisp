@@ -146,6 +146,8 @@
 
 (def constant +invalid-value+ 'invalid-value)
 
+(def special-variable *computed-state* nil)
+
 (def structure (computed-state (:conc-name cs-) (:print-object print-computed-state))
   (depends-on-me
    nil
@@ -159,7 +161,13 @@
    :type (or null computed-object))
   (value
    +invalid-value+
-   :type (or (eql +invalid-value+) t))
+   :type (or (eql +invalid-value+) (not computed-state)))
+  (parent
+   nil
+   :type (or null computed-state))
+  (handler
+   nil
+   :type boolean)
   #+debug
   (place-descriptor ; contains the name of the computed variable, or the slot definition
    nil
@@ -225,7 +233,10 @@
         (vector-push-extend (trivial-garbage:make-weak-pointer computed-state-being-recomputed) depends-on-me)
         (purge-computed-state-depends-on-me computed-state))))
   (ensure-computed-state-is-valid computed-state)
-  (cs-value computed-state))
+  (bind ((value (cs-value computed-state)))
+    (if (typep value 'error)
+        (error value)
+        value)))
 
 (def (function io) (setf computed-state-value) (new-value computed-state)
   "Set the value, invalidate and recalculate as needed."
@@ -253,9 +264,32 @@
     (when *profile-context*
       (incf (recomputation-count-of *profile-context*)))
     #+nil(log.dribble "Recomputing slot ~A" computed-state)
-    (bind ((old-value (cs-value computed-state))
+    (bind ((*computed-state* computed-state)
+           (old-value (cs-value computed-state))
            (new-value (aif (cs-compute-as computed-state)
-                           (funcall it (cs-object computed-state) old-value)
+                           (block nil
+                             (handler-bind ((error (lambda (error)
+                                                     (labels ((recurse (instance)
+                                                                (if (cs-handler instance)
+                                                                    (invalidate-computed-state instance)
+                                                                    (unless (eq (cs-value instance) error)
+                                                                      (setf (cs-value instance) error)
+                                                                      (awhen (cs-parent instance)
+                                                                        (recurse it))
+                                                                      (bind ((depends-on-me (cs-depends-on-me instance)))
+                                                                        (when depends-on-me
+                                                                          (loop for element :across depends-on-me :do
+                                                                                (awhen (trivial-garbage:weak-pointer-value element)
+                                                                                  (recurse it)))))))))
+                                                       (awhen (cs-parent computed-state)
+                                                         (recurse it))
+                                                       (bind ((depends-on-me (cs-depends-on-me computed-state)))
+                                                         (when depends-on-me
+                                                           (loop for element :across depends-on-me :do
+                                                                 (awhen (trivial-garbage:weak-pointer-value element)
+                                                                   (recurse it))))))
+                                                     (return error))))
+                               (funcall it (cs-object computed-state) old-value)))
                            (cs-value computed-state)))
            (store-new-value-p (or (eq old-value +invalid-value+)
                                   (if (and (primitive-p old-value)
@@ -301,7 +335,6 @@
 (def (function o) invalidate-computed-state (computed-state)
   (declare (type computed-state computed-state))
   (labels ((recurse (instance)
-             ;;(print instance)
              #+debug
              (when (cs-debug-invalidation instance)
                (break "Computed state ~A is being invalidated" instance))
@@ -311,8 +344,8 @@
                  (loop for element :across depends-on-me :do
                        (awhen (trivial-garbage:weak-pointer-value element)
                          (recurse it)))))
-             #+debug
-             (assert (not (has-recompute-state-contex?)))
+;;             #+debug
+;;             (assert (not (has-recompute-state-contex?)))
              (setf (cs-depends-on-me instance) nil)))
     (recurse computed-state))
   (values))
@@ -324,15 +357,29 @@
         (typecase name
           (computed-effective-slot-definition
            (setf name (slot-definition-name name))))
-        (format stream "~A / " (cs-object computed-state))
-        (format stream "<#~A ~A>" name (cs-value computed-state))))
+        (format stream "~A :~A ~A" (cs-object computed-state) name (cs-value computed-state))))
      (t
       (format stream "~A / " (cs-object computed-state))
       (format stream "<#computed-state ~A>" (cs-value computed-state)))))
 
-(def macro as* ((&key #+debug (debug-invalidation #f)) &body form)
+(def function print-computed-state-dependency (computed-state stream)
+  (awhen (cs-depends-on-me computed-state)
+    (loop for target :across it
+          do (awhen (trivial-garbage:weak-pointer-value target)
+               (format stream "~%~A -> ~A" computed-state it)
+               (print-computed-dependency (computed-state-value it) stream)))))
+
+(def function print-computed-dependency (instance stream)
+  (format stream "~%Dependency for ~A" instance)
+  (loop for slot :in (class-slots (class-of instance))
+        for computed-state = (standard-instance-access instance (slot-definition-location slot))
+        do (print-computed-state-dependency computed-state stream)))
+
+(def macro as* ((&key handler #+debug (debug-invalidation #f)) &body form)
   (bind ((self-variable-name '-self-))
     `(make-computed-state #+debug :form #+debug ',form #+debug :debug-invalidation #+debug ,debug-invalidation
+                          :parent *computed-state*
+                          :handler ,handler
                           :compute-as (named-lambda as/compute-as*/a-computation-body
                                           (,self-variable-name -current-value-)
                                         (declare (ignorable ,self-variable-name -current-value-))
@@ -408,6 +455,7 @@
   (:metaclass computed-class))
 
 (def function make-computed-cons (head tail)
+  (check-type head (not computed-cons))
   (make-instance 'computed-cons :head head :tail tail))
 
 (def method sb-sequence:length ((sequence computed-cons))
@@ -439,20 +487,66 @@
 (def function list-cc (&rest args)
   (cc args))
 
+(def function reverse-cc (instance)
+  (reverse (force-cc instance)))
+
+(def function consp-cc (instance)
+  (typep instance '(or cons computed-cons)))
+
+(def function car-cc (cc)
+  (etypecase cc
+    (null nil)
+    (cons (car cc))
+    (computed-cons (head-of cc))))
+
+(def function cdr-cc (cc)
+  (etypecase cc
+    (null nil)
+    (cons (cdr cc))
+    (computed-cons (tail-of cc))))
+
+;; TODO: is it a kludge this way?
 (def function append-cc (cc-1 cc-2)
   (labels ((recurse (instance)
              (if (null instance)
-                 cc-2
-                 (make-computed-cons (as (head-of instance)) (as (recurse (tail-of instance)))))))
+                 (va* cc-2)
+                 (make-computed-cons (as (car-cc instance)) (if (and (null (cdr-cc instance))
+                                                                     (computed-state-p cc-2))
+                                                                cc-2
+                                                                (as (recurse (cdr-cc instance))))))))
     (recurse cc-1)))
 
-(def function force-cc (reference &optional (length most-positive-fixnum))
+(def function force-cc (list &optional (length most-positive-fixnum))
   (labels ((recurse (instance length)
-             (if (or (zerop length)
-                     (not (typep instance 'computed-cons)))
+             (if (zerop length)
                  instance
-                 (cons (head-of instance) (recurse (tail-of instance) (1- length))))))
-    (recurse reference length)))
+                 (when instance
+                   (cons (va* (car-cc instance)) (recurse (cdr-cc instance) (1- length)))))))
+    (recurse list length)))
+
+(def function take-cc (list &optional (length most-positive-fixnum))
+  (labels ((recurse (instance length)
+             (if (zerop length)
+                 nil
+                 (when instance
+                   (cons (car-cc instance)
+                         (when (> length 1)
+                           (recurse (cdr-cc instance) (1- length))))))))
+    (recurse list length)))
+
+(def function length-cc (list)
+  (length (force-cc list)))
+
+(def function subseq-cc (list start &optional end)
+  (not-yet-implemented))
+
+(def function nthcdr-cc (list length)
+  (labels ((recurse (instance length)
+             (if (zerop length)
+                 instance
+                 (when instance
+                   (recurse (cdr-cc instance) (1- length))))))
+    (recurse list length)))
 
 ;;;;;;
 ;;; Computed double linked list

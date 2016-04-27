@@ -25,6 +25,12 @@
 (def macro alternative (&body forms)
   `(make-projection/alternative (list ,@forms)))
 
+(def forward-mapper alternative ()
+  (funcall (forward-mapper-of (elt (alternatives-of -projection-) (selection-of -projection-))) (content-iomap-of -printer-iomap-) -reference-))
+
+(def backward-mapper alternative ()
+  (funcall (backward-mapper-of (elt (alternatives-of -projection-) (selection-of -projection-))) (content-iomap-of -printer-iomap-) -reference-))
+
 ;;;;;;
 ;;; Printer
 
@@ -32,14 +38,14 @@
   (bind ((selected-alternative-iomap (as (bind ((selection-element (elt (alternatives-of -projection-) (selection-of -projection-))))
                                            (call-printer selection-element -recursion- -input- -input-reference-))))
          (output (as (output-of (va selected-alternative-iomap)))))
-    (make-iomap/compound -projection- -recursion- -input- -input-reference- output (as (list (va selected-alternative-iomap))))))
+    (make-iomap/content -projection- -recursion- -input- -input-reference- output selected-alternative-iomap)))
 
 ;;;;;;
 ;;; Reader
 
 (def reader alternative ()
   (merge-commands (bind ((selection-element (elt (alternatives-of -projection-) (selection-of -projection-)))
-                         (selected-alternative-iomap (first (child-iomaps-of -printer-iomap-)))
+                         (selected-alternative-iomap (content-iomap-of -printer-iomap-))
                          (command (call-reader selection-element -recursion- -input- selected-alternative-iomap)))
                     (when (and command (operation-of command))
                       command))
@@ -64,7 +70,7 @@
 ;;;;;;
 ;;; Evaluator
 
-(def evaluator operation/select-next-alternative (operation)
-  (bind ((projection (projection-of operation)))
+(def evaluator operation/select-next-alternative ()
+  (bind ((projection (projection-of -operation-)))
     (setf (selection-of projection) (mod (1+ (selection-of projection))
                                          (length (alternatives-of projection))))))

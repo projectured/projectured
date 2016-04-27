@@ -126,30 +126,34 @@
     (recursive
       (reference-dispatching
         (alternative
-          (type-dispatching
-            (collection/sequence (copying))
-            (document/base (document->syntax 'default-factory 'default-searcher))
-            (searching/base (searching->syntax))
-            (book/paragraph (nesting
-                              (book/paragraph->syntax/leaf)
-                              (text-aligning 1270)))
-            (book/base (book->syntax))
-            (file-system/base (file-system->syntax))
-            (json/base (json->syntax))
-            (xml/base (xml->syntax))
-            (common-lisp/base (sequential
-                                (alternative
-                                  (type-dispatching
-                                    (common-lisp/application (alternative
-                                                               (preserving)
-                                                               (inlining)))
-                                    (common-lisp/base (preserving))))
-                                (common-lisp->s-expression)
-                                (s-expression->syntax)))
-            (s-expression/base (s-expression->syntax))
-            (evaluator/base (evaluator->syntax))
-            (syntax/base (preserving))
-            (text/base (word-wrapping 1270)))
+          (error-handling
+           (type-dispatching
+             (collection/sequence (copying))
+             (document/base (document->syntax 'default-factory 'default-searcher))
+             (searching/base (searching->syntax))
+             (book/paragraph (nesting
+                               (book/paragraph->syntax/leaf)
+                               (text-aligning 1270)))
+             (book/base (book->syntax))
+             (file-system/base (file-system->syntax))
+             (json/base (json->syntax))
+             (xml/base (xml->syntax))
+             (common-lisp/base (sequential
+                                 (alternative
+                                   (type-dispatching
+                                     (common-lisp/application (alternative
+                                                                (preserving)
+                                                                (inlining)))
+                                     (common-lisp/base (preserving))))
+                                 (common-lisp->s-expression)
+                                 (s-expression->syntax)))
+             (s-expression/base (s-expression->syntax))
+             (evaluator/base (evaluator->syntax))
+             (syntax/base (preserving))
+             (text/base (word-wrapping 1270)))
+           (invariably (syntax/leaf ()
+                         (text/text ()
+                           (text/string "Error" :font *font/liberation/serif/regular/24* :font-color *color/red*)))))
           (recursive
             (t->syntax 'default-slot-provider)))))
     (recursive

@@ -101,7 +101,7 @@
             (output-selection (as (print-selection -printer-iomap-)))
             (output (as (etypecase -input-
                           (collection/sequence ;; KLUDGE: typechecking fails in SBCL sequence/
-                              (make-collection/sequence (map-ll (va element-iomaps) 'output-of) :selection output-selection))
+                              (make-collection/sequence (as (map-ll (va element-iomaps) 'output-of)) :selection output-selection))
                           (sequence (map-ll (va element-iomaps) 'output-of))))))
        (make-iomap/compound -projection- -recursion- -input- -input-reference- output element-iomaps)))
     (standard-object

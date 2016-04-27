@@ -254,26 +254,26 @@
 (def operation operation/widget/hide ()
   ((widget :type widget/base)))
 
-(def operation operation/widget/show (operation)
+(def operation operation/widget/show ()
   ((widget :type widget/base)))
 
-(def operation operation/widget/scroll-pane/scroll (operation)
+(def operation operation/widget/scroll-pane/scroll ()
   ((scroll-pane :type widget/scroll-pane)
    (scroll-delta :type 2d)))
 
 ;;;;;;
 ;;; Evaluator
 
-(def evaluator operation/widget/hide (operation)
-  (setf (visible-p (widget-of operation)) #f))
+(def evaluator operation/widget/hide ()
+  (setf (visible-p (widget-of -operation-)) #f))
 
-(def evaluator operation/widget/show (operation)
-  (setf (visible-p (widget-of operation)) #t))
+(def evaluator operation/widget/show ()
+  (setf (visible-p (widget-of -operation-)) #t))
 
-(def evaluator operation/widget/scroll-pane/scroll (operation)
-  (bind ((scroll-pane (scroll-pane-of operation)))
+(def evaluator operation/widget/scroll-pane/scroll ()
+  (bind ((scroll-pane (scroll-pane-of -operation-)))
     (setf (scroll-position-of scroll-pane) (+ (scroll-position-of scroll-pane)
-                                              (scroll-delta-of operation)))))
+                                              (scroll-delta-of -operation-)))))
 
 ;;;;;
 ;;; API

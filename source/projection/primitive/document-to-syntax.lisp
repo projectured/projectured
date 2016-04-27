@@ -82,9 +82,9 @@
   (merge-commands (gesture-case -gesture-
                     ((make-key-press-gesture :scancode-insert)
                      :domain "Document" :description "Starts a generic insertion into the document"
-                     :operation (make-operation/compound (list (make-operation/replace-target -printer-input- nil (document/insertion ()))
-                                                               (make-operation/replace-selection -printer-input- `((the string (value-of (the document/insertion document)))
-                                                                                                                   (the string (subseq (the string document) 0 0))))))))
+                     :operation (make-operation/compound (list (make-operation/replace-target nil (document/insertion ()))
+                                                               (make-operation/replace-selection `((the string (value-of (the document/insertion document)))
+                                                                                                   (the string (subseq (the string document) 0 0))))))))
                   (make-command -gesture-
                                 (labels ((recurse (operation)
                                            (typecase operation
@@ -96,7 +96,7 @@
                                                          (the text/text (text/subseq (the text/text document) ?character-index ?character-index)))
                                                         `((the string (value-of (the document/nothing document)))
                                                           (the string (subseq (the string document) ,?character-index ,?character-index)))))
-                                                (make-operation/replace-selection -printer-input- it)))
+                                                (make-operation/replace-selection it)))
                                              (operation/show-context-sensitive-help
                                               (make-instance 'operation/show-context-sensitive-help
                                                              :commands (iter (for command :in (commands-of operation))
@@ -122,8 +122,8 @@
                      :operation (bind (((:values nil completion) (funcall (factory-of -projection-) (value-of -printer-input-)))
                                        (end (length (value-of -printer-input-))))
                                   (values (when completion
-                                            (make-operation/string/replace-range -printer-input- `((the string (value-of (the document/insertion document)))
-                                                                                                   (the string (subseq (the string document) ,end ,end))) completion))
+                                            (make-operation/string/replace-range `((the string (value-of (the document/insertion document)))
+                                                                                   (the string (subseq (the string document) ,end ,end))) completion))
                                           #t)))
                     ((make-key-press-gesture :scancode-return)
                      :domain "Document" :description "Inserts a new object of the provided type"
@@ -131,21 +131,20 @@
                                        (new-instance (or immediate-new-instance
                                                          (funcall (factory-of -projection-) (string+ (value-of -printer-input-) completion)))))
                                   (values (when new-instance
-                                            (make-operation/compound (list (make-operation/replace-target -printer-input- nil new-instance)
+                                            (make-operation/compound (list (make-operation/replace-target nil new-instance)
                                                                            #+nil ;; TODO: causes the initial selection to fail
-                                                                           (make-operation/replace-selection printer-input nil))))
+                                                                           (make-operation/replace-selection nil))))
                                           #t)))
                     ((make-key-press-gesture :scancode-escape)
                      :domain "Document" :description "Aborts the object insertion"
-                     :operation (make-operation/replace-target -printer-input- nil (document/nothing ()))))
+                     :operation (make-operation/replace-target nil (document/nothing ()))))
                   (make-command -gesture-
                                 (labels ((recurse (operation)
                                            (typecase operation
                                              (operation/quit operation)
                                              (operation/functional operation)
                                              (operation/replace-selection
-                                              (make-operation/replace-selection -printer-input-
-                                                                                (reference-case (selection-of operation)
+                                              (make-operation/replace-selection (reference-case (selection-of operation)
                                                                                   (((the text/text (content-of (the syntax/leaf document)))
                                                                                     (the text/text (text/subseq (the text/text document) ?character-index ?character-index)))
                                                                                    (bind ((prefix-start-index 0)
@@ -175,7 +174,7 @@
                                                           (when (and (<= value-start-index ?start-character-index value-end-index) (<= value-start-index ?end-character-index value-end-index))
                                                             `((the string (value-of (the document/insertion document)))
                                                               (the string (subseq (the string document) ,(- ?start-character-index value-start-index) ,(- ?end-character-index value-start-index))))))))
-                                                (make-operation/string/replace-range -printer-input- it (replacement-of operation))))
+                                                (make-operation/string/replace-range it (replacement-of operation))))
                                              (operation/show-context-sensitive-help
                                               (make-instance 'operation/show-context-sensitive-help
                                                              :commands (iter (for command :in (commands-of operation))

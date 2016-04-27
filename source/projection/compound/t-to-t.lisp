@@ -66,9 +66,11 @@
   (type-dispatching
     (syntax/node (syntax/node->text/text))
     (syntax/leaf (syntax/leaf->text/text))
-    (syntax/delimitation (syntax/delimitation->text/text))
     (syntax/indentation (syntax/indentation->text/text))
+    (syntax/delimitation (syntax/delimitation->text/text))
     (syntax/collapsible (syntax/collapsible->text/text))
+    (syntax/navigation (syntax/navigation->text/text))
+    (syntax/concatenation (syntax/concatenation->text/text))
     (syntax/separation (syntax/separation->text/text))))
 
 (def macro syntax->text ()

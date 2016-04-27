@@ -9,6 +9,9 @@
 ;;;;;;
 ;;; Util
 
+(def function subseq* (sequence start end)
+  (subseq sequence start (min end (length sequence))))
+
 (def function resource-pathname (name)
   (flet ((try (path)
            (awhen (probe-file path)

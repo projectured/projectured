@@ -104,27 +104,26 @@
 
 (def printer text/text->graphics/canvas ()
   (labels ((line-height (line-start-position line-end-position)
-             (or (iter (for element :initially (text/position-element line-start-position) :then (text/next-element -input- element))
-                       (for text-element = (text/element -input- element))
-                       (etypecase text-element
-                         (text/spacing)
-                         (text/newline
-                          (awhen (font-of text-element)
-                            (maximize (2d-y (measure-text " " it)))))
-                         (text/string
-                          (maximize (+ (2d-y (measure-text " " (font-of text-element)))
-                                       (aif (padding-of text-element)
-                                            (inset/height it)
-                                            0))))
-                         (text/graphics
-                          (bind ((graphics (output-of (recurse-printer -recursion- (content-of text-element) nil)))
-                                 (bounding-rectangle (bounds-of graphics)))
-                            (maximize (+ (2d-y (size-of bounding-rectangle))
-                                         (aif (padding-of text-element)
-                                              (inset/height it)
-                                              0))))))
-                       (until (eql element (text/position-element line-end-position))))
-                 42))
+             (iter (for element :initially (text/position-element line-start-position) :then (text/next-element -input- element))
+                   (for text-element = (text/element -input- element))
+                   (etypecase text-element
+                     (text/spacing)
+                     (text/newline
+                      (awhen (font-of text-element)
+                        (maximize (2d-y (measure-text " " it)))))
+                     (text/string
+                      (maximize (+ (2d-y (measure-text " " (font-of text-element)))
+                                   (aif (padding-of text-element)
+                                        (inset/height it)
+                                        0))))
+                     (text/graphics
+                      (bind ((graphics (output-of (recurse-printer -recursion- (content-of text-element) nil)))
+                             (bounding-rectangle (bounds-of graphics)))
+                        (maximize (+ (2d-y (size-of bounding-rectangle))
+                                     (aif (padding-of text-element)
+                                          (inset/height it)
+                                          0))))))
+                   (until (eql element (text/position-element line-end-position)))))
            (find-line-iomap (line-iomaps character-index)
              (iter (for line-iomap-element :initially line-iomaps :then (if (< character-index 0)
                                                                             (previous-element-of line-iomap-element)
@@ -171,7 +170,7 @@
                          (height (2d-y size)))
                     (values (+ position offset) height))))))
            (print-selection-below (line-iomaps)
-             (pattern-case (selection-of -input-)
+             (reference-case (selection-of -input-)
                (((the text/text (text/subbox (the text/text document) ?start-index ?end-index)))
                 (bind (((:values start-line-iomap start-line-iomap-element) (find-line-iomap line-iomaps ?start-index))
                        ((:values end-line-iomap end-line-iomap-element) (find-line-iomap line-iomaps ?end-index))
@@ -192,7 +191,7 @@
                                                          3
                                                          :fill-color *color/solarized/background/light*))))))
            (print-selection-above (line-iomaps)
-             (pattern-case (selection-of -input-)
+             (reference-case (selection-of -input-)
                (((the text/text (text/subseq (the text/text document) ?character-index ?character-index)))
                 (bind ((line-iomap (find-line-iomap line-iomaps ?character-index)))
                   (when line-iomap
@@ -235,7 +234,7 @@
                                                     (incf x (size-of text-element)))
                                                    (text/string
                                                     (unless (eq text-element previous-text-element)
-                                                      (bind ((content (content-of text-element))
+                                                      (bind ((content (coerce (content-of text-element) 'string))
                                                              (size (measure-text content (font-of text-element))))
                                                         (push character-index first-character-indices)
                                                         (incf character-index (length content))

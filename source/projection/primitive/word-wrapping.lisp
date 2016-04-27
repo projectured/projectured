@@ -50,7 +50,7 @@
                      (return (+ (output-start-index-of line-iomap)
                                 (- index (input-start-index-of line-iomap))
                                 (funcall 'count index (input-newline-insertion-indices-of line-iomap) :test '>)))))))
-    (pattern-case (force-cc -reference-)
+    (reference-case -reference-
       (((the text/text (text/subseq (the text/text document) ?start-index ?end-index)) . ?rest)
        `((the text/text (text/subseq (the text/text document) ,(find-output-index ?start-index) ,(find-output-index ?end-index))))))))
 
@@ -67,7 +67,7 @@
                                (+ (input-start-index-of line-iomap)
                                   (- index (output-start-index-of line-iomap))
                                   (- (funcall 'count index (output-newline-insertion-indices-of line-iomap) :test '>)))))))))
-    (pattern-case (force-cc -reference-)
+    (reference-case -reference-
       (((the text/text (text/subseq (the text/text document) ?start-index ?end-index)))
        (bind ((start-index (find-input-index ?start-index))
               (end-index (find-input-index ?end-index)))
@@ -108,7 +108,7 @@
                                                (push input-character-index input-newline-insertion-indices)
                                                (push output-character-index output-newline-insertion-indices)
                                                (incf output-character-index)
-                                               (collect (text/newline) :into output-elements))
+                                               (collect (text/newline :font (font-of (first-elt (elements-of word)))) :into output-elements))
                                              (incf input-character-index word-length)
                                              (incf output-character-index word-length)
                                              ;; TODO: just append the vector
@@ -122,7 +122,7 @@
                                                                              :projection -projection- :recursion -recursion-
                                                                              :input -input- :input-reference -input-reference- :output (ll (if (text/last-position? -input- line-end-position)
                                                                                                                                                output-elements
-                                                                                                                                               (append output-elements (list (text/newline)))))
+                                                                                                                                               (append output-elements (list (text/newline :font (font-of (last-elt (elements-of -input-))))))))
                                                                              :input-start-index line-start-index :input-end-index line-end-index
                                                                              :input-newline-insertion-indices (nreverse input-newline-insertion-indices)
                                                                              :output-start-index (or output-start-index (- output-end-index line-length newline-insertion-count)) :output-end-index (or output-end-index (+ output-start-index line-length newline-insertion-count))
@@ -140,7 +140,7 @@
                             (make-element (text/origin-position -input-) 0 nil))))
          (output-selection (as (print-selection -printer-iomap-)))
          (output (text/make-text (as (or (append-ll (map-ll (va line-iomaps) 'output-of))
-                                         (list (text/string ""))))
+                                         (list (text/string "" :font (font-of (first-elt (elements-of -input-)))))))
                                  :selection output-selection)))
     (make-instance 'iomap/word-wrapping
                    :projection -projection- :recursion -recursion-

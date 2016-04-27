@@ -78,15 +78,15 @@
 ;;;;;;
 ;;; Evaluator
 
-(def evaluator operation/load-document (operation)
-  (bind ((document (document-of operation))
-         (content (call-loader (filename-of operation))))
+(def evaluator operation/load-document ()
+  (bind ((document (document-of -operation-))
+         (content (call-loader (filename-of -operation-))))
     (setf (content-of document) content)
     (setf (selection-of document) `((the ,(document-type content) (content-of (the workbench/document document)))))))
 
-(def evaluator operation/save-document (operation)
-  (call-saver (filename-of operation) (content-of (document-of operation))))
+(def evaluator operation/save-document ()
+  (call-saver (filename-of -operation-) (content-of (document-of -operation-))))
 
-(def evaluator operation/export-document (operation)
-  (with-output-to-file (output (filename-of operation) :if-does-not-exist :create :if-exists :overwrite :element-type 'character)
-    (print-document (content-of (document-of operation)) output)))
+(def evaluator operation/export-document ()
+  (with-output-to-file (output (filename-of -operation-) :if-does-not-exist :create :if-exists :overwrite :element-type 'character)
+    (print-document (content-of (document-of -operation-)) output)))

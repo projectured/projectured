@@ -349,7 +349,7 @@
                                                      (lambda (element-iomap)
                                                        (bind ((element-output (output-of element-iomap)))
                                                          (typecase element-output
-                                                           (syntax/base (syntax/clone element-output :indentation (indentation-of element-output)))
+                                                           (syntax/base element-output)
                                                            (s-expression/base (s-expression/clone element-output :indentation (indentation-of element-output)))
                                                            (t (when (and deep-list (not (first-iteration-p)))
                                                                 (break "~A" element-output)
@@ -402,7 +402,7 @@
                                 (reference-case selection
                                   (((the string (value-of (the s-expression/insertion document)))
                                     (the string (subseq (the string document) ?start-index ?end-index)))
-                                   (make-operation/string/replace-range -printer-input- selection (replacement-of operation)))))))))
+                                   (make-operation/string/replace-range selection (replacement-of operation)))))))))
     (merge-commands (command/read-backward -recursion- -input- -printer-iomap- operation-mapper)
                     (make-nothing-command -gesture-))))
 
@@ -420,14 +420,13 @@
                                     (the string (write-to-string (the ?type document)))
                                     (the string (subseq (the string document) ?start-index ?end-index)))
                                    (when (every 'digit-char-p (replacement-of operation))
-                                     (make-operation/number/replace-range -printer-input- selection (replacement-of operation))))
+                                     (make-operation/number/replace-range selection (replacement-of operation))))
                                   (((the syntax/leaf (printer-output (the s-expression/number document) ?projection ?recursion)) . ?rest)
                                    (when (every 'digit-char-p (replacement-of operation))
                                      (bind ((type (etypecase (value-of -printer-input-)
                                                     ((or null number) 'number)
                                                     (primitive/number 'primitive/number))))
-                                       (make-operation/number/replace-range -printer-input-
-                                                                            `((the ,type (value-of (the s-expression/number document)))
+                                       (make-operation/number/replace-range `((the ,type (value-of (the s-expression/number document)))
                                                                               (the string (write-to-string (the ,type document)))
                                                                               (the string (subseq (the string document) 0 0)))
                                                                             (replacement-of operation)))))))))))
@@ -442,10 +441,9 @@
                                 (reference-case selection
                                   (((the string (name-of (the s-expression/symbol document)))
                                     (the string (subseq (the string document) ?start-index ?end-index)))
-                                   (make-operation/string/replace-range -printer-input- selection (replacement-of operation)))
+                                   (make-operation/string/replace-range selection (replacement-of operation)))
                                   (((the syntax/leaf (printer-output (the s-expression/symbol document) ?projection ?recursion)) . ?rest)
-                                   (make-operation/string/replace-range -printer-input-
-                                                                        '((the string (name-of (the s-expression/symbol document)))
+                                   (make-operation/string/replace-range '((the string (name-of (the s-expression/symbol document)))
                                                                           (the string (subseq (the string document) 0 0)))
                                                                         (replacement-of operation)))))))))
     (merge-commands (gesture-case -gesture-
@@ -463,10 +461,9 @@
                                 (reference-case selection
                                   (((the string (value-of (the s-expression/string document)))
                                     (the string (subseq (the string document) ?start-index ?end-index)))
-                                   (make-operation/string/replace-range -printer-input- selection (replacement-of operation)))
+                                   (make-operation/string/replace-range selection (replacement-of operation)))
                                   (((the syntax/leaf (printer-output (the s-expression/string document) ?projection ?recursion)) . ?rest)
-                                   (make-operation/string/replace-range -printer-input-
-                                                                        '((the string (value-of (the s-expression/string document)))
+                                   (make-operation/string/replace-range '((the string (value-of (the s-expression/string document)))
                                                                           (the string (subseq (the string document) 0 0)))
                                                                         (replacement-of operation)))))))))
     (merge-commands (command/read-backward -recursion- -input- -printer-iomap- operation-mapper)
@@ -482,8 +479,8 @@
                     ((make-key-press-gesture :scancode-insert)
                      :domain "Lisp form" :description "Starts an insertion into the elements of the list"
                      :operation (bind ((elements-length (length (elements-of -printer-input-))))
-                                  (make-operation/sequence/replace-range -printer-input- `((the sequence (elements-of (the s-expression/list document)))
-                                                                                           (the sequence (subseq (the sequence document) ,elements-length ,elements-length)))
+                                  (make-operation/sequence/replace-range `((the sequence (elements-of (the s-expression/list document)))
+                                                                           (the sequence (subseq (the sequence document) ,elements-length ,elements-length)))
                                                                          (make-collection/sequence (vector (as (document/insertion (:selection '((the string (value-of (the document/insertion document)))
                                                                                                                                                (the string (subseq (the string document) 0 0))))))))))))
                   (command/read-backward -recursion- -input- -printer-iomap-)

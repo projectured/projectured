@@ -17,10 +17,12 @@
                      (append supers '(operation)))))
     `(def class* ,name ,supers ,slots ,@options)))
 
-(def definer evaluator (name arguments &body forms)
+(def definer evaluator (name &body forms)
   (bind ((function-name (format-symbol :projectured "EVALUATOR/~A" name)))
     `(progn
-       (def function ,function-name ,arguments ,@forms)
+       (def function ,function-name (-document- -operation-)
+         (declare (ignorable -document- -operation-))
+         ,@forms)
        (setf (find-evaluator ',name) ',function-name))))
 
 ;;;;;;
@@ -57,19 +59,18 @@
 ;;;;;;
 ;;; Evaluator
 
-(def evaluator operation/quit (operation)
-  (declare (ignore operation))
+(def evaluator operation/quit ()
   (throw :quit-editor nil))
 
-(def evaluator operation/functional (operation)
-  (funcall (thunk-of operation)))
+(def evaluator operation/functional ()
+  (funcall (thunk-of -operation-)))
 
-(def evaluator operation/compound (operation)
-  (iter (for element :in-sequence (elements-of operation))
-        (call-evaluator element)))
+(def evaluator operation/compound ()
+  (iter (for element :in-sequence (elements-of -operation-))
+        (call-evaluator -document- element)))
 
 ;;;;;;
 ;;; API
 
-(def function call-evaluator (operation)
-  (funcall (find-evaluator (class-name (class-of operation))) operation))
+(def function call-evaluator (document operation)
+  (funcall (find-evaluator (class-name (class-of operation))) document operation))

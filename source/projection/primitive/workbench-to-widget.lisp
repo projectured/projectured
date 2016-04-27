@@ -283,10 +283,10 @@
          (output (widget/shell (:size (make-2d 1280 720)
                                 :border (make-inset :all 5)
                                 :border-color *color/solarized/background/lighter*
-                                :selection (as (subseq (force-cc (va output-selection) 1) 0 1)))
-                   (widget/split-pane (:orientation :horizontal :selection (as (subseq (force-cc (va output-selection) 3) 1 3)))
+                                :selection (as (subseq* (take-cc (va output-selection) 1) 0 1)))
+                   (widget/split-pane (:orientation :horizontal :selection (as (subseq* (take-cc (va output-selection) 3) 1 3)))
                      (as (output-of (va navigation-page-iomap)))
-                     (widget/split-pane (:orientation :vertical :selection (as (subseq (force-cc (va output-selection) 5) 3 5)))
+                     (widget/split-pane (:orientation :vertical :selection (as (subseq* (take-cc (va output-selection) 5) 3 5)))
                        (as (output-of (va editing-page-iomap)))
                        (as (output-of (va information-page-iomap))))))))
     (make-iomap/compound -projection- -recursion- -input- -input-reference- output (as (list (va navigation-page-iomap) (va editing-page-iomap) (va information-page-iomap))))))
@@ -305,7 +305,7 @@
                                                                    (output-of document-iomap)))))
                                           :border (make-inset :all 5)
                                           :border-color *color/solarized/content/lighter*
-                                          :selection (as (subseq (force-cc (va output-selection) 3) 0 3)))))
+                                          :selection (as (subseq* (take-cc (va output-selection) 3) 0 3)))))
     (make-iomap/compound -projection- -recursion- -input- -input-reference- output document-iomaps)))
 
 (def printer workbench/navigator->widget/scroll-pane ()
@@ -319,9 +319,9 @@
          (output (widget/scroll-pane (:size (make-2d 224 655)
                                       :padding (make-inset :all 5)
                                       :padding-color *color/white*
-                                      :selection (as (subseq (va output-selection) 0 1)))
+                                      :selection (as (subseq* (take-cc (va output-selection) 1) 0 1)))
                    (make-widget/composite 0 (as (mapcar 'output-of (va folder-iomaps)))
-                                          :selection (as (subseq (va output-selection) 1 3))))))
+                                          :selection (as (subseq* (take-cc (va output-selection) 3) 1 3))))))
     (make-iomap/compound -projection- -recursion- -input- -input-reference- output folder-iomaps)))
 
 (def printer workbench/console->widget/scroll-pane ()
@@ -332,7 +332,7 @@
          (output (widget/scroll-pane (:size (make-2d 1000 130)
                                       :padding (make-inset :all 5)
                                       :padding-color *color/white*
-                                      :selection (as (subseq (va output-selection) 0 1)))
+                                      :selection (as (subseq* (take-cc (va output-selection) 1) 0 1)))
                    (as (output-of (va content-iomap))))))
     (make-iomap/content -projection- -recursion- -input- -input-reference- output content-iomap)))
 
@@ -368,7 +368,7 @@
          (output (widget/scroll-pane (:size (make-2d 1000 130)
                                       :padding (make-inset :all 5)
                                       :padding-color *color/white*
-                                      :selection (as (subseq (va output-selection) 0 1)))
+                                      :selection (as (subseq* (take-cc (va output-selection) 1) 0 1)))
                    (as (output-of (va content-iomap))))))
     (make-iomap/content -projection- -recursion- -input- -input-reference- output content-iomap)))
 
@@ -380,7 +380,7 @@
          (output (widget/scroll-pane (:size (make-2d 1000 461)
                                       :padding (make-inset :all 5)
                                       :padding-color *color/white*
-                                      :selection (as (subseq (force-cc (va output-selection) 1) 0 1)))
+                                      :selection (as (subseq* (take-cc (va output-selection) 1) 0 1)))
                    (as (output-of (va content-iomap))))))
     (make-iomap/content -projection- -recursion- -input- -input-reference- output content-iomap)))
 
@@ -392,16 +392,16 @@
                   (gesture-case -gesture-
                     ((make-key-press-gesture :scancode-f1)
                      :domain "Workbench" :description "Selects navigation page"
-                     :operation (make-operation/replace-selection -printer-input- '((the workbench/page (navigation-page-of (the workbench/workbench document))))))
+                     :operation (make-operation/replace-selection '((the workbench/page (navigation-page-of (the workbench/workbench document))))))
                     ((make-key-press-gesture :scancode-f2)
                      :domain "Workbench" :description "Selects editing page"
-                     :operation (make-operation/replace-selection -printer-input- '((the workbench/page (editing-page-of (the workbench/workbench document))))))
+                     :operation (make-operation/replace-selection '((the workbench/page (editing-page-of (the workbench/workbench document))))))
                     ((make-key-press-gesture :scancode-f3)
                      :domain "Workbench" :description "Selects information page"
-                     :operation (make-operation/replace-selection -printer-input- '((the workbench/page (information-page-of (the workbench/workbench document))))))
+                     :operation (make-operation/replace-selection '((the workbench/page (information-page-of (the workbench/workbench document))))))
                     ((make-key-press-gesture :scancode-return)
                      :domain "File system" :description "Opens the selected document"
-                     :operation (reference-case (reverse (get-selection -printer-input-))
+                     :operation (reference-case (reverse-cc (get-selection -printer-input-))
                                   (((the string (subseq (the string document) ?start-index ?end-index))
                                     (the string (file-namestring (the pathname document)))
                                     (the pathname (pathname-of (the file-system/file document)))
@@ -409,8 +409,7 @@
                                    (bind ((elements-length (length (elements-of (editing-page-of -printer-input-))))
                                           (filename (pathname-of (eval-reference -printer-input- (flatten-reference (reverse ?rest)))))
                                           (document (workbench/document (:title (file-namestring filename) :filename filename))))
-                                     (make-operation/compound (list (make-operation/sequence/replace-range -printer-input-
-                                                                                                           `((the workbench/page (editing-page-of (the workbench/workbench document)))
+                                     (make-operation/compound (list (make-operation/sequence/replace-range `((the workbench/page (editing-page-of (the workbench/workbench document)))
                                                                                                              (the sequence (elements-of (the workbench/page document)))
                                                                                                              (the sequence (subseq (the sequence document) ,elements-length ,elements-length)))
                                                                                                            (list document))
@@ -427,8 +426,8 @@
                                                                                               (setf (elements-of -printer-input-) (append (elements-of -printer-input-)
                                                                                                                                           (list (workbench/document (:title "Untitled" :selection '((the document/nothing (content-of (the workbench/document document)))))
                                                                                                                                                   (document/nothing ())))))))
-                                                                 (make-operation/replace-selection -printer-input- `((the sequence (elements-of (the workbench/page document)))
-                                                                                                                     (the workbench/document (elt (the sequence document) ,elements-length))))))))
+                                                                 (make-operation/replace-selection `((the sequence (elements-of (the workbench/page document)))
+                                                                                                     (the workbench/document (elt (the sequence document) ,elements-length))))))))
                     ((make-key-press-gesture :scancode-f4 :control)
                      :domain "Workbench" :description "Closes the current document"
                      :operation (make-operation/functional (lambda ()

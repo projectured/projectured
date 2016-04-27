@@ -40,8 +40,7 @@
                                       (operation/quit operation)
                                       (operation/functional operation)
                                       (operation/replace-selection
-                                       (make-operation/replace-selection -printer-input-
-                                                                         (append (selection-of operation)
+                                       (make-operation/replace-selection (append (selection-of operation)
                                                                                  `((the ,(document-type -printer-output-) (printer-output (the ,(document-type -printer-input-) document) ,-projection- ,-recursion-))))))
                                       (operation/show-context-sensitive-help
                                        (make-instance 'operation/show-context-sensitive-help

@@ -74,28 +74,28 @@
                     ((make-key-press-gesture :scancode-c :control)
                      :domain "Clipboard" :description "Copies the selected object to the clipboard"
                      :operation (bind ((slice (deep-copy (eval-reference -printer-input- (flatten-reference (selection-of -printer-input-))))))
-                                  (make-operation/replace-target -printer-input- `((the ,(document-type slice) (slice-of (the clipboard/slice document)))) slice)))
+                                  (make-operation/replace-target `((the ,(document-type slice) (slice-of (the clipboard/slice document)))) slice)))
                     ((make-key-press-gesture :scancode-x :control)
                      :domain "Clipboard" :description "Cuts the selected object and moves it to the clipboard"
                      :operation (bind ((slice (eval-reference -printer-input- (flatten-reference (selection-of -printer-input-)))))
-                                  (make-operation/compound (list (make-operation/replace-target -printer-input- `((the ,(document-type slice) (slice-of (the clipboard/slice document)))) slice)
-                                                                 (make-operation/replace-target -printer-input- (selection-of -printer-input-) (document/nothing ()))))))
+                                  (make-operation/compound (list (make-operation/replace-target `((the ,(document-type slice) (slice-of (the clipboard/slice document)))) slice)
+                                                                 (make-operation/replace-target (selection-of -printer-input-) (document/nothing ()))))))
                     ((make-key-press-gesture :scancode-n :control)
                      :domain "Clipboard" :description "Notes the selected object in the clipboard"
                      :operation (bind ((slice (eval-reference -printer-input- (flatten-reference (selection-of -printer-input-)))))
-                                  (make-operation/replace-target -printer-input- `((the ,(document-type slice) (slice-of (the clipboard/slice document)))) slice)))
+                                  (make-operation/replace-target `((the ,(document-type slice) (slice-of (the clipboard/slice document)))) slice)))
                     ((make-key-press-gesture :scancode-v :control)
                      :domain "Clipboard" :description "Pastes the object from the clipboard to the selection"
                      :operation (if (slice-of -printer-input-)
-                                    (make-operation/replace-target -printer-input- (selection-of -printer-input-) (slice-of -printer-input-))
+                                    (make-operation/replace-target (selection-of -printer-input-) (slice-of -printer-input-))
                                     #+nil
-                                    (make-operation/sequence/replace-range printer-input (selection-of printer-input)
+                                    (make-operation/sequence/replace-range (selection-of printer-input)
                                                                            (with-output-to-string (stream)
                                                                              (uiop:run-program "/usr/bin/xclip" (list "-o") :output stream)))))
                     ((make-key-press-gesture :scancode-v '(:shift :control))
                      :domain "Clipboard" :description "Pastes a new copy of the object from the clipboard to the selection"
                      :operation (when (slice-of -printer-input-)
-                                  (make-operation/replace-target -printer-input- (selection-of -printer-input-) (deep-copy (slice-of -printer-input-))))))
+                                  (make-operation/replace-target (selection-of -printer-input-) (deep-copy (slice-of -printer-input-))))))
                   (bind ((content-iomap (elt (child-iomaps-of -printer-iomap-) 0))
                          (content-command (recurse-reader -recursion- -input- content-iomap)))
                     (make-command -gesture-

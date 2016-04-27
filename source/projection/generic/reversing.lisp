@@ -55,13 +55,13 @@
                                 (reference-case (selection-of operation)
                                   (((the ?element-type (elt (the sequence document) ?element-index)) . ?rest)
                                    (append `((the ,?element-type (elt (the sequence document) ,(- (length (elements-of -printer-input-)) ?element-index 1)))) ?rest))))
-                         (make-operation/replace-selection -printer-input- it)))
+                         (make-operation/replace-selection it)))
                       (operation/sequence/replace-range
                        (awhen (when (typep -printer-input- 'collection/sequence)
                                 (reference-case (selection-of operation)
                                   (((the ?element-type (elt (the sequence document) ?element-index)) . ?rest)
                                    (append `((the ,?element-type (elt (the sequence document) ,(- (length (elements-of -printer-input-)) ?element-index 1)))) ?rest))))
-                         (make-operation/sequence/replace-range -printer-input- it (replacement-of operation))))
+                         (make-operation/sequence/replace-range it (replacement-of operation))))
                       (operation/compound
                        (bind ((operations (mapcar #'recurse (elements-of operation))))
                          (unless (some 'null operations)

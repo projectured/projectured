@@ -26,6 +26,7 @@
                               :depends-on ("package")
                               :components ((:file "computed" :depends-on ("util"))
                                            (:file "logger")
+                                           (:file "pattern-matcher")
                                            (:file "util")))
                              (:module "editor"
                               :depends-on ("util")
@@ -39,7 +40,7 @@
                                            (:file "iomap")
                                            (:file "loader")
                                            (:file "maker")
-                                           (:file "mapper")
+                                           (:file "mapper" :depends-on ("reference"))
                                            (:file "operation")
                                            (:file "printer")
                                            (:file "projection")

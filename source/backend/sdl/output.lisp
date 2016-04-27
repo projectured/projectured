@@ -10,14 +10,18 @@
 ;;; API
 
 (def function output-to-devices (editor)
-  (bind ((document (document-of editor))
-         (projection (projection-of editor))
-         (output-devices (remove-if-not (of-type 'device/output) (devices-of editor)))
-         (printer-iomap (if (slot-boundp editor 'printer-iomap)
-                            (printer-iomap-of editor)
-                            (setf (printer-iomap-of editor) (apply-printer document projection)))))
-    (iter (for device :in-sequence output-devices)
-          (output-to-device (backend-of editor) (output-of printer-iomap) device))))
+  (block nil
+    (handler-bind ((error (lambda (error)
+                            (declare (ignore error))
+                            (return))))
+      (bind ((document (document-of editor))
+             (projection (projection-of editor))
+             (output-devices (remove-if-not (of-type 'device/output) (devices-of editor)))
+             (printer-iomap (if (slot-boundp editor 'printer-iomap)
+                                (printer-iomap-of editor)
+                                (setf (printer-iomap-of editor) (apply-printer document projection)))))
+        (iter (for device :in-sequence output-devices)
+              (output-to-device (backend-of editor) (output-of printer-iomap) device))))))
 
 (def function output-to-device (backend instance device)
   (etypecase device
@@ -137,7 +141,7 @@
              (when fill-color
                (#,roundedBoxRGBA renderer
                                  (round (2d-x position)) (round (2d-y position))
-                                 (round (+ (2d-x position) (2d-x size))) (round (+ (2d-y position) (2d-y size)))
+                                 (round (+ (2d-x position) (2d-x size) -1)) (round (+ (2d-y position) (2d-y size) -1))
                                  radius
                                  (round (* 255 (red-of fill-color)))
                                  (round (* 255 (green-of fill-color)))
@@ -146,7 +150,7 @@
              (when stroke-color
                (#,roundedRectangleRGBA renderer
                                        (round (2d-x position)) (round (2d-y position))
-                                       (round (+ (2d-x position) (2d-x size))) (round (+ (2d-y position) (2d-y size)))
+                                       (round (+ (2d-x position) (2d-x size) -1)) (round (+ (2d-y position) (2d-y size) -1))
                                        radius
                                        (round (* 255 (red-of stroke-color)))
                                        (round (* 255 (green-of stroke-color)))
@@ -174,7 +178,7 @@
                    (progn
                      (#,aacircleRGBA renderer
                                      (round (+ (2d-x position) radius))
-                                     (round (- (+ (2d-y position) (2d-y size)) radius))
+                                     (round (- (+ (2d-y position) (2d-y size)) radius 1))
                                      (round radius)
                                      (round (* 255 (red-of fill-color)))
                                      (round (* 255 (green-of fill-color)))
@@ -182,7 +186,7 @@
                                      (round (* 255 (alpha-of fill-color))))
                      (#,filledCircleRGBA renderer
                                          (round (+ (2d-x position) radius))
-                                         (round (- (+ (2d-y position) (2d-y size)) radius))
+                                         (round (- (+ (2d-y position) (2d-y size)) radius 1))
                                          (round radius)
                                          (round (* 255 (red-of fill-color)))
                                          (round (* 255 (green-of fill-color)))
@@ -196,16 +200,16 @@
                                      (round radius))
                    (progn
                      (#,aacircleRGBA renderer
-                                     (round (- (+ (2d-x position) (2d-x size)) radius))
-                                     (round (- (+ (2d-y position) (2d-y size)) radius))
+                                     (round (- (+ (2d-x position) (2d-x size)) radius 1))
+                                     (round (- (+ (2d-y position) (2d-y size)) radius 1))
                                      (round radius)
                                      (round (* 255 (red-of fill-color)))
                                      (round (* 255 (green-of fill-color)))
                                      (round (* 255 (blue-of fill-color)))
                                      (round (* 255 (alpha-of fill-color))))
                      (#,filledCircleRGBA renderer
-                                         (round (- (+ (2d-x position) (2d-x size)) radius))
-                                         (round (- (+ (2d-y position) (2d-y size)) radius))
+                                         (round (- (+ (2d-x position) (2d-x size)) radius 1))
+                                         (round (- (+ (2d-y position) (2d-y size)) radius 1))
                                          (round radius)
                                          (round (* 255 (red-of fill-color)))
                                          (round (* 255 (green-of fill-color)))
@@ -242,7 +246,7 @@
                                      (round radius))
                    (progn
                      (#,aacircleRGBA renderer
-                                     (round (- (+ (2d-x position) (2d-x size)) radius))
+                                     (round (- (+ (2d-x position) (2d-x size)) radius 1))
                                      (round (+ (2d-y position) radius))
                                      (round radius)
                                      (round (* 255 (red-of fill-color)))
@@ -250,7 +254,7 @@
                                      (round (* 255 (blue-of fill-color)))
                                      (round (* 255 (alpha-of fill-color))))
                      (#,filledCircleRGBA renderer
-                                         (round (- (+ (2d-x position) (2d-x size)) radius))
+                                         (round (- (+ (2d-x position) (2d-x size)) radius 1))
                                          (round (+ (2d-y position) radius))
                                          (round radius)
                                          (round (* 255 (red-of fill-color)))
@@ -275,9 +279,8 @@
          (render-fill-rect renderer
                            (round (2d-x position))
                            (round (2d-y position))
-                           ;; TODO: validate
-                           (1- (round (2d-x size)))
-                           (1- (round (2d-y size)))))
+                           (round (2d-x size))
+                           (round (2d-y size))))
        (when stroke-color
          (set-render-draw-color renderer stroke-color)
          (render-draw-rect renderer
@@ -299,8 +302,8 @@
            (set-rect '#,w (round (2d-x size)))
            (set-rect '#,h (round (2d-y size))))
          (#,SDL_RenderSetClipRect renderer new-clipping)
-         (output-to-renderer backend renderer (content-of instance) translation)
-         (#,SDL_RenderSetClipRect renderer old-clipping))))
+         (unwind-protect (output-to-renderer backend renderer (content-of instance) translation)
+           (#,SDL_RenderSetClipRect renderer old-clipping)))))
 
     (graphics/line
      (bind ((begin (+ translation (begin-of instance)))
@@ -440,5 +443,5 @@
            (set-rect '#,w (round (2d-x size)))
            (set-rect '#,h (round (2d-y size))))
          (#,SDL_RenderSetClipRect renderer new-clipping)
-         (output-to-renderer backend renderer (content-of instance) 0))
-       (#,SDL_RenderPresent renderer)))))
+         (unwind-protect (output-to-renderer backend renderer (content-of instance) 0)
+           (#,SDL_RenderPresent renderer)))))))

@@ -50,7 +50,12 @@
      :type boolean
      :optional #t
      :initial-value #f
-     :documentation "Measure printer performance and print results to standard output.")))
+     :documentation "Measure printer performance and print results to standard output.")
+    (("workspace" #\w
+      :type string
+      :optional #t
+      :initial-value nil
+      :documentation "Workspace root directory."))))
 
 (def with-macro with-save-core-and-die-restart ()
   (restart-case
@@ -102,7 +107,7 @@
     :measure))
 
 (def function make-default-editor (documents)
-  (bind ((document (make-default-document (first documents)))
+  (bind ((document (make-default-document documents))
          (projection (make-default-projection))
          (backend (projectured.sdl::make-sdl-backend))
          (devices (make-default-devices)))
@@ -116,7 +121,7 @@
       (process-quiet-command-line-argument arguments)
       (editor.debug "Parsed command line arguments are: ~S" arguments)
       (bind ((documents (mapcar 'make-file-document filenames))
-             (editor (make-default-editor (first documents)))
+             (editor (make-default-editor documents))
              (measure-reader (process-measure-command-line-argument arguments :measure-reader))
              (measure-evaluator (process-measure-command-line-argument arguments :measure-evaluator))
              (measure-printer (process-measure-command-line-argument arguments :measure-printer)))

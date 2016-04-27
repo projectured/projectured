@@ -55,4 +55,4 @@
                              (call-input-from-devices editor)))
           (with-measuring (:evaluator measure-evaluator)
             (editor.debug "Evaluating ~A on ~A" operation document)
-            (call-evaluator operation)))))
+            (call-evaluator document operation)))))

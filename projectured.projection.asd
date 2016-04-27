@@ -26,6 +26,7 @@
                                                          (:file "sorting")))
                                            (:module "higher-order"
                                             :components ((:file "alternative")
+                                                         (:file "error-handling")
                                                          (:file "identity-dispatching")
                                                          (:file "iterating")
                                                          (:file "nesting")

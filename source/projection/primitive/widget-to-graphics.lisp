@@ -489,12 +489,10 @@
                                                                                          (:vertical (make-2d width (- splitter-size 2))))
                                                                                        :fill-color *color/solarized/content/darker*))
                                                      (incf d (1+ splitter-size))))
-                                                 ;; TODO: kills laziness, because output starts to depend on selection, and selection is not lazy due to cons lists
                                                  (when (reference-case (selection-of -input-)
                                                          (((the sequence (elements-of (the widget/split-pane document)))
                                                            (the ?type (elt (the sequence document) ?index))
                                                            . ?rest)
-                                                          #+nil ;; TODO
                                                           (and (not (member 'widget/split-pane (list* ?type (mapcar 'second ?rest))))
                                                                (= ?index index))))
                                                    (collect (make-graphics/rounded-rectangle (ecase orientation
@@ -520,23 +518,17 @@
                                                                 (the sequence (elt (the sequence document) ,index))
                                                                 (the sequence (selector-element-pairs-of (the widget/tabbed-pane document)))
                                                                 ,@(typed-reference (document-type -input-) -input-reference-)))))))
-         (content-iomap (as (recurse-printer -recursion- (second (elt (selector-element-pairs-of -input-) 0))
-                                             `((elt (the sequence document) 1)
-                                               (the sequence (elt (the sequence document) 0))
-                                               (the sequence (selector-element-pairs-of (the widget/tabbed-pane document)))
-                                               ,@(typed-reference (document-type -input-) -input-reference-)))
-                            ;; TODO: kills laziness, because output starts to depend on selection, and selection is not lazy due to cons lists
-                            (when (selector-element-pairs-of -input-)
-                                   (reference-case (selection-of -input-)
-                                     (((the sequence (selector-element-pairs-of (the widget/tabbed-pane document)))
-                                       (the sequence (elt (the sequence document) ?index))
-                                       (the ?type (elt (the sequence document) 1))
-                                       . ?rest)
-                                      (recurse-printer -recursion- (second (elt (selector-element-pairs-of -input-) ?index))
-                                                       `((elt (the sequence document) 1)
-                                                         (the sequence (elt (the sequence document) ,?index))
-                                                         (the sequence (selector-element-pairs-of (the widget/tabbed-pane document)))
-                                                         ,@(typed-reference (document-type -input-) -input-reference-))))))))
+         (content-iomap (as (when (selector-element-pairs-of -input-)
+                              (reference-case (selection-of -input-)
+                                (((the sequence (selector-element-pairs-of (the widget/tabbed-pane document)))
+                                  (the sequence (elt (the sequence document) ?index))
+                                  (the ?type (elt (the sequence document) 1))
+                                  . ?)
+                                 (recurse-printer -recursion- (second (elt (selector-element-pairs-of -input-) ?index))
+                                                  `((elt (the sequence document) 1)
+                                                    (the sequence (elt (the sequence document) ,?index))
+                                                    (the sequence (selector-element-pairs-of (the widget/tabbed-pane document)))
+                                                    ,@(typed-reference (document-type -input-) -input-reference-))))))))
          (output-selection (as (print-selection -printer-iomap-)))
          (output (as (make-graphics/canvas (when (selector-element-pairs-of -input-)
                                              (iter (with x = 0)
@@ -548,12 +540,11 @@
                                                                                              (+ (size-of bounding-rectangle) (make-2d 40 10))
                                                                                              9
                                                                                              :corners '(:bottom-left :bottom-right)
-                                                                                             ;; TODO: kills laziness, because output starts to depend on selection, and selection is not lazy due to cons lists
                                                                                              :fill-color (if (eql index (reference-case (selection-of -input-)
                                                                                                                           (((the sequence (selector-element-pairs-of (the widget/tabbed-pane document)))
                                                                                                                             (the sequence (elt (the sequence document) ?index))
                                                                                                                             (the ?type (elt (the sequence document) 1))
-                                                                                                                            . ?rest)
+                                                                                                                            . ?)
                                                                                                                            ?index)))
                                                                                                              *color/solarized/content/lighter*
                                                                                                              *color/solarized/content/darker*))
@@ -582,7 +573,7 @@
          (output-selection (as (print-selection -printer-iomap-)))
          (output (as (bind ((position (or (position-of -input-) 0))
                             (size (size-of -input-))
-                            (content (make-graphics/canvas (list (output-of (va content-iomap))) (as (scroll-position-of -input-)))))
+                            (content (make-graphics/canvas (as (list (output-of (va content-iomap)))) (as (scroll-position-of -input-)))))
                        (make-graphics/canvas (append (widget/make-surrounding-graphics -input- size (content-fill-color-of -input-)
                                                                                        :padding-corners nil)
                                                      (list (make-graphics/canvas (list (make-graphics/viewport content position size))
@@ -635,23 +626,20 @@
                                  (operation/show-context-sensitive-help
                                   (bind ((content (make-help/context-sensitive (stable-sort (commands-of operation) 'string< :key 'domain-of)))
                                          (size (size-of (make-bounding-rectangle (printer-output content -recursion-)))))
-                                    (make-operation/replace-target -printer-input-
-                                                                   '((the widget/tooltip (tooltip-of (the widget/shell document))))
+                                    (make-operation/replace-target '((the widget/tooltip (tooltip-of (the widget/shell document))))
                                                                    (widget/tooltip (:position (mouse-position-of -gesture-) :size size)
                                                                      content))))
                                  (operation/describe
                                   (bind ((content (document/reference ()
                                                     (selection-of operation)))
                                          (size (size-of (make-bounding-rectangle (printer-output content -recursion-)))))
-                                    (make-operation/replace-target -printer-input-
-                                                                   '((the widget/tooltip (tooltip-of (the widget/shell document))))
+                                    (make-operation/replace-target '((the widget/tooltip (tooltip-of (the widget/shell document))))
                                                                    (widget/tooltip (:position (mouse-position-of -gesture-) :size size)
                                                                      content))))
                                  (operation/show-annotation
                                   (bind ((content (annotation-of (eval-reference (document-of operation) (flatten-reference (selection-of operation)))))
                                          (size (size-of (make-bounding-rectangle (printer-output content -recursion-)))))
-                                    (make-operation/replace-target -printer-input-
-                                                                   '((the widget/tooltip (tooltip-of (the widget/shell document))))
+                                    (make-operation/replace-target '((the widget/tooltip (tooltip-of (the widget/shell document))))
                                                                    (widget/tooltip (:position (mouse-position-of -gesture-) :size size)
                                                                      content))))
                                  (operation/compound
@@ -685,7 +673,7 @@
                   (make-nothing-command -gesture-)))
 
 (def reader widget/split-pane->graphics/canvas ()
-  (bind ((element-gesture (reference-case (make-reference (output-of -printer-iomap-) (mouse-position-of -gesture-) nil)
+  (bind ((element-gesture (reference-case (make-graphics-reference (output-of -printer-iomap-) (mouse-position-of -gesture-) nil)
                             (((the sequence (elements-of (the graphics/canvas document)))
                               (the graphics/canvas (elt (the sequence document) ?index))
                               . ?rest)
@@ -700,7 +688,7 @@
                     (command/read-backward -recursion- element-input -printer-iomap-)
                     #+nil
                     (if (typep -gesture- 'gesture/mouse)
-                        (reference-case (make-reference (output-of -printer-iomap-) (mouse-position-of -gesture-) nil)
+                        (reference-case (make-graphics-reference (output-of -printer-iomap-) (mouse-position-of -gesture-) nil)
                           (((the sequence (elements-of (the graphics/canvas document)))
                             (the graphics/canvas (elt (the sequence document) ?index))
                             . ?rest)
@@ -747,19 +735,18 @@
     (merge-commands (gesture-case -gesture-
                       ((make-instance 'gesture/mouse/click :button :button-left :modifiers nil :mouse-position 0)
                        :domain "Widget" :description "Selects the page in the tabbed pane where the mouse is pointing at"
-                       :operation (reference-case (make-reference (output-of -printer-iomap-) (mouse-position-of -gesture-) nil)
+                       :operation (reference-case (make-graphics-reference (output-of -printer-iomap-) (mouse-position-of -gesture-) nil)
                                     (((the sequence (elements-of (the graphics/canvas document)))
                                       (the ?type (elt (the sequence document) ?index))
                                       . ?rest)
                                      (when (and (< ?index (* 3 (length (selector-element-pairs-of -printer-input-))))
                                                 (= (mod ?index 3) 2))
-                                       (make-operation/replace-selection -printer-input-
-                                                                         `((the sequence (selector-element-pairs-of (the widget/tabbed-pane document)))
+                                       (make-operation/replace-selection `((the sequence (selector-element-pairs-of (the widget/tabbed-pane document)))
                                                                            (the sequence (elt (the sequence document) ,(floor ?index 3)))
                                                                            (the ?type (elt (the sequence document) 1))))))))
                       ((make-instance 'gesture/mouse/click :button :button-left :modifiers nil :mouse-position 0)
                        :domain "Widget" :description "Closes the page in the tabbed pane where the mouse is pointing at"
-                       :operation (reference-case (make-reference (output-of -printer-iomap-) (mouse-position-of -gesture-) nil)
+                       :operation (reference-case (make-graphics-reference (output-of -printer-iomap-) (mouse-position-of -gesture-) nil)
                                     (((the sequence (elements-of (the graphics/canvas document)))
                                       (the ?type (elt (the sequence document) ?index))
                                       . ?rest)
@@ -773,8 +760,7 @@
                                                                                     (subseq selector-element-pairs (1+ index) (length selector-element-pairs)))))))))))
                       ((make-key-press-gesture :scancode-tab :control)
                        :domain "Widget" :description "Selects the next page in the tabbed pane"
-                       :operation (make-operation/replace-selection -printer-input-
-                                                                    (bind ((index (reference-case (selection-of -printer-input-)
+                       :operation (make-operation/replace-selection (bind ((index (reference-case (selection-of -printer-input-)
                                                                                     (((the sequence (selector-element-pairs-of (the widget/tabbed-pane document)))
                                                                                       (the sequence (elt (the sequence document) ?index))
                                                                                       (the ?type (elt (the sequence document) 1))
@@ -785,8 +771,7 @@
                                                                         (the ?type (elt (the sequence document) 1))))))
                       ((make-key-press-gesture :scancode-tab '(:shift :control))
                        :domain "Widget" :description "Selects the previous page in the tabbed pane"
-                       :operation (make-operation/replace-selection -printer-input-
-                                                                    (bind ((index (reference-case (selection-of -printer-input-)
+                       :operation (make-operation/replace-selection (bind ((index (reference-case (selection-of -printer-input-)
                                                                                     (((the sequence (selector-element-pairs-of (the widget/tabbed-pane document)))
                                                                                       (the sequence (elt (the sequence document) ?index))
                                                                                       (the ?type (elt (the sequence document) 1))

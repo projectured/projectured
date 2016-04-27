@@ -10,17 +10,21 @@
 ;;; API
 
 (def function input-from-devices (editor)
-  (bind ((event-queue (event-queue-of editor))
-         (gesture-queue (gesture-queue-of editor))
-         (input-devices (remove-if-not (of-type 'device/input) (devices-of editor))))
-    (if input-devices
-        (iter (when-bind event (read-event)
-                (push event (events-of event-queue))
-                (when-bind gesture (read-gesture event-queue)
-                  (push gesture (gestures-of gesture-queue))
-                  (when-bind operation (operation-of (apply-reader (make-nothing-command gesture) (projection-of editor) (printer-iomap-of editor)))
-                    (return operation)))))
-        (make-operation/quit))))
+  (block nil
+    (handler-bind ((error (lambda (error)
+                            (declare (ignore error))
+                            (return (make-operation/compound nil)))))
+      (bind ((event-queue (event-queue-of editor))
+             (gesture-queue (gesture-queue-of editor))
+             (input-devices (remove-if-not (of-type 'device/input) (devices-of editor))))
+        (if input-devices
+            (iter (when-bind event (read-event)
+                    (push event (events-of event-queue))
+                    (when-bind gesture (read-gesture event-queue)
+                      (push gesture (gestures-of gesture-queue))
+                      (when-bind operation (operation-of (apply-reader (make-nothing-command gesture) (projection-of editor) (printer-iomap-of editor)))
+                        (return operation)))))
+            (make-operation/quit))))))
 
 (def function read-event ()
   (cffi:with-foreign-object (event '#,SDL_Event)

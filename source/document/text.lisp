@@ -101,58 +101,52 @@
         (text/string default-content :font font :font-color (color/lighten font-color 0.75) :fill-color fill-color :line-color line-color :padding padding)
         (text/string content :font font :font-color font-color :fill-color fill-color :line-color line-color :padding padding))))
 
-(def function text/clone-string (element &key font font-color fill-color line-color (padding nil padding?))
-  (text/make-string (content-of element)
-                    :font (font-of element)
-                    :font-color (font-color-of element)
-                    :fill-color (fill-color-of element)
-                    :line-color (line-color-of element)
-                    :padding (if padding? padding (padding-of element))))
+(def function text/clone-string (document &key (content nil content?) (font nil font?) (font-color nil font-color?) (fill-color nil fill-color?) (line-color nil line-color?) (padding nil padding?))
+  (text/make-string (if content? content (content-of document))
+                    :font (if font? font (font-of document))
+                    :font-color (if font-color? font-color (font-color-of document))
+                    :fill-color (if fill-color? fill-color (fill-color-of document))
+                    :line-color (if line-color? line-color (line-color-of document))
+                    :padding (if padding? padding (padding-of document))))
 
-(def function text/clone-graphics (element &key fill-color line-color (padding nil padding?))
-  (text/make-graphics (content-of element)
-                      :fill-color (fill-color-of element)
-                      :line-color (line-color-of element)
-                      :padding (if padding? padding (padding-of element))))
+(def function text/clone-graphics (document &key (content nil content?) (fill-color nil fill-color?) (line-color nil line-color?) (padding nil padding?))
+  (text/make-graphics (if content? content (content-of document))
+                      :fill-color (if fill-color? fill-color (fill-color-of document))
+                      :line-color (if line-color? line-color (line-color-of document))
+                      :padding (if padding? padding (padding-of document))))
 
-(def function text/clone (element &rest args &key &allow-other-keys)
-  (typecase element
-    (text/string (apply #'text/clone-string element args))
-    (text/graphics (apply #'text/clone-graphics element args))))
+(def function text/clone (document &rest args &key &allow-other-keys)
+  (etypecase document
+    (text/string (apply #'text/clone-string document args))
+    (text/graphics (apply #'text/clone-graphics document args))))
 
 ;;;;;;
 ;;; Operation
 
-(def operation operation/text/base ()
-  ())
-
-(def operation operation/text/replace-range (operation/text/base)
-  ((document :type text/text)
-   (selection :type reference)
+(def operation operation/text/replace-range ()
+  ((selection :type reference)
    (replacement :type text/text)))
 
 ;;;;;;
 ;;; Construction
 
-(def function make-operation/text/replace-range (document selection replacement)
+(def function make-operation/text/replace-range (selection replacement)
   (make-instance 'operation/text/replace-range
-                 :document document
                  :selection selection
                  :replacement replacement))
 
 ;;;;;;
 ;;; Evaluator
 
-(def evaluator operation/text/replace-range (operation)
-  (bind ((document (document-of operation))
-         (selection (selection-of operation))
-         (replacement (replacement-of operation)))
+(def evaluator operation/text/replace-range ()
+  (bind ((selection (selection-of -operation-))
+         (replacement (replacement-of -operation-)))
     ;; TODO: make replacement text/text
-    (pattern-case (reverse selection)
+    (reference-case (reverse-cc selection)
       (((the text/text (text/subseq (the text/text document) ?start-character-index ?end-character-index))
         . ?rest)
-       (bind ((text-reference (flatten-reference (reverse ?rest)))
-              (text (eval-reference document text-reference))
+       (bind ((text-reference (flatten-reference (reverse (va* ?rest))))
+              (text (eval-reference -document- text-reference))
               (origin-position (text/origin-position text))
               (start-position (text/relative-position text origin-position ?start-character-index))
               (end-position (text/relative-position text origin-position ?end-character-index))
@@ -166,7 +160,7 @@
                             (subseq start-content 0 (text/position-index start-position))
                             replacement
                             (subseq start-content (+ (text/position-index start-position) (text/length text start-position end-position)))))
-         (set-selection document (append (reverse ?rest) `((the text/text (text/subseq (the text/text document) ,new-character-index ,new-character-index)))))))
+         (set-selection -document- (append (reverse (va* ?rest)) `((the text/text (text/subseq (the text/text document) ,new-character-index ,new-character-index)))))))
       (?a
        (error "Unknown selection ~A" selection)))))
 
@@ -523,6 +517,12 @@
            (until (text/position= position end-position))
            (summing 1)))))
 
+(def function text/origin-preceding-length (text)
+  (text/length text (text/first-position text) (text/origin-position text)))
+
+(def function text/origin-following-length (text)
+  (text/length text (text/origin-position text) (text/last-position text)))
+
 (def function text/width (text &optional (start-position (text/first-position text)) (end-position (text/last-position text)))
   (etypecase (elements-of text)
     (null 0)
@@ -645,6 +645,22 @@
         (collect (text/substring text start-position (or end-position (text/last-position text))))
         (while end-position)))
 
+(def function text/indent (text indentation &key insert-new-line)
+  (text/make-text (append-ll (map-ll* (ll (elements-of text))
+                                      (lambda (child-element-element index)
+                                        (declare (ignore index))
+                                        (bind ((child-element (value-of child-element-element))
+                                               (font (font-of child-element))
+                                               (first-element? (not (previous-element-of child-element-element)))
+                                               (new-line? (text/newline? child-element)))
+                                          (ll (optional-list (when (and first-element? insert-new-line)
+                                                               (text/newline :font (font-of child-element)))
+                                                             (when (and first-element? (> indentation 0))
+                                                               (text/string (make-string-of-spaces indentation) :font font))
+                                                             child-element
+                                                             (when (and new-line? (> indentation 0))
+                                                               (text/string (make-string-of-spaces indentation) :font font))))))))))
+
 (def function text/concatenate (&rest texts)
   (text/make-text (apply #'concatenate 'vector (mapcar #'elements-of texts))))
 
@@ -653,7 +669,7 @@
   text)
 
 (def function text/reference? (reference)
-  (pattern-case (reverse (coerce (va* reference) 'list))
+  (reference-case (reverse-cc reference)
     (((the text/text (text/subseq (the text/text document) ?b ?a)) . ?rest)
      #t)))
 
@@ -691,7 +707,7 @@
 
 (def function text/read-replace-selection-operation (text key &optional modifier)
   (bind ((new-position
-          (pattern-case (selection-of text)
+          (reference-case (selection-of text)
             (((the text/text (text/subseq (the text/text document) ?character-index ?character-index)))
              (bind ((character-index ?character-index)
                     (origin-position (text/origin-position text))
@@ -765,7 +781,7 @@
                                           (return distance))
                                         (summing 1 :into distance))))
         (check-type new-character-index integer)
-        (make-operation/replace-selection text `((the text/text (text/subseq (the text/text document) ,new-character-index ,new-character-index))))))))
+        (make-operation/replace-selection `((the text/text (text/subseq (the text/text document) ,new-character-index ,new-character-index))))))))
 
 (def function text/read-operation (text gesture)
   (or (gesture-case gesture
@@ -809,35 +825,35 @@
          :operation (text/read-replace-selection-operation text :scancode-end :control))
         ((make-key-press-gesture :scancode-delete)
          :domain "Text" :description "Deletes the character following the selection"
-         :operation (pattern-case (selection-of text)
+         :operation (reference-case (selection-of text)
                       (((the text/text (text/subseq (the text/text document) ?b ?b)))
                        (when (text/origin-relative-position text ?b)
-                         (make-operation/text/replace-range text `((the text/text (text/subseq (the text/text document) ,?b ,(1+ ?b)))) "")))))
+                         (make-operation/text/replace-range `((the text/text (text/subseq (the text/text document) ,?b ,(1+ ?b)))) "")))))
         ((make-key-press-gesture :scancode-delete :control)
          :domain "Text" :description "Deletes the word following the selection"
-         :operation (pattern-case (selection-of text)
+         :operation (reference-case (selection-of text)
                       (((the text/text (text/subseq (the text/text document) ?b ?b)))
                        (bind ((start-position (text/origin-relative-position text ?b))
                               (end-position (or (awhen (text/find text start-position (lambda (c) (alphanumericp c)))
                                                   (text/find text it (lambda (c) (not (alphanumericp c)))))
                                                 (text/last-position text))))
                          (when end-position
-                           (make-operation/text/replace-range text `((the text/text (text/subseq (the text/text document) ,?b ,(+ ?b (text/length text start-position end-position))))) ""))))))
+                           (make-operation/text/replace-range `((the text/text (text/subseq (the text/text document) ,?b ,(+ ?b (text/length text start-position end-position))))) ""))))))
         ((make-key-press-gesture :scancode-backspace)
          :domain "Text" :description "Deletes the character preceding the selection"
-         :operation (pattern-case (selection-of text)
+         :operation (reference-case (selection-of text)
                       (((the text/text (text/subseq (the text/text document) ?b ?b)))
-                       (make-operation/text/replace-range text `((the text/text (text/subseq (the text/text document) ,(1- ?b) ,?b))) ""))))
+                       (make-operation/text/replace-range `((the text/text (text/subseq (the text/text document) ,(1- ?b) ,?b))) ""))))
         ((make-key-press-gesture :scancode-backspace :control)
          :domain "Text" :description "Deletes the word preceding the selection"
-         :operation (pattern-case (selection-of text)
+         :operation (reference-case (selection-of text)
                       (((the text/text (text/subseq (the text/text document) ?b ?b)))
                        (bind ((end-position (text/relative-position text (text/origin-position text) ?b))
                               (start-position (or (awhen (text/find text end-position (lambda (c) (alphanumericp c)) :direction :backward)
                                                     (text/find text it (lambda (c) (not (alphanumericp c))) :direction :backward))
                                                   (text/first-position text))))
                          (when start-position
-                           (make-operation/text/replace-range text `((the text/text (text/subseq (the text/text document) ,(- ?b (text/length text start-position end-position)) ,?b))) ""))))))
+                           (make-operation/text/replace-range `((the text/text (text/subseq (the text/text document) ,(- ?b (text/length text start-position end-position)) ,?b))) ""))))))
         ((make-key-press-gesture :scancode-i :control)
          :domain "Text" :description "Describes the character at the selection"
          :operation (make-operation/describe (selection-of text)))
@@ -846,16 +862,16 @@
          :operation (make-instance 'operation/show-annotation :document text :selection (selection-of text)))
         ((make-key-press-gesture :scancode-return)
          :domain "Text" :description "Inserts a newline at the selection"
-         :operation (make-operation/text/replace-range text (selection-of text) (string #\NewLine))))
+         :operation (make-operation/text/replace-range (selection-of text) (string #\NewLine))))
       ;; TODO: move into gesture-case
       (cond ((and (typep gesture 'gesture/keyboard/type-in)
                   (character-of gesture)
                   (or (graphic-char-p (character-of gesture))
                       (whitespace? (character-of gesture))))
              (bind ((character (character-of gesture)))
-               (pattern-case (selection-of text)
+               (reference-case (selection-of text)
                  (((the text/text (text/subseq (the text/text document) ?b ?b)) . ?rest)
                   (make-command gesture
-                                (make-operation/text/replace-range text (selection-of text) (string character))
+                                (make-operation/text/replace-range (selection-of text) (string character))
                                 :domain "Text"
                                 :description "Inserts a new character at the selection"))))))))

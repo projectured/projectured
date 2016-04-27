@@ -238,7 +238,7 @@
     (graphics/point
      (make-rectangle (position-of instance) (make-2d 1 1)))))
 
-(def function make-reference (instance position reference)
+(def function make-graphics-reference (instance position reference)
   (typecase instance
     (graphics/point
      nil)
@@ -281,9 +281,9 @@
 
     (graphics/viewport
      (when (rectangle-contains-point? instance position)
-       (make-reference (content-of instance) (- position (position-of instance))
-                       (append reference
-                               `((the ,(document-type (content-of instance)) (content-of (the graphics/viewport document))))))))
+       (make-graphics-reference (content-of instance) (- position (position-of instance))
+                                (append reference
+                                        `((the ,(document-type (content-of instance)) (content-of (the graphics/viewport document))))))))
 
     (graphics/canvas
      (bind ((elements (elements-of instance)))
@@ -293,29 +293,29 @@
                  (for element-ll :initially elements :then (next-element-of element-ll))
                  (while element-ll)
                  (for element = (value-of element-ll))
-                 (thereis (make-reference element (- position (position-of instance))
-                                          (append reference
-                                                  `((the sequence (elements-of (the graphics/canvas document)))
-                                                    (the ,(document-type element) (elt (the sequence document) ,index)))))))
+                 (thereis (make-graphics-reference element (- position (position-of instance))
+                                                   (append reference
+                                                           `((the sequence (elements-of (the graphics/canvas document)))
+                                                             (the ,(document-type element) (elt (the sequence document) ,index)))))))
            (iter (for index :from (1- (length elements)) :downto 0)
                  (for element = (elt elements index))
-                 (thereis (make-reference element (- position (position-of instance))
-                                          (append reference
-                                                  `((the sequence (elements-of (the graphics/canvas document)))
-                                                    (the ,(document-type element) (elt (the sequence document) ,index))))))))))))
+                 (thereis (make-graphics-reference element (- position (position-of instance))
+                                                   (append reference
+                                                           `((the sequence (elements-of (the graphics/canvas document)))
+                                                             (the ,(document-type element) (elt (the sequence document) ,index))))))))))))
 
 (def function graphics/read-operation (graphics gesture)
   (gesture-case gesture
     ((make-instance 'gesture/mouse/click :mouse-position 0 :button :button-left :modifiers nil)
      :domain "Graphics" :description "Moves the selection to where the mouse is pointing at"
-     :operation (make-operation/replace-selection graphics (make-reference graphics (mouse-position-of gesture) nil)))
+     :operation (make-operation/replace-selection (make-graphics-reference graphics (mouse-position-of gesture) nil)))
     ;; KLUDGE: for toggle collapsed syntax node operation
     ((make-instance 'gesture/mouse/click :mouse-position 0 :button :button-left :modifiers '(:control))
      :domain "Graphics" :description "Moves the selection to where the mouse is pointing at"
-     :operation (make-operation/replace-selection graphics (make-reference graphics (mouse-position-of gesture) nil)))
+     :operation (make-operation/replace-selection (make-graphics-reference graphics (mouse-position-of gesture) nil)))
     ((make-instance 'gesture/keyboard/key-press :mouse-position 0 :key :scancode-i :modifiers '(:control))
      :domain "Graphics" :description "Describes what the mouse is pointing at"
-     :operation (make-operation/describe (make-reference graphics (mouse-position-of gesture) nil)))
+     :operation (make-operation/describe (make-graphics-reference graphics (mouse-position-of gesture) nil)))
     ((make-instance 'gesture/keyboard/key-press :mouse-position 0 :key :scancode-a :modifiers '(:control))
      :domain "Graphics" :description "TODO"
-     :operation (make-instance 'operation/show-annotation :document graphics :selection (make-reference graphics (mouse-position-of gesture) nil)))))
+     :operation (make-instance 'operation/show-annotation :document graphics :selection (make-graphics-reference graphics (mouse-position-of gesture) nil)))))

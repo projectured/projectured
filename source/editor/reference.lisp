@@ -45,16 +45,5 @@
       result))
 
 (def macro reference-case (reference &body cases)
-  (bind ((maximum-length (iter (for case :in cases)
-                               (maximize (labels ((recurse (instance)
-                                                    (if (consp instance)
-                                                        (1+ (recurse (cdr instance)))
-                                                        0)))
-                                           (recurse (first case)))))))
-    `(pattern-case (force-cc ,reference ,maximum-length)
-        ,@(iter (for case :in cases)
-                (collect (if (or (not (consp (first case)))
-                                 (cdr (last (first case))))
-                             case
-                             (list (nconc (first case) '?rest)
-                                   (second case))))))))
+  `(pattern-case ,reference
+     ,@cases))

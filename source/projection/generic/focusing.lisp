@@ -53,7 +53,7 @@
                      :domain "Focusing" :description "Moves the focus to the selection"
                      :operation (make-instance 'operation/focusing/replace-part
                                                :projection -projection-
-                                               :part (iter (for selection :on (reverse (get-selection (input-of -printer-iomap-))))
+                                               :part (iter (for selection :on (reverse-cc (get-selection (input-of -printer-iomap-))))
                                                            (when (subtypep (second (first selection)) (part-type-of -projection-))
                                                              (return (reverse selection)))))))
                   (awhen (operation/extend (input-of -printer-iomap-) (part-of -projection-) (operation-of -input-))
@@ -70,8 +70,8 @@
 ;;;;;;
 ;;; Evaluator
 
-(def evaluator operation/focusing/replace-part (operation)
-  (bind ((projection (projection-of operation))
-         (part (part-of operation)))
+(def evaluator operation/focusing/replace-part ()
+  (bind ((projection (projection-of -operation-))
+         (part (part-of -operation-)))
     (setf (part-of projection) part)
     (setf (part-evaluator-of projection) (compile nil `(lambda (document) ,(flatten-reference part))))))

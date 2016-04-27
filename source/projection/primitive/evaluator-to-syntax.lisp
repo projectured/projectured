@@ -146,21 +146,19 @@
                     ((make-key-press-gesture :scancode-insert)
                      :domain "Evaluator" :description "Starts a generic insertion into the elements of the toplevel"
                      :operation (bind ((elements-length (length (elements-of -printer-input-))))
-                                  (make-operation/sequence/replace-range -printer-input- `((the sequence (elements-of (the evaluator/toplevel document)))
-                                                                                           (the sequence (subseq (the sequence document) ,elements-length ,elements-length)))
+                                  (make-operation/sequence/replace-range `((the sequence (elements-of (the evaluator/toplevel document)))
+                                                                           (the sequence (subseq (the sequence document) ,elements-length ,elements-length)))
                                                                          (list (document/insertion (:selection '((the string (value-of (the document/insertion document)))
                                                                                                                  (the string (subseq (the string document) 0 0)))))))))
                     ((make-key-press-gesture :scancode-return :control)
                      :domain "Evaluator" :description "Inserts a new form at the selection"
                      :operation (bind ((elements-length (length (elements-of -printer-input-))))
-                                  (make-operation/compound (list (make-operation/sequence/replace-range -printer-input-
-                                                                                                        `((the sequence (elements-of (the evaluator/toplevel document)))
+                                  (make-operation/compound (list (make-operation/sequence/replace-range `((the sequence (elements-of (the evaluator/toplevel document)))
                                                                                                           (the sequence (subseq (the sequence document) ,elements-length ,elements-length)))
                                                                                                         (list (evaluator/form ()
                                                                                                                 (make-common-lisp/insertion "" (make-instance 'evaluator/completion :toplevel -printer-input-)
                                                                                                                                             :default-value "enter form"))))
-                                                                 (make-operation/replace-selection -printer-input-
-                                                                                                   `((the sequence (elements-of (the evaluator/toplevel document)))
+                                                                 (make-operation/replace-selection `((the sequence (elements-of (the evaluator/toplevel document)))
                                                                                                      (the evaluator/form (elt (the sequence document) ,elements-length))
                                                                                                      (the common-lisp/insertion (form-of (the evaluator/form document)))
                                                                                                      (the string (value-of (the common-lisp/insertion document)))

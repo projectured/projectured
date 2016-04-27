@@ -104,11 +104,10 @@
                                     (the string (write-to-string (the number document)))
                                     (the string (subseq (the string document) ?start-index ?end-index)))
                                    (when (every 'digit-char-p (replacement-of operation))
-                                     (make-operation/number/replace-range -printer-input- selection (replacement-of operation))))
+                                     (make-operation/number/replace-range selection (replacement-of operation))))
                                   (((the number (printer-output (the primitive/number document) ?projection ?recursion)) . ?rest)
                                    (when (every 'digit-char-p (replacement-of operation))
-                                     (make-operation/number/replace-range -printer-input-
-                                                                          '((the number (value-of (the primitive/number document)))
+                                     (make-operation/number/replace-range '((the number (value-of (the primitive/number document)))
                                                                             (the string (write-to-string (the number document)))
                                                                             (the string (subseq (the string document) 0 0)))
                                                                           (replacement-of operation))))))))))

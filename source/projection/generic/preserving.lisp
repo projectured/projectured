@@ -25,6 +25,18 @@
   '(make-projection/preserving))
 
 ;;;;;;
+;;; Forward mapper
+
+(def forward-mapper preserving ()
+  -reference-)
+
+;;;;;;
+;;; Backward mapper
+
+(def backward-mapper preserving ()
+  -reference-)
+
+;;;;;;
 ;;; Printer
 
 (def printer preserving ()

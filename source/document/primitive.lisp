@@ -55,44 +55,39 @@
 ;;; Operation
 
 (def operation operation/number/replace-range ()
-  ((document :type document)
-   (selection :type reference)
+  ((selection :type reference)
    (replacement :type sequence)))
 
 (def operation operation/string/replace-range ()
-  ((document :type t)
-   (selection :type reference)
+  ((selection :type reference)
    (replacement :type string)))
 
 ;;;;;;
 ;;; Construction
 
-(def function make-operation/number/replace-range (document selection replacement)
+(def function make-operation/number/replace-range (selection replacement)
   (make-instance 'operation/number/replace-range
-                 :document document
                  :selection selection
                  :replacement replacement))
 
-(def function make-operation/string/replace-range (document selection replacement)
+(def function make-operation/string/replace-range (selection replacement)
   (make-instance 'operation/string/replace-range
-                 :document document
                  :selection selection
                  :replacement replacement))
 
 ;;;;;;
 ;;; Evaluator
 
-(def evaluator operation/number/replace-range (operation)
-  (bind ((document (document-of operation))
-         (selection (selection-of operation))
-         (replacement (replacement-of operation)))
-    (pattern-case (reverse selection)
+(def evaluator operation/number/replace-range ()
+  (bind ((selection (selection-of -operation-))
+         (replacement (replacement-of -operation-)))
+    (pattern-case (reverse-cc selection)
       (((the string (subseq (the string document) ?start-index ?end-index))
         (the string (write-to-string (the ?type document)))
         . ?rest)
        (bind ((reference (reverse ?rest))
               (flat-reference (flatten-reference reference))
-              (old-document (eval-reference document flat-reference))
+              (old-document (eval-reference -document- flat-reference))
               (old-number (if (typep old-document 'primitive/number)
                               (value-of old-document)
                               old-document))
@@ -105,30 +100,29 @@
               (new-selection (append reference `((the string (write-to-string (the ,?type document)))
                                                  (the string (subseq (the string document) ,new-index ,new-index))))))
          (if (typep old-document 'primitive/number)
-             (setf (value-of (eval-reference document flat-reference)) new-number)
-             (setf (eval-reference document flat-reference) new-number))
-         (call-evaluator (make-operation/replace-selection document new-selection))))
+             (setf (value-of (eval-reference -document- flat-reference)) new-number)
+             (setf (eval-reference -document- flat-reference) new-number))
+         (call-evaluator -document- (make-operation/replace-selection new-selection))))
       (?a
        (error "Unknown selection ~A" selection)))))
 
-(def evaluator operation/string/replace-range (operation)
-  (bind ((document (document-of operation))
-         (selection (selection-of operation))
-         (replacement (replacement-of operation)))
-    (pattern-case (reverse selection)
+(def evaluator operation/string/replace-range ()
+  (bind ((selection (selection-of -operation-))
+         (replacement (replacement-of -operation-)))
+    (pattern-case (reverse-cc selection)
       (((the string (subseq (the string document) ?start-index ?end-index))
         . ?rest)
        (bind ((reference (reverse ?rest))
               (flat-reference (flatten-reference reference))
-              (old-document (eval-reference document flat-reference))
+              (old-document (eval-reference -document- flat-reference))
               (old-string (if (typep old-document 'primitive/string) (value-of old-document) old-document))
               (new-string (concatenate 'string (subseq old-string 0 ?start-index) replacement (subseq old-string ?end-index)))
               (new-index (+ ?start-index (length replacement)))
               (new-selection (append reference `((the ,(document-type new-string) (subseq (the ,(document-type old-string) document) ,new-index ,new-index))))))
          (if (typep old-document 'primitive/string)
-             (setf (value-of (eval-reference document flat-reference)) new-string)
-             (setf (eval-reference document flat-reference) new-string))
-         (call-evaluator (make-operation/replace-selection document new-selection))))
+             (setf (value-of (eval-reference -document- flat-reference)) new-string)
+             (setf (eval-reference -document- flat-reference) new-string))
+         (call-evaluator -document- (make-operation/replace-selection new-selection))))
       (?a
        (error "Unknown selection ~A" selection)))))
 

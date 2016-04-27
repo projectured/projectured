@@ -55,43 +55,38 @@
 ;;; Operation
 
 (def operation operation/sequence/replace-range ()
-  ((document :type t)
-   (selection :type reference)
+  ((selection :type reference)
    (replacement :type sequence)))
 
 (def operation operation/sequence/swap-ranges ()
-  ((document :type t)
-   (selection-1 :type reference)
+  ((selection-1 :type reference)
    (selection-2 :type reference)))
 
 ;;;;;;
 ;;; Construction
 
-(def function make-operation/sequence/replace-range (document selection replacement)
+(def function make-operation/sequence/replace-range (selection replacement)
   (make-instance 'operation/sequence/replace-range
-                 :document document
                  :selection selection
                  :replacement replacement))
 
-(def function make-operation/sequence/swap-ranges (document selection-1 selection-2)
+(def function make-operation/sequence/swap-ranges (selection-1 selection-2)
   (make-instance 'operation/sequence/swap-ranges
-                 :document document
                  :selection-1 selection-1
                  :selection-2 selection-2))
 
 ;;;;;;
 ;;; Evaluator
 
-(def evaluator operation/sequence/replace-range (operation)
-  (bind ((document (document-of operation))
-         (selection (selection-of operation))
-         (replacement (replacement-of operation)))
+(def evaluator operation/sequence/replace-range ()
+  (bind ((selection (selection-of -operation-))
+         (replacement (replacement-of -operation-)))
     (pattern-case (reverse selection)
       (((the sequence (subseq (the sequence document) ?start-index ?end-index))
         . ?rest)
        (bind ((reference (reverse ?rest))
               (flat-reference (flatten-reference reference))
-              (old-document (eval-reference document flat-reference))
+              (old-document (eval-reference -document- flat-reference))
               (old-sequence (if (typep old-document 'collection/sequence)
                                 (elements-of old-document)
                                 old-document))
@@ -112,16 +107,15 @@
                                                      (the ,type document)))))))
          ;; KLUDGE: to make sure we always end up with a computed-ll sequence
          (if (typep old-document 'collection/sequence)
-             (setf (elements-of (eval-reference document flat-reference)) (ll new-sequence))
-             (setf (eval-reference document flat-reference) (ll new-sequence)))
-         (call-evaluator (make-operation/replace-selection document new-selection))))
+             (setf (elements-of (eval-reference -document- flat-reference)) (ll new-sequence))
+             (setf (eval-reference -document- flat-reference) (ll new-sequence)))
+         (call-evaluator -document- (make-operation/replace-selection new-selection))))
       (?a
        (error "Unknown selection ~A" selection)))))
 
-(def evaluator operation/sequence/swap-ranges (operation)
-  (bind ((document (document-of operation))
-         (selection-1 (selection-1-of operation))
-         (selection-2 (selection-2-of operation)))
+(def evaluator operation/sequence/swap-ranges ()
+  (bind ((selection-1 (selection-1-of -operation-))
+         (selection-2 (selection-2-of -operation-)))
     (not-yet-implemented)))
 
 ;;;;;;

@@ -118,7 +118,7 @@
                         (text/string (write-to-string path) :font font :font-color type-color)
                         (text/newline :font font))))))
       (bind ((output (if (path-of -input-)
-                         (text/make-text (butlast (recurse (reverse (coerce (path-of -input-) 'list)))))
+                         (text/make-text (butlast (recurse (reverse-cc (path-of -input-)))))
                          (text/text ()
                            (text/string "The " :font static-font :font-color static-color)
                            (text/string (symbol-name (document-type -input-)) :font font :font-color type-color)
