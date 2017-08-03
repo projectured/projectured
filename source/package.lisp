@@ -13,5 +13,6 @@
         :hu.dwim.defclass-star
         :hu.dwim.logger
         :hu.dwim.util)
+  (:shadow #:as)
   (:readtable-setup
    (hu.dwim.util:enable-standard-hu.dwim-syntaxes)))
