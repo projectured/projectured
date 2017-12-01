@@ -6,7 +6,7 @@ ProjecturEd is a general purpose projectional editor written in Common Lisp.
 
 It supports the integrated presentation and editing of arbitrary problem domains. These domains potentially include but not limited to: word processing, spreadsheets, markup languages, programming langueges, modelling, graphs, graphics, etc. and any combination of them. The edited data is represented in their natural, domain specific data structures (as opposed to a flat string of characters), which accommodates for the implementation of many interesting, but yet to be explored features of structured editing.
 
-It also supports multiple projections of the same data, and thus it can simultaneously provide different notations, potentially all of them editable. These views can be textual, fully graphical, or in between, and due to the internal architecture of the editor projections combine well. It is expected that users would not only add new documents, but also new projections as needed.
+It also supports multiple projections of the same data, and thus it can simultaneously provide different notations, potentially all of them editable. These views can be textual, fully graphical, or in between, and because of the internal architecture of the editor, the various projections combine well. It is expected that users would not only add new documents, but also new projections as needed.
 
 # Running the Editor #
 
@@ -14,7 +14,7 @@ The easiest way to run the editor is to install it using [Quicklisp](http://quic
 
 ### 1. Get a reasonably fresh SBCL ###
 
-For example, on Debian Jessie:
+For example, on Debian Stretch:
 
 ```
 sudo apt-get install sbcl rlwrap git libsdl2-2.0-0 libsdl2-image-2.0-0 libsdl2-ttf-2.0-0
@@ -35,7 +35,9 @@ sbcl --load quicklisp.lisp --eval "(quicklisp-quickstart:install)" --eval "(ql:a
 
 To finish the installation of Quicklisp approve the prompted question.
 
-### 3. Check out some git repos ###
+### 3. Get ProjecturEd ###
+
+#### Get the latest from git (recommended) ####
 
 If you want to play with the latest (and potentially less stable) version of ProjecturEd:
 ```
@@ -43,33 +45,29 @@ cd ~/quicklisp/local-projects/
 git clone https://github.com/projectured/projectured.git
 ```
 
-At the time of writing the ASDF shipped with Quicklisp is too old,
-so you may need to clone the latest release if your lisp implementation
-is also shipped with an old ASDF:
-```
-cd ~/quicklisp/local-projects/
-git clone https://gitlab.common-lisp.net/asdf/asdf.git --branch release
-```
+#### Get it from Quicklisp ####
 
-At the time of writing the following systems are not yet in Quicklisp
-or contain unmerged changes:
 ```
-cd ~/quicklisp/local-projects/
-git clone https://github.com/attila-lendvai/cffi.git --branch c2ffi
-git clone https://github.com/attila-lendvai/hu.dwim.sdl.git
+sbcl --eval "(ql-dist:ensure-installed (ql-dist:find-system :projectured.executable))" --eval "(exit)"
 ```
 
 ### 4. Build a standalone executable of ProjecturEd ###
 
-Run the following shell script:
+Depending on how you got ProjecturEd, run one of the following shell scripts:
+
+```
+sh ~/quicklisp/dists/quicklisp/software/projectured*/bin/build.sh
+```
+
+Or:
 
 ```
 ~/quicklisp/local-projects/projectured/bin/build.sh
 ```
 
-The output and the build log will be saved next to the build.sh script.
+Note: The build log will be saved next to the build.sh script.
 
-### 5. Run the editor ###
+### 5. Run the editor executable ###
 
 After the build has been completed you can run the editor from the command line with:
 
@@ -103,7 +101,7 @@ This last example will show a window presenting an example JSON document. You ca
 
 ### 5. Run some of the tests ###
 
-Start SBCL with ```rlwrap sbcl```, and copy these into its REPL:
+Start SBCL with `rlwrap sbcl`, and copy these into its REPL:
 
 ```
 (ql:quickload :projectured.sdl.test)
@@ -112,15 +110,35 @@ Start SBCL with ```rlwrap sbcl```, and copy these into its REPL:
 
 This will run the automated test suite and print the result in the REPL.
 
-### 4. If something goes wrong with loading ###
+### 4. Troubleshooting ###
 
-If you have some Common Lisp libraries installed somewhere, then try to make sure that nothing besides the quicklisp installed libs get loaded. You can achieve that by adding this to the beginning of your .sbclrc:
+#### Isolate locally installed libraries ####
+
+If you have some Common Lisp libraries installed somewhere on your system, then try to make sure that nothing besides what's in quicklisp gets loaded. You can achieve that by adding the following to the beginning of your .sbclrc:
 
 ```
 (require :asdf)
 (funcall (read-from-string "asdf:initialize-source-registry")
          '(:source-registry :ignore-inherited-configuration))
 ```
+
+#### Too old ASDF ####
+
+If you get ASDF realted errors then try to clone the latest ASDF release:
+```
+cd ~/quicklisp/local-projects/
+git clone https://gitlab.common-lisp.net/asdf/asdf.git --branch release
+```
+
+#### Loading without generating an executable ####
+
+Start SBCL with `rlwrap sbcl`, and copy these into its REPL:
+
+```
+(ql:quickload '(:projectured.executable :hu.dwim.def+swank))
+(projectured::executable-toplevel)
+```
+
 
 # Collaboration #
 
