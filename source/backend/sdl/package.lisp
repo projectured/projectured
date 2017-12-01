@@ -14,6 +14,8 @@
         :hu.dwim.logger
         :hu.dwim.util
         :projectured)
+  (:shadowing-import-from :projectured
+                          #:as)
   (:readtable-setup
    (hu.dwim.util:enable-standard-hu.dwim-syntaxes)
    (hu.dwim.syntax-sugar:enable-case-preserving-syntax :packages '(:hu.dwim.sdl.ffi))))
