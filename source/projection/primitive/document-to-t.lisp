@@ -191,7 +191,7 @@
                                     #+nil
                                     (make-operation/sequence/replace-range printer-input (selection-of printer-input)
                                                                            (with-output-to-string (stream)
-                                                                             (uiop:run-program "/usr/bin/xclip" (list "-o") :output stream)))))
+                                                                             (uiop:run-program (list "xclip" "-o") :output stream)))))
                     ((make-key-press-gesture :scancode-v '(:shift :control))
                      :domain "Document" :description "Pastes a new copy of the object from the clipboard to the selection"
                      :operation (when (slice-of -printer-input-)
