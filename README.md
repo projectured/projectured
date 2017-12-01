@@ -45,7 +45,7 @@ cd ~/quicklisp/local-projects/
 git clone https://github.com/projectured/projectured.git
 ```
 
-#### Get it from Quicklisp ####
+#### Or get it from Quicklisp ####
 
 ```
 sbcl --eval "(ql-dist:ensure-installed (ql-dist:find-system :projectured.executable))" --eval "(exit)"
@@ -56,13 +56,13 @@ sbcl --eval "(ql-dist:ensure-installed (ql-dist:find-system :projectured.executa
 Depending on how you got ProjecturEd, run one of the following shell scripts:
 
 ```
-sh ~/quicklisp/dists/quicklisp/software/projectured*/bin/build.sh
+~/quicklisp/local-projects/projectured/bin/build.sh
 ```
 
 Or:
 
 ```
-~/quicklisp/local-projects/projectured/bin/build.sh
+sh ~/quicklisp/dists/quicklisp/software/projectured*/bin/build.sh
 ```
 
 Note: The build log will be saved next to the build.sh script.
@@ -99,7 +99,7 @@ If everything went fine, then you should see a window presenting an empty generi
 
 This last example will show a window presenting an example JSON document. You can always press Control + H to get context sensitive help in the editor.
 
-### 5. Run some of the tests ###
+### Run some of the tests ###
 
 Start SBCL with `rlwrap sbcl`, and copy these into its REPL:
 
@@ -110,7 +110,7 @@ Start SBCL with `rlwrap sbcl`, and copy these into its REPL:
 
 This will run the automated test suite and print the result in the REPL.
 
-### 4. Troubleshooting ###
+### Troubleshooting ###
 
 #### Isolate locally installed libraries ####
 
@@ -130,9 +130,7 @@ cd ~/quicklisp/local-projects/
 git clone https://gitlab.common-lisp.net/asdf/asdf.git --branch release
 ```
 
-#### Loading without generating an executable ####
-
-Start SBCL with `rlwrap sbcl`, and copy these into its REPL:
+#### Loading without building an executable ####
 
 ```
 (ql:quickload '(:projectured.executable :hu.dwim.def+swank))
