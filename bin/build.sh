@@ -21,6 +21,11 @@ LISP=${LISP:-sbcl}
 #LISP=${SCRIPT_DIR}/../../sbcl/run-sbcl.sh
 #LISP=`readlink -f ${LISP}`
 
+if command -v guix &> /dev/null; then
+  echo "Guix detected, entering the environment."
+  eval $(guix shell --search-paths libffi sdl2 sdl2-gfx sdl2-image sdl2-ttf graphviz clang-toolchain)
+fi
+
 ###
 ### end of settings
 ###
