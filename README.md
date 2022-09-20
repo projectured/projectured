@@ -4,7 +4,7 @@
 
 ProjecturEd is a general purpose projectional editor written in Common Lisp.
 
-It supports the integrated presentation and editing of arbitrary problem domains. These domains potentially include but not limited to: word processing, spreadsheets, markup languages, programming langueges, modelling, graphs, graphics, etc. and any combination of them. The edited data is represented in their natural, domain specific data structures (as opposed to a flat string of characters), which accommodates for the implementation of many interesting, but yet to be explored features of structured editing.
+It supports the integrated presentation and editing of arbitrary problem domains. These domains potentially include but not limited to: word processing, spreadsheets, markup languages, programming languages, modelling, graphs, graphics, etc. and any combination of them. The edited data is represented in their natural, domain specific data structures (as opposed to a flat string of characters), which accommodates for the implementation of many interesting, but yet to be explored features of structured editing.
 
 It also supports multiple projections of the same data, and thus it can simultaneously provide different notations, potentially all of them editable. These views can be textual, fully graphical, or in between, and because of the internal architecture of the editor, the various projections combine well. It is expected that users would not only add new documents, but also new projections as needed.
 
