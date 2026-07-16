@@ -1,3 +1,13 @@
+> # ⚠️ Archived — no longer maintained
+>
+> This is the **original Common Lisp implementation** of ProjecturEd, kept here for
+> historical reference only. It is read-only and receives no further updates.
+>
+> **For project news, documentation, and what ProjecturEd can do today, visit
+> [projectured.github.io](https://projectured.github.io).**
+
+---
+
 ![My image](http://s9.postimage.org/mxnmsv4en/projectured.png)
 
 # Description #
